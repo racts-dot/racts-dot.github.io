@@ -99,9 +99,9 @@ mark.sr{background:#ffe066;color:inherit;padding:0 1px;border-radius:2px}
 .sinfo{flex:1 1 auto;min-width:0}.stitle{font-size:13px}.smeta{font-size:11px;color:#777;margin-top:2px}
 .smeta .dev{background:#eee;color:#555;padding:1px 6px;border-radius:10px;font-weight:400}
 .sprice{text-align:right;white-space:nowrap}.sprice .sug{display:block;font-size:11px;color:#888;font-weight:400}
-.backtop{position:fixed;right:16px;bottom:16px;width:46px;height:46px;border-radius:50%;background:#1F3864;color:#fff;border:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:20}
+.hdrow{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}.hbtns{display:flex;gap:6px}.hbtn{background:#1F3864;color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer}.hbtn:active{opacity:.7}@media print{ .hbtns,.tabbar,.backtop,#backbtn,#lb,#info,.ctrl,.ctrls,.filters,#scantoast{display:none!important} body{background:#fff} .wrap{max-width:none;padding:0} .tab{display:none!important}.tab.active{display:block!important} .stock,.card,.brow{page-break-inside:avoid;break-inside:avoid} .stockbody{display:none!important} a{text-decoration:none;color:#000}}.backtop{position:fixed;right:16px;bottom:16px;width:46px;height:46px;border-radius:50%;background:#1F3864;color:#fff;border:none;font-size:20px;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;z-index:20}
 </style></head><body><div class=wrap>
-<h1>June Sales Tracker</h1><div class=date>Stock · Tracker · eBay · Weekly · Summary · v30Jul-0939</div>
+<div class=hdrow><h1>June Sales Tracker</h1><div class=hbtns><button class=hbtn onclick="doRefresh()">&#8635; Refresh</button><button class=hbtn onclick="doPDF()">&#128196; PDF</button></div></div><div class=date>Stock · Tracker · eBay · Weekly · Summary · v30Jul-0950</div>
 <div class=tabbar>
  <button class="tabbtn on" onclick="show('stock',this)">Stock to sell</button>
  <button class=tabbtn onclick="show('tracker',this)">Tracker</button>
@@ -461,6 +461,9 @@ mark.sr{background:#ffe066;color:inherit;padding:0 1px;border-radius:2px}
 <div id=scantoast style="display:none"></div>
 <button class=backtop onclick="window.scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
 <script>
+function doRefresh(){location.replace("app.html?t="+Date.now());}
+function doPDF(){window.print();}
+
 function tp(row){var open=false,n=row.nextElementSibling;while(n&&n.classList.contains('pdetail')){n.style.display=n.style.display==='none'?'':'none';open=n.style.display!=='none';n=n.nextElementSibling;}row.querySelector('.caret').textContent=open?'▾':'▸';}
 function togS(el){var st=el.closest('.stock'),b=st.querySelector('.stockbody'),o=b.style.display==='none';b.style.display=o?'':'none';st.querySelector('.caret2').textContent=o?'▾':'▸';}
 function zoom(el){var im=el.querySelector('img');if(!im)return;var o=document.getElementById('lb');o.querySelector('img').src=im.src;o.style.display='flex';}
