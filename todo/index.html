@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1115">
+<title>To-Do &amp; Reflections</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--border:#2a2e38;--text:#e8e9ed;--muted:#8b8f9b;--accent:#6c8cff;--chip:#3c4050;--danger:#ff6b6b;--ok:#4ade80}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:max(20px,env(safe-area-inset-top)) 16px 60px}
+.wrap{max-width:640px;margin:0 auto}
+.status{font-size:11px;color:var(--muted);text-align:right;margin-bottom:10px;height:14px}
+.status.ok{color:var(--ok)}.status.err{color:var(--danger)}
+.mode-switch{display:flex;gap:6px;margin-bottom:18px}
+.mode-btn{flex:1;padding:11px;text-align:center;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-weight:600;font-size:14px;cursor:pointer}
+.mode-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.page{display:none}.page.active{display:block}
+.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+.add-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+input[type=text],select,textarea{padding:12px 14px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:16px;font-family:inherit}
+input[type=text]{flex:1 1 160px}
+textarea{width:100%;min-height:110px;resize:vertical;margin-bottom:10px}
+button{padding:12px 18px;border-radius:10px;border:none;background:var(--accent);color:#fff;font-weight:600;font-size:14px;cursor:pointer}
+button:disabled{opacity:.4}
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.tab{padding:6px 12px;border-radius:999px;background:var(--card);border:1px solid var(--border);color:var(--muted);font-size:13px;cursor:pointer}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px}
+.item.done{opacity:.5}.item.done .label{text-decoration:line-through}
+.checkbox{width:22px;height:22px;border-radius:6px;border:2px solid var(--muted);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px}
+.item.done .checkbox{background:var(--accent);border-color:var(--accent)}
+.label{flex:1;font-size:15px;word-break:break-word}
+.chip{font-size:11px;color:var(--muted);background:var(--chip);padding:2px 8px;border-radius:999px;white-space:nowrap}
+.del{color:var(--danger);background:none;border:none;font-size:20px;padding:2px 6px;cursor:pointer}
+.empty{color:var(--muted);text-align:center;padding:36px 0;font-size:14px}
+.footer-row{display:flex;justify-content:space-between;align-items:center;margin-top:18px;color:var(--muted);font-size:12px;gap:10px}
+.ghost{background:none;border:1px solid var(--border);color:var(--muted);padding:6px 12px;font-size:12px}
+.note{padding:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px}
+.note-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.note-date{font-size:11px;color:var(--muted)}
+.note-text{white-space:pre-wrap;font-size:14px;line-height:1.55;word-break:break-word}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="status" id="status">connecting…</div>
+  <div class="mode-switch">
+    <div class="mode-btn active" id="btnTodo" onclick="setMode('todo')">📋 To-Do</div>
+    <div class="mode-btn" id="btnNotes" onclick="setMode('notes')">📝 Reflections</div>
+  </div>
+  <div class="page active" id="pageTodo">
+    <div class="sub">Rolls over — nothing disappears until you tick it off.</div>
+    <div class="add-row">
+      <input type="text" id="taskInput" placeholder="Add a task…" />
+      <select id="categorySelect"><option>Business</option><option>Marketing</option><option>Personal</option><option>Learning</option></select>
+      <button id="addTaskBtn" onclick="addTask()">Add</button>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <div class="list" id="list"></div>
+    <div class="footer-row"><span id="countLabel"></span><button class="ghost" onclick="clearDone()">Clear completed</button></div>
+  </div>
+  <div class="page" id="pageNotes">
+    <div class="sub">Thoughts, dreams, reflections — jot whenever.</div>
+    <textarea id="noteInput" placeholder="What's on your mind…"></textarea>
+    <button id="addNoteBtn" onclick="addNote()" style="margin-bottom:18px;">Save note</button>
+    <div id="notesList"></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL="https://lnkuibbfkpwuykztogqm.supabase.co";
+const SUPABASE_KEY="sb_publishable_Jv33Iuff82rSKwWOelJNFQ_e8eEnM79";
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const categories=["All","Business","Marketing","Personal","Learning"];
+let tasks=[],notes=[],activeFilter="All";
+const $=id=>document.getElementById(id);
+function setStatus(m,k){const e=$("status");e.textContent=m;e.className="status"+(k?" "+k:"")}
+function setMode(m){$("btnTodo").classList.toggle("active",m==="todo");$("btnNotes").classList.toggle("active",m==="notes");$("pageTodo").classList.toggle("active",m==="todo");$("pageNotes").classList.toggle("active",m==="notes")}
+async function loadTasks(){const{data,error}=await db.from("tasks").select("*").order("created_at",{ascending:false});if(error){setStatus("error: "+error.message,"err");return}tasks=data||[];renderTasks()}
+async function addTask(){const i=$("taskInput"),t=i.value.trim();if(!t)return;const c=$("categorySelect").value;$("addTaskBtn").disabled=true;const{error}=await db.from("tasks").insert({text:t,category:c,done:false});$("addTaskBtn").disabled=false;if(error){setStatus("error: "+error.message,"err");return}i.value="";setStatus("saved ✓","ok");loadTasks()}
+async function toggleDone(id,c){await db.from("tasks").update({done:!c}).eq("id",id);loadTasks()}
+async function deleteTask(id){await db.from("tasks").delete().eq("id",id);loadTasks()}
+async function clearDone(){await db.from("tasks").delete().eq("done",true);loadTasks()}
+function setFilter(c){activeFilter=c;renderTasks()}
+function renderTabs(){const t=$("tabs");t.innerHTML="";categories.forEach(c=>{const e=document.createElement("div");e.className="tab"+(activeFilter===c?" active":"");e.textContent=c;e.onclick=()=>setFilter(c);t.appendChild(e)})}
+function renderTasks(){renderTabs();const l=$("list");l.innerHTML="";const f=activeFilter==="All"?tasks:tasks.filter(t=>t.category===activeFilter);const s=[...f].sort((a,b)=>a.done===b.done?0:a.done?1:-1);if(!s.length)l.innerHTML='<div class="empty">Nothing here — add something above.</div>';s.forEach(t=>{const r=document.createElement("div");r.className="item"+(t.done?" done":"");const b=document.createElement("div");b.className="checkbox";b.textContent=t.done?"✓":"";b.onclick=()=>toggleDone(t.id,t.done);const la=document.createElement("div");la.className="label";la.textContent=t.text;const ch=document.createElement("span");ch.className="chip";ch.textContent=t.category;const d=document.createElement("button");d.className="del";d.textContent="×";d.onclick=()=>deleteTask(t.id);r.append(b,la,ch,d);l.appendChild(r)});$("countLabel").textContent=`${tasks.filter(t=>!t.done).length} open · ${tasks.length} total`}
+async function loadNotes(){const{data,error}=await db.from("notes").select("*").order("created_at",{ascending:false});if(error){setStatus("error: "+error.message,"err");return}notes=data||[];renderNotes()}
+async function addNote(){const i=$("noteInput"),t=i.value.trim();if(!t)return;$("addNoteBtn").disabled=true;const{error}=await db.from("notes").insert({text:t});$("addNoteBtn").disabled=false;if(error){setStatus("error: "+error.message,"err");return}i.value="";setStatus("saved ✓","ok");loadNotes()}
+async function deleteNote(id){await db.from("notes").delete().eq("id",id);loadNotes()}
+function renderNotes(){const l=$("notesList");l.innerHTML="";if(!notes.length){l.innerHTML='<div class="empty">No notes yet — write your first thought above.</div>';return}notes.forEach(n=>{const dt=new Date(n.created_at);const ds=dt.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})+" · "+dt.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});const r=document.createElement("div");r.className="note";const m=document.createElement("div");m.className="note-meta";const da=document.createElement("span");da.className="note-date";da.textContent=ds;const d=document.createElement("button");d.className="del";d.textContent="×";d.onclick=()=>deleteNote(n.id);m.append(da,d);const b=document.createElement("div");b.className="note-text";b.textContent=n.text;r.append(m,b);l.appendChild(r)})}
+$("taskInput").addEventListener("keydown",e=>{if(e.key==="Enter")addTask()});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){loadTasks();loadNotes()}});
+(async()=>{await Promise.all([loadTasks(),loadNotes()]);if(!$("status").classList.contains("err"))setStatus("synced ✓","ok")})();
+</script>
+</body>
+</html>
