@@ -481,7 +481,7 @@ function allSel(){selCards().forEach(function(c){if(c.style.display==='none')ret
 function esc4(t){return String(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function printSel(){
  var picked=selCards().filter(function(c){var b=c.querySelector('.selbox');return b&&b.checked;});
- if(!picked.length)return;
+ if(!picked.length){alert('Tick at least one item first.');return;}
  var h='',i;
  for(i=0;i<picked.length;i++){
   if(i%4===0)h+=(i?'</div>':'')+'<div class=psheet>';
