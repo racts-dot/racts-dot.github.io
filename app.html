@@ -539,7 +539,7 @@ function showStock(el){var el2=el.closest('.stock'),d=el2.dataset,o=document.get
  if(d.dims){h+='<div class=brow><span>Dimensions</span><b>'+d.dims+'</b></div>';}
  if(d.notes){h+='<div class=brow style="background:#fff6e5;border-left:3px solid #e8a33d"><span>Note</span><b>'+d.notes+'</b></div>';}
  
-  if(d.sold==='0'){h+='<button class=copybtn style="margin-top:8px;background:#1a7f37" onclick="markSoldPrompt(''+d.num+'')">Mark Sold</button>';}
+  if(d.sold==='0'){h+='<button class=copybtn style="margin-top:8px;background:#1a7f37" onclick="markSoldPrompt(&quot;'+d.num+'&quot;)">Mark Sold</button>';}
  if(d.seo){var desc=(d.desc||'').replace(/\\n/g,'\n');window._fb={seo:d.seo,desc:desc};
   h+='<div class=fbwrap><div class=fblbl>Facebook Marketplace listing</div>'
    +'<div class=fbseo>'+d.seo+'</div>'
