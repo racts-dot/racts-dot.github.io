@@ -111,7 +111,7 @@ mark.sr{background:#ffe066;color:inherit;padding:0 1px;border-radius:2px}
 </div>
 <div id=tab-stock class="tab active"><div class=controls>
  <div class=searchrow><input id=stsearch class=search list=stsug placeholder="Search name, tracking #, or recipient…" oninput=applyStock()><button type=button class=scanbtn onclick="startScan()" title="Scan a label">📷 Scan</button></div><datalist id=stsug><option>Shoe Cabinet</option><option>Vanity</option><option>Dressing Table</option><option>TV Cabinet</option><option>Power Bank</option><option>Coffee Table</option></datalist>
- <label>Category <select id=stcat onchange=applyStock()><option value=all>All types</option><option value=shoe>Shoe cabinet</option><option value=vanity>Vanity &amp; Makeup</option><option value=tv>TV &amp; Entertainment</option><option value=table>Table &amp; Bed</option><option value=other>Other</option></select></label>
+ <label>Category <select id=stcat onchange=applyStock()><option value=all>All types</option><option value=shoe>Shoe cabinet</option><option value=vanity>Vanity &amp; Makeup</option><option value=tv>TV &amp; Entertainment</option><option value=table>Table &amp; Bed</option><option value=other>Other</option><option value=test>&#9873; Test products</option></select></label>
  <label>Sort <select id=stsort onchange=applyStock()><option value=new>Ordered: newest</option><option value=old>Ordered: oldest</option><option value=soldnew>Sold: newest</option><option value=soldold>Sold: oldest</option></select></label>
  <label>Week <select id=stweek onchange=applyStock()><option value=all>All weeks</option></select></label>
  <label>Account <select id=stacct onchange=applyStock()><option value=all>All accounts</option><option value="iPad Pro">iPad Pro</option><option value="iPad mini 6">iPad mini 6</option><option value="Galaxy S25 Edge">Galaxy S25 Edge</option><option value="iPhone 12 mini">iPhone 12 mini</option><option value="iPad 7 (black)">iPad 7 (black)</option><option value="White iPad 6">White iPad 6</option><option value="iPad mini 5 (black)">iPad mini 5 (black)</option><option value="STANDALONE (account not yet confirmed)">STANDALONE (account not yet confirmed)</option></select></label>
@@ -540,6 +540,7 @@ function showStock(el){var el2=el.closest('.stock'),d=el2.dataset,o=document.get
  if(d.notes){h+='<div class=brow style="background:#fff6e5;border-left:3px solid #e8a33d"><span>Note</span><b>'+d.notes+'</b></div>';}
  
   if(d.sold==='0'){h+='<button class=copybtn style="margin-top:8px;background:#1a7f37" onclick="markSoldPrompt(&quot;'+d.num+'&quot;)">Mark Sold</button>';}
+  h+='<button class=copybtn style="margin-top:8px;background:#6741d9" onclick="toggleTest(&quot;'+d.num+'&quot;)">'+(isTest(d.num)?'Remove from test products':'Mark as test product')+'</button>';
  if(d.seo){var desc=(d.desc||'').replace(/\\n/g,'\n');window._fb={seo:d.seo,desc:desc};
   h+='<div class=fbwrap><div class=fblbl>Facebook Marketplace listing</div>'
    +'<div class=fbseo>'+d.seo+'</div>'
@@ -643,7 +644,7 @@ function applyStock(){
  items.forEach(function(el){
   var okA=(acct==='all'||el.getAttribute('data-device')===acct);
   var _nm=(el.getAttribute('data-name')||'');var okQ=(!q||q.split(/\s+/).every(function(w){return _nm.indexOf(w)>=0;}));
-  var okC=(cat==='all'||el.getAttribute('data-type')===cat);
+  var okC=(cat==='all'?true:(cat==='test'?el.getAttribute('data-test')==='1':el.getAttribute('data-type')===cat));
   var okS=(showSold||el.getAttribute('data-sold')!=='1');
   var okW=(stwk==='all'||el.getAttribute('data-week')===stwk);
   var vis=(okA&&okQ&&okC&&okS&&okW);el.style.display=vis?'':'none';
@@ -683,6 +684,37 @@ function applyScan(val,how){var v=(val||'').trim();if(!v){scanToast('Nothing det
 function scanToast(msg){var el=document.getElementById('scantoast');if(!el)return;el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none';},5000);}
 var CFG={url:'https://script.google.com/macros/s/AKfycbwIzSXXaPHlZf66vwpve8rhFEOh5QBkZiXUdRnw18yewvFYEqrUbC74axJRyCM0W5BO/exec',token:'81c16dd30f6a0b27b10a1aa6e59c17d361a643c4'};
 function pad2(n){return n<10?'0'+n:''+n;}
+var TESTKEY='rt_testproducts_v1';
+function testSet(){try{return JSON.parse(localStorage.getItem(TESTKEY)||'[]');}catch(e){return [];}}
+function testSave(a){try{localStorage.setItem(TESTKEY,JSON.stringify(a));}catch(e){}}
+function isTest(num){return testSet().indexOf(String(num))>=0;}
+function applyTestMarks(){
+ var set=testSet();
+ [].slice.call(document.querySelectorAll('.stock')).forEach(function(el){
+  var on=set.indexOf(String(el.getAttribute('data-num')))>=0;
+  el.setAttribute('data-test',on?'1':'0');
+  var s3=el.querySelector('.sname3');
+  if(s3){
+   var tag=s3.querySelector('.testtag');
+   if(on&&!tag){s3.insertAdjacentHTML('beforeend',' <span class=testtag style="background:#6741d9;color:#fff;border-radius:4px;padding:1px 6px;font-size:11px;white-space:nowrap">TEST</span>');}
+   else if(!on&&tag){tag.remove();}
+  }
+ });
+ var n=set.length,lbl=document.querySelector('#stcat option[value=test]');
+ if(lbl)lbl.textContent='\u2691 Test products'+(n?' ('+n+')':'');
+}
+function toggleTest(num){
+ num=String(num);
+ var set=testSet(),i=set.indexOf(num);
+ if(i>=0)set.splice(i,1); else set.push(num);
+ testSave(set);
+ applyTestMarks();
+ if(typeof applyStock==='function')applyStock();
+ var card=document.querySelector('.stock[data-num="'+num+'"]');
+ var hd=card?card.querySelector('.stockhead'):null;
+ if(hd&&typeof showStock==='function')showStock(hd);
+ scanToast(i>=0?('#'+num+' removed from test products'):('#'+num+' marked as a test product'));
+}
 function refreshStockCount(){
  var n=document.querySelectorAll('#tab-stock .stock[data-sold="0"]').length;
  var span=document.querySelector('.card.sty .bhead span');
@@ -761,5 +793,5 @@ function populateWeeks(){var sel=document.getElementById('weeksel');var seen={};
 function populateStockWeeks(){var sel=document.getElementById('stweek');var seen={};
  document.querySelectorAll('#tab-stock .stock[data-week]').forEach(function(el){var w=el.getAttribute('data-week');if(w)seen[w]=1;});
  Object.keys(seen).sort(function(a,b){return (+b.slice(1))-(+a.slice(1));}).forEach(function(w){var o=document.createElement('option');o.value=w;o.textContent=w+' (ordered)';sel.appendChild(o);});}
-populateWeeks();populateStockWeeks();applyView();(function(){var L=document.querySelector('#tab-stock .stocklist');if(L){[].slice.call(document.querySelectorAll('#tab-stock .stock')).forEach(function(e){if(!e.closest('.stocklist'))L.appendChild(e);});}})();applyStock();
+populateWeeks();populateStockWeeks();applyTestMarks();applyView();(function(){var L=document.querySelector('#tab-stock .stocklist');if(L){[].slice.call(document.querySelectorAll('#tab-stock .stock')).forEach(function(e){if(!e.closest('.stocklist'))L.appendChild(e);});}})();applyStock();
 </script></body></html>
