@@ -1,0 +1,83 @@
+HOW TO TURN ON "MARK SOLD -> UPDATES THE SHEET"
+=================================================
+
+Why this needs a manual step: Google requires a human to click through the
+"authorize this script" and "deploy as web app" screens once. It can't be
+done by an unattended script or API call — that's a Google security gate,
+not something I skipped.
+
+This is a one-time setup. Takes about 3 minutes.
+
+STEP 1 — Create the script
+---------------------------
+1. Go to https://script.google.com
+2. Click "New project"
+3. Delete whatever is in the editor (the default "myFunction" stub)
+4. Open the file AppsScript-Code.gs (in this same folder) and copy ALL of it
+5. Paste it into the script.google.com editor
+6. Click the save icon (or Ctrl+S). Name the project "Resale Tracker Sync"
+   if it asks.
+
+STEP 2 — Deploy as a Web App
+------------------------------
+1. Click "Deploy" (top right) -> "New deployment"
+2. Click the gear icon next to "Select type" -> choose "Web app"
+3. Fill in:
+     Description:      Mark-sold sync
+     Execute as:        Me (your Google account)
+     Who has access:    Anyone
+   ("Anyone" sounds scary, but the SECRET_TOKEN inside the script is the
+   real gate — see the security note below.)
+4. Click "Deploy"
+5. It will ask you to authorize. Click through:
+     "Authorize access" -> pick your Google account
+     -> "Advanced" -> "Go to Resale Tracker Sync (unsafe)"
+     -> "Allow"
+   This warning is normal for any script you write yourself — Google shows
+   it because the script isn't from the Play Store, not because anything
+   is wrong.
+6. Copy the "Web app URL" it gives you. It looks like:
+     https://script.google.com/macros/s/AKfycb.../exec
+
+STEP 3 — Wire it into the app
+-------------------------------
+1. Open app.html in a text editor (Notepad, VS Code, anything)
+2. Find this line near the top of the <script> section:
+     var CFG={url:'',token:'81c16dd30f6a0b27b10a1aa6e59c17d361a643c4'};
+3. Paste your Web app URL between the first pair of quotes:
+     var CFG={url:'https://script.google.com/macros/s/AKfycb.../exec',token:'81c16dd30f6a0b27b10a1aa6e59c17d361a643c4'};
+4. Save the file.
+
+STEP 4 — Ship it
+------------------
+From this folder:
+    git add app.html
+    git commit -m "Wire up Mark Sold -> Google Sheet sync"
+    git push
+
+Give it a minute for GitHub Pages to redeploy, then open
+https://racts-dot.github.io/app.html on your phone, open any unsold item's
+detail panel, and you'll see a green "Mark Sold" button. Tap it, enter the
+sale price, and the item updates in the app AND in the "Sales" tab of
+Resale Tracker — LIVE at the same time.
+
+SECURITY NOTE
+--------------
+This is a static website (GitHub Pages) with no server of its own, so the
+token above is visible to anyone who views the page source. That's the
+practical ceiling for this kind of setup — it stops random bots from
+finding the endpoint and writing garbage, but it is NOT a secret in the
+"nobody could ever see it" sense. Don't reuse this token anywhere else,
+and if you ever want stronger protection, the fix is to give the app a
+real login, which is a much bigger project.
+
+WHAT SYNCS AND WHAT DOESN'T
+-----------------------------
+- Marking an item sold: updates the app AND appends/updates its row in the
+  "Sales" tab of Resale Tracker — LIVE, matched by the item's # number.
+- Everything else (editing cost, tracking numbers, notes, adding new
+  items): app-only for now, does not touch the Sheet. If you want that
+  too, say so and it's a bigger build.
+- Items #112/#113 and similar "STANDALONE (account not yet confirmed)"
+  items have no row in the Sales tab yet, so marking them sold will
+  APPEND a new row rather than update an existing one.

@@ -539,6 +539,7 @@ function showStock(el){var el2=el.closest('.stock'),d=el2.dataset,o=document.get
  if(d.dims){h+='<div class=brow><span>Dimensions</span><b>'+d.dims+'</b></div>';}
  if(d.notes){h+='<div class=brow style="background:#fff6e5;border-left:3px solid #e8a33d"><span>Note</span><b>'+d.notes+'</b></div>';}
  
+  if(d.sold==='0'){h+='<button class=copybtn style="margin-top:8px;background:#1a7f37" onclick="markSoldPrompt(''+d.num+'')">Mark Sold</button>';}
  if(d.seo){var desc=(d.desc||'').replace(/\\n/g,'\n');window._fb={seo:d.seo,desc:desc};
   h+='<div class=fbwrap><div class=fblbl>Facebook Marketplace listing</div>'
    +'<div class=fbseo>'+d.seo+'</div>'
@@ -680,6 +681,75 @@ function applyScan(val,how){var v=(val||'').trim();if(!v){scanToast('Nothing det
  else{var btns=document.querySelectorAll('.tabbtn');show('tracker',btns[1]);document.getElementById('trsearch').value=v;applyView();}
  scanToast('Detected ('+how+'): '+v);}
 function scanToast(msg){var el=document.getElementById('scantoast');if(!el)return;el.textContent=msg;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(function(){el.style.display='none';},5000);}
+var CFG={url:'',token:'81c16dd30f6a0b27b10a1aa6e59c17d361a643c4'};
+function pad2(n){return n<10?'0'+n:''+n;}
+function refreshStockCount(){
+ var n=document.querySelectorAll('#tab-stock .stock[data-sold="0"]').length;
+ var span=document.querySelector('.card.sty .bhead span');
+ if(span)span.textContent='Stock to sell ('+n+')';
+}
+function markSoldPrompt(num){
+ var card=document.querySelector('.stock[data-num="'+num+'"]');
+ if(!card){alert('Item not found');return;}
+ var d=card.dataset;
+ if(d.sold==='1'){alert('Already marked sold.');return;}
+ var priceStr=prompt('Sale price for #'+num+' \u2014 '+d.title+'?','');
+ if(priceStr===null||priceStr==='')return;
+ var recv=parseFloat(String(priceStr).replace(/[^0-9.\-]/g,''));
+ if(isNaN(recv)){alert('Enter a number, e.g. 80');return;}
+ var cost=parseFloat((d.cost||'0').replace(/[^0-9.\-]/g,''))||0;
+ var net=recv-cost;
+ var now=new Date();
+ var dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+ var monNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+ var dd=pad2(now.getDate()),mon=monNames[now.getMonth()],dow=dayNames[now.getDay()];
+ var soldsort=now.getFullYear()+'-'+pad2(now.getMonth()+1)+'-'+dd;
+ var solddate=dd+' '+mon+' ('+dow+')';
+ var recvStr='$'+recv.toFixed(2);
+ var netStr=(net<0?'-$':'$')+Math.abs(net).toFixed(2);
+ var status='SOLD $'+(Math.round(recv*100)%100===0?recv.toFixed(0):recv.toFixed(2))+' (Marketplace) \u2014 '+mon+' '+now.getDate()+' \u00b7 net '+netStr;
+
+ card.setAttribute('data-sold','1');
+ card.setAttribute('data-soldsort',soldsort);
+ card.setAttribute('data-status',status);
+ var s3=card.querySelector('.sname3');
+ if(s3&&!s3.querySelector('s')){s3.innerHTML='<s>'+s3.innerHTML+'</s>';}
+ var strk=card.querySelector('.strk');
+ if(strk&&!strk.querySelector('.soldtag')){strk.innerHTML+='<span class=soldtag>SOLD '+dd+' '+mon+'</span>';}
+
+ var row=document.querySelector('tr.fb[data-num="'+num+'"]');
+ if(row){
+  row.setAttribute('data-sold','1');
+  row.setAttribute('data-recv',recvStr);
+  row.setAttribute('data-net',netStr);
+  row.setAttribute('data-solddate',solddate);
+  row.setAttribute('data-status',status);
+  var tc=row.cells[1];
+  if(tc){
+   var statusDiv=tc.querySelector('.status');if(statusDiv)statusDiv.textContent=status;
+   var pill=tc.querySelector('.pill');
+   if(pill){pill.className='pill sold';pill.textContent='SOLD '+dd+' '+mon;}
+   else{tc.insertAdjacentHTML('beforeend','<span class="pill sold">SOLD '+dd+' '+mon+'</span>');}
+  }
+  var recvTd=row.querySelector('td.recv');if(recvTd)recvTd.textContent=recvStr;
+  var netTd=row.querySelector('td.net');if(netTd){netTd.textContent=netStr;netTd.className='net '+(net<0?'neg':'pos');}
+ }
+
+ refreshStockCount();
+ var hd=card.querySelector('.stockhead');if(hd)showStock(hd);
+ scanToast('Marked #'+num+' sold'+(CFG.url?' \u2014 syncing to Sheet\u2026':' (Sheet sync not configured)'));
+
+ if(CFG.url){
+  fetch(CFG.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({
+   token:CFG.token,num:num,title:d.title,cost:d.cost,received:recv.toFixed(2),net:net.toFixed(2),
+   solddate:soldsort,week:d.week||'',device:d.devfull||'',oid:d.oid||'',track:d.track||'',
+   channel:'Facebook',status:status,orderdate:d.orderdate||'',buyer:d.buyer||d.recip||'',batch:d.batch||'',category:d.type||''
+  })}).then(function(r){return r.json();}).then(function(res){
+   scanToast(res&&res.ok?'Marked #'+num+' sold \u2014 Sheet updated':'Marked #'+num+' sold \u2014 Sheet sync failed: '+((res&&res.error)||'unknown'));
+  }).catch(function(){scanToast('Marked #'+num+' sold locally \u2014 Sheet sync failed (offline or blocked)');});
+ }
+}
+
 var TABS=['stock','tracker','weekly','summary','print'],ti=0;
 var _sx=0,_sy=0;
 document.addEventListener('touchstart',function(e){_sx=e.touches[0].clientX;_sy=e.touches[0].clientY;},{passive:true});
