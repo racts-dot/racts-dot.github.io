@@ -743,7 +743,8 @@ function markSoldPrompt(num){
   fetch(CFG.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({
    token:CFG.token,num:num,title:d.title,cost:d.cost,received:recv.toFixed(2),net:net.toFixed(2),
    solddate:soldsort,week:d.week||'',device:d.devfull||'',oid:d.oid||'',track:d.track||'',
-   channel:'Facebook',status:status,orderdate:d.orderdate||'',buyer:d.buyer||d.recip||'',batch:d.batch||'',category:d.type||''
+   channel:'Facebook',status:status,orderdate:d.orderdate||'',buyer:d.buyer||d.recip||'',batch:d.batch||'',category:d.type||'',
+   notes:'Logged '+pad2(now.getHours())+':'+pad2(now.getMinutes())+' via app'
   })}).then(function(r){return r.json();}).then(function(res){
    scanToast(res&&res.ok?'Marked #'+num+' sold \u2014 Sheet updated':'Marked #'+num+' sold \u2014 Sheet sync failed: '+((res&&res.error)||'unknown'));
   }).catch(function(){scanToast('Marked #'+num+' sold locally \u2014 Sheet sync failed (offline or blocked)');});
