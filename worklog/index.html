@@ -249,6 +249,14 @@ textarea.show{display:block}
 .drow .gh{padding:6px 10px;font-size:12px;min-height:0}
 .sstamp{margin-top:9px;font-size:9.5px;color:#333;text-align:right}
 .sstamp b{color:#a33}
+
+/* -- amount prefill: filled, but not trusted until confirmed -------------- */
+.pconf{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:-4px 0 11px;
+  background:var(--s2);border:1px solid var(--a2);border-radius:9px;padding:8px 10px;
+  font-size:12.5px;color:var(--t2)}
+.pconf b{color:var(--tx)}
+.pconf button{margin-left:auto;padding:6px 11px;font-size:12px;min-height:0}
+.pconf.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--s2))}
 </style>
 </head>
 <body>
@@ -289,6 +297,9 @@ textarea.show{display:block}
       </div></div>
     <div class="f"><label for="am">금액 · Amount</label>
       <input type="number" id="am" inputmode="decimal" step="5" min="0" placeholder="0"></div>
+    <div class="pconf" id="pcf" style="display:none">
+      <span id="pcft"></span>
+      <button type="button" class="gh" id="pcfy">확인 · yes, that price</button></div>
     <div class="f" style="margin-top:11px"><label>공제율 · rate</label>
       <div class="seg rs" id="rs">
         <button type="button" data-r="auto" aria-pressed="true">기본 <b id="rdef">—</b></button>
@@ -551,6 +562,10 @@ $('save').onclick = () => {
   const cancelled=$('cx').checked;
   const a = cancelled ? 0 : Number($('am').value);
   if(!cancelled && !(a>0)){ flash('금액을 입력하세요 · enter an amount','err'); return; }
+  if(AUTOPRICE && !cancelled){
+    $('pcf').classList.add('warn');
+    flash('자동 입력된 금액입니다 — 확인을 누르거나 금액을 고치세요 · confirm the amount','err');
+    return; }
   const r=effRate(ds);
   if(r==null){ flash('공제율을 확인하세요 · check the rate','err'); return; }
   const ded = cancelled ? 0 : Math.round(a*r*100)/100;
@@ -1117,6 +1132,43 @@ $('rf').onclick = async () => {
     if(t && t!=='log') document.querySelector('.tabs button[data-p="'+t+'"]').click();
   }catch(e){}
 })();
+
+
+/* ---------- amount prefill ---------------------------------------------
+   Suggests what this customer was last charged. AUTOPRICE stays true until
+   the number is confirmed or typed over; 저장 refuses while it is true, so a
+   stale price cannot slip through unlooked-at.                            */
+let AUTOPRICE = false;
+
+function lastCharge(cust){
+  let best = null;
+  for(const r of allRows()){
+    if(r.c !== cust || !r.d || r.x || !(r.a > 0)) continue;
+    if(!best || r.d > best.d) best = r;
+  }
+  return best;
+}
+function clearSuggest(){
+  AUTOPRICE = false;
+  const e = $('pcf'); e.style.display = 'none'; e.classList.remove('warn');
+}
+function suggestPrice(){
+  if(EDIT) return;                       // correcting: leave the figure alone
+  const cu = $('cu').value;
+  if(!cu || cu === '__new__'){ clearSuggest(); return; }
+  const b = lastCharge(cu);
+  if(!b){ clearSuggest(); return; }
+  $('am').value = b.a;
+  $('cx').checked = false; $('am').disabled = false;
+  AUTOPRICE = true;
+  $('pcft').innerHTML = '자동 입력 <b>$' + m2(b.a) + '</b> · 최근 ' + b.d
+                      + ' — 맞는지 확인하세요';
+  $('pcf').style.display = 'flex';
+  recalc();
+}
+$('cu').addEventListener('change', suggestPrice);
+$('am').addEventListener('input', clearSuggest);
+$('pcfy').onclick = () => { clearSuggest(); flash('금액 확인됨 · amount confirmed','ok'); };
 
 </script>
 </body>
