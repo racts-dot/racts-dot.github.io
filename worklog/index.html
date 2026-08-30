@@ -305,7 +305,7 @@ textarea.show{display:block}
         <button type="button" data-p="0" aria-pressed="true">cash(최)</button>
         <button type="button" data-p="1">INVO(박)</button>
       </div></div>
-    <div class="tog"><input type="checkbox" id="cx"><label for="cx">취소 · Cancelled (0으로 기록)</label></div>
+    <div class="tog"><input type="checkbox" id="cx"><label for="cx">취소 · 이 작업이 취소됨 — $0 행으로 남습니다 (job cancelled, keeps a $0 row)</label></div>
     <div class="f" style="margin-top:11px"><label for="nt">비고 · Note</label>
       <input type="text" id="nt" placeholder="복식 / 단식 / 9am / 주소…"></div>
     <div class="calc"><span>공제 <b id="dd">—</b> <span class="chip" id="rt"></span></span>
@@ -590,7 +590,7 @@ function drawToday(){
       <span>${esc(e.customer)}${(e.rev||1)>1?`<span class="rv">rev ${e.rev}</span>`:''}${e._pending?'<span class="rv">대기</span>':''}</span>
       <span class="amt">${m2(e.amount)}</span>
       <button class="gh" data-ed="${esc(e.job_id)}">수정</button>
-      <button class="gh" data-vd="${esc(e.job_id)}">취소</button></li>`; }).join('')
+      <button class="gh" data-vd="${esc(e.job_id)}">삭제</button></li>`; }).join('')
     + hist.map(r=>{ t+=r.a;
     return `<li style="opacity:.7">
       <span class="ic" style="background:${TC[r.t]||'var(--ls)'}">${badge(r.t)}</span>
@@ -625,15 +625,15 @@ $('edx').onclick = () => { stopEdit(); flash('정정 취소됨 · edit cancelled
 /* two-tap confirm: a browser confirm() box blocks the whole page on mobile */
 function voidEntry(id, btn){
   if(btn && btn.dataset.arm!=='1'){
-    btn.dataset.arm='1'; btn.textContent='정말?';
-    setTimeout(()=>{ if(btn.isConnected){ btn.dataset.arm=''; btn.textContent='취소'; } },3000);
+    btn.dataset.arm='1'; btn.textContent='정말 삭제?';
+    setTimeout(()=>{ if(btn.isConnected){ btn.dataset.arm=''; btn.textContent='삭제'; } },3000);
     return; }
   const e=entryOf(id); if(!e) return;
   pend.push(Object.assign({}, e, {rev:(e.rev||1)+1, status:'void',
     entered_at:new Date().toISOString(), _pending:undefined}));
   save(pend); if(EDIT===id) stopEdit();
   drawToday(); badge(); refreshState(); drawCal(); sync(true);
-  flash('취소 처리됨 · voided (시트에 기록으로 남습니다)','ok');
+  flash('삭제됨 · entry removed (시트에는 기록으로 남습니다)','ok');
 }
 
 function badge(){
@@ -704,7 +704,7 @@ function openDay(k){
       <span class="m"><span class="cn">${esc(r.c)}</span><span class="cc">${esc(tag)}</span></span>
       <span class="v">$${m2(r.a)}</span>
       ${r._id?`<button class="gh" data-ed="${esc(r._id)}">수정</button>
-               <button class="gh" data-vd="${esc(r._id)}">취소</button>`:''}
+               <button class="gh" data-vd="${esc(r._id)}">삭제</button>`:''}
     </div>`; }).join('') : '<div class="drow">기록 없음 · nothing on this day</div>';
   $('dlgb').querySelectorAll('button[data-ed]').forEach(b => b.onclick = () => {
     closeDay(); startEdit(b.dataset.ed); });
