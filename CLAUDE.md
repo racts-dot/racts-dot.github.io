@@ -39,8 +39,34 @@ is refused, say so plainly — do not leave it unsaid.
 ## app.html — the trap that has already broken it once
 
 The data is baked into the page as `data-*` attributes on
-`<div class=stock>` cards and `<tr class=fb>` rows. There is no data file and no
-generator script.
+`<div class=stock>` cards and `<tr class=fb>` rows. ~~There is no data file and no
+generator script.~~
+
+⛔ **CORRECTED 10 Sep 2026 BY MEASUREMENT — THE DATA FILE AND THE GENERATOR BOTH
+EXIST. They are just not in this repo.** They are in Google Drive, at
+`My Drive/01 BUSINESS & CREATION/Ecommerce integration/racts-tracker-backup/`:
+
+| File | What it is |
+|---|---|
+| `June Sales Tracker.xlsx` | the master data — one sheet, 296 rows |
+| `gen_tracker_html.py` | 70 KB. Builds the whole page and writes `Tracker_View.html` |
+| `gen_stock.py`, `html2pdf.py` | build the printable stock list and its PDF |
+
+⛔ **DO NOT REGENERATE `app.html` FROM IT. It would delete four things.** The
+generator was saved 2 Aug. Everything added by hand after that is missing from
+it — checked by searching both files on 10 Sep 2026:
+
+| Feature | in `app.html` | in the generator |
+|---|---|---|
+| `markSoldPrompt` | yes | **no** |
+| Apps Script link (`script.google.com`) | yes | **no** |
+| Mark Sold button | yes | **no** |
+| Test products section | yes | **no** |
+
+So `app.html` is the newer artefact and the generator is behind it. Treat the
+generator as a record of how the page was first built, not as a way to rebuild
+it. Anyone who runs it and copies the result over `app.html` loses the Sheets
+connection.
 
 - **Plain search-and-replace on it is unreliable.** Attribute values contain `>`
   characters, and some cards nest blocks holding the opposite `data-sold` value,
