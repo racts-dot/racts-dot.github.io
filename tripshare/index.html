@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TripShare</title>
+<style>
+  :root {
+    --paper:      #FAF9F5;
+    --paper-2:    #F2F1EA;
+    --card:       #FFFFFF;
+    --ink:        #191E1B;
+    --ink-soft:   #4E564E;
+    --ink-faint:  #7C847A;
+    --rule:       #D9DACF;
+    --accent:     #14614A;
+    --accent-ink: #0E4636;
+    --accent-wash:#E4EDE7;
+    --warn:       #8A4B12;
+    --warn-wash:  #F7EEE2;
+    --danger:     #8E2F24;
+
+    --f-display: Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif;
+    --f-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper:      #12150F;
+      --paper-2:    #1B1F19;
+      --card:       #1B1F19;
+      --ink:        #E9EAE1;
+      --ink-soft:   #A9AEA2;
+      --ink-faint:  #7B8177;
+      --rule:       #2E332B;
+      --accent:     #6FBFA0;
+      --accent-ink: #A7D9C4;
+      --accent-wash:#1D2A24;
+      --warn:       #D9A46B;
+      --warn-wash:  #2A2218;
+      --danger:     #E08A7E;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper); color: var(--ink);
+    font-family: var(--f-body); font-size: 16px; line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 1rem 1rem 5rem; }
+
+  h1, h2, h3 { font-family: var(--f-display); font-weight: 600; line-height: 1.2; margin: 0; }
+  h1 { font-size: 1.6rem; letter-spacing: -0.01em; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.02rem; }
+  p { margin: 0.5rem 0; }
+  a { color: var(--accent-ink); }
+
+  .topbar {
+    display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap;
+    padding: 0.9rem 0 0.7rem; border-bottom: 1px solid var(--rule); margin-bottom: 1rem;
+  }
+  .topbar .mark { font-family: var(--f-display); font-size: 1.35rem; font-weight: 600; }
+  .topbar .sub { color: var(--ink-faint); font-size: 0.85rem; }
+  .spacer { flex: 1 1 auto; }
+
+  button, .btn {
+    font: inherit; font-size: 0.92rem; cursor: pointer;
+    background: var(--card); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 0.4rem;
+    padding: 0.42rem 0.75rem; text-decoration: none; display: inline-block;
+  }
+  button:hover, .btn:hover { border-color: var(--accent); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  @media (prefers-color-scheme: dark) { button.primary { color: #0B1310; } }
+  button.quiet { background: transparent; border-color: transparent; color: var(--ink-soft); padding-left: 0.35rem; padding-right: 0.35rem; }
+  button.quiet:hover { color: var(--ink); border-color: var(--rule); }
+  button.danger { color: var(--danger); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  .row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
+  label { display: block; font-size: 0.8rem; color: var(--ink-soft); margin: 0.7rem 0 0.2rem; }
+  input, select, textarea {
+    font: inherit; width: 100%; background: var(--card); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 0.4rem; padding: 0.45rem 0.55rem;
+  }
+  textarea { min-height: 4.5rem; resize: vertical; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 0.7rem; }
+  @media (max-width: 30rem) { .grid2 { grid-template-columns: 1fr; } }
+  .hint { font-size: 0.78rem; color: var(--ink-faint); margin-top: 0.2rem; }
+  .err { font-size: 0.82rem; color: var(--danger); margin-top: 0.35rem; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--rule);
+    border-radius: 0.6rem; padding: 0.85rem 0.95rem; margin: 0.7rem 0;
+  }
+  .card h3 { margin-bottom: 0.15rem; }
+  .meta { font-size: 0.83rem; color: var(--ink-faint); }
+
+  .empty {
+    border: 1px dashed var(--rule); border-radius: 0.6rem;
+    padding: 1.4rem 1.1rem; text-align: center; color: var(--ink-soft);
+    background: var(--paper-2);
+  }
+
+  .daybar {
+    display: flex; align-items: baseline; gap: 0.6rem;
+    margin: 1.4rem 0 0.4rem; padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  .daybar .dnum { font-family: var(--f-display); font-size: 0.98rem; color: var(--ink-soft); }
+  .daybar .ddate { font-family: var(--f-display); font-size: 1.08rem; }
+  .daybar.today { border-bottom-color: var(--accent); }
+  .todaytag {
+    font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase;
+    background: var(--accent-wash); color: var(--accent-ink);
+    border-radius: 999px; padding: 0.1rem 0.5rem;
+  }
+
+  .item { display: flex; gap: 0.7rem; padding: 0.6rem 0; border-bottom: 1px solid var(--rule); }
+  .item:last-child { border-bottom: 0; }
+  .item .when { width: 4.6rem; flex: 0 0 auto; font-variant-numeric: tabular-nums; font-size: 0.86rem; color: var(--ink-soft); }
+  .item .body { flex: 1 1 auto; min-width: 0; }
+  .item .ttl { font-weight: 600; }
+  .kind {
+    font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--ink-faint); margin-left: 0.4rem;
+  }
+  .item .where { font-size: 0.87rem; color: var(--ink-soft); }
+  .item .note { font-size: 0.88rem; color: var(--ink-soft); white-space: pre-wrap; margin-top: 0.2rem; }
+  .item .links { margin-top: 0.35rem; }
+  .item .links a { font-size: 0.83rem; margin-right: 0.7rem; }
+
+  .banner {
+    background: var(--warn-wash); border: 1px solid var(--rule); border-left: 3px solid var(--warn);
+    border-radius: 0.4rem; padding: 0.6rem 0.75rem; font-size: 0.88rem; margin: 0.8rem 0;
+  }
+  .banner.read { background: var(--accent-wash); border-left-color: var(--accent); }
+  .banner.stop { border-left-color: var(--danger); }
+
+  .sharebox {
+    width: 100%; font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 0.75rem; word-break: break-all; min-height: 5rem;
+  }
+  .toast {
+    position: fixed; left: 50%; bottom: 1.2rem; transform: translateX(-50%);
+    background: var(--ink); color: var(--paper); padding: 0.45rem 0.9rem;
+    border-radius: 999px; font-size: 0.85rem; opacity: 0; pointer-events: none;
+    transition: opacity 0.18s ease; z-index: 40;
+  }
+  .toast.show { opacity: 1; }
+
+  .jump { display: flex; gap: 0.35rem; flex-wrap: wrap; margin: 0.6rem 0 0.2rem; }
+  .jump button { font-size: 0.8rem; padding: 0.25rem 0.5rem; }
+
+  @media print {
+    body { background: #fff; color: #000; }
+    .noprint { display: none !important; }
+    .wrap { max-width: none; padding: 0; }
+    .card, .item { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar noprint">
+    <span class="mark">TripShare</span>
+    <span class="sub" id="subline">your trips, on this device</span>
+    <span class="spacer"></span>
+    <span class="row" id="topActions"></span>
+  </div>
+  <div id="alerts" role="alert" aria-live="assertive"></div>
+  <div id="app"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var KEY = "tripshare.v1";
+  var DISMISS_KEY = "tripshare.backupNoteDismissed";
+  var LASTBACKUP_KEY = "tripshare.lastBackup";
+  var MAX_LINK = 12000;
+  /* Both reviewers, 8 Sep 2026: browsers accept long links, but email and
+     messaging apps cut them. Above this length the app cautions; MAX_LINK
+     remains the hard refusal. */
+  var SAFE_LINK = 2000;
+  var MAX_DAYS = 400;
+  var SAVE_FAILED = false;
+  var LOAD_BROKEN = false;
+  /* true = the browser refused to be asked at all, so we cannot even say
+     whether anything was saved here. Different sentence, different truth. */
+  var LOAD_BLOCKED = false;
+  var KINDS = [
+    ["flight", "Flight"], ["stay", "Accommodation"], ["transport", "Transport"],
+    ["activity", "Activity"], ["food", "Food"], ["note", "Note"]
+  ];
+
+  /* ---------- tiny helpers ---------- */
+  function el(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+
+  function fmtDate(iso) {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+    var p = iso.split("-");
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
+  var DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  function fmtLong(iso) {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return "";
+    var p = iso.split("-").map(Number);
+    var d = new Date(p[0], p[1] - 1, p[2]);
+    return DAYS[d.getDay()] + " " + p[2] + " " + MONTHS[p[1] - 1];
+  }
+  function fmtRange(a, b) {
+    if (!a) return "";
+    if (!b || a === b) return fmtDate(a);
+    return fmtDate(a) + " to " + fmtDate(b);
+  }
+  function fmtTime(t) {
+    if (!t) return "";
+    var p = t.split(":"); var h = Number(p[0]); var m = p[1] || "00";
+    var ap = h >= 12 ? "pm" : "am";
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + (m === "00" ? "" : ":" + m) + ap;
+  }
+  function dayspan(a, b) {
+    var out = [];
+    if (!a) return out;
+    var s = new Date(a + "T00:00:00");
+    var e = new Date((b || a) + "T00:00:00");
+    if (isNaN(s.getTime()) || isNaN(e.getTime()) || e < s) return out;
+    var guard = 0;
+    while (s <= e && guard++ < MAX_DAYS) {
+      out.push(s.getFullYear() + "-" + pad(s.getMonth() + 1) + "-" + pad(s.getDate()));
+      s.setDate(s.getDate() + 1);
+    }
+    return out;
+  }
+  function daysBetween(a, b) {
+    if (!isoDate(a) || !isoDate(b)) return 0;
+    return Math.round((new Date(b + "T00:00:00") - new Date(a + "T00:00:00")) / 86400000);
+  }
+  function addDays(iso, n) {
+    var d = new Date(iso + "T00:00:00");
+    d.setDate(d.getDate() + n);
+    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+  }
+  function kindLabel(k) {
+    for (var i = 0; i < KINDS.length; i++) if (KINDS[i][0] === k) return KINDS[i][1];
+    return "Note";
+  }
+  function safeUrl(u) {
+    if (!u) return "";
+    return /^https?:\/\//i.test(u) ? u : "";
+  }
+  function toast(msg) {
+    var t = el("toast"); t.textContent = msg; t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { t.classList.remove("show"); }, 1900);
+  }
+
+  /* ---------- storage ---------- */
+  /* An empty shelf and an unreadable shelf must not look the same. */
+  function load() {
+    var raw;
+    try { raw = localStorage.getItem(KEY); }
+    catch (e) { LOAD_BROKEN = true; LOAD_BLOCKED = true; return { v: 1, trips: [] }; }
+    /* Only a missing key is an empty shelf. An empty STRING is not valid stored
+       data, so it goes down the unreadable path and trips the lock. */
+    if (raw === null) return { v: 1, trips: [] };
+    try {
+      var d = JSON.parse(raw);
+      if (!validBackup(d)) throw new Error("shape");
+      return normDB(d);
+    } catch (e) { LOAD_BROKEN = true; return { v: 1, trips: [] }; }
+  }
+  /* Never let a failed write pass for a successful one. */
+  function save(d) {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(d));
+      if (SAVE_FAILED) { SAVE_FAILED = false; paintAlerts(); }
+      return true;
+    } catch (e) {
+      /* A banner she never scrolls up to see is not a warning. The first time
+         it appears, take her to it. */
+      if (!SAVE_FAILED) { SAVE_FAILED = true; paintAlerts(); window.scrollTo(0, 0); }
+      return false;
+    }
+  }
+  function validBackup(d) {
+    if (!d || !Array.isArray(d.trips)) return false;
+    for (var i = 0; i < d.trips.length; i++) {
+      var t = d.trips[i];
+      if (!t || typeof t.t !== "string" || !Array.isArray(t.x)) return false;
+      for (var j = 0; j < t.x.length; j++) {
+        var a = t.x[j];
+        if (!a || typeof a.t !== "string") return false;
+      }
+    }
+    return true;
+  }
+
+  /* ---------- coercion at the boundary ----------
+     Anything arriving from a file or a link is rebuilt field by field into a
+     fresh object. Checking a value is "truthy" is not the same as checking it
+     is text: a number or an object slips through and breaks rendering later. */
+  function str(v, max) {
+    if (typeof v !== "string") return "";
+    return max ? v.slice(0, max) : v;
+  }
+  /* The right SHAPE is not the same as a real day. "2026-02-31" and
+     "2026-13-01" both match the pattern and neither exists, so the date is
+     built and read back to prove the calendar agrees. */
+  function isoDate(v) {
+    if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return "";
+    var p = v.split("-"), y = +p[0], m = +p[1], d = +p[2];
+    if (m < 1 || m > 12 || d < 1 || d > 31) return "";
+    var dt = new Date(y, m - 1, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return "";
+    return v;
+  }
+  function hhmm(v) { return (typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v)) ? v : ""; }
+  function knownKind(v) {
+    for (var i = 0; i < KINDS.length; i++) if (KINDS[i][0] === v) return v;
+    return "note";
+  }
+  function normTrip(o, seen) {
+    var t = {
+      i: uid(), t: str(o && o.t, 80) || "Untitled trip", d: str(o && o.d, 80),
+      s: isoDate(o && o.s), e: isoDate(o && o.e), n: str(o && o.n, 300),
+      c: isoDate(o && o.c) || todayISO(), u: isoDate(o && o.u) || todayISO(), x: []
+    };
+    if (!t.s) t.s = todayISO();
+    if (!t.e || t.e < t.s) t.e = t.s;
+    var items = (o && Array.isArray(o.x)) ? o.x : [];
+    for (var i = 0; i < items.length; i++) {
+      var a = items[i] || {};
+      var d = isoDate(a.d) || t.s;
+      t.x.push({
+        i: uid(), d: d, k: knownKind(a.k), t: str(a.t, 90) || "Untitled",
+        s: hhmm(a.s), e: hhmm(a.e), l: str(a.l, 120), n: str(a.n, 500),
+        w: safeUrl(str(a.w)), m: safeUrl(str(a.m))
+      });
+    }
+    if (seen) { while (seen[t.i]) t.i = uid(); seen[t.i] = 1; }
+    return t;
+  }
+  function normDB(d) {
+    var out = { v: 1, trips: [] }, seen = {};
+    var list = (d && Array.isArray(d.trips)) ? d.trips : [];
+    for (var i = 0; i < list.length; i++) out.trips.push(normTrip(list[i], seen));
+    return out;
+  }
+  var DB = load();
+  function tripById(id) {
+    for (var i = 0; i < DB.trips.length; i++) if (DB.trips[i].i === id) return DB.trips[i];
+    return null;
+  }
+  function touch(t) { t.u = todayISO(); save(DB); }
+
+  /* ---------- share encoding (UTF-8 safe base64url) ---------- */
+  function b64e(str) {
+    var bytes = new TextEncoder().encode(str), bin = "";
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function b64d(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/");
+    while (s.length % 4) s += "=";
+    var bin = atob(s), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function encodeTrip(t) {
+    var slim = { t: t.t, d: t.d, s: t.s, e: t.e, n: t.n || "", x: [] };
+    for (var i = 0; i < t.x.length; i++) {
+      var a = t.x[i], o = { d: a.d, k: a.k, t: a.t };
+      if (a.s) o.s = a.s;
+      if (a.e) o.e = a.e;
+      if (a.l) o.l = a.l;
+      if (a.n) o.n = a.n;
+      if (a.w) o.w = a.w;
+      if (a.m) o.m = a.m;
+      slim.x.push(o);
+    }
+    return b64e(JSON.stringify(slim));
+  }
+  function decodeTrip(code) {
+    var o = JSON.parse(b64d(code));
+    if (!o || typeof o.t !== "string" || !Array.isArray(o.x)) throw new Error("shape");
+    return normTrip(o, null);
+  }
+  function shareLink(t) {
+    return location.origin + location.pathname + "#trip=" + encodeTrip(t);
+  }
+
+  /* ---------- persistent alerts ----------
+     A toast that vanishes in two seconds cannot carry news this bad, so these
+     stay on screen until the condition clears. */
+  function paintAlerts() {
+    var box = el("alerts"); if (!box) return;
+    box.innerHTML = "";
+    if (SAVE_FAILED) {
+      var a = document.createElement("div");
+      a.className = "banner stop noprint";
+      a.innerHTML = "<strong>Nothing is being saved on this device.</strong> " +
+        "Your changes are only in this open page. If you close or reload it they are gone. " +
+        "This usually means private browsing, or the browser is set to block site data. " +
+        "Download a backup now, then reopen the app in a normal window.";
+      var r = document.createElement("div"); r.className = "row"; r.style.marginTop = "0.5rem";
+      btn(r, "Download a backup now", "primary", downloadBackup);
+      a.appendChild(r); box.appendChild(a);
+    }
+    if (LOAD_BROKEN) {
+      var b = document.createElement("div");
+      b.className = "banner stop noprint";
+      b.innerHTML = LOAD_BLOCKED
+        ? "<strong>This device would not let the app look at its saved trips.</strong> " +
+          "It cannot tell whether anything is saved here or not, so it will not risk " +
+          "writing over it. This usually means private browsing, or the browser is set " +
+          "to block site data. Try a normal window. If you have a backup file, use Restore."
+        : "<strong>There was saved data here and it could not be read.</strong> " +
+          "The app has started empty rather than pretending nothing was ever there. " +
+          "If you have a backup file, use Restore. Do not add new trips first — " +
+          "restoring replaces whatever is here.";
+      var r2 = document.createElement("div"); r2.className = "row"; r2.style.marginTop = "0.5rem";
+      btn(r2, "Restore from a backup file", "", importBackup);
+      /* The label promises a fresh start, so it has to actually write one -
+         and stay up if that write fails. */
+      btn(r2, "Start fresh anyway", "quiet", function () {
+        if (!confirm("Throw away the unreadable saved data and start with no trips?")) return;
+        DB = { v: 1, trips: [] };
+        if (save(DB)) { LOAD_BROKEN = false; LOAD_BLOCKED = false; paintAlerts(); go("list"); }
+        else { paintAlerts(); go("list"); }
+      });
+      b.appendChild(r2); box.appendChild(b);
+    }
+  }
+
+  /* ---------- view state ---------- */
+  var view = { name: "list", id: null, shared: null, previewing: false };
+
+  /* The pending "undo the move" lives out here, not inside the editor, so it
+     survives walking to the trip list and back. It is dropped the moment a
+     later edit would make undoing it mean something different. */
+  var lastMove = null;
+
+  /* A range this long was never drawn in full - it was quietly cut off at 400
+     days. Refusing at the form was not enough: trips already saved, restored
+     from a backup, or arriving in a link never passed through that form. */
+  function tooLong(t) { return daysBetween(t.s, t.e) >= MAX_DAYS; }
+  function tooLongNotice(what) {
+    var d = document.createElement("div"); d.className = "banner stop";
+    d.innerHTML = "<strong>This trip is longer than " + MAX_DAYS + " days, so it cannot be " +
+      what + ".</strong> Nothing has been deleted — every plan is still stored. Shorten the " +
+      "end date, or split the journey into separate trips.";
+    return d;
+  }
+
+  /* An item half typed into the form is the likeliest thing to be lost, so
+     leaving the page it sits on has to ask first. */
+  var ITEM_FIELDS = ["i_t", "i_k", "i_d", "i_s", "i_e", "i_l", "i_n", "i_w", "i_m"];
+  function itemSnapshot() {
+    return ITEM_FIELDS.map(function (id) { return (el(id) || {}).value || ""; }).join("");
+  }
+  /* Watching only the title meant a time, a place or a paragraph of details
+     could be thrown away in silence; and an untouched existing item asked a
+     pointless question. Compare the whole form against how it opened. */
+  function okToLeaveItemForm() {
+    var f = el("itemForm"); if (!f) return true;
+    if (itemSnapshot() === (f.getAttribute("data-initial") || "")) { f.remove(); return true; }
+    if (confirm("You have unsaved changes to this item. Leave without keeping them?")) {
+      f.remove(); return true;
+    }
+    return false;
+  }
+
+  function go(name, id) {
+    if (!okToLeaveItemForm()) return;
+    if (name !== "shared") view.previewing = false;
+    view.name = name; view.id = id || null; render();
+  }
+
+  /* ---------- sorting ---------- */
+  function itemsFor(t, iso) {
+    var out = t.x.filter(function (a) { return a.d === iso; });
+    out.sort(function (a, b) {
+      if (!a.s && !b.s) return 0;
+      if (!a.s) return 1;
+      if (!b.s) return -1;
+      return a.s < b.s ? -1 : a.s > b.s ? 1 : 0;
+    });
+    return out;
+  }
+  function strayItems(t) {
+    var days = dayspan(t.s, t.e);
+    return t.x.filter(function (a) { return days.indexOf(a.d) === -1; });
+  }
+
+  /* ================= RENDER ================= */
+  function render() {
+    var app = el("app"), top = el("topActions"), sub = el("subline");
+    top.innerHTML = ""; app.innerHTML = "";
+    if (view.name === "list") { sub.textContent = "your trips, on this device"; renderList(app, top); }
+    else if (view.name === "edit") { sub.textContent = "editing"; renderEdit(app, top); }
+    else if (view.name === "read") { sub.textContent = "reading view"; renderRead(app, top, tripById(view.id), false); }
+    else if (view.name === "shared") { sub.textContent = "shared with you"; renderRead(app, top, view.shared, true); }
+    else if (view.name === "share") { sub.textContent = "share"; renderShare(app, top); }
+    else if (view.name === "broken") { sub.textContent = ""; renderBroken(app, top); }
+    window.scrollTo(0, 0);
+  }
+
+  function btn(parent, label, cls, fn) {
+    var b = document.createElement("button");
+    b.textContent = label; if (cls) b.className = cls;
+    b.onclick = fn; parent.appendChild(b); return b;
+  }
+
+  /* ---------- LIST ---------- */
+  function renderList(app, top) {
+    /* Fail closed. While there is unreadable data in storage, creating a trip
+       would save over it and destroy the only copy that might still be
+       recoverable. The banner asks her not to; this makes it impossible. */
+    if (LOAD_BROKEN) {
+      btn(top, "Restore from a backup file", "primary", importBackup);
+      var locked = document.createElement("div");
+      locked.className = "empty";
+      locked.innerHTML = "<p><strong>Making new trips is switched off for the moment.</strong></p>" +
+        "<p>" + (LOAD_BLOCKED
+          ? "This device would not let the app look at its saved trips, so it cannot tell " +
+            "whether any are there. Starting a new trip could write over them."
+          : "There is saved data here that could not be read, and starting a new trip " +
+            "would write over it for good.") +
+        " Use the warning above: either restore a backup file, or press " +
+        "<em>Start fresh anyway</em> to go ahead without it.</p>";
+      app.appendChild(locked);
+      return;
+    }
+    btn(top, "New trip", "primary", function () {
+      if (LOAD_BROKEN) return;
+      var t = {
+        i: uid(), t: "", d: "", s: todayISO(), e: todayISO(), n: "",
+        c: todayISO(), u: todayISO(), x: []
+      };
+      DB.trips.unshift(t); save(DB); go("edit", t.i);
+    });
+    btn(top, "Backup", "quiet", downloadBackup);
+    btn(top, "Restore", "quiet", importBackup);
+
+    if (!DB.trips.length) {
+      app.innerHTML = '<div class="empty"><p><strong>No trips yet.</strong></p>' +
+        '<p>Create a trip, add your plans, then send a view-only itinerary ' +
+        'to the people travelling with you.</p></div>';
+      return;
+    }
+
+    /* The likeliest way real data is lost here is not a bug: it is clearing
+       the browser. Say so once, where she can act on it. */
+    var dismissed = false;
+    try { dismissed = localStorage.getItem(DISMISS_KEY) === "1"; } catch (e) { dismissed = false; }
+    if (!dismissed && !SAVE_FAILED) {
+      var note = document.createElement("div"); note.className = "banner noprint";
+      note.innerHTML = "<strong>Your trips are kept only in this browser, on this device.</strong> " +
+        "They are not in the cloud and they will not follow you to another phone or computer. " +
+        "Clearing your browsing data deletes them. Press Backup now and again to keep a file copy.";
+      var nr = document.createElement("div"); nr.className = "row"; nr.style.marginTop = "0.5rem";
+      btn(nr, "Download a backup now", "", downloadBackup);
+      btn(nr, "Got it, hide this", "quiet", function () {
+        try { localStorage.setItem(DISMISS_KEY, "1"); } catch (e) {}
+        render();
+      });
+      note.appendChild(nr); app.appendChild(note);
+    }
+
+    /* The reminder above can be dismissed forever. This line cannot, because
+       "I will back it up later" is the failure that actually happens. */
+    var lb = lastBackup();
+    var lbLine = document.createElement("div");
+    lbLine.className = "meta noprint";
+    lbLine.style.margin = "0.2rem 0 0.6rem";
+    /* The page can start a download. It cannot see whether the file was kept,
+       so it must not say "backed up" as though it knew. */
+    lbLine.textContent = lb
+      ? ("Backup download last requested: " + fmtDate(lb) + " — check the file is on your device")
+      : "No backup download has been requested yet";
+    app.appendChild(lbLine);
+
+    var sorted = DB.trips.slice().sort(function (a, b) { return (a.s || "") < (b.s || "") ? 1 : -1; });
+    sorted.forEach(function (t) {
+      var c = document.createElement("div"); c.className = "card";
+      c.innerHTML =
+        '<h3>' + esc(t.t || "Untitled trip") + '</h3>' +
+        '<div class="meta">' + esc(t.d || "no destination yet") + ' &middot; ' +
+        esc(fmtRange(t.s, t.e)) + '</div>' +
+        '<div class="meta">' + t.x.length + (t.x.length === 1 ? ' item' : ' items') +
+        ' &middot; last edited ' + esc(fmtDate(t.u)) + '</div>';
+      var r = document.createElement("div"); r.className = "row"; r.style.marginTop = "0.6rem";
+      btn(r, "Open", "", function () { go("edit", t.i); });
+      btn(r, "Read", "", function () { go("read", t.i); });
+      btn(r, "Share", "", function () { go("share", t.i); });
+      btn(r, "Duplicate", "quiet", function () {
+        var copy = JSON.parse(JSON.stringify(t));
+        copy.i = uid(); copy.t = (t.t || "Untitled trip") + " (copy)";
+        copy.c = copy.u = todayISO();
+        copy.x.forEach(function (a) { a.i = uid(); });
+        DB.trips.unshift(copy); save(DB); render();
+      });
+      btn(r, "Delete", "quiet danger", function () {
+        if (!confirm('Delete "' + (t.t || "Untitled trip") + '"? This cannot be undone.')) return;
+        DB.trips = DB.trips.filter(function (x) { return x.i !== t.i; });
+        save(DB); render();
+      });
+      c.appendChild(r); app.appendChild(c);
+    });
+  }
+
+  /* ---------- EDITOR ---------- */
+  function renderEdit(app, top) {
+    var t = tripById(view.id);
+    if (!t) return go("list");
+
+    btn(top, "All trips", "quiet", function () { go("list"); });
+    btn(top, "Read", "", function () { go("read", t.i); });
+    btn(top, "Share", "primary", function () { go("share", t.i); });
+
+    var d = document.createElement("div"); d.className = "card";
+    d.innerHTML =
+      '<label for="f_t">Trip name</label><input id="f_t" maxlength="80" value="' + esc(t.t) + '">' +
+      '<label for="f_d">Destination</label><input id="f_d" maxlength="80" value="' + esc(t.d) + '">' +
+      '<div class="grid2">' +
+        '<div><label for="f_s">Start date</label><input id="f_s" type="date" value="' + esc(t.s) + '"></div>' +
+        '<div><label for="f_e">End date</label><input id="f_e" type="date" value="' + esc(t.e) + '"></div>' +
+      '</div>' +
+      '<label for="f_n">A note at the top (optional)</label>' +
+      '<textarea id="f_n" maxlength="300">' + esc(t.n) + '</textarea>' +
+      '<div class="hint">The two date boxes above use your device’s own format, ' +
+      'which may not be day/month/year. Everywhere else the trip is written out, ' +
+      'dates are day/month/year. Times are local to where you are going.</div>' +
+      '<div class="err" id="tripErr"></div>';
+    app.appendChild(d);
+
+    var daysWrap = document.createElement("div");
+    app.appendChild(daysWrap);
+
+    function showTripErr(msg) {
+      var box = el("tripErr"); if (box) box.textContent = msg || "";
+    }
+
+    function bind(id, key) {
+      el(id).addEventListener("input", function () {
+        t[key] = el(id).value; touch(t);
+      });
+    }
+    bind("f_t", "t"); bind("f_d", "d"); bind("f_n", "n");
+
+    /* An impossible range must never reach the record - it used to be written
+       first and validated afterwards, so the next keystroke anywhere saved it.
+       Moving the START simply carries the trip with it, keeping its length,
+       because "I am going a month later" is a normal thing to do. Only a bad
+       END date is genuinely wrong input, and that one is refused. */
+    el("f_s").addEventListener("change", function () {
+      var wanted = el("f_s").value;
+      if (!isoDate(wanted)) { el("f_s").value = t.s; return; }
+      /* Settle the open item form before the days beneath it are rebuilt. */
+      if (!okToLeaveItemForm()) { el("f_s").value = t.s; return; }
+      var oldS = t.s, oldE = t.e;
+      var len = daysBetween(oldS, oldE);
+      if (len < 0) len = 0;
+      var offset = daysBetween(oldS, wanted);
+      t.s = wanted;
+      t.e = addDays(wanted, len);
+      /* Move the plans with the trip. Leaving them on the old dates makes them
+         vanish from the itinerary and looks like the move failed. Items already
+         outside the trip are left where they are.
+         Which items count as "in the trip" is worked out fresh each time, so a
+         move is NOT always its own opposite: an item sitting outside the trip
+         can end up inside the range you move to, and would then travel back
+         with you. That is why the move is announced and can be undone exactly,
+         rather than quietly assumed to be reversible. */
+      var moved = [];
+      if (offset !== 0) {
+        t.x.forEach(function (a) {
+          if (a.d >= oldS && a.d <= oldE) { a.d = addDays(a.d, offset); moved.push(a.i); }
+        });
+      }
+      lastMove = (offset !== 0)
+        ? { tripId: t.i, s: oldS, e: oldE, offset: offset, ids: moved } : null;
+      el("f_e").value = t.e;
+      showTripErr("");
+      touch(t); renderDays();
+    });
+    el("f_e").addEventListener("change", function () {
+      var wanted = el("f_e").value;
+      if (!isoDate(wanted)) { el("f_e").value = t.e; return; }
+      if (!okToLeaveItemForm()) { el("f_e").value = t.e; return; }
+      /* Refuse an absurd range rather than drawing the first 400 days and
+         quietly dropping the rest. */
+      if (t.s && daysBetween(t.s, wanted) >= MAX_DAYS) {
+        el("f_e").value = t.e;
+        showTripErr("That would make the trip more than " + MAX_DAYS + " days long, which " +
+                    "this app does not handle. It still runs " + fmtDate(t.s) + " to " +
+                    fmtDate(t.e) + ". Split a very long journey into separate trips.");
+        return;
+      }
+      if (t.s && wanted < t.s) {
+        el("f_e").value = t.e;
+        showTripErr("The trip cannot end before it starts, so that was not kept. " +
+                    "It still runs " + fmtDate(t.s) + " to " + fmtDate(t.e) +
+                    ". Change the start date first if you meant to move the whole trip.");
+        return;
+      }
+      /* Once she has changed the end date, "undo the move" no longer has one
+         clear meaning - restoring the old start AND end would silently throw
+         this edit away. The move is committed instead. */
+      lastMove = null;
+      t.e = wanted;
+      showTripErr("");
+      touch(t); renderDays();
+    });
+    showTripErr("");
+
+    function renderDays() {
+      daysWrap.innerHTML = "";
+
+      /* A move that changes item dates is announced and reversible, so it can
+         never be a silent change she has to notice for herself. */
+      if (lastMove && lastMove.tripId === t.i) {
+        var mv = document.createElement("div"); mv.className = "banner noprint";
+        var n = lastMove.ids.length;
+        mv.innerHTML = "<strong>Trip moved " + Math.abs(lastMove.offset) + " day" +
+          (Math.abs(lastMove.offset) === 1 ? "" : "s") +
+          (lastMove.offset > 0 ? " later" : " earlier") + ".</strong> " +
+          (n ? (n + " plan" + (n === 1 ? " came" : "s came") + " with it.")
+             : "Nothing was on those days, so no plans moved.");
+        var mr = document.createElement("div"); mr.className = "row"; mr.style.marginTop = "0.5rem";
+        btn(mr, "Undo the move", "", function () {
+          var back = lastMove;
+          t.s = back.s; t.e = back.e;
+          t.x.forEach(function (a) {
+            if (back.ids.indexOf(a.i) > -1) a.d = addDays(a.d, -back.offset);
+          });
+          el("f_s").value = t.s; el("f_e").value = t.e;
+          lastMove = null; touch(t); renderDays();
+        });
+        btn(mr, "Keep it", "quiet", function () { lastMove = null; renderDays(); });
+        mv.appendChild(mr); daysWrap.appendChild(mv);
+      }
+
+      /* Catches a trip that was saved, restored or shared before the form ever
+         refused a range this long. */
+      if (tooLong(t)) { daysWrap.appendChild(tooLongNotice("shown day by day")); return; }
+
+      var days = dayspan(t.s, t.e);
+      if (!days.length) {
+        daysWrap.innerHTML = '<div class="empty">Set a start and end date to build the days.</div>';
+        return;
+      }
+      days.forEach(function (iso, ix) {
+        var bar = document.createElement("div"); bar.className = "daybar";
+        bar.innerHTML = '<span class="dnum">Day ' + (ix + 1) + '</span>' +
+                        '<span class="ddate">' + esc(fmtLong(iso)) + '</span>';
+        var sp = document.createElement("span"); sp.className = "spacer"; bar.appendChild(sp);
+        btn(bar, "Add", "quiet", function () { openItem(t, null, iso, renderDays); });
+        daysWrap.appendChild(bar);
+
+        var list = itemsFor(t, iso);
+        if (!list.length) {
+          var n = document.createElement("div");
+          n.className = "meta"; n.style.padding = "0.4rem 0";
+          n.textContent = "Nothing planned.";
+          daysWrap.appendChild(n);
+          return;
+        }
+        list.forEach(function (a) { daysWrap.appendChild(itemRow(t, a, renderDays, true)); });
+      });
+
+      var stray = strayItems(t);
+      if (stray.length) {
+        var w = document.createElement("div"); w.className = "banner";
+        w.innerHTML = '<strong>' + stray.length + ' item' + (stray.length === 1 ? '' : 's') +
+          ' sit outside the trip dates.</strong> They are kept, but they will not appear ' +
+          'in the reading view until you move them onto a day of the trip.';
+        daysWrap.appendChild(w);
+        stray.forEach(function (a) { daysWrap.appendChild(itemRow(t, a, renderDays, true)); });
+      }
+    }
+    renderDays();
+
+    var foot = document.createElement("div"); foot.className = "row"; foot.style.marginTop = "1.5rem";
+    btn(foot, "Delete this trip", "quiet danger", function () {
+      /* Ask about the half-typed item BEFORE the trip is destroyed. The other
+         way round left the editor holding a trip that no longer existed. */
+      if (!okToLeaveItemForm()) return;
+      if (!confirm('Delete "' + (t.t || "Untitled trip") + '"? This cannot be undone.')) return;
+      DB.trips = DB.trips.filter(function (x) { return x.i !== t.i; });
+      save(DB); go("list");
+    });
+    app.appendChild(foot);
+  }
+
+  function itemRow(t, a, redraw, editable) {
+    var row = document.createElement("div"); row.className = "item";
+    var when = fmtTime(a.s) + (a.e ? "–" + fmtTime(a.e) : "");
+    var links = "";
+    if (safeUrl(a.w)) links += '<a href="' + esc(a.w) + '" target="_blank" rel="noopener noreferrer">Open link</a>';
+    if (safeUrl(a.m)) links += '<a href="' + esc(a.m) + '" target="_blank" rel="noopener noreferrer">Open map</a>';
+    row.innerHTML =
+      '<div class="when">' + esc(when || "—") + '</div>' +
+      '<div class="body">' +
+        '<div class="ttl">' + esc(a.t || "Untitled") + '<span class="kind">' + esc(kindLabel(a.k)) + '</span></div>' +
+        (a.l ? '<div class="where">' + esc(a.l) + '</div>' : "") +
+        (a.n ? '<div class="note">' + esc(a.n) + '</div>' : "") +
+        (links ? '<div class="links">' + links + '</div>' : "") +
+      '</div>';
+    if (editable) {
+      var acts = document.createElement("div"); acts.className = "row noprint";
+      acts.style.flex = "0 0 auto"; acts.style.alignItems = "flex-start";
+      btn(acts, "Edit", "quiet", function () { openItem(t, a, a.d, redraw); });
+      btn(acts, "Delete", "quiet danger", function () {
+        if (!confirm("Delete this item?")) return;
+        t.x = t.x.filter(function (x) { return x.i !== a.i; });
+        touch(t); redraw();
+      });
+      row.appendChild(acts);
+    }
+    return row;
+  }
+
+  /* ---------- ITEM FORM ---------- */
+  function openItem(t, existing, iso, redraw) {
+    /* Tapping Add on another day, or Edit on another item, used to delete the
+       open form without asking. Same question, every route out. */
+    if (!okToLeaveItemForm()) return;
+    var a = existing || { i: uid(), d: iso, k: "activity", t: "", s: "", e: "", l: "", n: "", w: "", m: "" };
+    var host = document.createElement("div"); host.className = "card"; host.id = "itemForm";
+    var opts = KINDS.map(function (k) {
+      return '<option value="' + k[0] + '"' + (a.k === k[0] ? " selected" : "") + '>' + k[1] + '</option>';
+    }).join("");
+    var days = dayspan(t.s, t.e);
+    var dayOpts = days.map(function (dd, ix) {
+      return '<option value="' + dd + '"' + (a.d === dd ? " selected" : "") + '>Day ' + (ix + 1) + " — " + fmtLong(dd) + '</option>';
+    }).join("");
+    if (a.d && days.indexOf(a.d) === -1) {
+      dayOpts = '<option value="' + esc(a.d) + '" selected>' + esc(fmtDate(a.d)) + ' (outside the trip)</option>' + dayOpts;
+    }
+    host.innerHTML =
+      '<h3>' + (existing ? "Edit item" : "New item") + '</h3>' +
+      '<label for="i_t">What is it?</label><input id="i_t" maxlength="90" value="' + esc(a.t) + '" placeholder="Flight QF670, dinner at the pub...">' +
+      '<div class="grid2">' +
+        '<div><label for="i_k">Type</label><select id="i_k">' + opts + '</select></div>' +
+        '<div><label for="i_d">Day</label><select id="i_d">' + dayOpts + '</select></div>' +
+      '</div>' +
+      '<div class="grid2">' +
+        '<div><label for="i_s">Starts (optional)</label><input id="i_s" type="time" value="' + esc(a.s) + '"></div>' +
+        '<div><label for="i_e">Ends (optional)</label><input id="i_e" type="time" value="' + esc(a.e) + '"></div>' +
+      '</div>' +
+      '<label for="i_l">Where (optional)</label><input id="i_l" maxlength="120" value="' + esc(a.l) + '">' +
+      '<label for="i_n">Details (optional)</label><textarea id="i_n" maxlength="500">' + esc(a.n) + '</textarea>' +
+      '<div class="grid2">' +
+        '<div><label for="i_w">Web link (optional)</label><input id="i_w" value="' + esc(a.w) + '" placeholder="https://"></div>' +
+        '<div><label for="i_m">Map link (optional)</label><input id="i_m" value="' + esc(a.m) + '" placeholder="https://"></div>' +
+      '</div>' +
+      '<div class="err" id="i_err"></div>';
+    var r = document.createElement("div"); r.className = "row"; r.style.marginTop = "0.8rem";
+    btn(r, existing ? "Save changes" : "Add to trip", "primary", function () {
+      var title = el("i_t").value.trim();
+      var w = el("i_w").value.trim(), m = el("i_m").value.trim();
+      var s = el("i_s").value, e = el("i_e").value;
+      var problems = [];
+      if (!title) problems.push("Give it a name.");
+      if (w && !safeUrl(w)) problems.push("The web link must start with https:// or http://");
+      if (m && !safeUrl(m)) problems.push("The map link must start with https:// or http://");
+      if (s && e && e < s) problems.push("The end time is before the start time.");
+      if (problems.length) { el("i_err").textContent = problems.join(" "); return; }
+      a.t = title; a.k = el("i_k").value; a.d = el("i_d").value;
+      a.s = s; a.e = e; a.l = el("i_l").value.trim();
+      a.n = el("i_n").value; a.w = w; a.m = m;
+      if (!existing) t.x.push(a);
+      touch(t); host.remove(); redraw();
+    });
+    btn(r, "Cancel", "quiet", function () { host.remove(); });
+    host.appendChild(r);
+
+    el("app").appendChild(host);
+    host.setAttribute("data-initial", itemSnapshot());
+    host.scrollIntoView({ block: "center", behavior: "smooth" });
+    el("i_t").focus();
+  }
+
+  /* ---------- READING VIEW ---------- */
+  function renderRead(app, top, t, isShared) {
+    if (!t) return go("list");
+
+    if (isShared && view.previewing) {
+      /* Her own trip, seen as the recipient sees it. Offering to "save a copy"
+         here would only ever make a duplicate of what she already has. */
+      btn(top, "Back to sharing", "primary", function () {
+        view.previewing = false; go("share", view.id);
+      });
+      btn(top, "Print", "quiet", function () { window.print(); });
+    } else if (isShared && LOAD_BROKEN) {
+      /* The lock on the trip list was not enough: arriving on a shared link
+         with unreadable data in storage offered a Save button that would have
+         written straight over it. Same rule, this door too. */
+      btn(top, "Print", "quiet", function () { window.print(); });
+    } else if (isShared) {
+      btn(top, "Save an editable copy", "primary", function () {
+        if (LOAD_BROKEN) return;
+        var copy = JSON.parse(JSON.stringify(t));
+        copy.i = uid(); copy.c = copy.u = todayISO();
+        copy.x.forEach(function (a) { a.i = uid(); });
+        DB.trips.unshift(copy);
+        if (save(DB)) {
+          history.replaceState(null, "", location.pathname);
+          toast("Saved to this device");
+          go("edit", copy.i);
+        } else {
+          /* Do not leave a copy behind that was never written - pressing the
+             button again would only stack up more of them. */
+          DB.trips.shift();
+          toast("Could not save — read the warning above");
+        }
+      });
+      btn(top, "Print", "quiet", function () { window.print(); });
+    } else {
+      btn(top, "All trips", "quiet", function () { go("list"); });
+      btn(top, "Edit", "", function () { go("edit", t.i); });
+      btn(top, "Share", "primary", function () { go("share", t.i); });
+      btn(top, "Print", "quiet", function () { window.print(); });
+    }
+
+    var head = document.createElement("div");
+    head.innerHTML =
+      '<h1>' + esc(t.t || "Untitled trip") + '</h1>' +
+      '<div class="meta" style="margin-top:0.25rem">' +
+        esc(t.d || "") + (t.d ? " &middot; " : "") + esc(fmtRange(t.s, t.e)) +
+      '</div>' +
+      (t.n ? '<p>' + esc(t.n) + '</p>' : "");
+    app.appendChild(head);
+
+    if (isShared) {
+      var b = document.createElement("div"); b.className = "banner read noprint";
+      b.innerHTML = view.previewing
+        ? "<strong>This is exactly what they will see.</strong> They cannot change it, " +
+          "and they will not see anything you edit after the link is sent."
+        : "<strong>This is a shared copy.</strong> It is a snapshot from when the link " +
+          "was made, so later changes by the person who sent it will not show up here.";
+      app.appendChild(b);
+      if (LOAD_BROKEN) {
+        var lb2 = document.createElement("div"); lb2.className = "banner stop noprint";
+        lb2.innerHTML = "<strong>You can read this, but not keep a copy of it yet.</strong> " +
+          (LOAD_BLOCKED
+            ? "This device would not let the app look at its saved trips, so it cannot tell " +
+              "whether saving would write over something. "
+            : "There is saved data on this device that could not be read, and saving would " +
+              "write over it. ") +
+          "Open the app without this link first and deal with the warning there, then " +
+          "come back to the link.";
+        app.appendChild(lb2);
+      }
+    }
+
+    if (tooLong(t)) { app.appendChild(tooLongNotice("read day by day")); return; }
+
+    var days = dayspan(t.s, t.e);
+    if (!days.length) {
+      var no = document.createElement("div"); no.className = "empty";
+      no.textContent = "This trip has no dates.";
+      app.appendChild(no); return;
+    }
+
+    var jump = document.createElement("div"); jump.className = "jump noprint";
+    days.forEach(function (iso, ix) {
+      btn(jump, "Day " + (ix + 1), "", function () {
+        var target = el("day-" + iso);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    });
+    app.appendChild(jump);
+
+    var today = todayISO(), any = false;
+    days.forEach(function (iso, ix) {
+      var bar = document.createElement("div");
+      bar.className = "daybar" + (iso === today ? " today" : "");
+      bar.id = "day-" + iso;
+      bar.innerHTML = '<span class="dnum">Day ' + (ix + 1) + '</span>' +
+                      '<span class="ddate">' + esc(fmtLong(iso)) + '</span>' +
+                      (iso === today ? '<span class="todaytag">today</span>' : "");
+      app.appendChild(bar);
+      var list = itemsFor(t, iso);
+      if (!list.length) {
+        var n = document.createElement("div"); n.className = "meta";
+        n.style.padding = "0.4rem 0"; n.textContent = "Nothing planned.";
+        app.appendChild(n);
+      } else {
+        any = true;
+        list.forEach(function (a) { app.appendChild(itemRow(t, a, null, false)); });
+      }
+    });
+    if (!any) {
+      var e2 = document.createElement("div"); e2.className = "empty";
+      e2.style.marginTop = "1rem"; e2.textContent = "Nothing has been added to this trip yet.";
+      app.appendChild(e2);
+    }
+  }
+
+  /* ---------- SHARE ---------- */
+  function renderShare(app, top) {
+    var t = tripById(view.id);
+    if (!t) return go("list");
+    btn(top, "Back", "quiet", function () { go("edit", t.i); });
+
+    /* A page opened straight off the disk has no web address anyone else can
+       reach, so a link made here would be useless the moment it was sent. */
+    if (location.protocol === "file:") {
+      var f = document.createElement("div"); f.className = "banner stop";
+      f.innerHTML = "<strong>This copy cannot make a shareable link.</strong> " +
+        "You have opened the file straight off this computer, so the address only " +
+        "means something on this machine. Everything else works — you can plan, read " +
+        "and print. To send a link, open the app at its web address instead.";
+      app.appendChild(f);
+      return;
+    }
+
+    /* Do not hand someone a link to an itinerary that cannot be shown in full. */
+    if (tooLong(t)) { app.appendChild(tooLongNotice("shared")); return; }
+
+    var link = shareLink(t);
+    var tooBig = link.length > MAX_LINK;
+
+    var warn = document.createElement("div"); warn.className = "banner";
+    warn.innerHTML = "<strong>Anyone with this link can read the trip</strong> — including " +
+      "anyone it gets passed on to. A copy stays in the message you send it in, and in " +
+      "browser history. Do not put passport numbers, payment details, door codes or " +
+      "anything else secret in it.";
+    app.appendChild(warn);
+
+    if (!tooBig && link.length > SAFE_LINK) {
+      var lw = document.createElement("div"); lw.className = "banner";
+      lw.innerHTML = "<strong>This is a long link (" + link.length.toLocaleString() +
+        " characters).</strong> Shorter links are less likely to be cut. Long ones are " +
+        "sometimes shortened or broken by email and messaging apps, and the person then gets " +
+        "an error instead of the trip. No length is guaranteed to arrive. If it happens, " +
+        "shorten the longest <em>Details</em> boxes and send a new link.";
+      app.appendChild(lw);
+    }
+
+    if (tooBig) {
+      var stop = document.createElement("div"); stop.className = "banner";
+      stop.innerHTML = "<strong>This trip is too long to fit in a link.</strong> " +
+        "The whole itinerary travels inside the web address, and this one is " +
+        link.length.toLocaleString() + " characters against a limit of " +
+        MAX_LINK.toLocaleString() + ". Shorten the longest <em>Details</em> boxes, " +
+        "or split the trip in two, then try again.";
+      app.appendChild(stop);
+      return;
+    }
+
+    var box = document.createElement("div"); box.className = "card";
+    box.innerHTML = '<h3>Send this link</h3>' +
+      '<p class="meta">It is a snapshot. If you change the trip later, send a new link.</p>' +
+      '<textarea class="sharebox" id="linkbox" readonly>' + esc(link) + '</textarea>' +
+      '<div class="hint">' + link.length.toLocaleString() + " of " + MAX_LINK.toLocaleString() + " characters used.</div>";
+    var r = document.createElement("div"); r.className = "row"; r.style.marginTop = "0.7rem";
+    btn(r, "Copy link", "primary", function () {
+      var ta = el("linkbox"); ta.select(); ta.setSelectionRange(0, 999999);
+      var ok = false;
+      try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(
+          function () { toast("Link copied"); },
+          function () { toast(ok ? "Link copied" : "Press Ctrl+C to copy"); });
+      } else { toast(ok ? "Link copied" : "Press Ctrl+C to copy"); }
+    });
+    if (navigator.share) {
+      btn(r, "Share…", "", function () {
+        navigator.share({ title: t.t || "Trip", text: t.t || "Trip", url: link })
+          .catch(function () {});
+      });
+    }
+    btn(r, "Preview what they will see", "", function () {
+      view.shared = JSON.parse(JSON.stringify(t));
+      view.id = t.i; view.name = "shared"; view.previewing = true; render();
+    });
+    box.appendChild(r);
+    app.appendChild(box);
+  }
+
+  function renderBroken(app, top) {
+    btn(top, "My trips", "primary", function () {
+      history.replaceState(null, "", location.pathname); go("list");
+    });
+    app.innerHTML = '<div class="empty"><p><strong>That shared link did not open.</strong></p>' +
+      '<p>It may have been cut short when it was copied or sent. Ask for it again, ' +
+      'and make sure the whole address comes across in one piece.</p></div>';
+  }
+
+  /* ---------- BACKUP ---------- */
+  function lastBackup() {
+    try { return localStorage.getItem(LASTBACKUP_KEY) || ""; } catch (e) { return ""; }
+  }
+  function downloadBackup() {
+    var blob = new Blob([JSON.stringify(DB, null, 2)], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "tripshare-backup-" + todayISO() + ".json";
+    document.body.appendChild(a); a.click();
+    /* Stamped after the download is actually started, not before it is offered. */
+    try { localStorage.setItem(LASTBACKUP_KEY, todayISO()); } catch (e) {}
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+  }
+  function importBackup() {
+    var inp = document.createElement("input");
+    inp.type = "file"; inp.accept = "application/json,.json";
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0]; if (!f) return;
+      var fr = new FileReader();
+      fr.onload = function () {
+        var d;
+        /* She has just pressed Restore, so she is looking at the screen; the
+           app's own notice is enough and does not have to be dismissed. */
+        try { d = JSON.parse(fr.result); }
+        catch (e) { toast("That file is not a TripShare backup"); return; }
+        if (!validBackup(d)) {
+          toast("Damaged backup file — nothing has been changed");
+          return;
+        }
+        var whatIsThere = LOAD_BLOCKED
+          ? "This device would not let the app look at what is saved here, so it cannot say " +
+            "what will be replaced."
+          : (LOAD_BROKEN
+             ? "There is saved data here that could not be read. It will be replaced."
+             : "Replace the " + DB.trips.length + " trip(s) on this device");
+        var question = LOAD_BROKEN
+          ? (whatIsThere + " Restore the " + d.trips.length + " trip(s) from the backup file?")
+          : (whatIsThere + " with the " + d.trips.length + " in the backup file?");
+        if (!confirm(question)) return;
+        /* Rebuilt field by field, with fresh ids, so nothing from the file can
+           render half-formed or collide with an existing trip later. */
+        DB = normDB(d);
+        /* The lock stays on until the replacement is actually written. Lifting
+           it first meant a restore that failed to save quietly reopened the
+           door to the unreadable data it was supposed to be protecting. */
+        var wrote = save(DB);
+        if (wrote) { LOAD_BROKEN = false; LOAD_BLOCKED = false; }
+        paintAlerts();
+        go("list");
+        /* Only claim it is restored if it actually reached the disk. */
+        /* A failed write already raises the persistent banner, which says more
+           than a dialog can and does not have to be dismissed to be read. */
+        if (wrote) toast("Backup restored");
+        else toast("Restored on screen only — read the warning above");
+      };
+      fr.readAsText(f);
+    };
+    inp.click();
+  }
+
+  /* ---------- BOOT ---------- */
+  function readHash() {
+    return /[#&]trip=([A-Za-z0-9_\-]+)/.exec(location.hash || "");
+  }
+  function boot() {
+    var m = readHash();
+    if (m) {
+      try { view.shared = decodeTrip(m[1]); view.name = "shared"; }
+      catch (e) { view.name = "broken"; }
+    }
+    paintAlerts();
+    render();
+  }
+  /* Last line of defence for a half-typed item: the browser's own warning. */
+  window.addEventListener("beforeunload", function (ev) {
+    /* If saving is failing, EVERYTHING on screen is unsaved, not just the item
+       form - the trip name, the dates, the note. Simpler and safer than trying
+       to track which of them she touched. */
+    if (SAVE_FAILED) { ev.preventDefault(); ev.returnValue = ""; return; }
+    var f = el("itemForm"); if (!f) return;
+    if (itemSnapshot() === (f.getAttribute("data-initial") || "")) return;
+    ev.preventDefault(); ev.returnValue = "";
+  });
+  window.addEventListener("hashchange", function () {
+    var m = readHash();
+    if (m) {
+      try { view.shared = decodeTrip(m[1]); go("shared"); }
+      catch (e) { go("broken"); }
+    }
+  });
+  boot();
+})();
+</script>
+</body>
+</html>
