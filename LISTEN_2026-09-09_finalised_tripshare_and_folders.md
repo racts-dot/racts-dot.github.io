@@ -1,5 +1,11 @@
 # Done. TripShare is live and nothing on this computer is unsaved.
 
+> ⛔ **SUPERSEDED, same day.** This note says both folders were kept and asks you
+> to choose. You chose: **the Downloads copy was deleted.** One copy remains, on
+> the Desktop. Current note:
+> `LISTEN_2026-09-09_downloads_copy_deleted.md`
+> The rest of this file was true when written and is left as a record.
+
 **Date:** 9 September 2026, afternoon
 
 ---
