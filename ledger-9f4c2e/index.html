@@ -101,6 +101,24 @@ select{max-width:230px}
         justify-content:center;font-size:10px;color:var(--faint);text-align:center;
         line-height:1.2;padding:4px}
 .empty{padding:60px 0;text-align:center;color:var(--faint)}
+.pad{border:1px solid var(--line-strong);border-radius:9px;background:var(--surface);
+     margin:20px 0 0;overflow:hidden}
+.pad h2{margin:0;font-size:13px;letter-spacing:.08em;text-transform:uppercase;
+        font-weight:600;color:var(--muted);padding:12px 14px 0}
+.pad textarea{width:100%;border:0;background:transparent;color:var(--ink);font:inherit;
+     font-size:14.5px;line-height:1.55;padding:8px 14px 14px;resize:vertical;min-height:96px}
+.pad textarea:focus{outline:none}
+.pad footer{display:flex;gap:10px;align-items:center;padding:0 14px 12px;
+     font-size:12px;color:var(--faint)}
+.pad button{font-size:12.5px;padding:6px 11px}
+.nt{width:100%;font:inherit;font-size:12.5px;color:var(--muted);background:transparent;
+    border:1px dashed transparent;border-radius:6px;padding:4px 7px;margin:2px 0 0;
+    resize:none;overflow:hidden;line-height:1.4;font-family:var(--sans)}
+.nt::placeholder{color:var(--faint)}
+.nt:hover{border-color:var(--line)}
+.nt:focus{outline:none;border-style:solid;border-color:var(--accent);background:var(--surface);
+    color:var(--ink)}
+.row.noted .nt{border-color:var(--line-strong);border-style:solid;color:var(--ink)}
 
 .bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);
      border-top:2px solid var(--accent);padding:13px 20px;display:flex;gap:12px;
@@ -143,6 +161,15 @@ button:focus-visible,.tt:focus-visible,.pp:focus-visible{outline:2px solid var(-
 which eBay's newer tools cannot change. Edit titles and prices here, then export the list
 and apply it in eBay's own bulk editor.</p>
 
+<section class="pad">
+  <h2>Notepad</h2>
+  <textarea id="pad" placeholder="Anything you want to remember. It saves as you type."></textarea>
+  <footer>
+    <button class="ghost" id="copypad" type="button">Copy everything I have written</button>
+    <span id="padstate"></span>
+  </footer>
+</section>
+
 <div class="tools">
   <input type="search" id="q" placeholder="Search titles" aria-label="Search titles">
   <select id="cat" aria-label="Category"><option value="">All categories</option></select>
@@ -170,6 +197,8 @@ and apply it in eBay's own bulk editor.</p>
 (function(){
   var ITEMS = JSON.parse(document.getElementById("stock").textContent);
   var edits = {};              // id -> {t?:newTitle, p?:newPrice}
+  var notes = {};              // id -> a note about that listing
+  var pad = "";                // the free notepad at the top
   var db = null, downloads = null;
   var rowsEl = document.getElementById("rows");
   var money = function(n){ return n.toLocaleString("en-AU",{minimumFractionDigits:2,maximumFractionDigits:2}); };
@@ -246,6 +275,19 @@ and apply it in eBay's own bulk editor.</p>
       meta.appendChild(a);
       if (x.n){ var s = document.createElement("span"); s.textContent = x.n; meta.appendChild(s); }
       left.appendChild(meta);
+      var nt = document.createElement("textarea");
+      nt.className = "nt"; nt.rows = 1; nt.placeholder = "note to self";
+      nt.value = (notes[x.i] || "");
+      nt.setAttribute("aria-label", "Note about this listing");
+      nt.addEventListener("input", function(){
+        grow(nt);
+        if (nt.value.trim()) notes[x.i] = nt.value; else delete notes[x.i];
+        row.classList.toggle("noted", !!nt.value.trim());
+        clearTimeout(saveTimer); saveTimer = setTimeout(save, 700);
+      });
+      left.appendChild(nt);
+      if (nt.value.trim()) row.classList.add("noted");
+      requestAnimationFrame(function(){ grow(nt); });
 
       var mid = document.createElement("div");
       var pi = document.createElement("input");
@@ -299,21 +341,24 @@ and apply it in eBay's own bulk editor.</p>
 
   function save(){
     var el = document.getElementById("saved");
+    var ps = document.getElementById("padstate");
     try {
-      localStorage.setItem("ebay-ledger-edits", JSON.stringify(edits));
+      localStorage.setItem("ebay-ledger-edits",
+        JSON.stringify({ edits: edits, notes: notes, pad: pad }));
       el.textContent = "Saved in this browser";
-      setTimeout(function(){ el.textContent = ""; }, 2200);
+      ps.textContent = "Saved";
+      setTimeout(function(){ el.textContent = ""; ps.textContent = ""; }, 2200);
     } catch (err) { el.textContent = "Could not save"; }
   }
 
   document.getElementById("export").addEventListener("click", function(){
-    var list = changedItems();
-    var head = ["itemId","currentTitle","newTitle","currentPrice","newPrice","ebayUrl"];
+    var list = ITEMS.filter(function(x){ return isChanged(x) || notes[x.i]; });
+    var head = ["itemId","currentTitle","newTitle","currentPrice","newPrice","note","ebayUrl"];
     var esc = function(v){ v = String(v == null ? "" : v); return '"' + v.replace(/"/g,'""') + '"'; };
     var lines = [head.join(",")];
     list.forEach(function(x){
       var e = eff(x);
-      lines.push([x.i, x.t, e.t, x.p.toFixed(2), e.p.toFixed(2), x.u].map(esc).join(","));
+      lines.push([x.i, x.t, e.t, x.p.toFixed(2), e.p.toFixed(2), notes[x.i] || "", x.u].map(esc).join(","));
     });
     var csv = lines.join("\r\n");
     var blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -334,12 +379,43 @@ and apply it in eBay's own bulk editor.</p>
     el.addEventListener(id === "q" ? "input" : "change", render);
   });
 
+  var padEl = document.getElementById("pad");
+  padEl.addEventListener("input", function(){
+    pad = padEl.value;
+    clearTimeout(saveTimer); saveTimer = setTimeout(save, 700);
+  });
+  document.getElementById("copypad").addEventListener("click", function(){
+    var out = [];
+    if (pad.trim()) out.push("NOTEPAD\n" + pad.trim());
+    var noted = ITEMS.filter(function(x){ return notes[x.i]; });
+    if (noted.length){
+      out.push("\nNOTES ON PARTICULAR ITEMS");
+      noted.forEach(function(x){
+        out.push("- " + eff(x).t + "\n    " + notes[x.i] + "\n    " + x.u);
+      });
+    }
+    var text = out.join("\n") || "Nothing written yet.";
+    var btn = this;
+    navigator.clipboard.writeText(text).then(function(){
+      btn.textContent = "Copied - paste it wherever you like";
+      setTimeout(function(){ btn.textContent = "Copy everything I have written"; }, 2600);
+    }, function(){
+      btn.textContent = "Could not copy";
+    });
+  });
+
   document.getElementById("s-count").textContent = ITEMS.length;
   render(); updateBar();
 
   try {
-    var kept = localStorage.getItem("ebay-ledger-edits");
-    if (kept){ edits = JSON.parse(kept) || {}; render(); updateBar(); }
+    var kept = JSON.parse(localStorage.getItem("ebay-ledger-edits") || "null");
+    if (kept){
+      edits = kept.edits || {};
+      notes = kept.notes || {};
+      pad = kept.pad || "";
+      padEl.value = pad;
+      render(); updateBar();
+    }
   } catch (err) { /* private windows block this; the page still works */ }
 })();
 </script>
