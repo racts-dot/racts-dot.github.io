@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-09-10 21:33",
+ "generated_at": "2026-09-10 22:02",
  "generated_date": "2026-09-10",
  "reviews": {
   "available": true,
-  "spent_usd": 18.15,
+  "spent_usd": 18.18,
   "authorized_usd": 40.0,
-  "pct": 45.4,
-  "runs": 310,
+  "pct": 45.5,
+  "runs": 311,
   "kill_switch_on": false,
   "providers": [
    {
@@ -17,7 +17,7 @@
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.05,
+    "spent_usd": 7.09,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,8 +25,8 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 139,
-    "usd": 7.24,
+    "runs": 140,
+    "usd": 7.28,
     "first": "2026-09-03",
     "last": "2026-09-10"
    },
@@ -108,7 +108,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 15.11,
+  "attributed_usd": 15.14,
   "unattributed_usd": 3.04,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -120,7 +120,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-10 21:33",
+  "read_at": "2026-09-10 22:02",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -158,17 +158,17 @@
  },
  "gates": {
   "available": true,
-  "products_gated": 40,
-  "required_gates": 225,
-  "negative_tested": 225,
+  "products_gated": 42,
+  "required_gates": 235,
+  "negative_tested": 235,
   "source": "counted from release_registry.json, not from memory",
   "honest_limit": "This is GATE-level coverage. A gate is a script holding many checks, and check-level coverage is far lower. Quoting only this number is how the repo flatters itself."
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 10,
-  "last_commit": "e0f7f36 Products 7, 8 and 9 of 38: the behaviour family, and three more safety rules in code",
-  "last_commit_at": "2026-09-10T21:31:55+09:30"
+  "uncommitted_files": 27,
+  "last_commit": "6682ed7 The board is live on a URL, has a Refresh button, and collects every 30 minutes",
+  "last_commit_at": "2026-09-10T21:50:06+09:30"
  },
  "facts": {
   "available": true,
