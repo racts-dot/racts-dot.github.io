@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-11 02:01",
+ "generated_at": "2026-09-11 02:31",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
@@ -120,7 +120,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 02:01",
+  "read_at": "2026-09-11 02:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -169,9 +169,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 8,
-  "last_commit": "9fcee7f Nightly automatic backup: 61 file(s)",
-  "last_commit_at": "2026-09-11T02:00:35+09:30"
+  "uncommitted_files": 5,
+  "last_commit": "cbc4314 Astra round 4: nothing new. Four rounds, converged, and it says proceed.",
+  "last_commit_at": "2026-09-11T02:21:25+09:30"
  },
  "facts": {
   "available": true,
