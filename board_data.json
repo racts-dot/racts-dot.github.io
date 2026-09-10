@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-10 23:01",
+ "generated_at": "2026-09-10 23:31",
  "generated_date": "2026-09-10",
  "reviews": {
   "available": true,
@@ -120,7 +120,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-10 23:01",
+  "read_at": "2026-09-10 23:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -169,9 +169,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 7,
-  "last_commit": "6b615f1 Nightly automatic backup: 10 file(s)",
-  "last_commit_at": "2026-09-10T23:00:11+09:30"
+  "uncommitted_files": 4,
+  "last_commit": "a7c3364 The listening version: which duplicate to delete, and why that one",
+  "last_commit_at": "2026-09-10T23:25:34+09:30"
  },
  "facts": {
   "available": true,
