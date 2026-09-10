@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-10 22:02",
+ "generated_at": "2026-09-10 22:41",
  "generated_date": "2026-09-10",
  "reviews": {
   "available": true,
@@ -158,17 +158,17 @@
  },
  "gates": {
   "available": true,
-  "products_gated": 42,
-  "required_gates": 235,
-  "negative_tested": 235,
+  "products_gated": 44,
+  "required_gates": 245,
+  "negative_tested": 245,
   "source": "counted from release_registry.json, not from memory",
   "honest_limit": "This is GATE-level coverage. A gate is a script holding many checks, and check-level coverage is far lower. Quoting only this number is how the repo flatters itself."
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 27,
-  "last_commit": "6682ed7 The board is live on a URL, has a Refresh button, and collects every 30 minutes",
-  "last_commit_at": "2026-09-10T21:50:06+09:30"
+  "uncommitted_files": 7,
+  "last_commit": "a647818 2027 planner: 11 of 11 clean, a false exemption removed, and the A4-only gap named",
+  "last_commit_at": "2026-09-10T22:23:27+09:30"
  },
  "facts": {
   "available": true,
