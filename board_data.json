@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-10 22:51",
+ "generated_at": "2026-09-10 22:58",
  "generated_date": "2026-09-10",
  "reviews": {
   "available": true,
@@ -161,14 +161,17 @@
   "products_gated": 44,
   "required_gates": 245,
   "negative_tested": 245,
+  "live_listings_recorded": 25,
+  "coverage_unproven": true,
   "source": "counted from release_registry.json, not from memory",
+  "what_it_cannot_prove": "This counts gates, not products, and not checks. It cannot tell you whether every live product is in the registry at all - and the last time two were not, both went on sale ungated. Proving coverage needs a human to compare the registry against the live listings once.",
   "honest_limit": "This is GATE-level coverage. A gate is a script holding many checks, and check-level coverage is far lower. Quoting only this number is how the repo flatters itself."
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 4,
-  "last_commit": "d0268b9 The 26 photos: rebuilt at full size from Etsy's originals, and stopped before applying",
-  "last_commit_at": "2026-09-10T22:51:10+09:30"
+  "uncommitted_files": 10,
+  "last_commit": "4a330b1 Two failures found by running the job as the SCHEDULER runs it, not by hand",
+  "last_commit_at": "2026-09-10T22:57:11+09:30"
  },
  "facts": {
   "available": true,
@@ -363,6 +366,11 @@
    "severity": "watch",
    "what": "Apify is at 96.3% of its monthly allowance - US$1.06 left",
    "why": "At the limit it SUSPENDS rather than bills, so a scrape stops halfway."
+  },
+  {
+   "severity": "watch",
+   "what": "Gate coverage is UNPROVEN - 245 of 245 gates pass, across 44 products",
+   "why": "That counts gates, not products and not checks. The shop last recorded 25 active listings against 44 gated products. Nobody has compared the registry against the live listings, and the last time two products were missing from it, both went on sale ungated. A full score here is not evidence of coverage."
   }
  ]
 }
