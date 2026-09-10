@@ -1,0 +1,536 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light dark">
+<title>June Resale Ledger</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F6F7F6; --surface:#FFFFFF; --raised:#FBFBFA;
+  --ink:#151A1F; --ink-2:#3E4A50; --muted:#6B7873;
+  --line:#DCE0DE; --line-soft:#E9ECEA;
+  --amber:#A85B15; --amber-soft:#F3E6D6;
+  --gain:#1E6B4C; --loss:#A2302C; --calm:#41606E;
+  --focus:#A85B15;
+  --sans:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#12161A; --surface:#1A1F25; --raised:#20262C;
+    --ink:#E7EBE9; --ink-2:#B9C3C1; --muted:#8A9794;
+    --line:#2A3138; --line-soft:#232A30;
+    --amber:#D9924A; --amber-soft:#3A2C1C;
+    --gain:#5CBF92; --loss:#E1736C; --calm:#7FA8B8;
+    --focus:#D9924A;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#12161A; --surface:#1A1F25; --raised:#20262C;
+  --ink:#E7EBE9; --ink-2:#B9C3C1; --muted:#8A9794;
+  --line:#2A3138; --line-soft:#232A30;
+  --amber:#D9924A; --amber-soft:#3A2C1C;
+  --gain:#5CBF92; --loss:#E1736C; --calm:#7FA8B8;
+  --focus:#D9924A;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:920px; margin:0 auto; padding:20px 16px 64px}
+
+/* ---- masthead ---- */
+.top{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;
+     padding-bottom:14px; border-bottom:2px solid var(--ink)}
+h1{font-size:23px; font-weight:600; letter-spacing:-.015em; margin:0; text-wrap:balance}
+.sub{font-family:var(--mono); font-size:11.5px; color:var(--muted); letter-spacing:.02em}
+.feed{display:inline-flex; align-items:center; gap:6px; font-family:var(--mono);
+      font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted)}
+.dot{width:7px; height:7px; border-radius:50%; background:var(--muted); flex:none}
+.feed[data-state="live"] .dot{background:var(--gain)}
+.feed[data-state="stale"] .dot{background:var(--amber)}
+.feed[data-state="off"] .dot{background:var(--muted)}
+
+/* ---- the three money truths ---- */
+.money{display:grid; grid-template-columns:1fr; margin:22px 0 8px}
+@media(min-width:640px){.money{grid-template-columns:repeat(3,1fr)}}
+.fig{padding:16px 0; border-top:1px solid var(--line)}
+@media(min-width:640px){
+  .fig{padding:14px 20px; border-top:none; border-left:1px solid var(--line)}
+  .fig:first-child{border-left:none; padding-left:0}
+}
+.fig .k{font-size:12.5px; color:var(--muted); letter-spacing:.01em}
+.fig .v{font-family:var(--mono); font-size:26px; font-weight:600; letter-spacing:-.02em;
+        font-variant-numeric:tabular-nums; margin-top:3px}
+.fig .n{font-size:12.5px; color:var(--ink-2); margin-top:2px}
+.v.gain{color:var(--gain)} .v.loss{color:var(--loss)} .v.hold{color:var(--amber)}
+
+.reading{font-size:13.5px; color:var(--ink-2); border-left:3px solid var(--amber);
+         padding:2px 0 2px 12px; margin:18px 0 4px; max-width:62ch}
+
+/* ---- controls ---- */
+.controls{position:sticky; top:0; z-index:5; background:var(--ground);
+          padding:14px 0 10px; margin-top:18px; border-bottom:1px solid var(--line)}
+.chips{display:flex; flex-wrap:wrap; gap:6px}
+.chip{font:inherit; font-size:12.5px; padding:5px 11px; border:1px solid var(--line);
+      background:var(--surface); color:var(--ink-2); border-radius:2px; cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink); color:var(--ground); border-color:var(--ink)}
+.chip:focus-visible,input:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+input[type=search]{
+  width:100%; margin-top:8px; padding:8px 10px; font:inherit; font-size:14px;
+  color:var(--ink); background:var(--surface);
+  border:1px solid var(--line); border-radius:2px;
+}
+.count{font-family:var(--mono); font-size:11.5px; color:var(--muted); margin-top:8px;
+       letter-spacing:.03em}
+
+/* ---- the list ---- */
+.batch{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase;
+       color:var(--muted); padding:20px 0 6px}
+.row{display:grid; grid-template-columns:auto 1fr auto; gap:2px 12px;
+     align-items:baseline; padding:10px 12px 10px 13px; background:var(--surface);
+     border:1px solid var(--line-soft); border-left:3px solid var(--muted); margin-top:-1px}
+.row.sold{border-left-color:var(--gain)}
+.row.list{border-left-color:var(--amber)}
+.row.way{border-left-color:var(--calm)}
+.row.mine{border-left-color:var(--line)}
+.num{font-family:var(--mono); font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+.name{font-size:14px; font-weight:500; line-height:1.35; overflow-wrap:anywhere}
+.amt{font-family:var(--mono); font-size:14px; font-variant-numeric:tabular-nums;
+     text-align:right; white-space:nowrap; font-weight:500}
+.amt.gain{color:var(--gain)} .amt.loss{color:var(--loss)}
+.meta{grid-column:2/4; display:flex; flex-wrap:wrap; gap:5px 10px; align-items:center;
+      font-size:12px; color:var(--muted); margin-top:3px}
+.tag{font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+     padding:1px 6px; border:1px solid var(--line); color:var(--ink-2); border-radius:2px}
+.tag.ebay{border-color:var(--calm); color:var(--calm)}
+.tag.fb{border-color:var(--amber); color:var(--amber)}
+.cost{font-family:var(--mono); font-variant-numeric:tabular-nums}
+.empty{padding:34px 0; color:var(--muted); font-size:14px}
+
+/* ---- batch table ---- */
+.tablewrap{overflow-x:auto; margin-top:18px; border:1px solid var(--line-soft); background:var(--surface)}
+table{border-collapse:collapse; width:100%; min-width:660px; font-size:13px}
+thead th{font-size:10.5px; letter-spacing:.07em; text-transform:uppercase; color:var(--muted);
+         font-weight:500; text-align:left; padding:9px 10px; border-bottom:1px solid var(--line);
+         position:sticky; top:0; background:var(--surface)}
+tbody td{padding:9px 10px; border-bottom:1px solid var(--line-soft); vertical-align:baseline}
+tbody tr:last-child td{border-bottom:none}
+td.n,th.n{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap}
+td.b{font-family:var(--mono); color:var(--muted); font-variant-numeric:tabular-nums}
+.dev{font-weight:500}
+.when{color:var(--muted); font-size:12px}
+tfoot td{padding:10px; border-top:2px solid var(--ink); font-weight:600}
+.bar{display:block; height:4px; margin-top:4px; background:var(--line); position:relative; width:100%}
+.bar i{display:block; height:100%; background:var(--amber)}
+.bar i.over{background:var(--loss)}
+.none{color:var(--muted)}
+tbody tr.clickable{cursor:pointer}
+tbody tr.clickable:hover td{background:var(--raised)}
+tbody tr.clickable:focus-visible{outline:2px solid var(--focus); outline-offset:-2px}
+.opencue{font-family:var(--mono); font-size:10px; letter-spacing:.06em; text-transform:uppercase;
+         color:var(--muted); white-space:nowrap}
+
+/* ---- the floating box ---- */
+dialog.pop{
+  width:min(680px, calc(100vw - 28px)); max-height:min(82vh, 760px);
+  padding:0; border:1px solid var(--line); border-radius:3px;
+  background:var(--ground); color:var(--ink); overflow:hidden;
+  box-shadow:0 18px 48px rgba(0,0,0,.28);
+}
+dialog.pop::backdrop{background:rgba(10,14,17,.55)}
+.pophead{position:sticky; top:0; background:var(--ground); border-bottom:2px solid var(--ink);
+         padding:16px 18px 12px; display:flex; justify-content:space-between; gap:14px;
+         align-items:flex-start}
+.pophead h3{margin:0; font-size:17px; font-weight:600; letter-spacing:-.01em}
+.popsub{font-size:12.5px; color:var(--muted); margin-top:2px}
+.popclose{font:inherit; font-size:13px; line-height:1; padding:7px 12px; cursor:pointer;
+          border:1px solid var(--line); background:var(--surface); color:var(--ink-2);
+          border-radius:2px; flex:none}
+.popclose:hover{background:var(--raised)}
+.popclose:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+.popsums{display:flex; flex-wrap:wrap; gap:0 26px; padding:12px 18px;
+         border-bottom:1px solid var(--line); background:var(--surface)}
+.popsums div{font-size:12px; color:var(--muted)}
+.popsums b{display:block; font-family:var(--mono); font-size:16px; font-weight:600;
+           font-variant-numeric:tabular-nums; color:var(--ink); margin-top:2px}
+.popsums b.loss{color:var(--loss)} .popsums b.gain{color:var(--gain)}
+.popbody{padding:14px 18px 22px; overflow-y:auto; max-height:calc(82vh - 168px)}
+footer{margin-top:36px; padding-top:14px; border-top:1px solid var(--line);
+       font-size:12.5px; color:var(--muted); max-width:62ch}
+footer code{font-family:var(--mono); font-size:11.5px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important; animation:none!important}}
+</style>
+</head>
+<body style="margin:0">
+
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>June Resale Ledger</h1>
+      <div class="sub">Costway &amp; Advwin stock &middot; eBay, Marketplace, kept</div>
+    </div>
+    <div class="feed" id="feed" data-state="off">
+      <span class="dot"></span><span id="feedtext">snapshot 2026-09-11</span>
+    </div>
+  </header>
+
+  <section class="money" id="money"></section>
+  <p class="reading" id="reading"></p>
+
+  <div class="controls">
+    <div class="chips" id="views">
+      <button class="chip" data-view="items" aria-pressed="true">Items</button>
+      <button class="chip" data-view="batches" aria-pressed="false">All batches</button>
+    </div>
+    <div class="chips" id="chips" style="margin-top:6px"></div>
+    <input type="search" id="q" placeholder="Search item, supplier, buyer or batch" aria-label="Search the ledger">
+    <div class="count" id="count"></div>
+  </div>
+
+  <main id="list"></main>
+  <section id="batches" hidden></section>
+
+  <footer id="foot"></footer>
+</div>
+
+<dialog class="pop" id="pop" aria-labelledby="poptitle">
+  <div class="pophead">
+    <div>
+      <h3 id="poptitle"></h3>
+      <div class="popsub" id="popsub"></div>
+    </div>
+    <button class="popclose" id="popclose" type="button">Close</button>
+  </div>
+  <div class="popsums" id="popsums"></div>
+  <div class="popbody" id="popbody"></div>
+</dialog>
+
+<script>
+const SNAPSHOT = [{"n":"1","item":"Advwin Automatic Cat Feeder WiFi (White)","cat":"Other","ch":"eBay","st":"SOLD eBay $65 -> $52.41 net","od":"2026-07-02","sd":"2026-06-28","wk":"W27","c":58.49,"r":52.41,"net":-6.08,"acct":"iPad Pro","sup":"Advwin","b":"1","buyer":""},{"n":"2","item":"Advwin Automatic Cat Feeder WiFi (White)","cat":"Other","ch":"eBay","st":"SOLD eBay $65 -> $52.41 net","od":"2026-07-02","sd":"2026-06-24","wk":"W27","c":58.49,"r":52.41,"net":-6.08,"acct":"iPad Pro","sup":"Advwin","b":"1","buyer":""},{"n":"3","item":"Ufurniture Vanity Desk & Stool, 10-LED (White)","cat":"Vanity","ch":"Facebook","st":"SOLD $140 (Marketplace) — Jul 20","od":"2026-07-01","sd":"2026-07-20","wk":"W27","c":146.58,"r":140.0,"net":-6.58,"acct":"iPad Pro","sup":"UfurnitureAU","b":"1","buyer":""},{"n":"4","item":"TV Stand 165.1cm High Gloss Entertainment Center (Black)","cat":"Tv","ch":"Facebook","st":"SOLD $90 (Marketplace) — Jul 8","od":"2026-07-02","sd":"2026-07-08","wk":"W27","c":107.27,"r":90.0,"net":-17.27,"acct":"iPad Pro","sup":"UfurnitureAU","b":"1","buyer":""},{"n":"5","item":"Tuya Zigbee & BT Smart Hub Gateway (GW018-white)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-02","sd":"","wk":"W27","c":21.47,"r":null,"net":null,"acct":"iPad Pro","sup":"—","b":"1","buyer":""},{"n":"6","item":"Brand New Vanity Table w/ Mirror & Light Bulbs (White)","cat":"Vanity","ch":"Facebook","st":"SOLD $170 (Marketplace) — Jul 2","od":"2026-06-26","sd":"2026-07-02","wk":"W26","c":205.57,"r":170.0,"net":-35.57,"acct":"iPad Pro","sup":"Saimei Fun","b":"2","buyer":""},{"n":"7","item":"Ufurniture Dressing Table, Glass Desktop, 2 Drawers (White)","cat":"Vanity","ch":"Facebook","st":"SOLD $145 (Marketplace) — Jul 2 · delivered Jun 27","od":"2026-06-27","sd":"2026-07-02","wk":"W26","c":147.6,"r":145.0,"net":-2.6,"acct":"iPad Pro","sup":"UfurnitureAU","b":"2","buyer":""},{"n":"8","item":"66W Fast Charge Power Bank 20000mAh, 3 Cables (Black)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-06-29","sd":"","wk":"W27","c":34.96,"r":null,"net":null,"acct":"iPad Pro","sup":"CCST NZ","b":"2","buyer":""},{"n":"10","item":"Advwin Dressing Table, Glass Desktop, Mirror & Light, 2 Drawers (White)","cat":"Vanity","ch":"Facebook","st":"SOLD $120 (Marketplace) — Jul 6","od":"2026-07-02","sd":"2026-07-06","wk":"W27","c":152.28,"r":120.0,"net":-32.28,"acct":"iPad mini 6","sup":"Advwin AU","b":"3","buyer":""},{"n":"11","item":"Ufurniture Dressing Table, Glass Desktop, Mirror & Light, 2 Drawers (White)","cat":"Vanity","ch":"Facebook","st":"SOLD $115 (Marketplace) — Jul 5","od":"2026-07-02","sd":"2026-07-05","wk":"W27","c":150.18,"r":115.0,"net":-35.18,"acct":"iPad mini 6","sup":"UfurnitureAU","b":"3","buyer":""},{"n":"12","item":"MASSTECK Foot Massager Machine w/ Heat, Shiatsu (Blue)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-06-29","sd":"","wk":"W27","c":59.11,"r":null,"net":null,"acct":"iPad mini 6","sup":"MASSTECK AU","b":"3","buyer":""},{"n":"13","item":"Advwin Dressing Table, Glass Desktop, Mirror & LED, 2 Drawers (White)","cat":"Vanity","ch":"Facebook","st":"Delivered Jul 2","od":"2026-07-02","sd":"","wk":"W27","c":152.9,"r":null,"net":null,"acct":"iPad mini 6","sup":"Advwin Official","b":"3","buyer":""},{"n":"14","item":"Advwin Portable Inverter Generator 1000W Petrol, Pure Sine Wave, 4-Stroke (Red)","cat":"Table","ch":"Facebook","st":"Kept — not for sale (counts in cost)","od":"2026-06-26","sd":"","wk":"W26","c":358.31,"r":null,"net":null,"acct":"iPad mini 6","sup":"Advwin AU","b":"4","buyer":""},{"n":"9","item":"Portable Monitor 15.6in 60Hz 1080P FHD (built-in speakers)","cat":"Table","ch":"eBay","st":"SOLD eBay $97 -> $78.36 net","od":"2026-07-02","sd":"2026-06-21","wk":"W27","c":89.98,"r":78.36,"net":-11.62,"acct":"iPad mini 6","sup":"Portable Monitor","b":"5","buyer":""},{"n":"15","item":"10000mAh Mobile Power Bank 22.5W Magnetic Charging (White)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-03","sd":"","wk":"W27","c":28.48,"r":null,"net":null,"acct":"iPad mini 6","sup":"XCCH","b":"5","buyer":""},{"n":"16","item":"Heavy Duty Foldable Handcart, 360 All-Terrain Wheels (Large, Black)","cat":"Other","ch":"Facebook","st":"In transit","od":"2026-07-03","sd":"","wk":"W27","c":37.44,"r":null,"net":null,"acct":"iPad mini 6","sup":"Misslolo","b":"5","buyer":""},{"n":"17","item":"Dressing Table & Stool Set, Slide Mirror, 10 LED Bulbs, Drawers (Natural/White)","cat":"Vanity","ch":"Facebook","st":"Shipped","od":"2026-07-03","sd":"","wk":"W27","c":177.82,"r":null,"net":null,"acct":"iPad mini 6","sup":"Deal DelightHome","b":"5","buyer":""},{"n":"18","item":"100 Golf Tees, Durable Two-Length (100PCS Mixed Color)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-09","sd":"","wk":"W28","c":3.49,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"6","buyer":""},{"n":"19","item":"A Set of High-Quality Bamboo Golf Tees (Mix, 7.01cm)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-09","sd":"","wk":"W28","c":2.79,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"6","buyer":""},{"n":"20","item":"Ufurniture TV Cabinet with RGB LED (Black)","cat":"Tv","ch":"Facebook","st":"Shipped","od":"2026-07-09","sd":"","wk":"W28","c":111.91,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"UfurnitureAU","b":"6","buyer":""},{"n":"21","item":"160cm Modern TV Stand Entertainment Unit (White)","cat":"Tv","ch":"Facebook","st":"Shipped","od":"2026-07-09","sd":"","wk":"W28","c":99.98,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"UfurnitureAU","b":"6","buyer":""},{"n":"22","item":"Heavy Duty Foldable Iron Frame Wagon (Small, Black)","cat":"Other","ch":"Facebook","st":"SOLD $25 (Marketplace) — Jul 2 · net $-8.54","od":"2026-07-09","sd":"2026-07-02","wk":"W28","c":33.54,"r":25.0,"net":-8.54,"acct":"Galaxy S25 Edge","sup":"XLGREAT","b":"6","buyer":""},{"n":"23","item":"LIFEZEAL Lift-Top Coffee Table (Natural)","cat":"Table","ch":"Facebook","st":"Shipped","od":"2026-07-09","sd":"","wk":"W28","c":97.96,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"AUSSIE CHOICE","b":"6","buyer":""},{"n":"24","item":"Heavy Duty Foldable Iron Frame Wagon (Small, Black)","cat":"Other","ch":"Facebook","st":"Order packing","od":"2026-07-09","sd":"","wk":"W28","c":33.54,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"XLGREAT","b":"6","buyer":""},{"n":"25","item":"TV Cabinet Entertainment Unit (Black and Natural)","cat":"Tv","ch":"Facebook","st":"SOLD $120 (Marketplace) — Jul 19","od":"2026-07-09","sd":"2026-07-19","wk":"W28","c":139.87,"r":120.0,"net":-19.87,"acct":"Galaxy S25 Edge","sup":"Dreamtime Living","b":"7","buyer":""},{"n":"26","item":"Wooden Vanity Unit, British style (Casual White)","cat":"Vanity","ch":"Facebook","st":"Shipped","od":"2026-07-09","sd":"","wk":"W28","c":182.97,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"Sweet Timber","b":"7","buyer":""},{"n":"27","item":"150-Count Healthy Dental Floss Picks (150 Pieces)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-09","sd":"","wk":"W28","c":2.62,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"8","buyer":""},{"n":"28","item":"100pcs/set Dental Flosser Picks (Random color)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-09","sd":"","wk":"W28","c":2.78,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"8","buyer":""},{"n":"29","item":"TPU Secure Lock Case for AirPods Pro 3 (White)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-09","sd":"","wk":"W28","c":13.72,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"8","buyer":""},{"n":"30","item":"Phone Case for Galaxy S25 Edge (Purple)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-09","sd":"","wk":"W28","c":15.66,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"8","buyer":""},{"n":"31","item":"Stylish Wooden Makeup Vanity (Solid Wood White)","cat":"Vanity","ch":"Facebook","st":"Shipped","od":"2026-07-09","sd":"","wk":"W28","c":161.59,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"sopapa","b":"8","buyer":""},{"n":"32","item":"Shoe Rack Cabinet, 18 Pair (White)","cat":"Shoe","ch":"Facebook","st":"SOLD $90 (Marketplace) — Jul 25 · net $-9.66","od":"2026-07-09","sd":"2026-07-25","wk":"W28","c":99.66,"r":90.0,"net":-9.66,"acct":"iPhone 12 mini","sup":"Retail Plus AU","b":"8","buyer":""},{"n":"33","item":"Artiss Dressing Table Set (White)","cat":"Vanity","ch":"Facebook","st":"Shipped","od":"2026-07-09","sd":"","wk":"W28","c":173.38,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"Retail Plus AU","b":"8","buyer":""},{"n":"34","item":"Women's Winter Hooded Jacket (Apricot, L)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-09","sd":"","wk":"W28","c":18.22,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"8","buyer":""},{"n":"35","item":"Phone Case 2-in-1 Removable for Galaxy S25 Edge (Red)","cat":"Other","ch":"Personal","st":"Personal — own use","od":"2026-07-09","sd":"","wk":"W28","c":22.79,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"8","buyer":""},{"n":"36","item":"Reusable Multi-Purpose Adjustable Buckle (Black, 1.2cm)","cat":"Table","ch":"Personal","st":"Personal - own use","od":"2026-07-11","sd":"","wk":"W28","c":0.92,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"9","buyer":""},{"n":"37","item":"Finger Splint for Correcting (4pc)","cat":"Other","ch":"Personal","st":"Personal - own use","od":"2026-07-11","sd":"","wk":"W28","c":2.01,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"9","buyer":""},{"n":"38","item":"110pcs Freezer Labels, No-Residue (Blue)","cat":"Other","ch":"Personal","st":"Personal - own use","od":"2026-07-11","sd":"","wk":"W28","c":1.57,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"9","buyer":""},{"n":"39","item":"Byimy Stainless Steel Eyelid Tool (CHNZ)","cat":"Other","ch":"Personal","st":"Personal - own use","od":"2026-07-11","sd":"","wk":"W28","c":1.42,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"9","buyer":""},{"n":"40","item":"Wireless Portable Charger, Foldable (White)","cat":"Table","ch":"Personal","st":"Personal - own use","od":"2026-07-11","sd":"","wk":"W28","c":20.99,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"ZK Commerce","b":"9","buyer":""},{"n":"41","item":"Vanity Table Featuring an LED Mirror (White)","cat":"Vanity","ch":"Facebook","st":"Delivered Jul 14 — ready to list","od":"2026-07-11","sd":"","wk":"W28","c":163.44,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"MISSYOUU","b":"9","buyer":""},{"n":"42","item":"Artiss Single Bed Frame Platform (Wood)","cat":"Table","ch":"Facebook","st":"Out for delivery — ETA by Jul 21","od":"2026-07-11","sd":"","wk":"W28","c":200.04,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"Retail Plus AU","b":"9","buyer":""},{"n":"43","item":"Vanity Table Featuring an LED Mirror (White)","cat":"Vanity","ch":"Facebook","st":"SOLD $125 (Marketplace) — Jul 25 · net $-44.03","od":"2026-07-12","sd":"2026-07-25","wk":"W28","c":169.03,"r":125.0,"net":-44.03,"acct":"Galaxy S25 Edge","sup":"-","b":"10","buyer":""},{"n":"44","item":"Small Modern White Makeup Vanity (White)","cat":"Vanity","ch":"Facebook","st":"SOLD $180 (Marketplace) — Jul 22 · net $-15.64","od":"2026-07-12","sd":"2026-07-22","wk":"W28","c":195.64,"r":180.0,"net":-15.64,"acct":"Galaxy S25 Edge","sup":"-","b":"10","buyer":""},{"n":"45","item":"Under Desk Drawer Organiser (Large)","cat":"Table","ch":"Personal","st":"Personal - own use","od":"2026-07-12","sd":"","wk":"W28","c":20.35,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"10","buyer":""},{"n":"46","item":"Valentine's Day Crevice Cleaner (White)","cat":"Other","ch":"Personal","st":"Personal - own use","od":"2026-07-12","sd":"","wk":"W28","c":2.8,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"10","buyer":""},{"n":"47","item":"Beige & Pink Portable Sealed Medicine Bag","cat":"Table","ch":"Personal","st":"Personal - own use","od":"2026-07-12","sd":"","wk":"W28","c":5.9,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"10","buyer":""},{"n":"48","item":"10.0m Heavy-Duty Waterproof Tape (5cm)","cat":"Other","ch":"Personal","st":"Personal - own use","od":"2026-07-12","sd":"","wk":"W28","c":2.8,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"10","buyer":""},{"n":"49","item":"6pcs Express Box Opener (Random Color)","cat":"Other","ch":"Personal","st":"Personal - own use","od":"2026-07-12","sd":"","wk":"W28","c":1.6,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"-","b":"10","buyer":""},{"n":"50","item":"Advwin Dressing Table Set (White)","cat":"Vanity","ch":"Facebook","st":"Ordered — out for delivery, ETA by Jul 23","od":"2026-07-14","sd":"","wk":"W29","c":207.0,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"Advwin AU","b":"11","buyer":""},{"n":"51","item":"Vanity Table Featuring an LED Mirror (White)","cat":"Vanity","ch":"Facebook","st":"SOLD $145 (Marketplace) — Jul 24 · net $-24.03","od":"2026-07-14","sd":"2026-07-24","wk":"W29","c":169.03,"r":145.0,"net":-24.03,"acct":"Galaxy S25 Edge","sup":"MISSYOUU","b":"11","buyer":""},{"n":"52","item":"6-tier Nordic Elegance Shoe Cabinet (White)","cat":"Shoe","ch":"Facebook","st":"Ordered — in transit, delivery Jul 22-29","od":"2026-07-14","sd":"","wk":"W29","c":72.42,"r":null,"net":null,"acct":"Galaxy S25 Edge","sup":"Temu","b":"11","buyer":""},{"n":"53","item":"Shoe Rack Cabinet 18 Pair (White)","cat":"Shoe","ch":"Facebook","st":"Ordered — arriving","od":"2026-07-18","sd":"","wk":"W29","c":100.59,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"Retail Plus AU","b":"12","buyer":""},{"n":"54","item":"Mother's Day Gift 30-Pair Shoe Cabinet (White)","cat":"Shoe","ch":"Facebook","st":"In transit — Depot Adelaide Jul 22, ETA Jul 20–28","od":"2026-07-18","sd":"","wk":"W29","c":150.36,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"Retail Plus AU","b":"12","buyer":""},{"n":"55","item":"Shoe Rack Cabinet 18 Pair (White) — 2nd","cat":"Shoe","ch":"Facebook","st":"SOLD $90 (Marketplace) — Jul 25 · net $-10.59","od":"2026-07-18","sd":"2026-07-25","wk":"W29","c":100.59,"r":90.0,"net":-10.59,"acct":"iPhone 12 mini","sup":"Retail Plus AU","b":"12","buyer":""},{"n":"56","item":"Luna White Cabinet (White)","cat":"Shoe","ch":"Facebook","st":"In transit — Depot Adelaide Jul 22, ETA Jul 20–28","od":"2026-07-18","sd":"","wk":"W29","c":123.96,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"Retail Plus AU","b":"12","buyer":""},{"n":"57","item":"Compact USB C Power Bank (Purple)","cat":"Other","ch":"Personal","st":"Personal — in transit, delivery Jul 20–28","od":"2026-07-18","sd":"","wk":"W29","c":23.55,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"powerultra","b":"12","buyer":""},{"n":"58","item":"RIMI Smile Dental Floss Picks (30pcs)","cat":"Other","ch":"Personal","st":"Personal — cleared customs, delivery Jul 25–Aug 1","od":"2026-07-18","sd":"","wk":"W29","c":1.32,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"12","buyer":""},{"n":"59","item":"2in1 Dual-function Toothpicks (Cute Pink 200pcs)","cat":"Other","ch":"Personal","st":"Personal — cleared customs, delivery Jul 25–Aug 1","od":"2026-07-18","sd":"","wk":"W29","c":2.25,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"12","buyer":""},{"n":"60","item":"1pc Finger Splint for Correction (Size 5)","cat":"Other","ch":"Personal","st":"Personal — cleared customs, delivery Jul 25–Aug 1","od":"2026-07-18","sd":"","wk":"W29","c":1.95,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"12","buyer":""},{"n":"61","item":"10m Transparent Waterproof Tape (Transparent, 10m/roll)","cat":"Other","ch":"Personal","st":"Personal — cleared customs, delivery Jul 25–Aug 1","od":"2026-07-18","sd":"","wk":"W29","c":3.24,"r":null,"net":null,"acct":"iPhone 12 mini","sup":"-","b":"12","buyer":""},{"n":"62","item":"12-Pack Large Glass Food Storage Containers, Airtight Leak-Proof","cat":"Other","ch":"eBay","st":"shipped, arrived at facility, delivery Jul 24-31","od":"2026-07-22","sd":"","wk":"W30","c":45.68,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"EasyStock","b":"13","buyer":""},{"n":"63","item":"Shoe Rack Cabinet 18 Pairs 3-tier (White, Sena)","cat":"Shoe","ch":"Facebook","st":"Delivered Jul 24 — ready to list","od":"2026-07-22","sd":"","wk":"W30","c":107.95,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"Retail Plus AU","b":"13","buyer":""},{"n":"64","item":"Barn Door Shoe Cabinet, 2 Flip Drawers + 2 Storage Drawers, Wood Top (White)","cat":"Shoe","ch":"Facebook","st":"SOLD $130 (Marketplace) — Aug 25 · net -$42.60","od":"22 Jul (Wed)","sd":"2026-08-25","wk":"W30","c":172.6,"r":130.0,"net":-42.6,"acct":"iPad 7 (black) · yehtio@icloud.com","sup":"","b":"13","buyer":""},{"n":"65","item":"(item — confirm; Australia Post PR78898850)","cat":"Other","ch":"eBay","st":"in transit, delivery Jul 27-31 · CONFIRM ITEM","od":"2026-07-22","sd":"","wk":"W30","c":null,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"(confirm)","b":"13","buyer":""},{"n":"66","item":"Shoe Rack Cabinet 18 Pairs 3-tier (White, Sena)","cat":"Shoe","ch":"Facebook","st":"Order packing — delivery Jul 26-Aug 4","od":"2026-07-24","sd":"","wk":"W30","c":102.55,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"Retail Plus AU","b":"14","buyer":""},{"n":"67","item":"Shoe Rack Cabinet 18 Pairs 3-tier (White, Sena) — 2nd","cat":"Shoe","ch":"Facebook","st":"Seller processing — delivery Jul 26-Aug 4","od":"2026-07-24","sd":"","wk":"W30","c":102.55,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"Retail Plus AU","b":"14","buyer":""},{"n":"68","item":"Shoe Rack Cabinet 18 Pairs 3-tier (White, Sena) — 3rd","cat":"Shoe","ch":"Facebook","st":"Seller processing — delivery Jul 26-Aug 4","od":"2026-07-24","sd":"","wk":"W30","c":102.55,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"Retail Plus AU","b":"14","buyer":""},{"n":"69","item":"10000mAh Magnetic Power Bank, PD 22.5W Fast Charging, LED Display","cat":"Other","ch":"Personal","st":"Personal — seller processing, delivery Jul 26-Aug 4","od":"2026-07-24","sd":"","wk":"W30","c":29.52,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"PowerPocket Global","b":"14","buyer":""},{"n":"70","item":"3-item accessory order (straps/pouch — confirm items)","cat":"Other","ch":"Personal","st":"Personal — order confirmed/paid, delivery Jul 31-Aug 7","od":"2026-07-24","sd":"","wk":"W30","c":16.74,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"(confirm)","b":"14","buyer":""},{"n":"71","item":"Greenhouse Repair Tape (2.5cm x 5m)","cat":"Other","ch":"Personal","st":"Personal","od":"24-Jul","sd":"","wk":"","c":2.5,"r":null,"net":null,"acct":"White iPad 6","sup":"White iPad 6 · jiwan26031@gmail.com","b":"15","buyer":""},{"n":"72","item":"Double-Sided Adhesive Tape","cat":"Other","ch":"Personal","st":"Personal","od":"24-Jul","sd":"","wk":"","c":1.22,"r":null,"net":null,"acct":"White iPad 6","sup":"White iPad 6 · jiwan26031@gmail.com","b":"15","buyer":""},{"n":"73","item":"14-in-1 Power Board / Surge Board","cat":"Other","ch":"Personal","st":"Personal","od":"24-Jul","sd":"","wk":"","c":34.95,"r":null,"net":null,"acct":"White iPad 6","sup":"White iPad 6 · jiwan26031@gmail.com","b":"15","buyer":""},{"n":"74","item":"Bigme B6 6\" E-Ink Ebook Reader","cat":"Other","ch":"Personal","st":"Personal","od":"24-Jul","sd":"","wk":"","c":224.01,"r":null,"net":null,"acct":"White iPad 6","sup":"White iPad 6 · jiwan26031@gmail.com","b":"15","buyer":""},{"n":"75","item":"Shoe Rack Cabinet 18-Pair 3-tier (White) — Sena","cat":"Shoe","ch":"Facebook","st":"In stock — to list","od":"24-Jul","sd":"","wk":"","c":102.55,"r":null,"net":null,"acct":"White iPad 6","sup":"Retail Plus AU","b":"15","buyer":""},{"n":"76","item":"10000mAh Wireless Magnetic Power Bank","cat":"Other","ch":"Personal","st":"Personal","od":"24-Jul","sd":"","wk":"","c":17.37,"r":null,"net":null,"acct":"White iPad 6","sup":"White iPad 6 · jiwan26031@gmail.com","b":"15","buyer":""},{"n":"77","item":"Outdoor Waterproof & Reflective Warning Tape (2.5cm×300cm, White)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-25","sd":"","wk":"W30","c":2.29,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"16","buyer":""},{"n":"78","item":"Single-Sided Nano Waterproof Tape (Kitchen/Bathroom Sealing Strip)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-25","sd":"","wk":"W30","c":1.82,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"16","buyer":""},{"n":"79","item":"1m/3m Hydrocolloid Tape (Extra-large Patches, self-adhesive)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-25","sd":"","wk":"W30","c":2.63,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"16","buyer":""},{"n":"80","item":"1pc Finger Splint (Correcting Fingers/Joints)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-25","sd":"","wk":"W30","c":1.88,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"16","buyer":""},{"n":"81","item":"22.5W 5000mAh Mini Power Bank USB-C (Green 2-pack)","cat":"Other","ch":"Personal","st":"Personal — order packing","od":"2026-07-25","sd":"","wk":"W30","c":19.37,"r":null,"net":null,"acct":"White iPad 6","sup":"KYINGH","b":"16","buyer":""},{"n":"82","item":"1pc Finger Splint (Correcting Fingers/Joints)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-25","sd":"","wk":"W30","c":1.88,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"16","buyer":""},{"n":"83","item":"Shoe Rack Cabinet 18 Pairs 3-tier (White, Sena)","cat":"Shoe","ch":"Facebook","st":"Seller processing — delivery Jul 27-Aug 4","od":"2026-07-25","sd":"","wk":"W30","c":100.14,"r":null,"net":null,"acct":"White iPad 6","sup":"Retail Plus AU","b":"16","buyer":""},{"n":"84","item":"Shoe Rack Cabinet 18 Pairs 3-tier (White, Sena) — 2nd","cat":"Shoe","ch":"Facebook","st":"SOLD $80 (Marketplace) — Aug 25 · net -$20.14","od":"25 Jul (Sat)","sd":"2026-08-25","wk":"W30","c":100.14,"r":80.0,"net":-20.14,"acct":"White iPad 6 · jiwan26031@gmail.com","sup":"","b":"16","buyer":""},{"n":"85","item":"Nail set — UV lamp + semi-cured gel strips + press-on nails (3-item order)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-25","sd":"","wk":"W30","c":21.34,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"16","buyer":""},{"n":"86","item":"Extra Large 15 Hydrocolloid Acne Patches w/ Tea Tree Oil (15pcs)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-26","sd":"","wk":"W30","c":2.71,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"17","buyer":""},{"n":"87","item":"1pc Finger Splint for Correcting Fingers (Size 5, oval)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-26","sd":"","wk":"W30","c":1.95,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"17","buyer":""},{"n":"88","item":"10.3\" Color E-paper E-book Reader Android 11, 4+64GB (Bigme)","cat":"Other","ch":"Personal","st":"Personal — order packing, delivery Jul 30-Aug 4","od":"2026-07-26","sd":"","wk":"W30","c":453.07,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"17","buyer":""},{"n":"89","item":"Triangular Stainless Steel Sink Strainer Basket","cat":"Other","ch":"Personal","st":"Personal — pre-order, delivery Aug 1-10","od":"2026-07-26","sd":"","wk":"W30","c":2.99,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"18","buyer":""},{"n":"90","item":"Adjustable Garden Clamps 5pcs fan-shaped","cat":"Table","ch":"Personal","st":"Personal — pre-order, delivery Aug 1-10","od":"2026-07-26","sd":"","wk":"W30","c":0.01,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"18","buyer":""},{"n":"91","item":"Wall Repair Putty 100g + scraper","cat":"Other","ch":"Personal","st":"Personal — pre-order, delivery Aug 1-10","od":"2026-07-26","sd":"","wk":"W30","c":4.99,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"18","buyer":""},{"n":"92","item":"Anti-slip Clothes Hanger 10pcs Black","cat":"Other","ch":"Personal","st":"Personal — pre-order, delivery Aug 1-10","od":"2026-07-26","sd":"","wk":"W30","c":16.57,"r":null,"net":null,"acct":"White iPad 6","sup":"","b":"18","buyer":""},{"n":"93","item":"Black 3-Seater Recliner Sofa Bed — Futon Convertible Leather Lounge Couch","cat":"Table","ch":"Facebook","st":"Order paid — delivery Jul 28-Aug 5","od":"2026-07-27","sd":"","wk":"W31","c":304.2,"r":null,"net":null,"acct":"iPad mini 5 (black)","sup":"Prominent Deal","b":"19","buyer":""},{"n":"94","item":"1pc Finger Splint for Correcting Fingers (Size 5, oval)","cat":"Other","ch":"Personal","st":"Personal — order packing, delivery Aug 2-7","od":"2026-07-26","sd":"","wk":"W30","c":1.95,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"","b":"20","buyer":""},{"n":"95","item":"French-Style Luxury Short Curtain, Embossed Polka Dot Lace, Red Cherry (40×160cm)","cat":"Other","ch":"Personal","st":"Personal — order packing, delivery Aug 2-7","od":"2026-07-26","sd":"","wk":"W30","c":20.81,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"","b":"20","buyer":""},{"n":"96","item":"2 Tier Shoe Cabinet Storage, 36 Pairs (Wood & White)","cat":"Shoe","ch":"Facebook","st":"Order packing — delivery Jul 27-Aug 4","od":"2026-07-25","sd":"","wk":"W30","c":166.99,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"Prominent Deal","b":"21","buyer":""},{"n":"97","item":"Heimlich Anti-Choking Device (Portable Suction, Black)","cat":"Table","ch":"Personal","st":"Personal — order packing, delivery Aug 1-7","od":"2026-07-25","sd":"","wk":"W30","c":30.08,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"","b":"21","buyer":""},{"n":"98","item":"Mother's Day 30-Pair White Shoe Cabinet (Adjustable Shelves, Dust-Proof)","cat":"Shoe","ch":"Facebook","st":"Order packing — delivery Jul 27-Aug 4","od":"2026-07-25","sd":"","wk":"W30","c":96.34,"r":null,"net":null,"acct":"iPad 7 (black)","sup":"Retail Plus AU","b":"21","buyer":""},{"n":"E1","item":"15.6in Portable Monitor 1080P FHD","cat":"Table","ch":"eBay","st":"SOLD on eBay $97 → ~$84.09 net (after ~13% fee) · cost $85.75","od":"","sd":"","wk":"","c":85.75,"r":null,"net":null,"acct":"eBay","sup":"","b":"","buyer":""},{"n":"E3","item":"Advwin Computer Desk w/ LED & Power Outlets, 120cm Gaming Desk","cat":"Table","ch":"eBay","st":"SOLD on eBay 25 Jul — $150 order · −$28.65 fee · $121.35 net · supply PO-012-20121302031994066 ($116.63 paid)","od":"2026-07-26","sd":"2026-07-25","wk":"W30","c":116.63,"r":121.35,"net":4.72,"acct":"eBay","sup":"","b":"","buyer":""},{"n":"E4","item":"70L Motion Sensor + Pedal Rubbish Bin Automatic Trash Can (Black)","cat":"Other","ch":"eBay","st":"SOLD on eBay 16 Jul — $140 order −$26.76 fee → $113.24 net · delivery Jul 27-31","od":"","sd":"2026-07-16","wk":"","c":null,"r":113.24,"net":null,"acct":"eBay","sup":"","b":"","buyer":""},{"n":"99","item":"1pc Finger Splint for Correcting Fingers (Size 6, oval)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-28","sd":"","wk":"W31","c":1.83,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"","b":"22","buyer":""},{"n":"100","item":"12pc Guitar Strings Set (6 strings + 6 number markers, Rainbow)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-28","sd":"","wk":"W31","c":4.1,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"","b":"22","buyer":""},{"n":"101","item":"4pc Guitar Finger Sleeves for Beginners (Transparent White)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-28","sd":"","wk":"W31","c":2.38,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"","b":"22","buyer":""},{"n":"102","item":"Interdental Brushes 160pcs/Box (Green 0.8mm)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-28","sd":"","wk":"W31","c":22.86,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"","b":"22","buyer":""},{"n":"103","item":"Shoe Rack Cabinet 18 Pairs 3-tier White Sena","cat":"Shoe","ch":"Facebook","st":"Delivered Jul 29 — ready to list","od":"2026-07-28","sd":"","wk":"W31","c":100.14,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"Retail Plus AU","b":"22","buyer":""},{"n":"104","item":"Shoe Rack Cabinet 18 Pairs 3-tier White Sena — 2nd","cat":"Shoe","ch":"Facebook","st":"Order packing — delivery Jul 29-Aug 6","od":"2026-07-28","sd":"","wk":"W31","c":100.14,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"Retail Plus AU","b":"22","buyer":""},{"n":"105","item":"Car Holder Wireless Charging 15W (Black)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-28","sd":"","wk":"W31","c":21.84,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"","b":"22","buyer":""},{"n":"106","item":"1pc Car Phone Holder, Upgraded Wireless Charging (Black)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-28","sd":"","wk":"W31","c":22.66,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"","b":"22","buyer":""},{"n":"107","item":"Epoxy Putty Quick Adhesive Glue (28g×3)","cat":"Other","ch":"Personal","st":"Personal — warehouse processing","od":"2026-07-28","sd":"","wk":"W31","c":9.7,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"","b":"22","buyer":""},{"n":"108","item":"Shoe Rack Cabinet 18 Pairs 3-tier White Sena — 3rd","cat":"Shoe","ch":"Facebook","st":"Delivered Jul 29 — ready to list","od":"2026-07-28","sd":"","wk":"W31","c":100.14,"r":null,"net":null,"acct":"iPad 7 (black) · n5y456jcn8@privaterelay.appleid.com","sup":"Retail Plus AU","b":"22","buyer":""}];
+const BATCHMETA = {"1":{"dev":"iPad Pro","when":"2 Jul","cred":300},"2":{"dev":"iPad Pro","when":"26 Jun","cred":300},"3":{"dev":"iPad mini 6","when":"2 Jul","cred":320},"4":{"dev":"iPad mini 6","when":"26 Jun","cred":320},"5":{"dev":"iPad mini 6","when":"2 Jul","cred":260},"6":{"dev":"Galaxy S25 Edge","when":"9 Jul","cred":300},"7":{"dev":"Galaxy S25 Edge","when":"9 Jul","cred":260},"8":{"dev":"iPhone 12 mini","when":"9 Jul","cred":300},"9":{"dev":"Galaxy S25 Edge","when":"11 Jul","cred":300},"10":{"dev":"Galaxy S25 Edge","when":"12 Jul","cred":300},"11":{"dev":"Galaxy S25 Edge","when":"14 Jul","cred":0},"12":{"dev":"iPhone 12 mini","when":"18 Jul","cred":300},"13":{"dev":"iPad 7 (black)","when":"22 Jul","cred":260},"14":{"dev":"iPad 7 (black)","when":"24 Jul","cred":305},"15":{"dev":"White iPad 6","when":"24 Jul","cred":305},"16":{"dev":"White iPad 6","when":"25 Jul","cred":305},"17":{"dev":"White iPad 6","when":"26 Jul","cred":320},"18":{"dev":"White iPad 6","when":"26 Jul","cred":32},"19":{"dev":"iPad mini 5 (black)","when":"27 Jul","cred":300},"20":{"dev":"iPad 7 (black)","when":"26 Jul","cred":32},"21":{"dev":"iPad 7 (black)","when":"26 Jul","cred":305},"22":{"dev":"iPad 7 (black)","when":"28 Jul","cred":305},"—":{"dev":"","when":"","cred":0}};
+const SHEET_ID = "";
+let ROWS = SNAPSHOT;
+let filter = {ch: "all", st: "all", q: ""};
+
+const money = n => (n < 0 ? "-" : "") + "$" + Math.abs(n).toLocaleString("en-AU", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const num = v => (typeof v === "number" && isFinite(v)) ? v : 0;
+
+function state(r){
+  if (r.ch === "Personal") return "mine";
+  if (num(r.r) > 0) return "sold";
+  const s = (r.st || "").toLowerCase();
+  if (s.includes("ready to list") || s.includes("delivered")) return "list";
+  return "way";
+}
+
+function totals(rs){
+  const t = (f) => {
+    const s = rs.filter(f);
+    const c = s.reduce((a, x) => a + num(x.c), 0);
+    const b = s.reduce((a, x) => a + num(x.r), 0);
+    return {n: s.length, c, b, net: b - c};
+  };
+  return {
+    sold:  t(x => x.ch !== "Personal" && num(x.r) > 0),
+    stuck: t(x => x.ch !== "Personal" && num(x.r) === 0),
+    mine:  t(x => x.ch === "Personal")
+  };
+}
+
+function renderMoney(){
+  const t = totals(ROWS);
+  document.getElementById("money").innerHTML = [
+    ["What selling has done", money(t.sold.net), t.sold.net < 0 ? "loss" : "gain",
+     t.sold.n + " sold &middot; " + money(t.sold.c) + " spent, " + money(t.sold.b) + " back"],
+    ["Money stuck in stock", money(t.stuck.c), "hold",
+     t.stuck.n + " bought to sell, none sold yet"],
+    ["Kept for yourself", money(t.mine.c), "",
+     t.mine.n + " items &middot; not a business loss"]
+  ].map(([k, v, cls, n]) =>
+    `<div class="fig"><div class="k">${k}</div><div class="v ${cls}">${v}</div><div class="n">${n}</div></div>`
+  ).join("");
+
+  const per = t.sold.n ? t.sold.net / t.sold.n : 0;
+  document.getElementById("reading").innerHTML =
+    `Every item you have actually sold has, on average, ` +
+    (per < 0 ? `<strong>lost you ${money(Math.abs(per))}</strong>` : `<strong>made you ${money(per)}</strong>`) +
+    `. The bigger number is the ${money(t.stuck.c)} sitting in ${t.stuck.n} things nobody has bought.`;
+}
+
+const FILTERS = [
+  ["ch", "all", "Everything"], ["ch", "eBay", "eBay"],
+  ["ch", "Facebook", "Marketplace"], ["ch", "Personal", "Kept"],
+  ["st", "sold", "Sold only"], ["st", "unsold", "Unsold only"]
+];
+
+function renderChips(){
+  document.getElementById("chips").innerHTML = FILTERS.map(([k, v, label]) => {
+    return `<button class="chip" data-k="${k}" data-v="${v}" aria-pressed="${filter[k] === v}">${label}</button>`;
+  }).join("");
+}
+
+function visible(){
+  const q = filter.q.trim().toLowerCase();
+  return ROWS.filter(r => {
+    if (filter.ch !== "all" && r.ch !== filter.ch) return false;
+    if (filter.st === "sold" && !(num(r.r) > 0)) return false;
+    if (filter.st === "unsold" && num(r.r) > 0) return false;
+    if (q) {
+      const hay = [r.item, r.sup, r.buyer, r.st, r.acct, "batch " + r.b].join(" ").toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function rowHTML(r){
+  const st = state(r);
+  const sold = num(r.r) > 0;
+  const amt = sold
+    ? `<div class="amt ${num(r.net) < 0 ? "loss" : "gain"}">${money(num(r.net))}</div>`
+    : `<div class="amt">&mdash;</div>`;
+  const tagCls = r.ch === "eBay" ? "ebay" : r.ch === "Facebook" ? "fb" : "";
+  const bits = [
+    `<span class="tag ${tagCls}">${r.ch || "unassigned"}</span>`,
+    `<span class="cost">cost ${money(num(r.c))}</span>`,
+    sold ? `<span class="cost">sold ${money(num(r.r))}</span>` : "",
+    r.sd ? `<span>${r.sd}</span>` : (r.od ? `<span>ordered ${r.od}</span>` : ""),
+    r.buyer ? `<span>${r.buyer}</span>` : "",
+    `<span>${r.st || ""}</span>`
+  ].filter(Boolean).join("");
+  return `<article class="row ${st}">
+    <div class="num">${r.n}</div>
+    <div class="name">${r.item}</div>
+    ${amt}
+    <div class="meta">${bits}</div>
+  </article>`;
+}
+
+function renderList(){
+  const rs = visible();
+  document.getElementById("count").textContent =
+    rs.length + " of " + ROWS.length + " items shown";
+  if (!rs.length){
+    document.getElementById("list").innerHTML =
+      `<p class="empty">Nothing matches that. Clear the search or pick Everything.</p>`;
+    return;
+  }
+  const groups = new Map();
+  for (const r of rs){
+    const key = r.b || "—";
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+  const order = [...groups.keys()].sort((a, b) => (parseInt(b, 10) || 0) - (parseInt(a, 10) || 0));
+  document.getElementById("list").innerHTML = order.map(k => {
+    const items = groups.get(k);
+    const spent = items.reduce((a, x) => a + num(x.c), 0);
+    return `<h2 class="batch">Batch ${k} &middot; ${items.length} items &middot; ${money(spent)} spent</h2>` +
+      items.map(rowHTML).join("");
+  }).join("");
+}
+
+function batchRows(){
+  const by = new Map();
+  for (const r of ROWS){
+    const k = r.b || "\u2014";
+    if (!by.has(k)) by.set(k, {n:0, c:0, r:0, sold:0, mine:0});
+    const a = by.get(k);
+    a.n++; a.c += num(r.c); a.r += num(r.r);
+    if (num(r.r) > 0) a.sold++;
+    if (r.ch === "Personal") a.mine++;
+  }
+  return [...by.entries()]
+    .map(([k, a]) => ({k, ...a, net: a.r - a.c, meta: BATCHMETA[k] || {}}))
+    .sort((x, y) => (parseInt(x.k, 10) || 999) - (parseInt(y.k, 10) || 999));
+}
+
+function renderBatches(){
+  const bs = batchRows();
+  const T = bs.reduce((a, b) => ({n:a.n+b.n, c:a.c+b.c, r:a.r+b.r, sold:a.sold+b.sold}),
+                      {n:0, c:0, r:0, sold:0});
+  const body = bs.map(b => {
+    const credit = b.meta.cred || 0;
+    const pct = credit ? Math.round(b.c / credit * 100) : null;
+    const bar = credit
+      ? `<span class="bar"><i class="${pct > 100 ? "over" : ""}" style="width:${Math.min(pct, 100)}%"></i></span>`
+      : "";
+    return `<tr class="clickable" tabindex="0" role="button" data-batch="${b.k}"
+                 aria-label="Show the ${b.n} items in batch ${b.k}">
+      <td class="b">${b.k}</td>
+      <td><span class="dev">${b.meta.dev || "not in a batch"}</span>
+          <div class="when">${b.meta.when ? "ordered " + b.meta.when : ""}</div></td>
+      <td class="n">${b.n}</td>
+      <td class="n">${b.sold ? b.sold : '<span class="none">0</span>'}</td>
+      <td class="n">${money(b.c)}${bar}
+          <div class="when">${credit ? "$" + credit + " credit &middot; " + pct + "%" : ""}</div></td>
+      <td class="n">${b.r ? money(b.r) : '<span class="none">&mdash;</span>'}</td>
+      <td class="n" style="color:var(--${b.net < 0 ? "loss" : "gain"})">${money(b.net)}
+          <div class="opencue">tap to see items</div></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("batches").innerHTML = `
+    <div class="tablewrap"><table>
+      <thead><tr>
+        <th>#</th><th>Bought on</th><th class="n">Items</th><th class="n">Sold</th>
+        <th class="n">Spent</th><th class="n">Back</th><th class="n">Difference</th>
+      </tr></thead>
+      <tbody>${body}</tbody>
+      <tfoot><tr>
+        <td></td><td>${bs.length} batches</td><td class="n">${T.n}</td><td class="n">${T.sold}</td>
+        <td class="n">${money(T.c)}</td><td class="n">${money(T.r)}</td>
+        <td class="n" style="color:var(--loss)">${money(T.r - T.c)}</td>
+      </tr></tfoot>
+    </table></div>`;
+}
+
+let view = "items";
+function applyView(){
+  const items = view === "items";
+  document.getElementById("list").hidden = !items;
+  document.getElementById("batches").hidden = items;
+  document.getElementById("chips").hidden = !items;
+  document.getElementById("q").hidden = !items;
+  document.getElementById("count").hidden = !items;
+  if (items) renderList(); else renderBatches();
+}
+
+document.getElementById("views").addEventListener("click", e => {
+  const b = e.target.closest(".chip");
+  if (!b) return;
+  view = b.dataset.view;
+  [...document.querySelectorAll("#views .chip")]
+    .forEach(c => c.setAttribute("aria-pressed", String(c.dataset.view === view)));
+  applyView();
+});
+
+function renderAll(){ renderMoney(); renderChips(); applyView(); }
+
+document.getElementById("chips").addEventListener("click", e => {
+  const b = e.target.closest(".chip");
+  if (!b) return;
+  const k = b.dataset.k, v = b.dataset.v;
+  filter[k] = (filter[k] === v) ? "all" : v;
+  renderChips(); renderList();
+});
+document.getElementById("q").addEventListener("input", e => {
+  filter.q = e.target.value; renderList();
+});
+
+/* ---------- the floating box ---------- */
+const pop = document.getElementById("pop");
+
+function openBatch(k){
+  const items = ROWS.filter(r => (r.b || "\u2014") === k);
+  if (!items.length) return;
+  const meta = BATCHMETA[k] || {};
+  const spent = items.reduce((a, x) => a + num(x.c), 0);
+  const back  = items.reduce((a, x) => a + num(x.r), 0);
+  const sold  = items.filter(x => num(x.r) > 0).length;
+  const kept  = items.filter(x => x.ch === "Personal").length;
+  const net   = back - spent;
+
+  document.getElementById("poptitle").textContent =
+    (k === "\u2014") ? "Not in a batch" : "Batch " + k;
+  document.getElementById("popsub").textContent = [
+    meta.dev ? "bought on the " + meta.dev : "",
+    meta.when ? "ordered " + meta.when : "",
+    meta.cred ? "$" + meta.cred + " store credit" : ""
+  ].filter(Boolean).join(" \u00b7 ");
+
+  document.getElementById("popsums").innerHTML = [
+    ["Items", items.length],
+    ["Sold", sold],
+    ["Kept", kept],
+    ["Spent", money(spent)],
+    ["Got back", back ? money(back) : "\u2014"],
+    ["Difference", money(net), net < 0 ? "loss" : "gain"]
+  ].map(([k2, v, cls]) => `<div>${k2}<b class="${cls || ""}">${v}</b></div>`).join("");
+
+  document.getElementById("popbody").innerHTML =
+    items.slice().sort((a, b2) => (parseInt(a.n, 10) || 0) - (parseInt(b2.n, 10) || 0))
+         .map(rowHTML).join("");
+
+  if (typeof pop.showModal === "function") pop.showModal();
+  else pop.setAttribute("open", "");
+  document.getElementById("popclose").focus();
+}
+
+document.getElementById("batches").addEventListener("click", e => {
+  const tr = e.target.closest("tr.clickable");
+  if (tr) openBatch(tr.dataset.batch);
+});
+document.getElementById("batches").addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const tr = e.target.closest("tr.clickable");
+  if (!tr) return;
+  e.preventDefault();
+  openBatch(tr.dataset.batch);
+});
+document.getElementById("popclose").addEventListener("click", () => pop.close());
+pop.addEventListener("click", e => { if (e.target === pop) pop.close(); });
+
+/* ---------- live feed from the spreadsheet, via her Google Drive ---------- */
+function unescapeCell(s){
+  return s.replace(/\\([\\`*_{}\[\]()#+\-.!<>|~])/g, "$1").trim();
+}
+function parseSheet(text){
+  const lines = String(text).split("\n");
+  let head = -1;
+  for (let i = 0; i < lines.length; i++){
+    const l = lines[i];
+    if (l.includes("| Item |") && l.includes("| Category |") && l.includes("| Channel |")){ head = i; break; }
+  }
+  if (head < 0) return null;
+  const cols = lines[head].split("|").slice(1, -1).map(unescapeCell);
+  const at = name => cols.indexOf(name);
+  const iN = at("\\#") >= 0 ? at("\\#") : at("#");
+  const need = ["Item","Category","Channel","Status","Order date","Sold date","Week","Cost","Received","Net","Account","Recipient/Buyer","Supplier","Batch"];
+  if (need.some(n => at(n) < 0)) return null;
+  const out = [];
+  for (let i = head + 1; i < lines.length; i++){
+    const l = lines[i];
+    if (!l.startsWith("|")) { if (out.length) break; else continue; }
+    const cells = l.split("|").slice(1, -1).map(unescapeCell);
+    if (cells.length < cols.length){ if (out.length) break; else continue; }
+    const id = cells[iN < 0 ? 0 : iN];
+    if (!/^(E?\d+)$/.test(id)){ if (out.length) break; else continue; }
+    const n = v => { const x = parseFloat(String(v).replace(/[$,]/g, "")); return isFinite(x) ? x : null; };
+    out.push({
+      n: id, item: cells[at("Item")], cat: cells[at("Category")],
+      ch: cells[at("Channel")], st: cells[at("Status")],
+      od: cells[at("Order date")], sd: cells[at("Sold date")], wk: cells[at("Week")],
+      c: n(cells[at("Cost")]), r: n(cells[at("Received")]), net: n(cells[at("Net")]),
+      acct: cells[at("Account")], sup: cells[at("Supplier")],
+      b: cells[at("Batch")],
+      buyer: (cells[at("Recipient/Buyer")] || "").split("·")[0].split("—")[0].trim()
+    });
+  }
+  return out.length ? out : null;
+}
+
+function feed(stateName, text){
+  const el = document.getElementById("feed");
+  el.dataset.state = stateName;
+  document.getElementById("feedtext").textContent = text;
+}
+
+function foot(msg){ document.getElementById("foot").innerHTML = msg; }
+
+foot(`Reading is one way. This page reads your spreadsheet; it never writes to it. ` +
+     `To record a sale, use the Mark Sold button in the phone tracker &mdash; that is the app that writes.`);
+
+renderAll();
+
+feed("off", "snapshot as at 2026-09-11");
+</script>
+
+</body>
+</html>
