@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-10 22:58",
+ "generated_at": "2026-09-10 23:01",
  "generated_date": "2026-09-10",
  "reviews": {
   "available": true,
@@ -120,7 +120,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-10 22:51",
+  "read_at": "2026-09-10 23:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -169,9 +169,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 10,
-  "last_commit": "4a330b1 Two failures found by running the job as the SCHEDULER runs it, not by hand",
-  "last_commit_at": "2026-09-10T22:57:11+09:30"
+  "uncommitted_files": 7,
+  "last_commit": "6b615f1 Nightly automatic backup: 10 file(s)",
+  "last_commit_at": "2026-09-10T23:00:11+09:30"
  },
  "facts": {
   "available": true,
