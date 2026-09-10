@@ -94,14 +94,33 @@ git add -A && git commit -m "Turn the TripShare planner on" && git push
 |---|---|
 | Model | `gpt-5.6-luna` |
 | Price | **$0.20 in / $1.20 out per 1M tokens** — read off OpenAI's live pricing page 8 Sep 2026 |
-| One plan | about **US$0.002** — a fifth of one US cent |
-| Daily limit | **100 plans**, set by `DAILY_CALL_CAP` in the script |
-| **Worst case per day** | **about US$0.20** |
-| Worst case per month | about **US$6** |
+| One plan, **measured** | about **US$0.00075** — under a tenth of a US cent |
+| One plan, worst case | about **US$0.0025** if it writes the longest answer allowed |
+| Daily limit | **100 plans**, set by `DAILY_CALL_CAP` |
+| Monthly limit | **1,000 plans**, set by `MONTHLY_CALL_CAP` |
+| Busiest realistic day | about **US$0.08** |
+| Worst possible day | about **US$0.25** |
+| **Worst possible month** | **about US$2.50** — this is the real ceiling |
 
-**To spend less, lower `DAILY_CALL_CAP`.** It is the ceiling: the script counts
-every call *before* it makes it, so the number cannot be beaten by bad luck or
-by two people clicking at once.
+⭐ **The "one plan" figure is measured, not guessed `[MEASURED 2026-09-11]`.** Two
+real calls to this exact model with this exact prompt used 692 tokens in and
+1,129 out, costing **US$0.00149 for both**. The doc used to say US$0.002 a plan,
+which was written before anything had ever been called and was nearly three
+times too high.
+
+⛔ **But the OLD "worst case US$0.20/day" was too LOW, and that is the one that
+mattered.** A single call is allowed 2,000 tokens of answer, and 2,000 × $1.20
+per million is US$0.0024 of output on its own — so a fully used day is nearer
+**25 cents than 20**, before the input side. The daily cap counts CALLS exactly.
+It only estimates DOLLARS, and only at today's prices.
+
+⛔ **And it is a DAILY limit, not a total one.** Somebody who comes back every
+day pays it every day. That is why `MONTHLY_CALL_CAP` now exists: it is the
+thing that stops a bad month becoming a bad year.
+
+**To spend less, lower `DAILY_CALL_CAP`.** The script counts every call *before*
+it makes it, so the number cannot be beaten by bad luck or by two people
+clicking at once.
 
 ### To see what it has actually used
 
@@ -118,12 +137,39 @@ press **Run**. Then **View → Logs**. It prints today's count and the spend.
 | `MAX_INPUT_CHARS` | nobody can post a novel and have you billed for it |
 | `MAX_OUTPUT_TOKENS` | caps the expensive half of every single call |
 | `MIN_MS_BETWEEN` | slows a rapid loop without blocking a real person |
+| `MONTHLY_CALL_CAP` | the ceiling on a whole month, so daily abuse cannot repeat forever |
+| `ENABLED` | your off switch — see below |
 
 ⚠ **Honest limit, said plainly rather than hidden:** the door is open to
-strangers, so somebody determined could still use up the daily allowance. The
-cap is what protects you — it makes the worst case **a known small number per
-day**, not zero. If that ever happens, lower the cap or take the URL out of the
-page; nothing else breaks.
+strangers, so somebody determined could still use up the daily allowance — about
+two and a half minutes of clicking. The caps are what protect you: they make the
+worst case **a known small number**, not zero. Sustained abuse costs roughly
+**US$2.50 a month at most**, and the visible effect is that the planner stops
+answering for everybody until the next day.
+
+⚠ **One thing the caps do NOT stop, named rather than hidden:** Google gives
+every Apps Script a daily allowance of its own for reading and writing settings.
+Somebody hammering the door can use that up even when no OpenAI call is made. It
+costs nothing, but the planner would return an error for the rest of that day.
+There is no way to prevent it without making people sign in, which this app
+deliberately does not do.
+
+---
+
+## 🔴 The off switch — how to stop it in ten seconds
+
+You do not need to touch the website, and nothing needs re-deploying.
+
+1. Open the Apps Script project.
+2. **Project Settings → Script Properties → Add script property.**
+3. Name it `ENABLED`, set the value to `no`, and save.
+
+The very next request is refused, and visitors see *"The planner is switched off
+at the moment."* Set it back to `yes` to turn it on again.
+
+**Use this if:** the bill looks wrong, the suggestions come back nonsense, or you
+simply want it off while you think. It is faster and safer than editing the page,
+and unlike editing the page it works even if you are away from your computer.
 
 ---
 

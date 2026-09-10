@@ -713,14 +713,34 @@
     var wrap = document.createElement("div");
     wrap.className = "card noprint";
 
+    /* ⛔ THE HEADING WAS "Plan it for me", AND THAT OVERSOLD IT.
+       This has no map, no timetable, no opening hours and no booking system. It
+       is a way past a blank page, not a travel agent, and the heading is the
+       first thing that sets the expectation.
+
+       ⛔ AND THE NOTICE BELOW IS NOT OPTIONAL POLITENESS. Everywhere else this
+       app says "Your trips are kept only in this browser, on this device" - it
+       says it on the empty screen and again in the backup note. The moment this
+       panel is switched on, that stops being the whole truth: whatever is typed
+       here, and the trip's dates, leave the device. A person who has been told
+       the app is private will put names, medications and booking references in
+       this box. Saying so BEFORE they type is the only place saying it helps. */
     wrap.innerHTML =
-      '<h3>Plan it for me</h3>' +
+      '<h3>Suggest a starting plan</h3>' +
       '<p class="hint">Describe the trip the way you would to a friend. ' +
       'You will see what it suggests before anything is added, and you choose ' +
-      'which parts to keep.</p>' +
+      'which parts to keep. Suggestions use this trip\'s existing dates, so ' +
+      'tell it about your pace, what you enjoy, and when you arrive and leave ' +
+      'rather than how many days you want.</p>' +
+      '<p class="hint"><strong>This box is the one part of TripShare that ' +
+      'leaves your device.</strong> What you write here, and this trip\'s ' +
+      'dates, are sent to an AI service to write the suggestions. Nothing else ' +
+      'in your trip is sent. Please leave out anything private - names, health ' +
+      'details, booking references, card numbers.</p>' +
       '<textarea id="botText" maxlength="' + BOT_MAX_CHARS + '" rows="4" ' +
-      'placeholder="Five days in Kyoto in April. We land early on the first day, ' +
-      'we like food markets and temples, and we would rather not rush."></textarea>' +
+      'placeholder="We land mid-morning on the first day and leave after lunch ' +
+      'on the last. We like food markets and temples, one of us cannot walk ' +
+      'far, and we would rather not rush."></textarea>' +
       '<div class="row"><span class="meta" id="botCount"></span></div>' +
       '<div class="row" id="botGo"></div>' +
       '<div class="err" id="botErr"></div>' +
@@ -780,10 +800,14 @@
           say((res && res.error) || "The planner could not answer just now.");
           return;
         }
-        showProposal(res.items || []);
+        showProposal(res.items || [], Number(res.dropped) || 0);
       })["catch"](function () {
         if (out) out.innerHTML = "";
-        say("Could not reach the planner. Check the connection and try again.");
+        /* NOT "check the connection". The likeliest causes are the planner
+           being unreachable or misconfigured at the other end, and telling
+           somebody to check a connection that is plainly working sends them
+           looking in the wrong place. */
+        say("Could not reach the planner. Please try again shortly.");
       })["finally"](function () {
         busy = false;
         go_.disabled = false;
@@ -791,7 +815,10 @@
       });
     }
 
-    function showProposal(items) {
+    function showProposal(items, droppedFar) {
+      /* droppedFar is what the FAR end threw away before it ever reached this
+         page. Counting only what this page rejects would under-report: the
+         server could discard five and the banner would say nothing. */
       var out = el("botOut");
       if (!out) return;
       out.innerHTML = "";
@@ -806,17 +833,26 @@
          The count comes off the cleaned list because the first version of this
          fix said "6 suggestions" above five rows. A heading that disagrees with
          what is under it is worse than no heading. */
-      var clean = [];
+      var clean = [], dropped = Number(droppedFar) || 0;
       items.forEach(function (raw) {
         raw = raw || {};
-        if (!str(raw.t, 90)) return;              /* no title: not an item */
+        if (!str(raw.t, 90)) { dropped++; return; }   /* no title: not an item */
         var a = normItem(raw, t.s);
-        if (a.d < t.s || a.d > t.e) a.d = t.s;    /* never outside the trip */
+        /* ⛔ DROPPED, NOT MOVED. This line used to read `a.d = t.s`, which
+           silently re-dated anything outside the trip onto day one. Measured on
+           11 Sep 2026 by feeding the real validators an item dated 2027-01-01
+           on an April trip: it came back looking like a deliberate day-one plan.
+           The preview cannot show the difference, so the traveller cannot
+           either. Fewer honest rows beat more invented ones. */
+        if (a.d < t.s || a.d > t.e) { dropped++; return; }
         clean.push(a);
       });
 
       if (!clean.length) {
-        say("Nothing usable came back. Try describing the days more plainly.");
+        /* This used to read "Try describing the days more plainly", which puts
+           the fault on the traveller for something that is usually not theirs. */
+        say("The planner did not produce usable suggestions. Try again, or add " +
+            "items to the day by hand.");
         return;
       }
 
@@ -824,7 +860,13 @@
       head.className = "banner";
       head.innerHTML = "<strong>" + clean.length + " suggestion" +
         (clean.length === 1 ? "" : "s") + ".</strong> " +
-        "Nothing has been added yet. Untick anything you do not want.";
+        "Nothing has been added yet. Untick anything you do not want. " +
+        "These are a starting point, not checked facts - confirm times, prices " +
+        "and whether places are open before you rely on any of them." +
+        (dropped ? " <span class=\"meta\">" + dropped + " more " +
+          (dropped === 1 ? "suggestion was" : "suggestions were") +
+          " left out because " + (dropped === 1 ? "it" : "they") +
+          " fell outside this trip's dates or arrived incomplete.</span>" : "");
       out.appendChild(head);
 
       var boxes = [];
