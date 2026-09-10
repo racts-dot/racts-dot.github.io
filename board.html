@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light dark">
+<style>html,body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>AI Handoff Board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --paper:#F0F0EC; --panel:#FAFAF7; --ink:#1A1D1C; --ink-2:#4B524F; --ink-3:#767D79;
+  --line:#D8D8D0; --line-2:#C4C4B9;
+  --accent:#1F5C4D; --accent-soft:#E2EDE8;
+  --stop:#9E2B25; --stop-soft:#F6E4E2;
+  --watch:#8A5A12; --watch-soft:#F6EBD6;
+  --ok:#2C6B47; --ok-soft:#E1EDE4;
+  --bar:#3F7F6C;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#14171A; --panel:#1B1F22; --ink:#E9E9E3; --ink-2:#B0B6B2; --ink-3:#858C88;
+    --line:#2C3236; --line-2:#3A4146;
+    --accent:#5FB59A; --accent-soft:#1D2E2A;
+    --stop:#E08A82; --stop-soft:#33211F;
+    --watch:#D7A85B; --watch-soft:#2F2718;
+    --ok:#7BBE95; --ok-soft:#1C2A22;
+    --bar:#4E9C85;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#14171A; --panel:#1B1F22; --ink:#E9E9E3; --ink-2:#B0B6B2; --ink-3:#858C88;
+  --line:#2C3236; --line-2:#3A4146;
+  --accent:#5FB59A; --accent-soft:#1D2E2A;
+  --stop:#E08A82; --stop-soft:#33211F;
+  --watch:#D7A85B; --watch-soft:#2F2718;
+  --ok:#7BBE95; --ok-soft:#1C2A22;
+  --bar:#4E9C85;
+}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15.5px;line-height:1.55;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{max-width:920px;margin:0 auto;padding:0 22px 96px}
+a{color:var(--accent);text-underline-offset:3px}
+a:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+code{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.9em}
+
+.masthead{padding:40px 0 24px;border-bottom:2px solid var(--ink);display:flex;flex-direction:column;gap:13px}
+.kicker{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:8px 18px}
+h1{font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-optical-sizing:auto;font-weight:600;font-size:clamp(34px,6vw,52px);line-height:1.02;letter-spacing:-.015em;margin:0;text-wrap:balance}
+.standfirst{font-size:17px;color:var(--ink-2);max-width:60ch;margin:0}
+.sourceline{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline}
+
+section{padding:36px 0 4px;border-bottom:1px solid var(--line)}
+section:last-of-type{border-bottom:none}
+h2{font-family:"Fraunces","Iowan Old Style",Georgia,serif;font-weight:600;font-size:26px;line-height:1.15;letter-spacing:-.01em;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--ink-3);font-size:13.5px;margin:0 0 20px;max-width:64ch}
+h3{font-size:14px;font-weight:600;margin:26px 0 10px}
+p{max-width:66ch}
+
+.tag{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;padding:3px 7px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.t-stop{color:var(--stop);background:var(--stop-soft)}
+.t-watch{color:var(--watch);background:var(--watch-soft)}
+.t-ok{color:var(--ok);background:var(--ok-soft)}
+.t-info{color:var(--accent);background:var(--accent-soft)}
+
+/* live band */
+.livebar button{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:2px;padding:5px 11px;cursor:pointer}
+.livebar button:hover{background:var(--accent);color:var(--paper)}
+.livebar button:disabled{opacity:.55;cursor:default}
+.livebar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.livebar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;color:var(--ink-3);padding:12px 0 0}
+.alerts{display:grid;gap:1px;background:var(--line-2);border:1px solid var(--line-2);margin:18px 0 0}
+.alert{background:var(--panel);padding:14px 16px;display:flex;flex-direction:column;gap:5px}
+.alert b{font-size:15px;font-weight:600}
+.alert .why{font-size:13.5px;color:var(--ink-2)}
+.alert .tag{align-self:flex-start}
+
+.meters{display:grid;gap:1px;background:var(--line-2);border:1px solid var(--line-2);margin:22px 0 0}
+@media(min-width:640px){.meters{grid-template-columns:1fr 1fr 1fr}}
+.meter{background:var(--panel);padding:15px 16px;display:flex;flex-direction:column;gap:7px}
+.meter .lbl{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+.meter .val{font-family:"Fraunces",Georgia,serif;font-size:27px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.meter .of{font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.track{height:6px;background:var(--line);position:relative;overflow:hidden}
+.track i{position:absolute;inset:0 auto 0 0;background:var(--bar);display:block}
+.track.hot i{background:var(--stop)}
+
+/* money by job */
+.jobs{display:grid;gap:0;margin:6px 0 0;border-top:1px solid var(--line-2)}
+.job{border-bottom:1px solid var(--line);padding:11px 0;display:grid;gap:6px}
+@media(min-width:640px){.job{grid-template-columns:1fr 96px;gap:4px 18px;align-items:baseline}}
+.job .what{font-size:14.5px}
+.job .usd{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;font-variant-numeric:tabular-nums;text-align:right;font-weight:500}
+.job .meta{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;color:var(--ink-3)}
+.job .track{grid-column:1/-1;margin-top:2px}
+.job.unattributed .what{color:var(--stop)}
+.job.unattributed .track i{background:var(--stop)}
+
+/* register rows */
+.rows{border-top:1px solid var(--line-2);margin:8px 0 0}
+.row{border-bottom:1px solid var(--line);padding:15px 0;display:grid;gap:8px}
+@media(min-width:720px){.row{grid-template-columns:210px 1fr;gap:8px 26px;align-items:start}}
+.row .name{font-weight:600;font-size:15px;display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+.row .name .price{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;color:var(--ink-3);font-weight:400;font-variant-numeric:tabular-nums}
+.row .body{font-size:14px;color:var(--ink-2);display:flex;flex-direction:column;gap:7px}
+.row .body strong{color:var(--ink);font-weight:600}
+
+/* readings */
+.readings{border-top:1px solid var(--line-2);margin:6px 0 0}
+.reading{border-bottom:1px solid var(--line);padding:13px 0;display:grid;gap:6px}
+@media(min-width:720px){.reading{grid-template-columns:190px 1fr 96px;gap:6px 20px;align-items:start}}
+.reading .lab{font-weight:600;font-size:14.5px}
+.reading .val{font-size:14px;color:var(--ink-2)}
+.reading .val .note{display:block;color:var(--ink-3);font-size:13px;margin-top:4px}
+.reading .age{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11.5px;color:var(--ink-3);text-align:left}
+@media(min-width:720px){.reading .age{text-align:right}}
+.reading.stale .age{color:var(--watch);font-weight:500}
+
+ol.traps{list-style:none;counter-reset:trap;padding:0;margin:6px 0 0;border-top:1px solid var(--line-2)}
+ol.traps li{counter-increment:trap;border-bottom:1px solid var(--line);padding:13px 0 13px 46px;position:relative;font-size:14.5px;color:var(--ink-2);max-width:72ch}
+ol.traps li::before{content:counter(trap,decimal-leading-zero);position:absolute;left:0;top:13px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12px;color:var(--accent)}
+ol.traps li b{color:var(--ink);font-weight:600}
+
+ul.plain{margin:6px 0 0;padding-left:19px;display:grid;gap:7px;font-size:14.5px;color:var(--ink-2);max-width:70ch}
+ul.plain li b,ul.plain li strong{color:var(--ink);font-weight:600}
+ul.plain li::marker{color:var(--line-2)}
+
+.flow{display:grid;gap:10px;margin:8px 0 4px}
+.flow-q{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:12.5px;background:var(--panel);border:1px solid var(--line-2);padding:12px 14px;text-align:center}
+.branches{display:grid;gap:10px}
+@media(min-width:700px){.branches{grid-template-columns:repeat(3,1fr)}}
+.branch{background:var(--panel);border:1px solid var(--line);border-top:3px solid var(--accent);padding:14px 15px;display:flex;flex-direction:column;gap:8px}
+.branch .about{font-size:13.5px;color:var(--ink-2)}
+.branch .winner{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:13px;font-weight:500;color:var(--ink)}
+.flow-foot{font-size:13.5px;color:var(--ink-2);border-left:2px solid var(--line-2);padding-left:14px;margin:4px 0 0}
+
+.stale{border-top:1px solid var(--line-2)}
+.stale .item{border-bottom:1px solid var(--line);padding:14px 0;display:grid;gap:6px}
+@media(min-width:720px){.stale .item{grid-template-columns:1fr 1fr;gap:6px 26px}}
+.stale .said,.stale .is{font-size:14px;display:flex;flex-direction:column;gap:4px}
+.lbl-s{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
+.stale .said{color:var(--ink-3)}
+
+.callout{background:var(--panel);border:1px solid var(--line-2);padding:16px 18px;display:grid;gap:8px;margin:22px 0 0}
+.callout .hd{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--stop)}
+.callout p{margin:0;font-size:14.5px;color:var(--ink-2)}
+
+.links{display:grid;gap:1px;background:var(--line);border:1px solid var(--line);margin:6px 0 0}
+.links .lk{background:var(--panel);padding:13px 16px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;justify-content:space-between}
+.links .lk .what{font-size:13.5px;color:var(--ink-3);max-width:46ch}
+
+.unknowns{border-top:1px solid var(--line-2);margin:6px 0 0}
+.unknown{border-bottom:1px solid var(--line);padding:12px 0;display:grid;gap:5px}
+@media(min-width:640px){.unknown{grid-template-columns:220px 1fr;gap:5px 20px}}
+.unknown .w{font-weight:600;font-size:14.5px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.unknown .y{font-size:13.5px;color:var(--ink-2)}
+
+footer{padding:32px 0 0;color:var(--ink-3);font-size:13px;display:grid;gap:8px;border-top:2px solid var(--ink);margin-top:36px}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="kicker">
+    <span>HiredHandAU &middot; printables</span>
+    <span>Mirror of START HERE &mdash; AI Handoff</span>
+  </div>
+  <h1>AI Handoff Board</h1>
+  <p class="standfirst">What is live, what is blocked, where the money went, and what has already been tried and must not be tried again.</p>
+  <div class="sourceline">
+    <span>NOTION</span>
+    <a href="https://app.notion.com/p/3c5d360cea8381818d18cacacb1c259f">START HERE &mdash; AI Handoff</a>
+  </div>
+  <div class="livebar">
+    <button id="refresh" type="button">Refresh</button>
+    <span id="asof">DATA AS AT &mdash;</span>
+    <span id="datasrc"></span>
+  </div>
+</header>
+
+<section id="flags">
+  <h2>What needs attention</h2>
+  <p class="sub">Computed from the data, not typed by hand &mdash; so an alert cannot outlive the number that caused it.</p>
+  <div class="alerts" id="alerts"></div>
+</section>
+
+<section id="spend">
+  <h2>Where the money went</h2>
+  <p class="sub">Read from the files the spending scripts write themselves. Every figure carries when it was read.</p>
+
+  <div class="meters" id="meters"></div>
+
+  <h3>AI reviews &mdash; by the job the money bought</h3>
+  <div class="jobs" id="jobs"></div>
+  <p class="sub" style="margin-top:14px">Sorted by cost. A run whose name did not say what it bought stays visible as its own row rather than being folded into a total &mdash; an unclassified cost you can see is a problem; one quietly absorbed is not.</p>
+
+  <h3>Apify &mdash; by scraper</h3>
+  <div class="jobs" id="actors"></div>
+  <div class="callout">
+    <span class="hd">The uncomfortable part</span>
+    <p>Apify is the <b>largest single line of AI spend in this business</b> &mdash; more than three times everything the review board has spent since 28 August. Most of it bought two Etsy scrapes that are now <b>quarantined as evidence</b>: page 1 only, ads included, no listing dates. At the limit Apify <b>suspends rather than bills</b>, so the risk is a scrape dying halfway, not an invoice.</p>
+  </div>
+
+  <h3>Not established &mdash; never quote the totals as if they were everything</h3>
+  <div class="unknowns" id="unknowns"></div>
+</section>
+
+<section id="products">
+  <h2>Where each product actually is</h2>
+  <p class="sub">Verified against the platform &mdash; Etsy Shop Manager, the KDP Bookshelf &mdash; never against a file. Files record intentions; only the platform records what happened.</p>
+
+  <div class="rows">
+    <div class="row">
+      <div class="name">The Cottage Garden Word Search <span class="price">AU$5.91 base &middot; AU$6.50 to a buyer</span><span class="tag t-ok">Live &middot; gate cleared</span></div>
+      <div class="body">
+        <span>81 pages, round two, live since 2 Sep. The readable-line defect is <strong>fixed and gone</strong>, proved by hashing the PDF downloaded back off the listing. Standing gate, step 2 of every build: <code>check_readable_lines.py</code> &mdash; clean on all 30 puzzles.</span>
+        <span>Round two fixed eight defects found by attacking the live file: 17 glossary pages printing 15&ndash;20&nbsp;mm off-centre, a puzzle that said &ldquo;twelve months&rdquo; and named ten, THORN defined as a spine, and an A4 file carrying no title or author.</span>
+        <span>The book had been promising a glossary <strong>on its own title page</strong> and delivering none. 540 meanings existed in the source all along and were never rendered. Now printed &mdash; and the description was edited in the same action, 63&nbsp;&rarr;&nbsp;81 pages.</span>
+        <span>Word list is uniform 12.15&nbsp;pt. It is <strong>not</strong> 16&nbsp;pt, so it is not a large-print word list. Reachable, but it needs the per-page note moved &mdash; a design decision, not a constant.</span>
+        <span>The 540 meanings are a <strong>northern-hemisphere</strong> gardening book: 90 of them turn on a month or season. Fixed by disclosure, not rewriting.</span>
+        <span>Title now leads with &ldquo;Word Search Printable&rdquo;. AU$5.91 is the seller base before GST &mdash; <strong>do not &ldquo;correct&rdquo; it upward</strong>.</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="name">The Quiet Atlas <span class="price">US$11.99 &middot; Amazon KDP &middot; Rachie J</span><span class="tag t-watch">Live, edits blocked</span></div>
+      <div class="body">
+        <span>60 large-print mazes, 81 pages. 18 silhouette families, three maze grammars, four difficulty bands. 60 of 60 plates pass 22 checks read back out of the printed PDF.</span>
+        <span>Publish was pressed 1 Sep; review cleared 4 Sep. Both edit routes still bounce back to the Bookshelf, so <strong>nobody can change it right now, Rachel included</strong>.</span>
+        <span><strong>The AI declaration still reads &ldquo;No&rdquo;</strong> and should read Yes, text and images. A commit claiming this was fixed is false on that half &mdash; and that false claim was swept into eight files before anyone measured it.</span>
+        <span>It went to Amazon <strong>without the physical print proof</strong> the outside review called a hard gate. That is now a quality risk on a live book, not a blocker.</span>
+        <span><strong>Never state a corridor width in public copy.</strong> Two numbers have been published and both were false; the narrowest measured printed corridor is 6.475&nbsp;mm and ~16 plates are unmeasured.</span>
+        <span>Artwork scored 9.4 across five outside rounds and the review said stop. <strong>Do not open another polish round.</strong> Difficulty band labels have never been calibrated against a human.</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="name">Stress Relief Colouring <span class="price">AU$3.99 base</span><span class="tag t-stop">Paused by Rachel</span></div>
+      <div class="body">
+        <span>Inactive since 7 Sep, so nobody can buy it and the defect is contained. Her pause was right and still is.</span>
+        <span>On the corrected measuring scale it still fails &mdash; 3.39% of p012 under the 2.5&nbsp;mm floor against 2.0% allowed, plus clogged clutter, dead space on p018 and edge clipping on three pages.</span>
+        <span><strong>Two of its 25 pages have nothing to colour at all.</strong> Anyone who bought while it was live paid for 25 and got 23. The title still claims 25.</span>
+        <span>The old &ldquo;9.01% against 8%&rdquo; figure came off the broken scale &mdash; <strong>do not quote it</strong>.</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="name">Kawaii Bunny Colouring <span class="price">AU$3.63 base &middot; ~AU$3.99 to a buyer</span><span class="tag t-ok">Live</span></div>
+      <div class="body">
+        <span>The gate that condemned this book was <strong>itself broken</strong> &mdash; it divided a 210&nbsp;mm render by 180&nbsp;mm, making every measurement 1.1667&times; too small and the gate over-strict. Fixed, and proved by a self-test 3 of 3.</span>
+        <span>Re-measured on the fixed ruler: the live 25-page file returns human review with <strong>no hard fails</strong>, and so does the 24-page rebuild. Swapping them is no longer an improvement.</span>
+        <span><strong>A page was cut from the product that never needed cutting</strong> &mdash; p021, the bunny in the leaf pile, read 2.47% on the broken scale and is ~1.46% corrected.</span>
+        <span>AI disclosure is complete on both surfaces: the description sentence and the structured &ldquo;how it&rsquo;s made&rdquo; field. Any note saying otherwise is false and was withdrawn the day it was written.</span>
+        <span><strong>Not fully vector.</strong> The core book is &mdash; zero embedded raster across 27 sheets. The Cozy Animals bonus is nine placed PNGs at 262&nbsp;dpi. Never write &ldquo;sharp at any size&rdquo; over the bundle.</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="name">The Botanical Wheel <span class="price">draft at AU$8.50</span><span class="tag t-stop">Do not list at any price</span></div>
+      <div class="body">
+        <span>14 of 30 pages fail with the region gate enforced; generator yield drops to 2.5%. Draft <code>4561927819</code> sits one click from sale &mdash; <strong>do not open and publish it</strong>.</span>
+        <span>Rachel&rsquo;s ruling: <strong>&ldquo;mandalina can come back later not now&rdquo;</strong>. A not-yet, not a never.</span>
+        <span>A$8.50 priced it exactly like the losing bucket. Never pitch it as hand-drawn &mdash; it is algorithm-drawn &mdash; and never lead with &ldquo;No AI&rdquo;.</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="name">Brain Break Puzzle Book<span class="tag t-stop">Rework 46%</span></div>
+      <div class="body"><span>Do not sell it and do not bundle it. It is <strong>18 puzzles, not 96</strong>. Market evidence is 0 of 5 and the dot-to-dots are still too sparse.</span></div>
+    </div>
+
+    <div class="row">
+      <div class="name">Cosy Cottagecore Animals <span class="price">A$3.95 planned</span><span class="tag t-watch">In the pipe, not listed</span></div>
+      <div class="body">
+        <span><strong>1 of 30 pages passes</strong> the gate &mdash; the hedgehog by the fire. The old &ldquo;7 of 30&rdquo; was never true.</span>
+        <span>Six artworks exist; five hard-fail, including the pancake-bear page recorded in the prompt file as &ldquo;keep, best&rdquo;. The one-book-no-sequels hard stop was WITHDRAWN by Rachel on 8 Sep 2026.</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="name">Planners, diary, caregiver kits <span class="price">A$4.95 &ndash; A$9.50</span><span class="tag t-ok">Live</span></div>
+      <div class="body">
+        <span>Focus Planner and Daily Pages Diary at A$4.95. Thirteen worksheet and caregiver listings went live 6 Sep, so <strong>no traffic figure on this board measures them</strong>.</span>
+        <span>Three of them also sell on Teachers Pay Teachers at US$6.00 &mdash; a second channel that no product brief accounted for.</span>
+        <span>Physical print test on the Focus Planner: <strong>still not done</strong>.</span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="name">Temu &rarr; eBay<span class="tag t-watch">Status disputed</span></div>
+      <div class="body">
+        <span>190 active listings, 5 sold, 26 watchers &mdash; and <strong>every sale was older non-Temu stock</strong>. The 120 Temu-sourced listings sold nothing.</span>
+        <span>Across 32 priced sales, <strong>29 lost money</strong>. Recorded net &minus;$604. Pricing is the bottleneck, not automation &mdash; do not answer it with another script.</span>
+        <span>So what died may be <strong>Temu as a source</strong>, not eBay as a channel. Nobody has opened the account to check. Do not scrape for Temu; do not assume eBay is closed.</span>
+      </div>
+    </div>
+  </div>
+
+  <h3>Platform readings, and how old each one is</h3>
+  <p class="sub">A login hides these from any script, so a human or a browser session reads them. The board counts the days since and shouts when a reading goes stale. An ageing number that says so is safe; one that looks fresh is how this repo has been wrong before.</p>
+  <div class="readings" id="readings"></div>
+</section>
+
+<section id="precedence">
+  <h2>Which record wins</h2>
+  <p class="sub">Four records disagree regularly. This is the order &mdash; and the last step is the one people skip.</p>
+  <div class="flow">
+    <div class="flow-q">Two records say different things &mdash; about what?</div>
+    <div class="branches">
+      <div class="branch"><span class="about">What is running right now, the next action, what is blocked</span><span class="winner">HANDOVER.md wins</span></div>
+      <div class="branch"><span class="about">A standing rule, tool routing, how to answer, priorities</span><span class="winner">The Notion page wins</span></div>
+      <div class="branch"><span class="about">What happened on a past day</span><span class="winner">SESSION_JOURNAL.md wins</span></div>
+    </div>
+    <p class="flow-foot">Above all of them: <b>a thing you measured yourself, this session</b>. A reading beats any file. Then fix the loser in the same turn &mdash; a contradiction left in place is a trap set for the next session.</p>
+  </div>
+</section>
+
+<section id="stale">
+  <h2>Where the Notion page has gone stale</h2>
+  <p class="sub">Said out loud rather than quietly copied. Each was measured after the Notion entry was written, so the right-hand column wins.</p>
+  <div class="stale">
+    <div class="item">
+      <div class="said"><span class="lbl-s">Notion says</span><span>Word search: &ldquo;NOT YET UPLOADED&rdquo;</span></div>
+      <div class="is"><span class="lbl-s">Measured since</span><span>Round two is <b>live</b> &mdash; 81 pages with a 17-page glossary, verified from a fresh tab on 2 Sep.</span></div>
+    </div>
+    <div class="item">
+      <div class="said"><span class="lbl-s">Notion says</span><span>Quiet Atlas: &ldquo;In review since 1 Sep&rdquo;</span></div>
+      <div class="is"><span class="lbl-s">Measured since</span><span>Review <b>cleared 4 Sep</b>. The book is on sale. The declaration is still wrong.</span></div>
+    </div>
+    <div class="item">
+      <div class="said"><span class="lbl-s">Notion says</span><span>gemini-2.5-pro returns HTTP 429 on this project</span></div>
+      <div class="is"><span class="lbl-s">Measured since</span><span>Re-tested 30 Aug: <b>HTTP 200</b>. A quota block is temporary; a note about one reads as permanent.</span></div>
+    </div>
+    <div class="item">
+      <div class="said"><span class="lbl-s">Notion says</span><span>Nothing about how many listings are live</span></div>
+      <div class="is"><span class="lbl-s">Measured 6 Sep</span><span><b>25 active, 1 draft.</b> Because no record knew two colouring books existed, neither was ever gated, and both went on sale ungated.</span></div>
+    </div>
+    <div class="item">
+      <div class="said"><span class="lbl-s">Notion says</span><span>Nothing about the ads test</span></div>
+      <div class="is"><span class="lbl-s">Measured 7 Sep</span><span>Campaign <b>ON</b>, 136 views, 0 clicks, <b>US$0.00 spent</b> &mdash; Etsy Ads bills per click, not per day.</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="traps">
+  <h2>Traps already paid for</h2>
+  <p class="sub">Each of these cost real hours. They are here so nobody rediscovers them.</p>
+
+  <h3>Listing a digital product on Etsy</h3>
+  <ol class="traps">
+    <li><b>The digital-file input does not exist until you click &ldquo;Add file&rdquo;.</b> Search the page for a file input and you find only the photo uploader, and conclude the feature is missing. Three attempts died here.</li>
+    <li><b>Set the category first.</b> Until one is chosen Etsy treats the listing as physical, demands returns and delivery profiles, and the Digital option never appears at all.</li>
+    <li><b>Copy every PDF to a staging folder before uploading.</b> The originals are hardlinked and Etsy&rsquo;s uploader refuses files with more than one link.</li>
+    <li><b>A replaced photo lands last in the grid</b>, and drag-reorder cannot be automated. Plan the order before you replace anything.</li>
+    <li><b>The listing editor is atomic.</b> Nothing goes live until &ldquo;Publish changes&rdquo;, and &ldquo;Discard changes&rdquo; undoes the lot &mdash; so the whole edit can be staged safely and reviewed before it reaches a buyer.</li>
+  </ol>
+
+  <h3>Building listing images on Windows</h3>
+  <ol class="traps">
+    <li><b>Nothing errored, and every word rendered at 10&nbsp;px on a 2000&nbsp;px canvas.</b> The font finder listed only macOS and Linux paths, so on Windows every path missed and the drawing library fell back to a bitmap font that silently ignores the size you ask for. Fixed &mdash; but the 13 live Caregiver Binder images still carry the hairline text.</li>
+  </ol>
+
+  <h3>Writing an image-generation prompt</h3>
+  <ol class="traps">
+    <li><b>Numbers in a prompt do not work</b> &mdash; proven twice on this machine. The prompt biases the output; the gate measures it. Never make the prompt pretend to be the gate.</li>
+    <li><b>Describe appearances, not measurements.</b> &ldquo;Large open colouring spaces&rdquo;, never &ldquo;regions over 2.5&nbsp;mm&rdquo;.</li>
+    <li><b>Stop writing banned-lists.</b> They are a graveyard of previous failures that names the very things you do not want. One short exclusion sentence at the end, no more.</li>
+    <li><b>Some nouns are structurally hostile</b> &mdash; woven basket, brick, plank floor, patterned rug. Do not ask for them.</li>
+    <li><b>Exaggerated scale is the one lever</b> that raises the pass rate and the appeal at the same time. Add scale contrast, not detail.</li>
+    <li><b>Wording cannot hold a character&rsquo;s identity</b> across generations. That needs reference conditioning, not a better sentence.</li>
+  </ol>
+</section>
+
+<section id="rules">
+  <h2>Standing rules</h2>
+  <p class="sub">The parts of the Notion page that are not history. These do not expire.</p>
+
+  <h3>How to answer</h3>
+  <ul class="plain">
+    <li>Dot points, ELI10, about half the usual length. Comprehensive on context, short on text.</li>
+    <li>Be a real critic &mdash; blunt, constructive, <b>not encouraging by default</b>. Point out flaws actively and reframe the problem rather than just answering it.</li>
+    <li><b>Do not execute unless 95% confident it will work.</b> Verify first, then act.</li>
+    <li>Complex task &rarr; a visible todo list first. <b>Never run on Fable</b> unless told to &mdash; it costs twice Opus, which is a spending rule, not a quality one.</li>
+  </ul>
+
+  <h3>When she says &ldquo;ask ChatGPT&rdquo;</h3>
+  <ul class="plain">
+    <li>It never means a general chat. It means <b>run the fixed vision review</b> and judge the result on whether it will sell.</li>
+    <li>Use the prompt exactly as written. Do not reword it &mdash; rounds must stay comparable or the scores mean nothing.</li>
+    <li>What matters, in order: <b>price</b> a stranger would pay &rarr; the <b>cover</b> at thumbnail size &rarr; the verdict and its three fixes.</li>
+    <li>A low Beauty score is information. A problem with price, cover, or a claim the product does not honour is a <b>blocker</b>.</li>
+    <li>Ask for weaknesses and advice &mdash; <b>never tell a reviewer to attack it</b>, and never set a quota of criticisms. Quotas manufacture defects.</li>
+  </ul>
+
+  <h3>Before anything gets built</h3>
+  <ul class="plain">
+    <li><b>Read DECISIONS &amp; DEAD ENDS first.</b> If a row says do not retry, do not suggest it. Weeks have gone to AIs confidently re-proposing known failures.</li>
+    <li><b>Never mark Done without a passing QA check, and never check your own work.</b> Self-approval is not a check.</li>
+    <li>Evidence means actual output, numbers, error codes. Never &ldquo;looks good&rdquo;. Write the actual failure, not the word &ldquo;failed&rdquo;.</li>
+    <li><b>Google and Gemini always go through Vertex</b>, never the AI Studio key &mdash; it has no credit. Never change models silently inside a run.</li>
+    <li><b>A plain script is the default. An AI runs only when something must be decided.</b> This board is one: scripts collect, a person decides.</li>
+  </ul>
+</section>
+
+<section id="how">
+  <h2>How this board stays current</h2>
+  <p class="sub">Three steps, and only the middle one needs a person.</p>
+  <div class="branches">
+    <div class="branch">
+      <span class="lbl-s">Every few hours, automatic</span>
+      <span class="about"><code>board_data.py</code> reads the spend files, the gate registry and git, works out what has gone stale, and writes <code>board_data.json</code>. Plain script &mdash; no AI, no tokens, no dollars.</span>
+    </div>
+    <div class="branch">
+      <span class="lbl-s">When a platform is read</span>
+      <span class="about">A person or a browser session updates <code>board_facts.json</code> with the new value <b>and its reading date together</b>. The script never invents one and never refreshes one.</span>
+    </div>
+    <div class="branch">
+      <span class="lbl-s">One tool call</span>
+      <span class="about">Ask any interactive Claude session: <b>refresh the handoff board</b>. It pushes the JSON into this page&rsquo;s store and every open copy updates.</span>
+    </div>
+  </div>
+  <div class="callout">
+    <span class="hd">Why the last step is not automatic</span>
+    <p>Measured 4 September 2026: a headless <code>claude -p</code> session <b>has no Artifact tool</b>. An earlier wrapper called it anyway, Claude replied &ldquo;I don&rsquo;t have access to an Artifact tool&rdquo;, exited cleanly, and the wrapper logged a successful push that never happened. So the script writes <code>BOARD_PUSH_NEEDED.txt</code> instead of faking it. <b>A false success is worse than a missing one.</b></p>
+  </div>
+</section>
+
+<section id="live">
+  <h2>Live views</h2>
+  <div class="links">
+    <div class="lk"><a href="https://app.notion.com/p/3c5d360cea8381818d18cacacb1c259f">START HERE &mdash; AI Handoff</a><span class="what">The page this board mirrors. Standing rules and current state.</span></div>
+    <div class="lk"><a href="https://docs.google.com/spreadsheets/d/11BClEXoHmxCr8JgrYKGeobjqA8d15rlNYw6v5JTddhI">eBay working sheet</a><span class="what">Edit here. Cost against sold price, tracking, account.</span></div>
+    <div class="lk"><a href="https://docs.google.com/spreadsheets/d/12ryZuauiJbkNlfoZ_NFe4RCkCsRhfP7a9Tikrvaw138">Live listings snapshot</a><span class="what">All 49 items, sold and unsold.</span></div>
+  </div>
+  <h3>Active projects</h3>
+  <ul class="plain">
+    <li><b>The Sensory Day</b> &mdash; the autism visual schedule kit. Both reviewers picked it first, independently, on the emptiest shelf measured all month.</li>
+    <li><b>kb-pipeline</b> &mdash; 5,800 videos to categorise. Auth done, config ready. Next: measure tokens on one real video.</li>
+    <li><b>Remote access</b> &mdash; PC done. Next: phone app and MacBook host.</li>
+  </ul>
+</section>
+
+<footer>
+  <div><b>This board is a copy.</b> It does not load automatically into an AI session. The three records that do are <code>HANDOVER.md</code>, the Notion page, and <code>SESSION_JOURNAL.md</code>.</div>
+  <div id="foot-src">Numbers collected by <code>board_data.py</code>. Product notes and traps are written by hand and change only when someone measures something.</div>
+</footer>
+
+</div>
+
+<script type="application/json" id="seed">{"generated_at":"2026-09-10 21:33","generated_date":"2026-09-10","reviews":{"available":true,"spent_usd":18.15,"authorized_usd":40.0,"pct":45.4,"runs":310,"kill_switch_on":false,"providers":[{"provider":"openai","spent_usd":11.09,"authorized_usd":20.0,"enabled":true},{"provider":"vertex","spent_usd":7.05,"authorized_usd":20.0,"enabled":true}],"by_task":[{"task":"Unclassified - the name did not say what it bought","runs":139,"usd":7.24,"first":"2026-09-03","last":"2026-09-10"},{"task":"Spent but never recorded against any task","runs":0,"usd":3.04,"first":"","last":""},{"task":"How Claude works - rules, gates, QA, communication","runs":60,"usd":2.49,"first":"2026-08-30","last":"2026-09-08"},{"task":"Planners, diary and caregiver kits","runs":34,"usd":1.73,"first":"2026-08-31","last":"2026-09-09"},{"task":"Etsy listings, titles and SEO","runs":33,"usd":1.59,"first":"2026-09-04","last":"2026-09-10"},{"task":"Colouring books (Kawaii, Stress Relief, Cosy Corners)","runs":20,"usd":0.85,"first":"2026-09-03","last":"2026-09-07"},{"task":"Market research and competitor scraping","runs":6,"usd":0.48,"first":"2026-08-31","last":"2026-09-07"},{"task":"SQL / worksheet products","runs":8,"usd":0.36,"first":"2026-09-06","last":"2026-09-06"},{"task":"Maze book - The Quiet Atlas","runs":4,"usd":0.15,"first":"2026-08-28","last":"2026-09-04"},{"task":"Red eye clinical workbook","runs":3,"usd":0.09,"first":"2026-09-07","last":"2026-09-07"},{"task":"Cosy Cottage Animals","runs":2,"usd":0.09,"first":"2026-09-07","last":"2026-09-07"},{"task":"Sudoku book","runs":1,"usd":0.03,"first":"2026-09-04","last":"2026-09-04"}],"attributed_usd":15.11,"unattributed_usd":3.04,"source":"review_board/budget.json - written by the review scripts themselves"},"apify":{"available":true,"used_usd":27.94,"cap_usd":29.0,"left_usd":1.06,"pct":96.3,"total_runs":202,"cycle_end":"2026-09-21","read_at":"2026-09-10 21:33","top_actors":[{"actor":"yumitori/etsy-listings-scraper","runs":16,"usd":17.21},{"actor":"hello.datawizards/etsy-reviews","runs":2,"usd":5.0},{"actor":"solidcode/teacherspayteachers-scraper","runs":2,"usd":2.12},{"actor":"junglee/Amazon-crawler","runs":1,"usd":1.84},{"actor":"harshmaur/reddit-scraper","runs":1,"usd":0.68},{"actor":"apify/rag-web-browser","runs":75,"usd":0.53}],"source":"live Apify API, via spend_ledger.py","at_limit_behaviour":"SUSPENDS, does not bill - the failure is a scrape dying mid-task"},"gates":{"available":true,"products_gated":40,"required_gates":225,"negative_tested":225,"source":"counted from release_registry.json, not from memory","honest_limit":"This is GATE-level coverage. A gate is a script holding many checks, and check-level coverage is far lower. Quoting only this number is how the repo flatters itself."},"git":{"branch":"main","uncommitted_files":10,"last_commit":"e0f7f36 Products 7, 8 and 9 of 38: the behaviour family, and three more safety rules in code","last_commit_at":"2026-09-10T21:31:55+09:30"},"facts":{"available":true,"platform_readings":[{"id":"etsy_listing_count","label":"Etsy listings live","value":"25 active, 1 draft","read_on":"2026-09-06","source":"Etsy Shop Manager > Listings, read directly","stale_after_days":7,"note":"This said 'four active' in the project rules until 6 Sep. Because no record knew the two colouring books existed, neither was ever registered for gating, and both went on sale ungated.","age_days":4,"stale":false},{"id":"etsy_ads","label":"Etsy Ads campaign","value":"OFF - Rachel switched it off 9 Sep. FINAL: 414 views, 5 clicks, 0 orders, US$0 earned, US$1.27 spent (10 Aug - 9 Sep). US$3.80 ads credit sits unused. Nothing left to do.","read_on":"2026-09-09","source":"Etsy Ads dashboard, opened and read live at ~17:00","stale_after_days":30,"note":"Every earlier figure is superseded: 136/0/US$0.00 -> 301/2/US$0.63 -> 383/3/US$1.09 -> 404/4/US$1.20 -> 414/5/US$1.27. One measurement at five moments, not five facts. Nobody logged who switched it off; all three automated attempts failed. Etsy Ads bills PER CLICK. 414 shown and 5 clicked (~1 in 83) implicates the thumbnail, title or price - it does not say the shop is invisible. The test stopped well short of the 1,000 impressions its own plan specified, so it did not answer its own question.","age_days":1,"stale":false},{"id":"etsy_traffic","label":"Shop visits, 1-6 Sep","value":"23 visits, 0 orders. Etsy brought 17% (app/other 3, search 1, marketing 0). Direct and other 19.","read_on":"2026-09-06","source":"Etsy Shop Stats, read live","stale_after_days":7,"note":"The 'Etsy search' row EXCLUDES in-app search and ad clicks, so it is a LOWER BOUND, never a measurement of search traffic. 19 'direct' is an UPPER bound on Rachel's own page loads.","age_days":4,"stale":false},{"id":"kdp_status","label":"The Quiet Atlas on Amazon KDP","value":"LIVE. Review cleared 4 Sep. Edit routes still bounce back to the Bookshelf.","read_on":"2026-09-04","source":"KDP Bookshelf, signed in","stale_after_days":7,"note":"US$11.99, author Rachie J. Went to Amazon WITHOUT the physical print proof the outside review called a hard gate.","age_days":6,"stale":false},{"id":"kawaii_price","label":"Kawaii Bunny price","value":"AU$3.63 seller base (buyer sees ~AU$3.99). Etsy's own estimate: AU$2.72 earnings.","read_on":"2026-09-07","source":"listing-price-input in the live listing editor","stale_after_days":14,"note":"AU$6.99 is DEAD - Rachel cut the price and no record was updated. Do not 'correct' 3.63 back to 6.99.","age_days":3,"stale":false},{"id":"stress_relief_status","label":"Stress Relief Colouring","value":"INACTIVE - Rachel paused it 7 Sep. Nobody can buy it.","read_on":"2026-09-07","source":"Etsy listing page","stale_after_days":14,"note":"Her pause was right and still is. On the CORRECTED measuring scale it still fails: p012 3.39% under 2.5mm against 2.0% allowed. Two of its 25 pages have zero colourable regions.","age_days":3,"stale":false},{"id":"wordsearch_title","label":"Word search listing title","value":"Leads with 'Word Search Printable' - fixed 6 Sep and verified from Etsy's server","read_on":"2026-09-06","source":"listing editor 4562427400, then reloaded from the server","stale_after_days":14,"note":"It had silently reverted to a Cottage-Garden-led title, and a real recommendation was killed on the strength of a remembered state rather than a reading.","age_days":4,"stale":false}],"deadlines":[{"id":"etsy_ads_switch_off","what":"DONE - the Etsy Ads campaign is off. No action left.","due":"2026-09-09","who":"Closed 2026-09-09 ~17:00, read off the live dashboard","why":"Approved 'till ninth September' and it stopped on the ninth. Final US$1.27 for 414 views and 5 clicks, US$0 earned. Nobody logged who clicked it; all three automated attempts failed and two of them reported success. Do not restart the campaign - Etsy upsells a US$25 budget on that page and US$3.80 of unused ads credit now shows there, and spending it is Rachel's call.","severity":"info","days_left":-1,"overdue":true,"due_today":false},{"id":"apify_cycle_reset","what":"Apify monthly allowance resets","due":"2026-09-21","who":"automatic","why":"At the limit Apify SUSPENDS rather than bills, so the risk is a scrape dying mid-task, not an invoice.","severity":"watch","days_left":11,"overdue":false,"due_today":false}],"open_actions":[{"id":"kdp_ai_declaration","what":"The Quiet Atlas AI-content declaration still reads 'No'","should_be":"Yes - text AND images. Translations: none.","blocked_on":"Rachel - it is an edit to a live book a buyer can see","read_on":"2026-09-04","evidence":"Radio state read off the live KDP Content page DOM, title T9994FF0SYK: has-ai-content = no (checked).","severity":"stop","age_days":6},{"id":"caregiver_listing_images","what":"13 live Caregiver Binder listing images carry hairline 10px text","should_be":"Swap in the rebuilt images","blocked_on":"Rachel - replacing images on live listings","read_on":"2026-09-06","evidence":"Windows font-path bug: every path missed, PIL fell back to a bitmap font that ignores the size argument. Nothing errored. Code fixed; the live images were not rebuilt.","severity":"watch","age_days":4},{"id":"kawaii_page_count","what":"Kawaii description says 25 pages; a 24-page rebuild sits unpublished","should_be":"Either keep serving the 25-page file, or upload the rebuild AND edit the description in the same action","blocked_on":"decision - the gate bug that motivated the rebuild was itself wrong, so the rebuild is no longer an improvement","read_on":"2026-09-07","evidence":"geometry.analyse divided a 210mm render by 180mm, making every measurement 1.1667x too small. Fixed; selftest_raster_scale.py 3 of 3.","severity":"watch","age_days":3}],"do_not_list":[{"product":"The Botanical Wheel (mandala)","why":"14 of 30 pages fail once the region gate is enforced; generator yield drops to 2.5%. Draft 4561927819 sits one click from sale.","ruling":"Rachel, 2 Sep 2026: 'mandalina can come back later not now'. A not-yet, not a never."},{"product":"Brain Break Puzzle Book","why":"It is 18 puzzles, not 96. Market evidence 0 of 5, dot-to-dots too sparse.","ruling":"REWORK 46%. Do not sell it and do not bundle it."}],"stale_count":0},"not_established":[{"what":"Etsy listing fees","amount":"UNKNOWN","status":"NOT MEASURED","why":"US$0.20 per listing, and 25 listings were active on 6 Sep 2026 - but listings also auto-RENEW at US$0.20 every four months or on each sale, and no renewal history has ever been read. Multiplying 25 by 0.20 would be an invented figure, not a measurement. Read it off Etsy's Payment account page."},{"what":"Etsy Plus subscription","amount":"~A$14.00 / month, which INCLUDES A$7.00 of Etsy Ads credit","status":"UNCONFIRMED","why":"Still UNCONFIRMED as an AMOUNT because nobody has read an actual Etsy bill - /your/shops/me/plus returns 404 and /finances/payment-account renders empty, and the Notion figure says 'about fourteen dollars', not a billed number. It stays out of the headline total until someone reads the invoice. ALSO STILL UNCONFIRMED: whether the A$7 credit is applied to the live campaign at all - it appears on no"},{"what":"Higgsfield (image generation)","amount":"UNKNOWN","status":"UNKNOWN","why":"The dollar price of the Plus Plan has never been recorded anywhere on this machine, only the credit balance. Unlimited generation LAPSED around 29-30 Aug 2026: Nano Banana 2 now reads about 2 credits per image and there is no free generation path. Credits spent since 30 Aug have not been tracked."},{"what":"Claude subscription","amount":"UNKNOWN","status":"UNKNOWN","why":"Not recorded in any file on this machine. Claude Code sessions consume plan allowance rather than a per-task charge, so no per-task figure exists to attribute. The largest hidden cost here is plan allowance burnt by scheduled AI sessions doing work a plain script could do."},{"what":"OpenAI API and Google Vertex, outside the review board","amount":"UNKNOWN","status":"UNKNOWN","why":"budget.json records only what the review_board scripts spent. It explicitly cannot see the account balance, so any API call made outside those scripts - by hand, by another session, or by another machine - is not in the headline figure."}],"alerts":[{"severity":"stop","what":"The Quiet Atlas AI-content declaration still reads 'No'","why":"Waiting on: Rachel - it is an edit to a live book a buyer can see"},{"severity":"watch","what":"Apify is at 96.3% of its monthly allowance - US$1.06 left","why":"At the limit it SUSPENDS rather than bills, so a scrape stops halfway."}]}</script>
+<script>
+(function(){
+  "use strict";
+  var seed = {};
+  try { seed = JSON.parse(document.getElementById("seed").textContent); } catch (e) { seed = {}; }
+
+  function el(tag, cls, text){
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text !== undefined && text !== null) n.textContent = text;
+    return n;
+  }
+  function plural(n, word){ return n + " " + word + (n === 1 ? "" : "s"); }
+  function usd(n){ return "$" + Number(n || 0).toFixed(2); }
+  function clear(node){ while (node.firstChild) node.removeChild(node.firstChild); }
+  function tagFor(sev){
+    return sev === "stop" ? "tag t-stop" : sev === "watch" ? "tag t-watch" : "tag t-info";
+  }
+
+  function bar(pct, hot){
+    var t = el("span", "track" + (hot ? " hot" : ""));
+    var i = el("i");
+    i.style.width = Math.max(0, Math.min(100, pct)) + "%";
+    t.appendChild(i);
+    return t;
+  }
+
+  function renderAlerts(d){
+    var host = document.getElementById("alerts");
+    clear(host);
+    var list = d.alerts || [];
+    if (!list.length){
+      var none = el("div", "alert");
+      none.appendChild(el("span", "tag t-ok", "Clear"));
+      none.appendChild(el("b", null, "Nothing is shouting."));
+      none.appendChild(el("span", "why", "No deadline is due, no allowance is near its cap, and every platform reading is inside its own freshness window."));
+      host.appendChild(none);
+      return;
+    }
+    list.forEach(function(a){
+      var n = el("div", "alert");
+      n.appendChild(el("span", tagFor(a.severity), a.severity === "stop" ? "Stop" : "Watch"));
+      n.appendChild(el("b", null, a.what));
+      if (a.why) n.appendChild(el("span", "why", a.why));
+      host.appendChild(n);
+    });
+  }
+
+  function meter(label, value, of, pct, hot){
+    var m = el("div", "meter");
+    m.appendChild(el("span", "lbl", label));
+    m.appendChild(el("span", "val", value));
+    if (of) m.appendChild(el("span", "of", of));
+    if (pct !== null && pct !== undefined) m.appendChild(bar(pct, hot));
+    return m;
+  }
+
+  function renderMeters(d){
+    var host = document.getElementById("meters");
+    clear(host);
+    var r = d.reviews || {}, a = d.apify || {}, g = d.gates || {};
+    if (r.available){
+      host.appendChild(meter("AI reviews spent", usd(r.spent_usd),
+        "of " + usd(r.authorized_usd) + " authorised · " + plural(r.runs, "run"),
+        r.pct, r.pct >= 80));
+    }
+    if (a.available){
+      host.appendChild(meter("Apify this cycle", usd(a.used_usd),
+        "of " + usd(a.cap_usd) + " · " + usd(a.left_usd) + " left · resets " + (a.cycle_end || "?"),
+        a.pct, a.pct >= 90));
+    }
+    if (g.available){
+      host.appendChild(meter("Gates proved able to fail",
+        g.negative_tested + " of " + g.required_gates,
+        g.products_gated + " products gated · gate level, not check level",
+        g.required_gates ? 100 * g.negative_tested / g.required_gates : 0, false));
+    }
+  }
+
+  function renderJobs(d){
+    var host = document.getElementById("jobs");
+    clear(host);
+    var r = d.reviews || {};
+    var rows = (r.by_task || []).slice();
+    if (!rows.length){ host.appendChild(el("p", "sub", "No by-job breakdown in this data.")); return; }
+    var max = rows.reduce(function(m, x){ return Math.max(m, x.usd); }, 0) || 1;
+    rows.forEach(function(t){
+      var unattributed = /never recorded|Unclassified/i.test(t.task);
+      var n = el("div", "job" + (unattributed ? " unattributed" : ""));
+      n.appendChild(el("span", "what", t.task));
+      n.appendChild(el("span", "usd", usd(t.usd)));
+      var meta = t.runs ? plural(t.runs, "run") : "no runs recorded";
+      if (t.first) meta += " · " + t.first + " to " + t.last;
+      n.appendChild(el("span", "meta", meta));
+      n.appendChild(bar(100 * t.usd / max, unattributed));
+      host.appendChild(n);
+    });
+  }
+
+  function renderActors(d){
+    var host = document.getElementById("actors");
+    clear(host);
+    var a = d.apify || {};
+    var rows = (a.top_actors || []).slice();
+    if (!rows.length){ host.appendChild(el("p", "sub", "No Apify breakdown in this data.")); return; }
+    var max = rows.reduce(function(m, x){ return Math.max(m, x.usd); }, 0) || 1;
+    rows.forEach(function(t){
+      var n = el("div", "job");
+      n.appendChild(el("span", "what", t.actor));
+      n.appendChild(el("span", "usd", usd(t.usd)));
+      n.appendChild(el("span", "meta", plural(t.runs, "run")));
+      n.appendChild(bar(100 * t.usd / max, false));
+      host.appendChild(n);
+    });
+    var total = el("div", "job");
+    total.appendChild(el("span", "what", "All scrapers, this cycle — " + (a.total_runs ? plural(a.total_runs, "run") : "runs unknown")));
+    total.appendChild(el("span", "usd", usd(a.used_usd)));
+    host.appendChild(total);
+  }
+
+  function renderUnknowns(d){
+    var host = document.getElementById("unknowns");
+    clear(host);
+    (d.not_established || []).forEach(function(u){
+      var n = el("div", "unknown");
+      var w = el("div", "w");
+      w.appendChild(document.createTextNode(u.what));
+      w.appendChild(el("span", u.status === "NOT MEASURED" ? "tag t-stop" : "tag t-watch", u.status || "unknown"));
+      n.appendChild(w);
+      n.appendChild(el("div", "y", u.why || ""));
+      host.appendChild(n);
+    });
+  }
+
+  function renderReadings(d){
+    var host = document.getElementById("readings");
+    clear(host);
+    var f = d.facts || {};
+    (f.platform_readings || []).forEach(function(r){
+      var n = el("div", "reading" + (r.stale ? " stale" : ""));
+      var lab = el("div", "lab");
+      lab.appendChild(document.createTextNode(r.label));
+      n.appendChild(lab);
+      var v = el("div", "val");
+      v.appendChild(document.createTextNode(r.value));
+      if (r.note) v.appendChild(el("span", "note", r.note));
+      n.appendChild(v);
+      var age = r.age_days === null || r.age_days === undefined ? "no read date"
+        : r.age_days === 0 ? "read today"
+        : r.age_days === 1 ? "1 day old"
+        : r.age_days + " days old";
+      n.appendChild(el("div", "age", age + (r.stale ? " · STALE" : "")));
+      host.appendChild(n);
+    });
+  }
+
+  // How old is this data RIGHT NOW, in the reader's browser - not how old it was when
+  // the page was written. ChatGPT, 8 Sep 2026: "'two days old' can remain displayed
+  // indefinitely." The collector runs every 6 hours, so anything past 8 is a missed run
+  // or a board nobody has pushed, and the page has to say so itself.
+  function ageHours(stamp){
+    if (!stamp) return null;
+    var m = String(stamp).match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    if (!m) return null;
+    var t = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+    var h = (Date.now() - t.getTime()) / 3600000;
+    return isFinite(h) ? h : null;
+  }
+
+  function render(d, srcLabel){
+    var asof = document.getElementById("asof");
+    var h = ageHours(d.generated_at);
+    var agePhrase = h === null ? "age unknown"
+      : h < 1 ? "collected within the hour"
+      : h < 8 ? "collected " + Math.round(h) + "h ago"
+      : "COLLECTED " + (h < 48 ? Math.round(h) + "H" : Math.round(h / 24) + " DAYS") + " AGO";
+    asof.textContent = "DATA AS AT " + (d.generated_at || "—") + " · " + agePhrase;
+    asof.style.color = (h !== null && h >= 8) ? "var(--stop)" : "";
+    asof.style.fontWeight = (h !== null && h >= 8) ? "600" : "";
+    document.getElementById("datasrc").textContent = "· " + srcLabel;
+    d = Object.assign({}, d);
+    if (h !== null && h >= 8) {
+      d.alerts = [{
+        severity: "stop",
+        what: "This board has not been collected for " + (h < 48 ? Math.round(h) + " hours" : Math.round(h / 24) + " days"),
+        why: "It refreshes every 6 hours. Either a scheduled run was missed, or nobody has pushed the newer data to this page. Do not read the figures below as current."
+      }].concat(d.alerts || []);
+    }
+    renderAlerts(d);
+    renderMeters(d);
+    renderJobs(d);
+    renderActors(d);
+    renderUnknowns(d);
+    renderReadings(d);
+  }
+
+  var liveDoc = null;   // set once the artifact store is reachable
+
+  function setBusy(on, msg){
+    var b = document.getElementById("refresh");
+    if (!b) return;
+    b.disabled = on;
+    b.textContent = on ? "Checking..." : "Refresh";
+    if (msg) document.getElementById("datasrc").textContent = "· " + msg;
+  }
+
+  async function refresh(){
+    setBusy(true);
+    try {
+      if (liveDoc) {
+        var snap = await liveDoc.get();
+        if (snap && snap.exists) { render(snap.data(), "re-read from the board store just now"); return; }
+      }
+      // Cache-busted, because a browser will happily hand back the copy it already has.
+      var r = await fetch("board_data.json?t=" + Date.now(), {cache: "no-store"});
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      render(await r.json(), "re-fetched just now");
+    } catch (e) {
+      setBusy(false, "could not reach the data - showing the last copy");
+      return;
+    } finally {
+      var b = document.getElementById("refresh");
+      if (b) { b.disabled = false; b.textContent = "Refresh"; }
+    }
+  }
+
+  var btn = document.getElementById("refresh");
+  if (btn) btn.addEventListener("click", refresh);
+
+  render(seed, "baked in when this page was published");
+
+  // Live data, when the viewer can run it. The page is complete without this.
+  (async function(){
+    try {
+      if (!window.claude || typeof window.claude.use !== "function") return;
+      var db = await window.claude.use("db");
+      if (!db) return;
+      var ref = db.doc("board/current");
+      liveDoc = ref;
+      var snap = await ref.get();
+      if (snap && snap.exists) render(snap.data(), "live from the board store");
+      ref.onSnapshot(function(s){
+        if (s && s.exists) render(s.data(), "live from the board store");
+      }, function(){ /* subscription died; the rendered data stays */ });
+    } catch (e) { /* keep whatever is already rendered */ }
+  })();
+})();
+</script>
+
+</body>
+</html>
