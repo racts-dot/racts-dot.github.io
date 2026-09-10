@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-11 03:01",
+ "generated_at": "2026-09-11 03:31",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
@@ -120,7 +120,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 03:01",
+  "read_at": "2026-09-11 03:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -158,9 +158,9 @@
  },
  "gates": {
   "available": true,
-  "products_gated": 46,
-  "required_gates": 255,
-  "negative_tested": 255,
+  "products_gated": 47,
+  "required_gates": 260,
+  "negative_tested": 260,
   "live_listings_recorded": 25,
   "coverage_unproven": true,
   "source": "counted from release_registry.json, not from memory",
@@ -170,8 +170,8 @@
  "git": {
   "branch": "main",
   "uncommitted_files": 4,
-  "last_commit": "f8de069 Product 15 of 38: the teen agreement - built for the price band, not the volume",
-  "last_commit_at": "2026-09-11T03:00:49+09:30"
+  "last_commit": "11b370b The listening version: products 15 and 16, and the social story refusal",
+  "last_commit_at": "2026-09-11T03:07:20+09:30"
  },
  "facts": {
   "available": true,
@@ -369,8 +369,8 @@
   },
   {
    "severity": "watch",
-   "what": "Gate coverage is UNPROVEN - 255 of 255 gates pass, across 46 products",
-   "why": "That counts gates, not products and not checks. The shop last recorded 25 active listings against 46 gated products. Nobody has compared the registry against the live listings, and the last time two products were missing from it, both went on sale ungated. A full score here is not evidence of coverage."
+   "what": "Gate coverage is UNPROVEN - 260 of 260 gates pass, across 47 products",
+   "why": "That counts gates, not products and not checks. The shop last recorded 25 active listings against 47 gated products. Nobody has compared the registry against the live listings, and the last time two products were missing from it, both went on sale ungated. A full score here is not evidence of coverage."
   }
  ]
 }
