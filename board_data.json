@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-10 22:41",
+ "generated_at": "2026-09-10 22:51",
  "generated_date": "2026-09-10",
  "reviews": {
   "available": true,
@@ -120,7 +120,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-10 22:02",
+  "read_at": "2026-09-10 22:51",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -166,9 +166,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 7,
-  "last_commit": "a647818 2027 planner: 11 of 11 clean, a false exemption removed, and the A4-only gap named",
-  "last_commit_at": "2026-09-10T22:23:27+09:30"
+  "uncommitted_files": 4,
+  "last_commit": "d0268b9 The 26 photos: rebuilt at full size from Etsy's originals, and stopped before applying",
+  "last_commit_at": "2026-09-10T22:51:10+09:30"
  },
  "facts": {
   "available": true,
