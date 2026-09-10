@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-11 02:31",
+ "generated_at": "2026-09-11 03:01",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
-  "spent_usd": 18.18,
+  "spent_usd": 18.4,
   "authorized_usd": 40.0,
-  "pct": 45.5,
-  "runs": 311,
+  "pct": 46.0,
+  "runs": 313,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 11.09,
+    "spent_usd": 11.28,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.09,
+    "spent_usd": 7.12,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,10 +25,10 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 140,
-    "usd": 7.28,
+    "runs": 142,
+    "usd": 7.5,
     "first": "2026-09-03",
-    "last": "2026-09-10"
+    "last": "2026-09-11"
    },
    {
     "task": "Spent but never recorded against any task",
@@ -108,7 +108,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 15.14,
+  "attributed_usd": 15.36,
   "unattributed_usd": 3.04,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -120,7 +120,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 02:31",
+  "read_at": "2026-09-11 03:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -158,9 +158,9 @@
  },
  "gates": {
   "available": true,
-  "products_gated": 44,
-  "required_gates": 245,
-  "negative_tested": 245,
+  "products_gated": 46,
+  "required_gates": 255,
+  "negative_tested": 255,
   "live_listings_recorded": 25,
   "coverage_unproven": true,
   "source": "counted from release_registry.json, not from memory",
@@ -169,9 +169,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 5,
-  "last_commit": "cbc4314 Astra round 4: nothing new. Four rounds, converged, and it says proceed.",
-  "last_commit_at": "2026-09-11T02:21:25+09:30"
+  "uncommitted_files": 4,
+  "last_commit": "f8de069 Product 15 of 38: the teen agreement - built for the price band, not the volume",
+  "last_commit_at": "2026-09-11T03:00:49+09:30"
  },
  "facts": {
   "available": true,
@@ -369,8 +369,8 @@
   },
   {
    "severity": "watch",
-   "what": "Gate coverage is UNPROVEN - 245 of 245 gates pass, across 44 products",
-   "why": "That counts gates, not products and not checks. The shop last recorded 25 active listings against 44 gated products. Nobody has compared the registry against the live listings, and the last time two products were missing from it, both went on sale ungated. A full score here is not evidence of coverage."
+   "what": "Gate coverage is UNPROVEN - 255 of 255 gates pass, across 46 products",
+   "why": "That counts gates, not products and not checks. The shop last recorded 25 active listings against 46 gated products. Nobody has compared the registry against the live listings, and the last time two products were missing from it, both went on sale ungated. A full score here is not evidence of coverage."
   }
  ]
 }
