@@ -1,0 +1,66 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>eBay sign-in accepted</title>
+<style>
+  :root{--ink:#22282c;--muted:#5b6670;--line:#e3e6e8;--bg:#fbfbfa;--good:#1f6b45}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font:17px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+  main{max-width:40rem;margin:0 auto;padding:3rem 1.25rem 5rem}
+  h1{font-size:1.6rem;margin:0 0 .4rem}
+  .sub{color:var(--muted);margin:0 0 2rem}
+  .tick{color:var(--good);font-weight:600}
+  .code{font:15px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+        word-break:break-all;background:#fff;border:1px solid var(--line);
+        border-radius:10px;padding:1rem 1.1rem;margin:.6rem 0 1rem}
+  button{font:inherit;font-weight:600;padding:.7rem 1.2rem;border-radius:8px;
+         border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+  button:disabled{opacity:.6;cursor:default}
+  ol{padding-left:1.3rem} li{margin:0 0 .6rem}
+  .note{border-top:1px solid var(--line);margin-top:2.5rem;padding-top:1.2rem;
+        color:var(--muted);font-size:.92rem}
+</style></head><body><main>
+
+<h1><span class="tick">✓</span> eBay sign-in accepted</h1>
+<p class="sub">You can close this page once you have copied the code below.</p>
+
+<div id="has-code" hidden>
+  <p><strong>Copy this code and paste it into the window on your Mac that is waiting for it.</strong></p>
+  <div class="code" id="code"></div>
+  <button id="copy" type="button">Copy the code</button>
+  <p class="sub" style="margin-top:1.2rem">It expires in a few minutes, so paste it now.
+     If it expires, just run the sign-in again.</p>
+</div>
+
+<div id="no-code" hidden>
+  <p><strong>No code was included in the address.</strong></p>
+  <p>That usually means this page was opened directly rather than by eBay.
+     Start the sign-in again from your Mac, and eBay will send you back here with a code.</p>
+</div>
+
+<div class="note">
+  Nothing on this page is sent anywhere. The code sits in the web address in your
+  own browser, and this page only reads it and shows it to you.
+</div>
+
+<script>
+  var code = new URLSearchParams(location.search).get("code");
+  if (code) {
+    document.getElementById("code").textContent = code;
+    document.getElementById("has-code").hidden = false;
+    document.getElementById("copy").addEventListener("click", function () {
+      var b = this;
+      navigator.clipboard.writeText(code).then(function () {
+        b.textContent = "Copied";
+        b.disabled = true;
+      }, function () {
+        b.textContent = "Select the code above and copy it by hand";
+      });
+    });
+  } else {
+    document.getElementById("no-code").hidden = false;
+  }
+</script>
+
+</main></body></html>
