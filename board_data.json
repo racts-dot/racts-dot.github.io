@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-09-11 11:01",
+ "generated_at": "2026-09-11 12:32",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
-  "spent_usd": 18.55,
+  "spent_usd": 18.59,
   "authorized_usd": 40.0,
-  "pct": 46.4,
-  "runs": 315,
+  "pct": 46.5,
+  "runs": 316,
   "kill_switch_on": false,
   "providers": [
    {
@@ -17,7 +17,7 @@
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.16,
+    "spent_usd": 7.19,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -53,10 +53,10 @@
    },
    {
     "task": "Etsy listings, titles and SEO",
-    "runs": 33,
-    "usd": 1.59,
+    "runs": 34,
+    "usd": 1.62,
     "first": "2026-09-04",
-    "last": "2026-09-10"
+    "last": "2026-09-11"
    },
    {
     "task": "Colouring books (Kawaii, Stress Relief, Cosy Corners)",
@@ -108,7 +108,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 15.51,
+  "attributed_usd": 15.55,
   "unattributed_usd": 3.04,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -120,7 +120,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 11:01",
+  "read_at": "2026-09-11 12:32",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -169,9 +169,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 4,
-  "last_commit": "1f0d265 Five sections in the app, and a link per section",
-  "last_commit_at": "2026-09-11T10:55:17+09:30"
+  "uncommitted_files": 10,
+  "last_commit": "c17db36 Still there - and the first read of the page said \"0 drafts\" and was wrong",
+  "last_commit_at": "2026-09-11T12:30:35+09:30"
  },
  "facts": {
   "available": true,
@@ -341,7 +341,7 @@
    "what": "Higgsfield (image generation)",
    "amount": "UNKNOWN",
    "status": "UNKNOWN",
-   "why": "The dollar price of the Plus Plan has never been recorded anywhere on this machine, only the credit balance. Unlimited generation LAPSED around 29-30 Aug 2026: Nano Banana 2 now reads about 2 credits per image and there is no free generation path. Credits spent since 30 Aug have not been tracked."
+   "why": "The dollar price of the Plus Plan has never been recorded anywhere on this machine, only the credit balance. Unlimited generation LAPSED around 29-30 Aug 2026: Nano Banana 2 now reads about 2 credits per image and there is no free generation path. Credits spent since 30 Aug have not been tracked. ⚠ ALSO NOT in the US$15.44 image figure added 11 Sep 2026 - Higgsfield is paid in credits and writes n"
   },
   {
    "what": "Claude subscription",
@@ -353,13 +353,13 @@
    "what": "OpenAI API and Google Vertex, outside the review board",
    "amount": "UNKNOWN",
    "status": "UNKNOWN",
-   "why": "budget.json records only what the review_board scripts spent. It explicitly cannot see the account balance, so any API call made outside those scripts - by hand, by another session, or by another machine - is not in the headline figure."
+   "why": "budget.json records only what the review_board scripts spent. PARTLY CLOSED 11 Sep 2026: image generation outside the review board IS now measured - US$15.44 across 77 images, read from the runs' own generation_log.jsonl files and shown in its own section above. What remains unknown is any OTHER call made outside both - the account balance itself is still not readable by any script."
   },
   {
    "what": "Google Vertex - cover artwork for the planner products (make_covers.py)",
    "amount": "about US$2.02 so far - 15 images at US$0.1344",
    "status": "NOT MEASURED",
-   "why": "The ledger's own 'not established' row already says Vertex spend outside the review board is UNKNOWN, and this is exactly that case: make_covers.py is not a review_board script, so budget.json never sees it. On 10-11 Sep 2026 this became the second-largest line of AI spend after Apify while remaining invisible in the one file meant to track spending. Declared here so the gap the ledger warns about"
+   "why": "make_covers.py writes NO cost log, so its spend is still invisible. ⚠ NOT covered by the US$15.44 image figure added 11 Sep 2026 - that sums generation_log.jsonl files, and this script writes none. The fix is one line in make_covers.py: log cost_usd per image like the other generators already do."
   }
  ],
  "alerts": [
