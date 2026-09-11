@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-11 18:01",
+ "generated_at": "2026-09-11 18:31",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
-  "spent_usd": 18.59,
+  "spent_usd": 18.91,
   "authorized_usd": 40.0,
-  "pct": 46.5,
-  "runs": 316,
+  "pct": 47.3,
+  "runs": 320,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 11.39,
+    "spent_usd": 11.65,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.19,
+    "spent_usd": 7.26,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,8 +25,8 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 92,
-    "usd": 4.33,
+    "runs": 94,
+    "usd": 4.47,
     "first": "2026-09-03",
     "last": "2026-09-11"
    },
@@ -53,8 +53,8 @@
    },
    {
     "task": "Etsy listings, titles and SEO",
-    "runs": 34,
-    "usd": 1.62,
+    "runs": 36,
+    "usd": 1.81,
     "first": "2026-09-04",
     "last": "2026-09-11"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 19.0,
+  "attributed_usd": 19.32,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 18:01",
+  "read_at": "2026-09-11 18:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -184,8 +184,8 @@
  "git": {
   "branch": "main",
   "uncommitted_files": 5,
-  "last_commit": "d046599 Nightly automatic backup: 12 file(s)",
-  "last_commit_at": "2026-09-11T18:00:58+09:30"
+  "last_commit": "f75a30e Nightly automatic backup: 17 file(s)",
+  "last_commit_at": "2026-09-11T18:30:21+09:30"
  },
  "facts": {
   "available": true,
