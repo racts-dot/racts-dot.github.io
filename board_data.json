@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-11 18:31",
+ "generated_at": "2026-09-11 19:01",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
-  "spent_usd": 18.91,
+  "spent_usd": 19.06,
   "authorized_usd": 40.0,
-  "pct": 47.3,
-  "runs": 320,
+  "pct": 47.7,
+  "runs": 322,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 11.65,
+    "spent_usd": 11.77,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.26,
+    "spent_usd": 7.29,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,8 +25,8 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 94,
-    "usd": 4.47,
+    "runs": 96,
+    "usd": 4.62,
     "first": "2026-09-03",
     "last": "2026-09-11"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 19.32,
+  "attributed_usd": 19.47,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 18:31",
+  "read_at": "2026-09-11 19:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -184,8 +184,8 @@
  "git": {
   "branch": "main",
   "uncommitted_files": 5,
-  "last_commit": "f75a30e Nightly automatic backup: 17 file(s)",
-  "last_commit_at": "2026-09-11T18:30:21+09:30"
+  "last_commit": "bf3c510 Nightly automatic backup: 3 file(s)",
+  "last_commit_at": "2026-09-11T19:00:10+09:30"
  },
  "facts": {
   "available": true,
@@ -364,16 +364,16 @@
    "why": "Not recorded in any file on this machine. Claude Code sessions consume plan allowance rather than a per-task charge, so no per-task figure exists to attribute. The largest hidden cost here is plan allowance burnt by scheduled AI sessions doing work a plain script could do."
   },
   {
-   "what": "OpenAI API and Google Vertex, outside the review board",
-   "amount": "UNKNOWN",
-   "status": "UNKNOWN",
-   "why": "budget.json records only what the review_board scripts spent. PARTLY CLOSED 11 Sep 2026: image generation outside the review board IS now measured - US$15.44 across 77 images, read from the runs' own generation_log.jsonl files and shown in its own section above. What remains unknown is any OTHER call made outside both - the account balance itself is still not readable by any script."
-  },
-  {
    "what": "Google Vertex - cover artwork for the planner products (make_covers.py)",
    "amount": "about US$2.02 so far - 15 images at US$0.1344",
    "status": "PARTLY CLOSED - future runs measured, past covers never will be",
    "why": "FIXED 11 Sep 2026: make_covers.py now writes a generation_log.jsonl beside the artwork, so every cover generated FROM NOW ON is counted automatically in the image section above. Proved by 14 of 14 controls (selftest_cover_cost_log.py), including the control showing that logging a failed call as a free image would have halved the reported price per image. STILL NOT MEASURED, and it never can be: ev"
+  },
+  {
+   "what": "ChatGPT Pro 5x subscription (chatgpt.com, jiwan2603@gmail.com)",
+   "amount": "UNCONFIRMED - the plan is confirmed, the PRICE is not",
+   "status": "NOT MEASURED",
+   "why": "ADDED 11 Sep 2026 because this cost existed in no file anywhere. The ledger tracked Apify at US$29/month and said nothing about a ChatGPT subscription at all. IT IS ALSO THE THING THE REVIEW ROUTE SPENDS. Rachel's standing rule sends every fifth review through Chrome rather than the API precisely because Chrome costs US$0 - but it is not free, it spends THIS weekly allowance, and that allowance wa"
   }
  ],
  "alerts": [
