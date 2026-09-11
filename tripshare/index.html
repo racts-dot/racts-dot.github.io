@@ -41,6 +41,55 @@
     }
   }
 
+  /* the planner's proposal rows.
+     These rows are <label> around an <input>, so they inherit two generic rules
+     further up this stylesheet that were written for the form fields. BOTH have
+     to be undone by hand, and the second one is not cosmetic:
+       label { display:block; font-size:0.8rem; color:ink-soft; margin:0.7rem 0 }
+       input, select, textarea { width:100%; padding; border }
+     "width:100%" on a CHECKBOX made it 304px wide inside a 311px row, leaving
+     ZERO width for the text beside it - which rendered every row as a vertical
+     column of one letter per line. Measured on a 375px phone, 10 Sep 2026.
+     It was caught by LOOKING: the numbers had said 0 overflow and no sideways
+     scroll while the thing was visually destroyed. */
+  .botpick {
+    display: flex; gap: 0.6rem; align-items: flex-start;
+    padding: 0.55rem 0.2rem; border-bottom: 1px solid var(--rule);
+    cursor: pointer;
+    font-size: 1rem; color: var(--ink); margin: 0;
+  }
+  .botpick:last-of-type { border-bottom: 0; }
+  .botpick input[type="checkbox"] {
+    width: auto; flex: 0 0 auto; margin-top: 0.3rem;
+    padding: 0; border: 0; border-radius: 0; background: none;
+  }
+  /* min-width:0 is doing real work, not tidiness. A flex child will not shrink
+     below its longest unbroken word, so on a 375px phone one long title pushed
+     the WHOLE PAGE sideways - measured 10 Sep 2026, 20 elements past the edge,
+     every one of them in these rows. overflow-wrap catches the rest. */
+  /* min-width:0 is doing real work, not tidiness. A flex child will not shrink
+     below its longest unbroken word, so on a 375px phone one long title pushed
+     the WHOLE PAGE sideways - measured 10 Sep 2026, 20 elements past the edge,
+     every one of them in these rows.
+     There is NO overflow-wrap and NO line-clamp here, and that is deliberate.
+     Both were tried on 10 Sep and both were reverted: overflow-wrap:anywhere
+     plus a -webkit-box clamp collapsed the flex child to about one character
+     wide and rendered every row as a vertical column of single letters. The
+     measurements said "0 elements overflow, no sideways scroll" while the thing
+     was visually destroyed - it was caught by LOOKING at it, not by measuring.
+     Long titles are cut to length in JavaScript instead, where the result is
+     predictable. */
+  .botpick > span { min-width: 0; flex: 1 1 auto; }
+  /* Only on the title, and only now that the checkbox no longer eats the row.
+     The first attempt put this on the PARENT span at the same time as a
+     -webkit-box line clamp, and between them the flex child collapsed. Here it
+     does the one job it is needed for: a title with no spaces in it (a real
+     possibility from a language model) would otherwise run 738px wide and drag
+     the page sideways. Measured, then looked at. */
+  .botpick strong { overflow-wrap: anywhere; }
+  .botpick .meta { display: inline; }
+  .botpick .botnote { display: block; margin-top: 0.15rem; }
+
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
@@ -199,6 +248,15 @@
     ["activity", "Activity"], ["food", "Food"], ["note", "Note"]
   ];
 
+  /* ---------- the planner (optional) ----------
+     url: "" means OFF, and off is the shipped default. While it is empty the
+     planner panel is not built at all, so the page behaves exactly as it did
+     before this feature existed. Nothing here is a secret: this page is public,
+     so the AI key lives in the Apps Script at the other end of this URL and
+     never in the page. See AppsScript-TripBot.gs and TRIPBOT-DEPLOY.md. */
+  var TRIPBOT = { url: "" };
+  var BOT_MAX_CHARS = 1200;
+
   /* ---------- tiny helpers ---------- */
   function el(id) { return document.getElementById(id); }
   function esc(s) {
@@ -341,6 +399,20 @@
     for (var i = 0; i < KINDS.length; i++) if (KINDS[i][0] === v) return v;
     return "note";
   }
+  /* ONE DOOR for every item that was not typed into the item form. Restored
+     backups, shared links and the planner all come through here, so a new
+     source of items can never quietly widen what is allowed to be stored.
+     It was pulled out of normTrip when the planner was added, rather than
+     copied, because a second copy is how the two would drift apart. */
+  function normItem(a, fallbackDate) {
+    a = a || {};
+    return {
+      i: uid(), d: isoDate(a.d) || fallbackDate, k: knownKind(a.k),
+      t: str(a.t, 90) || "Untitled",
+      s: hhmm(a.s), e: hhmm(a.e), l: str(a.l, 120), n: str(a.n, 500),
+      w: safeUrl(str(a.w)), m: safeUrl(str(a.m))
+    };
+  }
   function normTrip(o, seen) {
     var t = {
       i: uid(), t: str(o && o.t, 80) || "Untitled trip", d: str(o && o.d, 80),
@@ -350,15 +422,7 @@
     if (!t.s) t.s = todayISO();
     if (!t.e || t.e < t.s) t.e = t.s;
     var items = (o && Array.isArray(o.x)) ? o.x : [];
-    for (var i = 0; i < items.length; i++) {
-      var a = items[i] || {};
-      var d = isoDate(a.d) || t.s;
-      t.x.push({
-        i: uid(), d: d, k: knownKind(a.k), t: str(a.t, 90) || "Untitled",
-        s: hhmm(a.s), e: hhmm(a.e), l: str(a.l, 120), n: str(a.n, 500),
-        w: safeUrl(str(a.w)), m: safeUrl(str(a.m))
-      });
-    }
+    for (var i = 0; i < items.length; i++) t.x.push(normItem(items[i], t.s));
     if (seen) { while (seen[t.i]) t.i = uid(); seen[t.i] = 1; }
     return t;
   }
@@ -632,6 +696,231 @@
   }
 
   /* ---------- EDITOR ---------- */
+  /* ---------- THE PLANNER ----------
+     Describe the trip in plain words, get itinerary items back.
+
+     Two things about it are deliberate and should not be "simplified" away:
+
+     1. IT PROPOSES, IT NEVER WRITES. Everything it suggests is shown first
+        with a tick beside it, and nothing reaches the trip until Add is
+        pressed. A planner that quietly filled the days would be impossible to
+        tell apart from data loss.
+     2. WHAT COMES BACK IS UNTRUSTED. It is checked at the Apps Script end AND
+        again here through normItem, because a reply can be wrong without
+        anybody being at fault, and this page must not be the thing that
+        trusts it. */
+  function planner(t, onAdded) {
+    var wrap = document.createElement("div");
+    wrap.className = "card noprint";
+
+    /* ⛔ THE HEADING WAS "Plan it for me", AND THAT OVERSOLD IT.
+       This has no map, no timetable, no opening hours and no booking system. It
+       is a way past a blank page, not a travel agent, and the heading is the
+       first thing that sets the expectation.
+
+       ⛔ AND THE NOTICE BELOW IS NOT OPTIONAL POLITENESS. Everywhere else this
+       app says "Your trips are kept only in this browser, on this device" - it
+       says it on the empty screen and again in the backup note. The moment this
+       panel is switched on, that stops being the whole truth: whatever is typed
+       here, and the trip's dates, leave the device. A person who has been told
+       the app is private will put names, medications and booking references in
+       this box. Saying so BEFORE they type is the only place saying it helps. */
+    wrap.innerHTML =
+      '<h3>Suggest a starting plan</h3>' +
+      '<p class="hint">Describe the trip the way you would to a friend. ' +
+      'You will see what it suggests before anything is added, and you choose ' +
+      'which parts to keep. Suggestions use this trip\'s existing dates, so ' +
+      'tell it about your pace, what you enjoy, and when you arrive and leave ' +
+      'rather than how many days you want.</p>' +
+      '<p class="hint"><strong>This box is the one part of TripShare that ' +
+      'leaves your device.</strong> What you write here, and this trip\'s ' +
+      'dates, are sent to an AI service to write the suggestions. Nothing else ' +
+      'in your trip is sent. Please leave out anything private - names, health ' +
+      'details, booking references, card numbers.</p>' +
+      '<textarea id="botText" maxlength="' + BOT_MAX_CHARS + '" rows="4" ' +
+      'placeholder="We land mid-morning on the first day and leave after lunch ' +
+      'on the last. We like food markets and temples, one of us cannot walk ' +
+      'far, and we would rather not rush."></textarea>' +
+      '<div class="row"><span class="meta" id="botCount"></span></div>' +
+      '<div class="row" id="botGo"></div>' +
+      '<div class="err" id="botErr"></div>' +
+      '<div id="botOut"></div>';
+
+    /* The button goes directly under the box you type in, ABOVE the results.
+       It was appended at the end first, which on a phone put "Suggest a plan"
+       underneath "Add the ticked ones" - three buttons in a pile, with the one
+       that produced the list sitting below the list's own actions. */
+    var row = wrap.querySelector("#botGo");
+    var go_ = btn(row, "Suggest a plan", "primary", run);
+    var counter = null, busy = false;
+
+    /* Bound after the node is in the document, because getElementById cannot
+       find anything that has not been appended yet. */
+    setTimeout(function () {
+      counter = el("botCount");
+      var ta = el("botText");
+      if (!ta || !counter) return;
+      function count() {
+        counter.textContent = ta.value.length + " / " + BOT_MAX_CHARS;
+      }
+      ta.addEventListener("input", count);
+      count();
+    }, 0);
+
+    function say(msg) {
+      var box = el("botErr");
+      if (box) box.textContent = msg || "";
+    }
+
+    function run() {
+      if (busy) return;
+      var ta = el("botText");
+      var text = ta ? ta.value.trim() : "";
+      say("");
+      if (!text) { say("Write a sentence or two about the trip first."); return; }
+
+      busy = true;
+      go_.disabled = true;
+      go_.textContent = "Thinking…";
+      var out = el("botOut");
+      if (out) out.innerHTML = '<div class="meta">Working on it…</div>';
+
+      /* text/plain on purpose. A JSON content type makes the browser send a
+         CORS preflight first, and an Apps Script web app does not answer one.
+         The Apps Script reads the raw body either way. */
+      fetch(TRIPBOT.url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ text: text, start: t.s, end: t.e })
+      }).then(function (r) {
+        return r.json();
+      }).then(function (res) {
+        if (!res || !res.ok) {
+          if (out) out.innerHTML = "";
+          say((res && res.error) || "The planner could not answer just now.");
+          return;
+        }
+        showProposal(res.items || [], Number(res.dropped) || 0);
+      })["catch"](function () {
+        if (out) out.innerHTML = "";
+        /* NOT "check the connection". The likeliest causes are the planner
+           being unreachable or misconfigured at the other end, and telling
+           somebody to check a connection that is plainly working sends them
+           looking in the wrong place. */
+        say("Could not reach the planner. Please try again shortly.");
+      })["finally"](function () {
+        busy = false;
+        go_.disabled = false;
+        go_.textContent = "Suggest a plan";
+      });
+    }
+
+    function showProposal(items, droppedFar) {
+      /* droppedFar is what the FAR end threw away before it ever reached this
+         page. Counting only what this page rejects would under-report: the
+         server could discard five and the banner would say nothing. */
+      var out = el("botOut");
+      if (!out) return;
+      out.innerHTML = "";
+
+      /* Cleaned FIRST, counted SECOND. Checked here as well as at the other
+         end, and to the SAME standard: a browser test on 10 Sep 2026 fed this
+         deliberately bad data and found two things the far end catches and
+         this end did not - an item dated outside the trip, and an item with no
+         title at all. Both had been left to the Apps Script, which does handle
+         them, but "the other end will have cleaned it" is exactly the
+         assumption this block exists to refuse.
+         The count comes off the cleaned list because the first version of this
+         fix said "6 suggestions" above five rows. A heading that disagrees with
+         what is under it is worse than no heading. */
+      var clean = [], dropped = Number(droppedFar) || 0;
+      items.forEach(function (raw) {
+        raw = raw || {};
+        if (!str(raw.t, 90)) { dropped++; return; }   /* no title: not an item */
+        var a = normItem(raw, t.s);
+        /* ⛔ DROPPED, NOT MOVED. This line used to read `a.d = t.s`, which
+           silently re-dated anything outside the trip onto day one. Measured on
+           11 Sep 2026 by feeding the real validators an item dated 2027-01-01
+           on an April trip: it came back looking like a deliberate day-one plan.
+           The preview cannot show the difference, so the traveller cannot
+           either. Fewer honest rows beat more invented ones. */
+        if (a.d < t.s || a.d > t.e) { dropped++; return; }
+        clean.push(a);
+      });
+
+      if (!clean.length) {
+        /* This used to read "Try describing the days more plainly", which puts
+           the fault on the traveller for something that is usually not theirs. */
+        say("The planner did not produce usable suggestions. Try again, or add " +
+            "items to the day by hand.");
+        return;
+      }
+
+      var head = document.createElement("div");
+      head.className = "banner";
+      head.innerHTML = "<strong>" + clean.length + " suggestion" +
+        (clean.length === 1 ? "" : "s") + ".</strong> " +
+        "Nothing has been added yet. Untick anything you do not want. " +
+        "These are a starting point, not checked facts - confirm times, prices " +
+        "and whether places are open before you rely on any of them." +
+        (dropped ? " <span class=\"meta\">" + dropped + " more " +
+          (dropped === 1 ? "suggestion was" : "suggestions were") +
+          " left out because " + (dropped === 1 ? "it" : "they") +
+          " fell outside this trip's dates or arrived incomplete.</span>" : "");
+      out.appendChild(head);
+
+      var boxes = [];
+      clean.forEach(function (a, ix) {
+        var line = document.createElement("label");
+        line.className = "botpick";
+
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.checked = true;
+        cb.id = "botpick" + ix;
+        boxes.push({ cb: cb, item: a });
+        line.appendChild(cb);
+
+        var txt = document.createElement("span");
+        var when = fmtDate(a.d) + (a.s ? " " + fmtTime(a.s) : "");
+        /* The PREVIEW is shortened, never the item. What gets added to the trip
+           is the full title; this only keeps one very long run of characters
+           from making a row taller than the phone it is being read on. */
+        var shown = a.t.length > 70 ? a.t.slice(0, 69) + "…" : a.t;
+        txt.innerHTML = '<strong>' + esc(shown) + '</strong>' +
+          '<span class="meta"> · ' + esc(kindLabel(a.k)) + ' · ' + esc(when) +
+          (a.l ? " · " + esc(a.l) : "") + '</span>' +
+          (a.n ? '<span class="meta botnote">' + esc(a.n) + '</span>' : '');
+        line.appendChild(txt);
+        out.appendChild(line);
+      });
+
+      var acts = document.createElement("div");
+      acts.className = "row";
+      out.appendChild(acts);
+
+      btn(acts, "Add the ticked ones", "primary", function () {
+        var picked = boxes.filter(function (b) { return b.cb.checked; });
+        if (!picked.length) { say("Nothing is ticked."); return; }
+        picked.forEach(function (b) { t.x.push(b.item); });
+        touch(t);
+        out.innerHTML = "";
+        say("");
+        var ta = el("botText"); if (ta) ta.value = "";
+        var c = el("botCount"); if (c) c.textContent = "0 / " + BOT_MAX_CHARS;
+        toast(picked.length + " added to the trip.");
+        onAdded();
+      });
+
+      btn(acts, "Discard these", "quiet", function () {
+        out.innerHTML = "";
+        say("");
+      });
+    }
+
+    return wrap;
+  }
+
   function renderEdit(app, top) {
     var t = tripById(view.id);
     if (!t) return go("list");
@@ -655,6 +944,11 @@
       'dates are day/month/year. Times are local to where you are going.</div>' +
       '<div class="err" id="tripErr"></div>';
     app.appendChild(d);
+
+    /* The planner sits above the days because what it makes lands in them.
+       If it has not been set up, it is not built at all - an empty panel
+       advertising a feature that cannot run is worse than no panel. */
+    if (TRIPBOT.url) app.appendChild(planner(t, function () { renderDays(); }));
 
     var daysWrap = document.createElement("div");
     app.appendChild(daysWrap);
