@@ -94,10 +94,21 @@ git add -A && git commit -m "Turn the TripShare planner on" && git push
 |---|---|
 | Model | `gpt-5.6-luna` |
 | Price | **$0.20 in / $1.20 out per 1M tokens** — read off OpenAI's live pricing page 8 Sep 2026 |
-| One plan | about **US$0.002** — a fifth of one US cent |
+| One plan, typical | about **US$0.002** |
+| **One plan, worst it can be** | **about US$0.0026** — set by `MAX_OUTPUT_TOKENS`, not by the typical case |
 | Daily limit | **100 plans**, set by `DAILY_CALL_CAP` in the script |
-| **Worst case per day** | **about US$0.20** |
-| Worst case per month | about **US$6** |
+| **Worst case per day** | **about US$0.26** |
+| Worst case per month | about **US$8** |
+
+⛔ **The US$0.20/day and US$6/month written here until 11 Sep 2026 were WRONG, and
+wrong in the direction that flatters.** They were the *typical* cost multiplied by
+the cap. A cap has to be priced at the worst a call can cost: 2,000 output tokens
+is US$0.0024 on its own, before a single input token. Found by an outside reviewer,
+not by us.
+
+⚠ **And the day resets at UTC midnight, not yours.** Someone who wanted to could
+use one day's allowance just before it and the next day's just after, so the real
+short-term worst case is about **two days' worth back to back**.
 
 **To spend less, lower `DAILY_CALL_CAP`.** It is the ceiling: the script counts
 every call *before* it makes it, so the number cannot be beaten by bad luck or
@@ -123,11 +134,48 @@ press **Run**. Then **View → Logs**. It prints today's count and the spend.
 strangers, so somebody determined could still use up the daily allowance. The
 cap is what protects you — it makes the worst case **a known small number per
 day**, not zero. If that ever happens, lower the cap or take the URL out of the
-page; nothing else breaks.
+page.
+
+🚨 **"Nothing else breaks" was WRONG, and this is the finding that matters most.**
+An outside reviewer pointed out on 11 Sep 2026 that Google Apps Script has its own
+daily quotas on the whole **Google account**, not on one script. Somebody
+hammering this endpoint would not cost you OpenAI money past the cap — but they
+could exhaust that Google quota, and **your Sales Tracker and your Worklog both
+run on Apps Script too.**
+
+> Gemini 3.1 Pro: *"will break the AI feature **and** the two other apps relying
+> on GAS until the quota resets."*
+
+**So the blast radius is bigger than this one feature.** That is an argument for
+keeping `DAILY_CALL_CAP` low, and for the kill switch — not for abandoning the
+design, which both reviewers called appropriate for the constraints.
+
+⚠ **The cap protects THIS endpoint, not your OpenAI account.** If the same key is
+used anywhere else, or an old deployment is still live, those spend separately.
+**Use a key made only for this**, so you can cancel it without breaking anything
+else.
 
 ---
 
-## To switch it off again
+## 🛑 The fastest way to stop it — ten seconds, no website change
+
+1. Apps Script editor → **gear icon** (Project Settings) → **Script Properties**.
+2. Add (or edit) a property called `ENABLED` and set its value to **`no`**.
+3. Save.
+
+It stops answering immediately. Visitors see *"The planner is switched off at the
+moment."* Nothing else on your site changes, and you do not touch git at all.
+
+Set it back to `yes` (or delete the property) to start it again.
+
+> **Why this exists:** the other way to stop it needs a code edit, a commit and a
+> push. If something is going wrong you want it off *now*, not after three steps
+> you have to remember. If the property is missing the planner runs — so deleting
+> it by accident cannot silently kill the feature.
+
+---
+
+## To switch it off again, properly
 
 Put the line back to `var TRIPBOT = { url: "" };`, commit and push. The panel
 disappears and the page is exactly as it was. You can leave the Apps Script
