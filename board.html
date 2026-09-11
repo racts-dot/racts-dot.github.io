@@ -81,6 +81,7 @@ p{max-width:66ch}
 
 .meters{display:grid;gap:1px;background:var(--line-2);border:1px solid var(--line-2);margin:22px 0 0}
 @media(min-width:640px){.meters{grid-template-columns:1fr 1fr 1fr}}
+@media(min-width:640px){.meters.two{grid-template-columns:1fr 1fr}}
 .meter{background:var(--panel);padding:15px 16px;display:flex;flex-direction:column;gap:7px}
 .meter .lbl{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-3)}
 .meter .val{font-family:"Fraunces",Georgia,serif;font-size:27px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
@@ -193,6 +194,10 @@ footer{padding:32px 0 0;color:var(--ink-3);font-size:13px;display:grid;gap:8px;b
   <p class="sub">Read from the files the spending scripts write themselves. Every figure carries when it was read.</p>
 
   <div class="meters" id="meters"></div>
+
+  <h3>What is about to run out</h3>
+  <p class="sub">No script can read these two &mdash; a person opened the vendor&rsquo;s own page. Each carries the date it was read and drains forward from there, so the figure ages by itself instead of sitting still and going quietly wrong.</p>
+  <div class="meters two" id="runways"></div>
 
   <h3>AI reviews &mdash; by the job the money bought</h3>
   <div class="jobs" id="jobs"></div>
@@ -531,6 +536,42 @@ footer{padding:32px 0 0;color:var(--ink-3);font-size:13px;display:grid;gap:8px;b
     }
   }
 
+  function renderRunways(d){
+    var host = document.getElementById("runways");
+    if (!host) return;
+    clear(host);
+    var rw = d.runways || {};
+    if (!rw.available){
+      host.appendChild(el("div", "meter", "Balances could not be read — treat every runway below as unknown, not as safe."));
+      return;
+    }
+    (rw.runways || []).forEach(function(r){
+      var unit = r.unit || "$";
+      var used = (r.of_total && r.left_now !== null)
+        ? Math.max(0, Math.min(100, 100 * (1 - r.left_now / r.of_total))) : null;
+      var left = (r.left_now === null || r.left_now === undefined)
+        ? "unknown" : unit + Math.max(r.left_now, 0).toFixed(2) + " left";
+      var sub;
+      if (r.read_stale){
+        // AN OLD READING REPLACES THE PROJECTION. Printing "0.4 days left" from a
+        // three-week-old reading states a fact nobody has.
+        left = "last read " + r.read_days_ago + " days ago";
+        sub = "Re-read it before trusting any number here";
+      } else if (r.days_left === null || r.days_left === undefined){
+        sub = "no burn rate recorded — runway not projected";
+      } else if (r.days_left <= 0){
+        sub = "projected EMPTY · read " + r.as_of;
+      } else if (r.days_left <= 1){
+        sub = "under a day left · " + unit + r.per_day.toFixed(2) + " a day";
+      } else {
+        sub = "about " + Math.round(r.days_left) + " days · " + unit + r.per_day.toFixed(2) + " a day";
+      }
+      if (r.of_total && !r.read_stale) sub += " · of " + unit + Number(r.of_total).toFixed(2);
+      var hot = r.read_stale || (r.days_left !== null && r.days_left !== undefined && r.days_left <= 7);
+      host.appendChild(meter(r.label, left, sub, used, hot));
+    });
+  }
+
   function renderJobs(d){
     var host = document.getElementById("jobs");
     clear(host);
@@ -642,6 +683,7 @@ footer{padding:32px 0 0;color:var(--ink-3);font-size:13px;display:grid;gap:8px;b
     }
     renderAlerts(d);
     renderMeters(d);
+    renderRunways(d);
     renderJobs(d);
     renderActors(d);
     renderUnknowns(d);
