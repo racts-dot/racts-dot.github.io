@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-11 09:01",
+ "generated_at": "2026-09-11 09:31",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
-  "spent_usd": 18.4,
+  "spent_usd": 18.55,
   "authorized_usd": 40.0,
-  "pct": 46.0,
-  "runs": 313,
+  "pct": 46.4,
+  "runs": 315,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 11.28,
+    "spent_usd": 11.39,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.12,
+    "spent_usd": 7.16,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -46,10 +46,10 @@
    },
    {
     "task": "Planners, diary and caregiver kits",
-    "runs": 34,
-    "usd": 1.73,
+    "runs": 36,
+    "usd": 1.89,
     "first": "2026-08-31",
-    "last": "2026-09-09"
+    "last": "2026-09-11"
    },
    {
     "task": "Etsy listings, titles and SEO",
@@ -108,7 +108,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 15.36,
+  "attributed_usd": 15.51,
   "unattributed_usd": 3.04,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -120,7 +120,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 09:01",
+  "read_at": "2026-09-11 09:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -170,8 +170,8 @@
  "git": {
   "branch": "main",
   "uncommitted_files": 4,
-  "last_commit": "5c7b268 Nightly automatic backup: 4 file(s)",
-  "last_commit_at": "2026-09-11T09:00:13+09:30"
+  "last_commit": "18b1ced Nightly automatic backup: 6 file(s)",
+  "last_commit_at": "2026-09-11T09:30:14+09:30"
  },
  "facts": {
   "available": true,
@@ -354,6 +354,12 @@
    "amount": "UNKNOWN",
    "status": "UNKNOWN",
    "why": "budget.json records only what the review_board scripts spent. It explicitly cannot see the account balance, so any API call made outside those scripts - by hand, by another session, or by another machine - is not in the headline figure."
+  },
+  {
+   "what": "Google Vertex - cover artwork for the planner products (make_covers.py)",
+   "amount": "about US$2.02 so far - 15 images at US$0.1344",
+   "status": "NOT MEASURED",
+   "why": "The ledger's own 'not established' row already says Vertex spend outside the review board is UNKNOWN, and this is exactly that case: make_covers.py is not a review_board script, so budget.json never sees it. On 10-11 Sep 2026 this became the second-largest line of AI spend after Apify while remaining invisible in the one file meant to track spending. Declared here so the gap the ledger warns about"
   }
  ],
  "alerts": [
