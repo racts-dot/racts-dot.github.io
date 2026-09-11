@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-11 14:31",
+ "generated_at": "2026-09-11 15:01",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
@@ -25,10 +25,17 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 142,
-    "usd": 7.5,
+    "runs": 92,
+    "usd": 4.33,
     "first": "2026-09-03",
     "last": "2026-09-11"
+   },
+   {
+    "task": "How Claude works - rules, gates, QA, communication",
+    "runs": 72,
+    "usd": 3.5,
+    "first": "2026-08-30",
+    "last": "2026-09-10"
    },
    {
     "task": "Spent but never recorded against any task",
@@ -38,24 +45,24 @@
     "last": ""
    },
    {
-    "task": "How Claude works - rules, gates, QA, communication",
-    "runs": 60,
-    "usd": 2.49,
-    "first": "2026-08-30",
-    "last": "2026-09-08"
-   },
-   {
     "task": "Planners, diary and caregiver kits",
-    "runs": 36,
-    "usd": 1.89,
+    "runs": 37,
+    "usd": 1.87,
     "first": "2026-08-31",
-    "last": "2026-09-11"
+    "last": "2026-09-10"
    },
    {
     "task": "Etsy listings, titles and SEO",
     "runs": 34,
     "usd": 1.62,
     "first": "2026-09-04",
+    "last": "2026-09-11"
+   },
+   {
+    "task": "TripShare trip planner app",
+    "runs": 20,
+    "usd": 1.25,
+    "first": "2026-09-08",
     "last": "2026-09-11"
    },
    {
@@ -66,11 +73,18 @@
     "last": "2026-09-07"
    },
    {
+    "task": "Cover artwork and thumbnails",
+    "runs": 15,
+    "usd": 0.83,
+    "first": "2026-09-08",
+    "last": "2026-09-09"
+   },
+   {
     "task": "Market research and competitor scraping",
-    "runs": 6,
-    "usd": 0.48,
+    "runs": 8,
+    "usd": 0.58,
     "first": "2026-08-31",
-    "last": "2026-09-07"
+    "last": "2026-09-08"
    },
    {
     "task": "SQL / worksheet products",
@@ -120,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 14:31",
+  "read_at": "2026-09-11 15:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -170,8 +184,8 @@
  "git": {
   "branch": "main",
   "uncommitted_files": 4,
-  "last_commit": "554d6ba Nightly automatic backup: 5 file(s)",
-  "last_commit_at": "2026-09-11T14:30:13+09:30"
+  "last_commit": "daeeec2 Nightly automatic backup: 3 file(s)",
+  "last_commit_at": "2026-09-11T15:00:08+09:30"
  },
  "facts": {
   "available": true,
@@ -358,8 +372,8 @@
   {
    "what": "Google Vertex - cover artwork for the planner products (make_covers.py)",
    "amount": "about US$2.02 so far - 15 images at US$0.1344",
-   "status": "NOT MEASURED",
-   "why": "make_covers.py writes NO cost log, so its spend is still invisible. ⚠ NOT covered by the US$15.44 image figure added 11 Sep 2026 - that sums generation_log.jsonl files, and this script writes none. The fix is one line in make_covers.py: log cost_usd per image like the other generators already do."
+   "status": "PARTLY CLOSED - future runs measured, past covers never will be",
+   "why": "FIXED 11 Sep 2026: make_covers.py now writes a generation_log.jsonl beside the artwork, so every cover generated FROM NOW ON is counted automatically in the image section above. Proved by 14 of 14 controls (selftest_cover_cost_log.py), including the control showing that logging a failed call as a free image would have halved the reported price per image. STILL NOT MEASURED, and it never can be: ev"
   }
  ],
  "alerts": [
