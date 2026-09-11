@@ -33,8 +33,19 @@ cannot live there. It lives in the middle box instead.
 
 ## Step 2 — get an OpenAI key
 
-You already have one in `claude desktoi\.env` as `OPENAI_API_KEY`.
-Use that, or make a new one at **https://platform.openai.com/api-keys**.
+You already have one. ⛔ **The path here used to be the WINDOWS one
+(`claude desktoi\.env`), which does not exist on the Mac.** On the Mac it is
+`~/Desktop/costway scraper/.env`, measured 11 Sep 2026.
+
+⭐ **Do not open the file and read the key.** Copy it straight to the clipboard,
+so it never appears on screen and never gets read out loud:
+
+```
+grep '^OPENAI_API_KEY' ~/Desktop/"costway scraper"/.env | cut -d= -f2- | tr -d '"'"'"' \n' | pbcopy
+```
+
+Then paste it into the box in step 3. Or make a separate key at
+**https://platform.openai.com/api-keys**.
 
 > A separate key just for this is tidier — if it ever leaks you can cancel that
 > one without breaking anything else.
