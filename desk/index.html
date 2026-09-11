@@ -26,6 +26,7 @@
   --watch:#7d5800; --watch-soft:#fbf1da;
   --ok:#14684a; --ok-soft:#e0f2ea;
   --shadow:0 1px 2px rgba(20,26,32,.06), 0 8px 24px -12px rgba(20,26,32,.18);
+  --bar:#141a20; --bar-ink:#e6eaee;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --ground:#0f1418; --surface:#171e24; --surface-2:#1d262d;
@@ -36,6 +37,7 @@
   --watch:#e3ab33; --watch-soft:#33280f;
   --ok:#5cc79a; --ok-soft:#12301f;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  --bar:#070a0c; --bar-ink:#c9d4dc;
 }}
 :root[data-theme="dark"]{
   --ground:#0f1418; --surface:#171e24; --surface-2:#1d262d;
@@ -46,30 +48,31 @@
   --watch:#e3ab33; --watch-soft:#33280f;
   --ok:#5cc79a; --ok-soft:#12301f;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
+  --bar:#070a0c; --bar-ink:#c9d4dc;
 }
 *{box-sizing:border-box}
 html,body{margin:0}
-body{
-  background:var(--ground); color:var(--ink);
+body{background:var(--ground);color:var(--ink);
   font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
-  padding:env(safe-area-inset-top) 16px calc(84px + env(safe-area-inset-bottom));
-}
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  padding:env(safe-area-inset-top) 16px calc(96px + env(safe-area-inset-bottom))}
 .wrap{max-width:760px;margin:0 auto}
-.masthead{padding:30px 0 20px;border-bottom:2px solid var(--ink)}
+.masthead{padding:26px 0 18px;border-bottom:2px solid var(--ink)}
 .eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;
   letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px}
-h1{font-family:"Newsreader",Georgia,serif;font-weight:600;
-  font-size:clamp(32px,7.5vw,48px);line-height:1.02;letter-spacing:-.02em;margin:0;text-wrap:balance}
-.standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(17px,2.6vw,20px);
-  font-style:italic;color:var(--ink-soft);margin:12px 0 0;max-width:56ch}
-.tools{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
-button{font-family:"Public Sans",sans-serif;font-size:15px;font-weight:700;
-  color:var(--surface);background:var(--ink);border:1px solid var(--ink);border-radius:2px;
-  padding:12px 18px;cursor:pointer;min-height:46px}
+h1{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:clamp(30px,7.5vw,46px);
+  line-height:1.03;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(16px,2.6vw,19px);
+  font-style:italic;color:var(--ink-soft);margin:11px 0 0;max-width:56ch}
+.tools{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+button{font-family:"Public Sans",sans-serif;font-size:15px;font-weight:700;color:var(--surface);
+  background:var(--ink);border:1px solid var(--ink);border-radius:2px;padding:11px 17px;
+  cursor:pointer;min-height:46px}
 button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-section{margin-top:38px}
+section.panel{display:none}
+section.panel.on{display:block}
+.block{margin-top:34px}
 .sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
   border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:4px}
 h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:23px;margin:0}
@@ -121,155 +124,219 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:23px;margin:
 .never p{font-size:13.5px;color:var(--ink-soft);margin:0;max-width:62ch}
 .never .ruling{font-family:"Newsreader",Georgia,serif;font-style:italic;color:var(--ink);
   margin-top:6px;display:block}
+/* newspaper */
+.story{padding:20px 0;border-bottom:1px solid var(--line-soft)}
+.story:last-child{border-bottom:0}
+.story h3{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:20px;
+  margin:0 0 6px;line-height:1.22;text-wrap:balance}
+.story .lede{font-size:15px;color:var(--ink-soft);margin:0 0 8px;max-width:64ch}
+.story ul{margin:0;padding-left:18px}
+.story li{font-size:14.5px;color:var(--ink-soft);margin-bottom:6px;max-width:62ch}
+.caveat{border-left:3px solid var(--watch);background:var(--watch-soft);color:var(--watch);
+  padding:11px 14px;font-size:14px;margin-top:14px;border-radius:2px}
 #noteBox{width:100%;font-family:inherit;font-size:16px;padding:12px;border:1px solid var(--line);
-  border-radius:2px;background:var(--surface);color:var(--ink);min-height:80px;resize:vertical}
+  border-radius:2px;background:var(--surface);color:var(--ink);min-height:88px;resize:vertical}
 .notes-list{list-style:none;padding:0;margin:14px 0 0}
-.notes-list li{border-left:3px solid var(--accent);padding:8px 0 8px 12px;margin-bottom:8px;font-size:14.5px}
+.notes-list li{border-left:3px solid var(--accent);padding:8px 0 8px 12px;margin-bottom:8px;
+  font-size:14.5px}
 .notes-list time{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;
   color:var(--ink-faint);margin-top:3px}
-footer{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);
-  font-size:12.5px;color:var(--ink-faint);line-height:1.6}
-/* empty state - what a stranger sees */
+footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;
+  color:var(--ink-faint);line-height:1.6}
 .empty{background:var(--surface);border:1px solid var(--line);border-radius:2px;
-  padding:28px 22px;margin-top:28px;box-shadow:var(--shadow)}
+  padding:26px 22px;margin-top:24px;box-shadow:var(--shadow)}
 .empty h2{margin:0 0 10px}
 .empty p{color:var(--ink-soft);font-size:15px;max-width:60ch;margin:0 0 10px}
 .hide{display:none !important}
-#installBar{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:var(--surface);
-  padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:flex;gap:12px;
-  align-items:center;justify-content:space-between;font-size:14px}
-#installBar button{background:var(--surface);color:var(--ink);border-color:var(--surface);
-  padding:9px 14px;min-height:0;font-size:14px}
-#installBar .x{background:transparent;color:var(--surface);border:0;padding:6px 8px;font-size:18px}
+/* tab bar */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--bar);display:grid;
+  grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom);z-index:20}
+nav.tabs button{background:transparent;border:0;color:var(--bar-ink);opacity:.55;
+  font-size:11px;font-weight:700;letter-spacing:.04em;padding:9px 2px 10px;min-height:0;
+  display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:0;
+  border-top:2px solid transparent}
+nav.tabs button .g{font-size:17px;line-height:1}
+nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
+nav.tabs button .dot{position:absolute;transform:translate(14px,-4px);width:7px;height:7px;
+  border-radius:50%;background:var(--stop)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom));
+  background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:3px;font-size:14px;
+  z-index:30;box-shadow:var(--shadow)}
 @media (prefers-reduced-motion:no-preference){.job,.reading{transition:opacity .18s ease}}
 </style>
 </head>
 <body>
 <div class="wrap">
-
   <header class="masthead">
     <p class="eyebrow" id="todayLine">Your desk</p>
-    <h1>Rachie's Desk</h1>
+    <h1 id="pageTitle">Rachie's Desk</h1>
     <p class="standfirst" id="standfirst">Nothing loaded yet.</p>
     <div class="tools" id="tools">
-      <button id="speak">▶ Read it to me</button>
+      <button id="speak">▶ Read this to me</button>
       <button id="stopBtn" class="ghost" hidden>■ Stop</button>
       <button id="hideDone" class="ghost">Hide ticked</button>
     </div>
   </header>
 
-  <div class="empty" id="empty">
-    <h2>This desk is empty</h2>
-    <p>Nothing is stored on this web address. A desk arrives through a private link, and from then on it lives on this device only.</p>
-    <p>If you opened this by accident, there is nothing here to see.</p>
-  </div>
+  <!-- DESK -->
+  <section class="panel on" id="p-desk">
+    <div id="deskEmpty" class="empty">
+      <h2>This desk is empty</h2>
+      <p>Nothing is stored on this web address. A desk arrives through a private link, and from then on it lives on this device only.</p>
+      <p>If you opened this by accident, there is nothing here to see.</p>
+    </div>
+    <div id="deskBody" class="hide">
+      <div class="block">
+        <div class="sec-head"><h2>Waiting on you</h2>
+          <p class="sec-note">Nobody else can do these.</p>
+          <span class="count" id="waitingCount"></span></div>
+        <div id="waiting"></div>
+      </div>
+      <div class="block" id="blockedSec">
+        <div class="sec-head"><h2>Not yours to fix</h2>
+          <p class="sec-note">Blocked on somebody else. Here so you stop carrying them.</p></div>
+        <div id="blocked"></div>
+      </div>
+      <footer><div id="asOf"></div></footer>
+    </div>
+  </section>
 
-  <div id="app" class="hide">
-    <section>
-      <div class="sec-head"><h2>Waiting on you</h2>
-        <p class="sec-note">Nobody else can do these.</p>
-        <span class="count" id="waitingCount"></span></div>
-      <div id="waiting"></div>
-    </section>
+  <!-- NEWS -->
+  <section class="panel" id="p-news">
+    <div id="newsEmpty" class="empty">
+      <h2>No paper yet</h2>
+      <p>The daily digest arrives here through its own link, separate from your desk, so neither one has to be small.</p>
+    </div>
+    <div id="newsBody" class="hide">
+      <div id="newsCaveat"></div>
+      <div id="stories"></div>
+      <footer id="newsFoot"></footer>
+    </div>
+  </section>
 
-    <section id="blockedSec">
-      <div class="sec-head"><h2>Not yours to fix</h2>
-        <p class="sec-note">Real problems, blocked on somebody else. Here so you stop carrying them.</p></div>
-      <div id="blocked"></div>
-    </section>
+  <!-- SHOP -->
+  <section class="panel" id="p-shop">
+    <div id="shopEmpty" class="empty"><h2>Nothing loaded</h2>
+      <p>Your shop readings arrive with the desk.</p></div>
+    <div id="shopBody" class="hide">
+      <div class="block">
+        <div class="sec-head"><h2>What is true today</h2>
+          <p class="sec-note">A number with no reading date is not a fact.</p></div>
+        <div id="readings"></div>
+      </div>
+      <div class="block" id="neverSec">
+        <div class="sec-head"><h2>Do not list</h2>
+          <p class="sec-note">Decided already. Here so it does not get re-argued.</p></div>
+        <div id="never"></div>
+      </div>
+    </div>
+  </section>
 
-    <section>
-      <div class="sec-head"><h2>What is true today</h2>
-        <p class="sec-note">A number with no reading date is not a fact.</p></div>
-      <div id="readings"></div>
-    </section>
+  <!-- MONEY -->
+  <section class="panel" id="p-money">
+    <div id="moneyEmpty" class="empty"><h2>Nothing loaded</h2>
+      <p>Your money figures arrive with the desk.</p></div>
+    <div id="moneyBody" class="hide">
+      <div class="block">
+        <div class="sec-head"><h2>Money</h2>
+          <p class="sec-note">Only what somebody actually read off an account.</p></div>
+        <div class="money" id="money"></div>
+        <p class="sec-note" style="margin-top:12px">Not counted here on purpose: Etsy listing fees, Etsy Plus, Higgsfield and the Claude subscription. Nobody has read a bill for those, so they are not figures.</p>
+      </div>
+    </div>
+  </section>
 
-    <section id="moneySec">
-      <div class="sec-head"><h2>Money</h2>
-        <p class="sec-note">Only what somebody actually read off an account.</p></div>
-      <div class="money" id="money"></div>
-    </section>
-
-    <section id="neverSec">
-      <div class="sec-head"><h2>Do not list</h2>
-        <p class="sec-note">Decided already. Here so it does not get re-argued.</p></div>
-      <div id="never"></div>
-    </section>
-
-    <section>
+  <!-- NOTES -->
+  <section class="panel" id="p-notes">
+    <div class="block">
       <div class="sec-head"><h2>Tell me something</h2>
         <p class="sec-note">Anything the next session should know. Stays on this device.</p></div>
       <textarea id="noteBox" placeholder="Type it however it comes out."></textarea>
       <div class="tools"><button id="addNote">Save note</button></div>
       <ul class="notes-list" id="notes"></ul>
-    </section>
-
-    <footer><div id="asOf"></div>
-      <div style="margin-top:8px">Everything you tick or type stays on this device. Nothing is uploaded.</div>
-    </footer>
-  </div>
+      <footer>Everything you tick or type stays on this phone. Nothing is uploaded.</footer>
+    </div>
+  </section>
 </div>
 
-<div id="installBar" hidden>
-  <span id="installText">Add this to your home screen and it opens like an app.</span>
-  <span style="display:flex;gap:6px;align-items:center">
-    <button id="installGo" hidden>Add</button>
-    <button class="x" id="installX" aria-label="Dismiss">×</button>
-  </span>
-</div>
+<nav class="tabs" id="tabs">
+  <button data-tab="desk"  class="on"><span class="g">▤</span>Desk<span class="dot hide" id="deskDot"></span></button>
+  <button data-tab="news"><span class="g">◫</span>Paper</button>
+  <button data-tab="shop"><span class="g">◈</span>Shop</button>
+  <button data-tab="money"><span class="g">$</span>Money</button>
+  <button data-tab="notes"><span class="g">✎</span>Notes</button>
+</nav>
 
 <script>
-const $ = s => document.querySelector(s);
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const DAY = 86400000;
-const KEY = "desk.data", KDONE = "desk.done", KNOTES = "desk.notes";
+const K = { desk:"desk.sec.desk", news:"desk.sec.news", done:"desk.done", notes:"desk.notes", tab:"desk.tab" };
 
-/* ---------- the link carries the desk; the server never sees it ---------- */
-function fromB64url(s){
+let DESK = null, NEWS = null, done = {}, notes = [], hidingDone = false, tab = "desk";
+
+/* ---------- the link carries a section; the server never sees it ---------- */
+function b64bytes(s){
   s = s.replace(/-/g,"+").replace(/_/g,"/");
   while (s.length % 4) s += "=";
-  const bin = atob(s);
-  const bytes = new Uint8Array(bin.length);
-  for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder().decode(bytes);
+  const bin = atob(s), out = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function unpack(token, gz){
+  const bytes = b64bytes(token);
+  if (!gz) return JSON.parse(new TextDecoder().decode(bytes));
+  if (typeof DecompressionStream === "undefined")
+    throw new Error("This browser is too old to open a packed link.");
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return JSON.parse(await new Response(stream).text());
 }
 
-let DATA = null, done = {}, notes = [], hidingDone = false;
+async function takeFragment(){
+  const frag = location.hash.slice(1);
+  if (!frag) return null;
+  const part = k => (frag.split("&").find(p => p.startsWith(k+"=")) || "").slice(k.length+1);
+  const token = part("d");
+  if (!token) return null;
+  const section = part("s") || "desk";
+  try {
+    const payload = await unpack(token, frag.includes("z=1"));
+    localStorage.setItem(K[section] || ("desk.sec."+section), JSON.stringify(payload));
+    history.replaceState(null, "", location.pathname + location.search);
+    return section;
+  } catch (e) {
+    // A damaged link must never wipe a good section.
+    toast("That link did not arrive whole. Nothing was changed.");
+    history.replaceState(null, "", location.pathname + location.search);
+    return null;
+  }
+}
 
-function load(){
-  const frag = location.hash || "";
-  const m = frag.match(/[#&]d=([A-Za-z0-9\-_]+)/);
-  if (m){
-    try {
-      DATA = JSON.parse(fromB64url(m[1]));
-      localStorage.setItem(KEY, JSON.stringify(DATA));
-      history.replaceState(null, "", location.pathname + location.search);
-    } catch(e){ /* a damaged link must not wipe a good desk */ }
-  }
-  if (!DATA){
-    try { DATA = JSON.parse(localStorage.getItem(KEY) || "null"); } catch(e){ DATA = null; }
-  }
-  try { done = JSON.parse(localStorage.getItem(KDONE) || "{}"); } catch(e){ done = {}; }
-  try { notes = JSON.parse(localStorage.getItem(KNOTES) || "[]"); } catch(e){ notes = []; }
+function readStore(){
+  const get = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch(e){ return null; } };
+  DESK = get(K.desk); NEWS = get(K.news);
+  done = get(K.done) || {}; notes = get(K.notes) || [];
+  tab = localStorage.getItem(K.tab) || "desk";
 }
 function save(){
   try {
-    localStorage.setItem(KDONE, JSON.stringify(done));
-    localStorage.setItem(KNOTES, JSON.stringify(notes));
+    localStorage.setItem(K.done, JSON.stringify(done));
+    localStorage.setItem(K.notes, JSON.stringify(notes));
+    localStorage.setItem(K.tab, tab);
   } catch(e){}
 }
 
 /* ---------- dates ---------- */
-const daysSince = iso => {
-  const t = new Date(iso+"T00:00:00"), n = new Date(); n.setHours(0,0,0,0);
-  return Math.round((n - t)/DAY);
-};
-const agoWords = iso => { const d = daysSince(iso);
-  return d<=0 ? "read today" : d===1 ? "read yesterday" : "read "+d+" days ago"; };
+const daysSince = iso => { const t=new Date(iso+"T00:00:00"), n=new Date(); n.setHours(0,0,0,0);
+  return Math.round((n-t)/DAY); };
+const agoWords = iso => { const d=daysSince(iso);
+  return d<=0?"read today":d===1?"read yesterday":"read "+d+" days ago"; };
 const longDate = iso => new Date(iso+"T00:00:00")
+  .toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
+const shortDate = iso => new Date(iso+"T00:00:00")
   .toLocaleDateString(undefined,{day:"numeric",month:"long"});
 
-/* ---------- render ---------- */
+/* ---------- desk ---------- */
 function jobHTML(j, tickable){
   const isDone = tickable && done[j.id];
   const sev = j.sev==="stop" ? '<span class="pill pill-stop">Needs you</span>'
@@ -280,140 +347,187 @@ function jobHTML(j, tickable){
               :`<span aria-hidden="true"></span>`}
     <h3 class="job-title">${esc(j.title)}</h3>
     <p class="job-body">${esc(j.body)}</p>
-    <div class="job-meta">${sev}
-      <span class="pill pill-plain">${esc(j.tag)}</span>
-      <span class="pill pill-plain">${esc(agoWords(j.read))}</span></div>
-  </article>`;
+    <div class="job-meta">${sev}<span class="pill pill-plain">${esc(j.tag)}</span>
+      <span class="pill pill-plain">${esc(agoWords(j.read))}</span></div></article>`;
 }
 
-function render(){
-  if (!DATA){ $("#empty").classList.remove("hide"); $("#app").classList.add("hide");
-    $("#tools").classList.add("hide"); $("#standfirst").textContent =
-    "Nothing is stored here. A desk arrives through a private link."; return; }
-  $("#empty").classList.add("hide"); $("#app").classList.remove("hide");
-  $("#tools").classList.remove("hide");
+function renderDesk(){
+  const has = !!DESK;
+  $("#deskEmpty").classList.toggle("hide", has);
+  $("#deskBody").classList.toggle("hide", !has);
+  $("#shopEmpty").classList.toggle("hide", has);
+  $("#shopBody").classList.toggle("hide", !has);
+  $("#moneyEmpty").classList.toggle("hide", has);
+  $("#moneyBody").classList.toggle("hide", !has);
+  if (!has){ $("#deskDot").classList.add("hide"); return; }
 
-  const W = DATA.waiting||[], B = DATA.blocked||[], R = DATA.readings||[],
-        M = DATA.money||[], N = DATA.never||[];
+  const W = DESK.waiting||[], B = DESK.blocked||[], R = DESK.readings||[],
+        M = DESK.money||[], N = DESK.never||[];
 
-  $("#waiting").innerHTML = W.filter(j=>!(hidingDone && done[j.id]))
-    .map(j=>jobHTML(j,true)).join("") ||
-    `<p class="sec-note" style="padding:18px 0">Nothing waiting on you.</p>`;
+  $("#waiting").innerHTML = W.filter(j=>!(hidingDone&&done[j.id])).map(j=>jobHTML(j,true)).join("")
+    || `<p class="sec-note" style="padding:18px 0">Nothing waiting on you.</p>`;
   $("#blocked").innerHTML = B.map(j=>jobHTML(j,false)).join("");
   $("#blockedSec").classList.toggle("hide", B.length===0);
 
   const open = W.filter(j=>!done[j.id]).length;
   $("#waitingCount").textContent = open+" of "+W.length+" still open";
-  $("#standfirst").textContent = (open===0
-    ? "Nothing is waiting on you."
-    : open+(open===1?" thing is waiting on you.":" things are waiting on you."))
-    + " Every fact below carries the day it was read.";
+  $("#deskDot").classList.toggle("hide", open===0);
 
   $("#readings").innerHTML = R.map(r=>{
     const stale = daysSince(r.read) > (r.stale||7);
-    return `<div class="reading">
-      <p class="r-label">${esc(r.label)}</p>
-      <p class="r-value">${esc(r.value)}<br>
-        <span style="color:var(--ink-faint);font-size:13.5px">${esc(r.note||"")}</span></p>
-      <div class="r-when"><span class="r-date">${esc(longDate(r.read))}</span>
-        <span class="pill ${stale?"pill-stale":"pill-ok"}">${stale?"Go and look again":esc(agoWords(r.read))}</span>
-      </div></div>`;
-  }).join("");
+    return `<div class="reading"><p class="r-label">${esc(r.label)}</p>
+      <p class="r-value">${esc(r.value)}<br><span style="color:var(--ink-faint);font-size:13.5px">${esc(r.note||"")}</span></p>
+      <div class="r-when"><span class="r-date">${esc(shortDate(r.read))}</span>
+      <span class="pill ${stale?"pill-stale":"pill-ok"}">${stale?"Go and look again":esc(agoWords(r.read))}</span>
+      </div></div>`; }).join("");
 
   $("#money").innerHTML = M.map(m=>`<div class="m-cell">
     <p class="m-figure" style="color:${m.sev==="watch"?"var(--watch)":m.sev==="cool"?"var(--accent)":"var(--ink)"}">${esc(m.figure)}</p>
     <p class="m-label">${esc(m.label)}</p></div>`).join("");
-  $("#moneySec").classList.toggle("hide", M.length===0);
 
   $("#never").innerHTML = N.map(n=>`<div class="never"><h3>${esc(n.product)}</h3>
     <p>${esc(n.why)}<span class="ruling">${esc(n.ruling)}</span></p></div>`).join("");
   $("#neverSec").classList.toggle("hide", N.length===0);
 
-  $("#todayLine").textContent = new Date()
-    .toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
-  const age = daysSince(DATA.built);
+  const age = daysSince(DESK.built);
   $("#asOf").textContent = age<=0
-    ? "Read on or before "+longDate(DATA.built)+", and written up today."
-    : "This desk was last rebuilt "+age+(age===1?" day":" days")+" ago, on "+longDate(DATA.built)
+    ? "Read on or before "+shortDate(DESK.built)+", and written up today."
+    : "This desk was last rebuilt "+age+(age===1?" day":" days")+" ago, on "+shortDate(DESK.built)
       +". Ask for a rebuild and the figures are re-read off the live accounts.";
-  renderNotes();
+}
+
+/* ---------- newspaper ---------- */
+function renderNews(){
+  const has = !!NEWS;
+  $("#newsEmpty").classList.toggle("hide", has);
+  $("#newsBody").classList.toggle("hide", !has);
+  if (!has) return;
+  $("#newsCaveat").innerHTML = NEWS.caveat ? `<div class="caveat">${esc(NEWS.caveat)}</div>` : "";
+  $("#stories").innerHTML = (NEWS.stories||[]).map(s=>`<article class="story">
+    <h3>${esc(s.h)}</h3>
+    ${s.p?`<p class="lede">${esc(s.p)}</p>`:""}
+    ${s.pts&&s.pts.length?`<ul>${s.pts.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>`:""}
+  </article>`).join("");
+  const age = daysSince(NEWS.date);
+  $("#newsFoot").textContent = age<=0 ? "This morning's edition."
+    : age===1 ? "Yesterday's edition." : "This edition is "+age+" days old.";
+}
+
+/* ---------- chrome ---------- */
+const TITLES = {
+  desk:  ["Rachie's Desk", d => { const W=(d&&d.waiting)||[], o=W.filter(j=>!done[j.id]).length;
+           return !d ? "Nothing is stored here. A desk arrives through a private link."
+                : (o===0?"Nothing is waiting on you.":o+(o===1?" thing is waiting on you.":" things are waiting on you."))
+                  +" Every fact carries the day it was read."; }],
+  news:  ["The Paper", () => NEWS ? (NEWS.title || "Your daily digest")
+           + (NEWS.minutes ? " — " + NEWS.minutes.replace(/^About a/,"about a") : "")
+           : "No edition has been loaded yet."],
+  shop:  ["Your Shop", () => "What is true today, and what was already decided."],
+  money: ["Money", () => "Only figures somebody read off a real account."],
+  notes: ["Notes", () => "Anything you want the next session to know."]
+};
+
+function setTab(t){
+  tab = t; save();
+  $$("nav.tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab===t));
+  $$("section.panel").forEach(p => p.classList.toggle("on", p.id === "p-"+t));
+  const [title, sub] = TITLES[t];
+  $("#pageTitle").textContent = title;
+  $("#standfirst").textContent = sub(t==="desk"?DESK:null);
+  $("#todayLine").textContent = t==="news" && NEWS
+    ? longDate(NEWS.date)
+    : new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
+  $("#hideDone").classList.toggle("hide", t!=="desk");
+  $("#tools").classList.toggle("hide", !(t==="desk"?DESK:t==="news"?NEWS:false));
+  window.scrollTo(0,0);
+  speechSynthesis && speechSynthesis.cancel();
+  $("#speak").hidden=false; $("#stopBtn").hidden=true;
+}
+
+/* ---------- read aloud: whatever is on screen ---------- */
+function script(){
+  if (tab==="news" && NEWS){
+    const b=["Here is the paper."+(NEWS.title?" "+NEWS.title+".":"")];
+    if (NEWS.caveat) b.push("One note first. "+NEWS.caveat);
+    (NEWS.stories||[]).forEach(s=>{ b.push(s.h+"."); if(s.p) b.push(s.p);
+      (s.pts||[]).forEach(p=>b.push(p)); });
+    return b.join(" ");
+  }
+  if (!DESK) return "Nothing is loaded yet.";
+  const W=(DESK.waiting||[]).filter(j=>!done[j.id]);
+  if (tab==="money"){
+    return "Money. "+(DESK.money||[]).map(m=>m.figure+". "+m.label).join(" ");
+  }
+  if (tab==="shop"){
+    const b=["What is true today."];
+    (DESK.readings||[]).forEach(r=>{ const stale=daysSince(r.read)>(r.stale||7);
+      b.push(r.label+". "+r.value+" That was "+agoWords(r.read)+"."
+        +(stale?" That is past its use-by, so treat it as needing another look.":"")); });
+    (DESK.never||[]).forEach(n=>b.push("Do not list. "+n.product+". "+n.why));
+    return b.join(" ");
+  }
+  const b=["Here is your desk."];
+  b.push(W.length===0?"Nothing is waiting on you."
+    :W.length===1?"One thing is waiting on you.":W.length+" things are waiting on you.");
+  W.forEach((j,i)=>b.push("Number "+(i+1)+". "+j.title+". "+j.body));
+  (DESK.blocked||[]).forEach(j=>b.push("Not yours to fix. "+j.title+". "+j.body));
+  return b.join(" ");
+}
+function speak(){
+  if (!("speechSynthesis" in window)){ toast("This browser cannot read aloud."); return; }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(script()); u.rate = 0.98;
+  u.onend = ()=>{ $("#speak").hidden=false; $("#stopBtn").hidden=true; };
+  $("#speak").hidden=true; $("#stopBtn").hidden=false;
+  speechSynthesis.speak(u);
 }
 
 function renderNotes(){
   $("#notes").innerHTML = notes.slice().reverse().map(n=>
     `<li>${esc(n.text)}<time>${esc(new Date(n.at).toLocaleString())}</time></li>`).join("");
 }
-
-/* ---------- read aloud ---------- */
-function script(){
-  const W=(DATA.waiting||[]).filter(j=>!done[j.id]), B=DATA.blocked||[], R=DATA.readings||[];
-  const b=["Here is your desk."];
-  b.push(W.length===0?"Nothing is waiting on you."
-       :W.length===1?"One thing is waiting on you.":W.length+" things are waiting on you.");
-  W.forEach((j,i)=>b.push("Number "+(i+1)+". "+j.title+". "+j.body));
-  B.forEach(j=>b.push("Not yours to fix. "+j.title+". "+j.body));
-  if (R.length) b.push("Now what is true today.");
-  R.forEach(r=>{
-    const stale = daysSince(r.read) > (r.stale||7);
-    b.push(r.label+". "+r.value+" That was "+agoWords(r.read)+"."
-      +(stale?" That is past its use-by, so treat it as needing another look.":""));
-  });
-  (DATA.money||[]).forEach(m=>b.push(m.figure+". "+m.label));
-  return b.join(" ");
-}
-function speak(){
-  if (!("speechSynthesis" in window)){ $("#speak").textContent="This browser cannot read aloud"; return; }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(script());
-  u.rate=0.98;
-  u.onend = ()=>{ $("#speak").hidden=false; $("#stopBtn").hidden=true; };
-  $("#speak").hidden=true; $("#stopBtn").hidden=false;
-  speechSynthesis.speak(u);
+let toastTimer;
+function toast(msg){
+  let el = $("#toast"); if (!el){ el=document.createElement("div"); el.id="toast"; document.body.appendChild(el); }
+  el.textContent = msg; el.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ el.hidden = true; }, 3600);
 }
 
-/* ---------- install prompt ---------- */
-let deferred = null;
-const standalone = window.matchMedia("(display-mode: standalone)").matches
-  || window.navigator.standalone === true;
-function maybeOfferInstall(){
-  if (standalone || localStorage.getItem("desk.noinstall")==="1") return;
-  const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-  if (deferred){ $("#installGo").hidden=false;
-    $("#installText").textContent="Add Desk to your home screen."; $("#installBar").hidden=false; }
-  else if (iOS){ $("#installText").textContent="To keep it: tap Share, then Add to Home Screen.";
-    $("#installBar").hidden=false; }
-}
-window.addEventListener("beforeinstallprompt", e=>{ e.preventDefault(); deferred=e; maybeOfferInstall(); });
+/* ---------- go ---------- */
+(async function(){
+  readStore();
+  const landed = await takeFragment();
+  if (landed) readStore();
+  renderDesk(); renderNews(); renderNotes();
+  setTab(landed || tab);
+  if (landed) toast(landed==="news" ? "Today's paper loaded." : "Your desk loaded.");
+})();
 
-/* ---------- wiring ---------- */
-load(); render();
-
+$("#tabs").addEventListener("click", e=>{
+  const b = e.target.closest("button[data-tab]"); if (b) setTab(b.dataset.tab);
+});
 $("#waiting").addEventListener("change", e=>{
   if (!e.target.classList.contains("tick")) return;
   done[e.target.closest(".job").dataset.id] = e.target.checked;
-  save(); render();
+  save(); renderDesk(); setTab("desk");
 });
 $("#speak").addEventListener("click", speak);
 $("#stopBtn").addEventListener("click", ()=>{ speechSynthesis.cancel();
   $("#speak").hidden=false; $("#stopBtn").hidden=true; });
 $("#hideDone").addEventListener("click", e=>{ hidingDone=!hidingDone;
-  e.target.textContent = hidingDone?"Show ticked":"Hide ticked"; render(); });
+  e.target.textContent = hidingDone?"Show ticked":"Hide ticked"; renderDesk(); });
 $("#addNote").addEventListener("click", ()=>{
   const t=$("#noteBox").value.trim(); if(!t) return;
-  notes.push({text:t, at:new Date().toISOString()}); $("#noteBox").value=""; save(); renderNotes();
+  notes.push({text:t, at:new Date().toISOString()}); $("#noteBox").value="";
+  save(); renderNotes(); toast("Saved.");
 });
-$("#installGo").addEventListener("click", async ()=>{
-  if (!deferred) return; deferred.prompt(); await deferred.userChoice;
-  deferred=null; $("#installBar").hidden=true;
+window.addEventListener("hashchange", async ()=>{
+  const landed = await takeFragment();
+  if (landed){ readStore(); renderDesk(); renderNews(); setTab(landed);
+    toast(landed==="news" ? "Today's paper loaded." : "Your desk loaded."); }
 });
-$("#installX").addEventListener("click", ()=>{
-  localStorage.setItem("desk.noinstall","1"); $("#installBar").hidden=true;
-});
-setTimeout(maybeOfferInstall, 1200);
-
-if ("serviceWorker" in navigator){
+if ("serviceWorker" in navigator)
   window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
-}
 </script>
 </body>
 </html>
