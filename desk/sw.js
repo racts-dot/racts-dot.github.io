@@ -1,7 +1,7 @@
 /* Rachie's Desk - offline shell.
    Caches the app itself so it opens with no signal. It never caches her data:
    the desk contents live in this device's own storage, not in here. */
-const CACHE = "desk-v2";
+const CACHE = "desk-v3";
 const SHELL = [
   "./",
   "./index.html",

@@ -250,11 +250,14 @@ nav.tabs button .dot{position:absolute;transform:translate(14px,-4px);width:7px;
   <section class="panel" id="p-notes">
     <div class="block">
       <div class="sec-head"><h2>Tell me something</h2>
-        <p class="sec-note">Anything the next session should know. Stays on this device.</p></div>
+        <p class="sec-note">Saved on this phone only. It does not reach Claude by itself &mdash; use Send to Claude below.</p></div>
       <textarea id="noteBox" placeholder="Type it however it comes out."></textarea>
-      <div class="tools"><button id="addNote">Save note</button></div>
+      <div class="tools"><button id="addNote">Save note</button>
+        <button id="copyNotes" class="ghost">Send to Claude</button></div>
       <ul class="notes-list" id="notes"></ul>
-      <footer>Everything you tick or type stays on this phone. Nothing is uploaded.</footer>
+      <footer>Everything you tick or type stays on this phone. Nothing is uploaded, and nothing
+        is sent anywhere on its own. <b>Send to Claude</b> copies your notes so you can paste them
+        into a chat &mdash; that one paste is the only way they reach him.</footer>
     </div>
   </section>
 </div>
@@ -516,6 +519,24 @@ $("#stopBtn").addEventListener("click", ()=>{ speechSynthesis.cancel();
   $("#speak").hidden=false; $("#stopBtn").hidden=true; });
 $("#hideDone").addEventListener("click", e=>{ hidingDone=!hidingDone;
   e.target.textContent = hidingDone?"Show ticked":"Hide ticked"; renderDesk(); });
+$("#copyNotes").addEventListener("click", async ()=>{
+  if (!notes.length){ toast("No notes to send yet."); return; }
+  const text = "Notes from my Desk app:
+
+" + notes.map(n =>
+    "- " + n.text + "  (" + new Date(n.at).toLocaleString() + ")").join("
+");
+  try {
+    await navigator.clipboard.writeText(text);
+    toast("Copied. Paste it into a chat with Claude.");
+  } catch (e) {
+    // Clipboard is blocked in some in-app browsers. Select it instead so a
+    // long-press copy still works - never leave her with a dead button.
+    const ta = $("#noteBox");
+    ta.value = text; ta.focus(); ta.select();
+    toast("Could not copy. It is in the box above - copy it by hand.");
+  }
+});
 $("#addNote").addEventListener("click", ()=>{
   const t=$("#noteBox").value.trim(); if(!t) return;
   notes.push({text:t, at:new Date().toISOString()}); $("#noteBox").value="";
