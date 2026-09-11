@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-11 19:31",
+ "generated_at": "2026-09-11 20:01",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
-  "spent_usd": 19.06,
+  "spent_usd": 19.25,
   "authorized_usd": 40.0,
-  "pct": 47.7,
-  "runs": 322,
+  "pct": 48.1,
+  "runs": 324,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 11.77,
+    "spent_usd": 11.92,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.29,
+    "spent_usd": 7.33,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -46,10 +46,10 @@
    },
    {
     "task": "Planners, diary and caregiver kits",
-    "runs": 37,
-    "usd": 1.87,
+    "runs": 39,
+    "usd": 2.05,
     "first": "2026-08-31",
-    "last": "2026-09-10"
+    "last": "2026-09-11"
    },
    {
     "task": "Etsy listings, titles and SEO",
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 19.47,
+  "attributed_usd": 19.66,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 19:31",
+  "read_at": "2026-09-11 20:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 8,
-  "last_commit": "7b04d01 Nightly automatic backup: 2 file(s)",
-  "last_commit_at": "2026-09-11T19:30:15+09:30"
+  "uncommitted_files": 5,
+  "last_commit": "535681c Registry: the 2027 planner is listed, with what was fixed on the way there Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>",
+  "last_commit_at": "2026-09-11T20:01:13+09:30"
  },
  "facts": {
   "available": true,
@@ -338,6 +338,43 @@
   ],
   "stale_count": 0
  },
+ "runways": {
+  "available": true,
+  "runways": [
+   {
+    "id": "openai_api",
+    "label": "OpenAI API spend limit",
+    "unit": "US$",
+    "as_of": "2026-09-11",
+    "read_days_ago": 0,
+    "read_stale": false,
+    "left_when_read": 1.24,
+    "of_total": 25.0,
+    "per_day": 2.86,
+    "left_now": 1.24,
+    "days_left": 0.4,
+    "refills_on": "2026-09-30",
+    "what_happens": "The AI reviews stop. Auto-reload is OFF and the US$25 limit stops them sooner, so it STOPS rather than bills - two brakes, no runaway.",
+    "where_read": "platform.openai.com limits and usage pages, read in Chrome on the MacBook 2026-09-11"
+   },
+   {
+    "id": "google_vertex_credit",
+    "label": "Google Vertex free credit",
+    "unit": "A$",
+    "as_of": "2026-09-11",
+    "read_days_ago": 0,
+    "read_stale": false,
+    "left_when_read": 167.45,
+    "of_total": 431.69,
+    "per_day": 12.46,
+    "left_now": 167.45,
+    "days_left": 13.4,
+    "refills_on": null,
+    "what_happens": "Google starts charging real money, and NO spend cap is set on Vertex today. This one CAN run away.",
+    "where_read": "Google Cloud billing console, signed in as rachierachies7, read 2026-09-11. Burn rate agreed two ways: $264.24 over 21 days and A$111.08 over 9 days."
+   }
+  ]
+ },
  "not_established": [
   {
    "what": "Etsy listing fees",
@@ -381,6 +418,11 @@
    "severity": "stop",
    "what": "The Quiet Atlas AI-content declaration still reads 'No'",
    "why": "Waiting on: Rachel - it is an edit to a live book a buyer can see"
+  },
+  {
+   "severity": "stop",
+   "what": "OpenAI API spend limit runs out within a day - about US$1.24 left, spending US$2.86 a day",
+   "why": "The AI reviews stop. Auto-reload is OFF and the US$25 limit stops them sooner, so it STOPS rather than bills - two brakes, no runaway."
   },
   {
    "severity": "watch",
