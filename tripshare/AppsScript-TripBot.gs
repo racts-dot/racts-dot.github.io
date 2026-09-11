@@ -16,15 +16,24 @@
  *   out: { ok: true, items: [ {d,k,t,s,e,l,n}, ... ] }
  *
  * WHAT PROTECTS THE MONEY (all four, not one)
- *   1. DAILY_CALL_CAP    - a hard ceiling on calls per day. The spend cannot
- *                          exceed cap x cost-per-call, whatever anyone does.
+ *   1. DAILY_CALL_CAP    - a hard ceiling on CALLS per day. It bounds calls
+ *                          exactly; it bounds DOLLARS only at today's prices.
+ *                          It is also a DAILY limit, not a total one: an
+ *                          attacker who returns every day pays it every day.
  *   2. MAX_INPUT_CHARS   - a stranger cannot post a novel and be billed for it.
  *   3. MAX_OUTPUT_TOKENS - caps the expensive half of every single call.
  *   4. MIN_MS_BETWEEN    - slows a rapid loop without blocking a real person.
  *
  * HONEST LIMIT, stated rather than hidden: this endpoint is public, so a
- * determined abuser can still burn the daily cap. The cap is what protects the
- * account - it makes the worst case a KNOWN SMALL NUMBER per day, not zero.
+ * determined abuser can still burn the daily cap - about 2.5 minutes of work at
+ * MIN_MS_BETWEEN. The cap makes the worst case a KNOWN SMALL NUMBER PER DAY,
+ * not zero and not a total. Sustained daily abuse is roughly US$7-9 a month.
+ * There is no stronger guard available here without making people log in, which
+ * this app deliberately does not do.
+ *
+ * ⛔ TO TURN IT OFF IN A HURRY: set the Script Property ENABLED to "no".
+ * That takes effect on the very next request. Nothing needs re-deploying and
+ * the website does not need editing. See TRIPBOT-DEPLOY.md.
  */
 
 /* ---------- the settings you may want to change ---------- */
@@ -32,19 +41,33 @@
 var MODEL = 'gpt-5.6-luna';
 /* $0.20 in / $1.20 out per 1M tokens, read off OpenAI's live pricing page
    8 Sep 2026 and recorded in review_board/ask_openai_api.py as VERIFIED.
-   TYPICAL and WORST are different numbers and this file used to give only the
-   first. A typical itinerary is ~1,000 in / ~1,500 out, about US$0.002.
-   The WORST a single call can cost is set by MAX_OUTPUT_TOKENS, not by the
-   typical case: 2,000 output tokens is US$0.0024 on its own, before input.
-   Quote the worst case when talking about the cap. */
 
-var DAILY_CALL_CAP    = 100;   /* THE SPEND CEILING. See WORST_CASE_PER_CALL_USD
-                                  below - a full day is about US$0.26, NOT the
-                                  US$0.20 this comment claimed until 11 Sep. */
+   ⭐ MEASURED 11 Sep 2026 by two real calls to this exact model with this exact
+   SYSTEM_PROMPT: 692 prompt + 1,129 completion tokens for TWO plans, total
+   US$0.00149. So a typical plan is about US$0.00075 - well under half the
+   US$0.002 this comment used to claim. The old figure was an estimate written
+   before anything had been called. */
+
+var DAILY_CALL_CAP    = 100;
+/* THE CALL CEILING. It caps CALLS exactly. In DOLLARS it is only an estimate:
+   at MAX_OUTPUT_TOKENS a single call can cost about US$0.0024 of output alone,
+   so a fully consumed day is nearer US$0.25 than the US$0.20 once written here,
+   before input tokens, tax or any future price change. Typical measured use is
+   far lower, about US$0.08 for a full 100 calls. Both numbers are estimates at
+   today's quoted prices - only the call count is enforced. */
 var MAX_INPUT_CHARS   = 1200;
 var MAX_OUTPUT_TOKENS = 2000;
 var MIN_MS_BETWEEN    = 1500;
 var MAX_ITEMS         = 40;
+var MONTHLY_CALL_CAP  = 1000;
+/* ⚠ BOTH CAPS RESET ON A UTC CLOCK, NOT A LOCAL ONE. Raised by an outside
+   reviewer 11 Sep 2026: a persistent abuser can use one day's allowance just
+   before UTC midnight and the next day's just after, so the real short-term
+   worst case is about two days' worth back to back. The monthly cap is what
+   stops that mattering much. */
+/* The second ceiling, and the one that bounds UNATTENDED exposure. The daily
+   cap alone lets a persistent abuser spend it again every single day; this caps
+   the month as well, so the worst case is a month's worth, not a year's. */
 
 /* ---------- nothing below here needs editing ---------- */
 
@@ -97,14 +120,10 @@ function doPost(e) {
     var endDate   = isoOrToday_(body.end);
     if (endDate < startDate) endDate = startDate;
 
-    /* THE KILL SWITCH. Set the Script Property ENABLED to "no" and the planner
-       stops answering within seconds - no re-deploy, no editing the website, no
-       git push. Checked BEFORE the spend gate so switching off does not burn a
-       counted call. Absent or anything other than "no" means on, so an
-       accidentally deleted property cannot silently disable the feature. */
-    if (String(PROP.getProperty('ENABLED') || '').toLowerCase() === 'no') {
-      return respond({ ok: false, capped: true,
-        error: 'The planner is switched off at the moment.' });
+    if (String(PROP.getProperty('ENABLED') || 'yes').toLowerCase() === 'no') {
+      /* The owner's off switch. Checked BEFORE the spend gate so switching off
+         cannot be worked around and costs nothing to enforce. */
+      return respond({ ok: false, error: 'The planner is switched off at the moment.' });
     }
 
     var gate = spendGate_();
@@ -166,15 +185,15 @@ function doPost(e) {
 
     if (!content) return respond({ ok: false, error: 'The planner returned nothing usable.' });
 
-    var items = extractItems_(content, startDate, endDate);
-    if (!items.length) {
+    var got = extractItems_(content, startDate, endDate);
+    if (!got.items.length) {
       return respond({
         ok: false,
-        error: 'The planner could not turn that into itinerary items. Try naming the days.'
+        error: 'The planner did not produce usable suggestions. Try again, or add items by hand.'
       });
     }
 
-    return respond({ ok: true, items: items });
+    return respond({ ok: true, items: got.items, dropped: got.dropped });
 
   } catch (err) {
     console.error('doPost threw: ' + err);
@@ -206,10 +225,22 @@ function spendGate_() {
     var used = Number(PROP.getProperty('countUsed') || 0);
     if (day !== today) { day = today; used = 0; }
 
+    var thisMonth = today.slice(0, 7);
+    var mon     = PROP.getProperty('countMonth');
+    var monUsed = Number(PROP.getProperty('countMonthUsed') || 0);
+    if (mon !== thisMonth) { mon = thisMonth; monUsed = 0; }
+
     if (used >= DAILY_CALL_CAP) {
       return {
         ok: false,
         error: 'The planner has reached its limit for today. It resets tomorrow.'
+      };
+    }
+
+    if (monUsed >= MONTHLY_CALL_CAP) {
+      return {
+        ok: false,
+        error: 'The planner has reached its limit for this month.'
       };
     }
 
@@ -218,6 +249,8 @@ function spendGate_() {
     PROP.setProperties({
       countDay: day,
       countUsed: String(used + 1),
+      countMonth: mon,
+      countMonthUsed: String(monUsed + 1),
       lastCallMs: String(now)
     });
     return { ok: true };
@@ -228,25 +261,39 @@ function spendGate_() {
 
 /* Pull the items out and force every field into the shape TripShare stores.
    The model is an untrusted source like any other: nothing it returns is
-   written through without being checked here first. */
+   written through without being checked here first.
+
+   Returns { items: [...], dropped: n } so the caller can say something true
+   about what was thrown away instead of quietly shortening the list. */
 function extractItems_(raw, startDate, endDate) {
   var obj;
   try {
     obj = JSON.parse(raw);
   } catch (e) {
     var m = raw.match(/\{[\s\S]*\}/);
-    if (!m) return [];
-    try { obj = JSON.parse(m[0]); } catch (e2) { return []; }
+    if (!m) return { items: [], dropped: 0 };
+    try { obj = JSON.parse(m[0]); } catch (e2) { return { items: [], dropped: 0 }; }
   }
 
-  var list = (obj && Array.isArray(obj.items)) ? obj.items : [];
-  var out = [];
-  for (var i = 0; i < list.length && out.length < MAX_ITEMS; i++) {
+  var list = itemList_(obj);
+  var out = [], dropped = 0;
+  for (var i = 0; i < list.length; i++) {
+    if (out.length >= MAX_ITEMS) { dropped++; continue; }
     var a = list[i] || {};
-    var d = isoDate_(a.d);
-    if (!d || d < startDate || d > endDate) d = startDate;
     var title = str_(a.t, 90);
-    if (!title) continue;
+    if (!title) { dropped++; continue; }
+
+    /* ⛔ REJECTED, NOT MOVED. This used to read:
+           if (!d || d < startDate || d > endDate) d = startDate;
+       A LIVE ADVERSARIAL RUN on 11 Sep 2026 fed it an item dated 2027-01-01 on
+       an April trip and watched it come back dated the first day of the trip -
+       a plausible-looking entry on a date nobody chose. A wrong date that looks
+       deliberate is worse than a missing item, because the preview cannot show
+       the difference and the traveller has no way to know. If the model cannot
+       schedule an item inside the trip, that item does not survive. */
+    var d = isoDate_(a.d);
+    if (!d || d < startDate || d > endDate) { dropped++; continue; }
+
     out.push({
       d: d,
       k: knownKind_(a.k),
@@ -257,7 +304,27 @@ function extractItems_(raw, startDate, endDate) {
       n: str_(a.n, 500)
     });
   }
-  return out;
+  return { items: out, dropped: dropped };
+}
+
+/* The agreed shape is {"items":[...]}, and two real calls on 11 Sep 2026 both
+   returned exactly that. But response_format:json_object guarantees only that
+   the reply is VALID JSON - never that the root key is the one we asked for.
+   A reply of {"itinerary":[...]} used to yield zero items and an error blaming
+   the traveller's wording for a fault that was not theirs. So: take obj.items
+   when it is there, otherwise a bare top-level array, otherwise the first array
+   of objects anywhere in the object. Nothing here trusts the CONTENT - every
+   field is still checked above. */
+function itemList_(obj) {
+  if (!obj) return [];
+  if (Array.isArray(obj)) return obj;
+  if (Array.isArray(obj.items)) return obj.items;
+  for (var k in obj) {
+    if (!Object.prototype.hasOwnProperty.call(obj, k)) continue;
+    var v = obj[k];
+    if (Array.isArray(v) && v.length && v[0] && typeof v[0] === 'object') return v;
+  }
+  return [];
 }
 
 function knownKind_(v) {
@@ -293,23 +360,30 @@ function respond(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-/** Run this from the editor to see today's usage without touching the site. */
+/** Run this from the editor to see today's usage without touching the site.
+    Every dollar figure below is an ESTIMATE at today's quoted prices. Only the
+    call counts are enforced. */
 function checkUsage() {
   var today = Utilities.formatDate(new Date(), 'Etc/UTC', 'yyyy-MM-dd');
   var day   = PROP.getProperty('countDay');
   var used  = Number(PROP.getProperty('countUsed') || 0);
   if (day !== today) used = 0;
-  /* The CAP has to be priced at the worst a call can cost, not the typical one.
-     MAX_OUTPUT_TOKENS output tokens at $1.20/1M, plus roughly 1,000 input
-     tokens at $0.20/1M. Printing the typical figure against the cap is what
-     produced the understated "US$0.20/day" quoted to the owner. */
-  var worstPerCall = (MAX_OUTPUT_TOKENS * 1.20 + 1000 * 0.20) / 1000000;
-  var typicalPerCall = 0.002;
-  Logger.log('Today (' + today + '): ' + used + ' of ' + DAILY_CALL_CAP + ' calls used.');
-  Logger.log('Estimated spend today: about US$' + (used * typicalPerCall).toFixed(3) +
-             ' (typical calls), up to US$' + (used * worstPerCall).toFixed(3) + ' (worst).');
-  Logger.log('WORST CASE if the cap is hit: about US$' +
-             (DAILY_CALL_CAP * worstPerCall).toFixed(2) + ' per day.');
-  Logger.log('NOTE: the day resets at UTC midnight, so a persistent abuser can');
-  Logger.log('      use one day either side of it in quick succession.');
+
+  var mon     = PROP.getProperty('countMonth');
+  var monUsed = Number(PROP.getProperty('countMonthUsed') || 0);
+  if (mon !== today.slice(0, 7)) monUsed = 0;
+
+  var TYPICAL = 0.00075;  /* measured, two real calls, 11 Sep 2026 */
+  var WORST   = 0.0025;   /* MAX_OUTPUT_TOKENS of output plus a full input */
+
+  Logger.log('Switched on: ' + String(PROP.getProperty('ENABLED') || 'yes'));
+  Logger.log('Today (' + today + '): ' + used + ' of ' + DAILY_CALL_CAP + ' calls.');
+  Logger.log('This month: ' + monUsed + ' of ' + MONTHLY_CALL_CAP + ' calls.');
+  Logger.log('Spend today, estimated: about US$' + (used * TYPICAL).toFixed(4) +
+             ' typical, up to about US$' + (used * WORST).toFixed(4) + '.');
+  Logger.log('If the DAILY cap were hit: about US$' + (DAILY_CALL_CAP * TYPICAL).toFixed(2) +
+             ' typical, up to about US$' + (DAILY_CALL_CAP * WORST).toFixed(2) + '.');
+  Logger.log('If the MONTHLY cap were hit: up to about US$' +
+             (MONTHLY_CALL_CAP * WORST).toFixed(2) + ' - that is the ceiling on');
+  Logger.log('what sustained abuse can cost in one month.');
 }

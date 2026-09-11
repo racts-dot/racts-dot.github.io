@@ -94,25 +94,33 @@ git add -A && git commit -m "Turn the TripShare planner on" && git push
 |---|---|
 | Model | `gpt-5.6-luna` |
 | Price | **$0.20 in / $1.20 out per 1M tokens** — read off OpenAI's live pricing page 8 Sep 2026 |
-| One plan, typical | about **US$0.002** |
-| **One plan, worst it can be** | **about US$0.0026** — set by `MAX_OUTPUT_TOKENS`, not by the typical case |
-| Daily limit | **100 plans**, set by `DAILY_CALL_CAP` in the script |
-| **Worst case per day** | **about US$0.26** |
-| Worst case per month | about **US$8** |
+| One plan, **measured** | about **US$0.00075** — under a tenth of a US cent |
+| One plan, worst case | about **US$0.0025** if it writes the longest answer allowed |
+| Daily limit | **100 plans**, set by `DAILY_CALL_CAP` |
+| Monthly limit | **1,000 plans**, set by `MONTHLY_CALL_CAP` |
+| Busiest realistic day | about **US$0.08** |
+| Worst possible day | about **US$0.25** |
+| **Worst possible month** | **about US$2.50** — this is the real ceiling |
 
-⛔ **The US$0.20/day and US$6/month written here until 11 Sep 2026 were WRONG, and
-wrong in the direction that flatters.** They were the *typical* cost multiplied by
-the cap. A cap has to be priced at the worst a call can cost: 2,000 output tokens
-is US$0.0024 on its own, before a single input token. Found by an outside reviewer,
-not by us.
+⭐ **The "one plan" figure is measured, not guessed `[MEASURED 2026-09-11]`.** Two
+real calls to this exact model with this exact prompt used 692 tokens in and
+1,129 out, costing **US$0.00149 for both**. The doc used to say US$0.002 a plan,
+which was written before anything had ever been called and was nearly three
+times too high.
 
-⚠ **And the day resets at UTC midnight, not yours.** Someone who wanted to could
-use one day's allowance just before it and the next day's just after, so the real
-short-term worst case is about **two days' worth back to back**.
+⛔ **But the OLD "worst case US$0.20/day" was too LOW, and that is the one that
+mattered.** A single call is allowed 2,000 tokens of answer, and 2,000 × $1.20
+per million is US$0.0024 of output on its own — so a fully used day is nearer
+**25 cents than 20**, before the input side. The daily cap counts CALLS exactly.
+It only estimates DOLLARS, and only at today's prices.
 
-**To spend less, lower `DAILY_CALL_CAP`.** It is the ceiling: the script counts
-every call *before* it makes it, so the number cannot be beaten by bad luck or
-by two people clicking at once.
+⛔ **And it is a DAILY limit, not a total one.** Somebody who comes back every
+day pays it every day. That is why `MONTHLY_CALL_CAP` now exists: it is the
+thing that stops a bad month becoming a bad year.
+
+**To spend less, lower `DAILY_CALL_CAP`.** The script counts every call *before*
+it makes it, so the number cannot be beaten by bad luck or by two people
+clicking at once.
 
 ### To see what it has actually used
 
@@ -129,49 +137,68 @@ press **Run**. Then **View → Logs**. It prints today's count and the spend.
 | `MAX_INPUT_CHARS` | nobody can post a novel and have you billed for it |
 | `MAX_OUTPUT_TOKENS` | caps the expensive half of every single call |
 | `MIN_MS_BETWEEN` | slows a rapid loop without blocking a real person |
+| `MONTHLY_CALL_CAP` | the ceiling on a whole month, so daily abuse cannot repeat forever |
+| `ENABLED` | your off switch — see below |
 
 ⚠ **Honest limit, said plainly rather than hidden:** the door is open to
-strangers, so somebody determined could still use up the daily allowance. The
-cap is what protects you — it makes the worst case **a known small number per
-day**, not zero. If that ever happens, lower the cap or take the URL out of the
-page.
+strangers, so somebody determined could still use up the daily allowance — about
+two and a half minutes of clicking. The caps are what protect you: they make the
+worst case **a known small number**, not zero. Sustained abuse costs roughly
+**US$2.50 a month at most**, and the visible effect is that the planner stops
+answering for everybody until the next day.
 
-🚨 **"Nothing else breaks" was WRONG, and this is the finding that matters most.**
-An outside reviewer pointed out on 11 Sep 2026 that Google Apps Script has its own
-daily quotas on the whole **Google account**, not on one script. Somebody
-hammering this endpoint would not cost you OpenAI money past the cap — but they
-could exhaust that Google quota, and **your Sales Tracker and your Worklog both
-run on Apps Script too.**
-
-> Gemini 3.1 Pro: *"will break the AI feature **and** the two other apps relying
-> on GAS until the quota resets."*
-
-**So the blast radius is bigger than this one feature.** That is an argument for
-keeping `DAILY_CALL_CAP` low, and for the kill switch — not for abandoning the
-design, which both reviewers called appropriate for the constraints.
-
-⚠ **The cap protects THIS endpoint, not your OpenAI account.** If the same key is
-used anywhere else, or an old deployment is still live, those spend separately.
-**Use a key made only for this**, so you can cancel it without breaking anything
-else.
+⚠ **One thing the caps do NOT stop, named rather than hidden:** Google gives
+every Apps Script a daily allowance of its own for reading and writing settings.
+Somebody hammering the door can use that up even when no OpenAI call is made. It
+costs nothing, but the planner would return an error for the rest of that day.
+There is no way to prevent it without making people sign in, which this app
+deliberately does not do.
 
 ---
 
-## 🛑 The fastest way to stop it — ten seconds, no website change
+## 🚨 If it gets abused, it does not only break the planner
 
-1. Apps Script editor → **gear icon** (Project Settings) → **Script Properties**.
-2. Add (or edit) a property called `ENABLED` and set its value to **`no`**.
-3. Save.
+An outside reviewer raised this on 11 Sep 2026 and it had been missed:
 
-It stops answering immediately. Visitors see *"The planner is switched off at the
-moment."* Nothing else on your site changes, and you do not touch git at all.
+**Google Apps Script's daily limits apply to your whole Google account, not to
+one script.** Somebody hammering this endpoint cannot cost you OpenAI money past
+the caps — but they can use up that Google allowance, and
 
-Set it back to `yes` (or delete the property) to start it again.
+> **your Sales Tracker and your Worklog both run on Apps Script too.**
 
-> **Why this exists:** the other way to stop it needs a code edit, a commit and a
-> push. If something is going wrong you want it off *now*, not after three steps
-> you have to remember. If the property is missing the planner runs — so deleting
-> it by accident cannot silently kill the feature.
+Gemini 3.1 Pro, verbatim: *"will break the AI feature **and** the two other apps
+relying on GAS until the quota resets."*
+
+**So the damage from abuse is wider than this one feature.** That is a reason to
+keep `DAILY_CALL_CAP` low and to know where the off switch is — not a reason to
+change the design, which both reviewers called appropriate for the constraints.
+
+**If your Sales Tracker suddenly stops saving,** check this planner first: the off
+switch below frees the quota.
+
+---
+
+## 🔴 The off switch — how to stop it in ten seconds
+
+You do not need to touch the website, and nothing needs re-deploying.
+
+1. Open the Apps Script project.
+2. **Project Settings → Script Properties → Add script property.**
+3. Name it `ENABLED`, set the value to `no`, and save.
+
+The very next request is refused, and visitors see *"The planner is switched off
+at the moment."* Set it back to `yes` to turn it on again.
+
+**Use this if:** the bill looks wrong, the suggestions come back nonsense, or you
+simply want it off while you think. It is faster and safer than editing the page,
+and unlike editing the page it works even if you are away from your computer.
+
+---
+
+> **One thing worth keeping from the duplicate of this section that was merged
+> away:** if the `ENABLED` property is missing entirely the planner RUNS. That is
+> deliberate — deleting it by accident cannot silently kill the feature — but it
+> does mean "I don't see the property" is not the same as "it is off".
 
 ---
 
