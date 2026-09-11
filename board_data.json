@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-11 17:01",
+ "generated_at": "2026-09-11 17:31",
  "generated_date": "2026-09-11",
  "reviews": {
   "available": true,
@@ -38,11 +38,11 @@
     "last": "2026-09-10"
    },
    {
-    "task": "Spent but never recorded against any task",
-    "runs": 0,
-    "usd": 3.04,
-    "first": "",
-    "last": ""
+    "task": "Review board, old format (29-31 Aug) - stage recorded, job not",
+    "runs": 143,
+    "usd": 3.45,
+    "first": "2026-08-29",
+    "last": "2026-08-31"
    },
    {
     "task": "Planners, diary and caregiver kits",
@@ -122,8 +122,8 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 15.55,
-  "unattributed_usd": 3.04,
+  "attributed_usd": 19.0,
+  "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
  "apify": {
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-11 17:01",
+  "read_at": "2026-09-11 17:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -184,8 +184,8 @@
  "git": {
   "branch": "main",
   "uncommitted_files": 5,
-  "last_commit": "cfe4c55 Nightly automatic backup: 1 file(s)",
-  "last_commit_at": "2026-09-11T17:00:09+09:30"
+  "last_commit": "58472b5 Nightly automatic backup: 1 file(s)",
+  "last_commit_at": "2026-09-11T17:30:14+09:30"
  },
  "facts": {
   "available": true,
