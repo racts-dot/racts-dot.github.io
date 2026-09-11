@@ -21,7 +21,15 @@
  * All three are fixed. This file is what keeps them fixed.
  */
 const fs = require('fs'), os = require('os'), path = require('path'), vm = require('vm');
-const base = path.join(os.homedir(), 'Sales Tracker Website', 'tripshare');
+/* This file LIVES in the folder it reads, so __dirname is the answer and no
+   guessing is needed. It used to be path.join(os.homedir(), 'Sales Tracker
+   Website', 'tripshare'), which is true on the MacBook and FALSE on the Windows
+   machine, where the folder now sits under Desktop/Desktop. The check therefore
+   crashed on one of the two computers it exists to protect - and a check that
+   cannot run is indistinguishable from a check that passed.
+   Line 53 was already using __dirname for the replies file, so the file
+   disagreed with itself. */
+const base = __dirname;
 const gs   = fs.readFileSync(path.join(base, 'AppsScript-TripBot.gs'), 'utf8');
 const html = fs.readFileSync(path.join(base, 'index.html'), 'utf8');
 
