@@ -171,11 +171,20 @@
   .item { display: flex; gap: 0.7rem; padding: 0.6rem 0; border-bottom: 1px solid var(--rule); }
   .item:last-child { border-bottom: 0; }
   .item .when { width: 4.6rem; flex: 0 0 auto; font-variant-numeric: tabular-nums; font-size: 0.86rem; color: var(--ink-soft); }
-  .item .body { flex: 1 1 auto; min-width: 0; }
+  /* overflow-wrap is inherited, so this one line covers the title, place,
+     note and link rows below. Without it a title with no spaces (a long
+     URL, a run-together name) pushes the row past the edge of the card on
+     a phone. min-width:0 alone is not enough: it lets the flex item shrink
+     but nothing tells the word itself it may break. */
+  .item .body { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
   .item .ttl { font-weight: 600; }
   .kind {
     font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase;
     color: var(--ink-faint); margin-left: 0.4rem;
+    /* The body above breaks anywhere so a run-together title cannot overflow.
+       This label is one short word and must not be broken by that rule - it
+       split as ACTIV / ITY in the reading view before this line existed. */
+    overflow-wrap: normal; white-space: nowrap;
   }
   .item .where { font-size: 0.87rem; color: var(--ink-soft); }
   .item .note { font-size: 0.88rem; color: var(--ink-soft); white-space: pre-wrap; margin-top: 0.2rem; }
