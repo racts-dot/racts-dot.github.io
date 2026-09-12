@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-12 09:31",
+ "generated_at": "2026-09-12 10:01",
  "generated_date": "2026-09-12",
  "reviews": {
   "available": true,
-  "spent_usd": 19.93,
+  "spent_usd": 20.09,
   "authorized_usd": 40.0,
-  "pct": 49.8,
-  "runs": 334,
+  "pct": 50.2,
+  "runs": 336,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 12.4,
+    "spent_usd": 12.53,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.53,
+    "spent_usd": 7.57,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,8 +25,8 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 105,
-    "usd": 5.27,
+    "runs": 107,
+    "usd": 5.43,
     "first": "2026-09-03",
     "last": "2026-09-12"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 20.34,
+  "attributed_usd": 20.5,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-12 09:31",
+  "read_at": "2026-09-12 10:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 7,
-  "last_commit": "e0590ab5 Nightly automatic backup: 11 file(s)",
-  "last_commit_at": "2026-09-12T09:30:18+09:30"
+  "uncommitted_files": 5,
+  "last_commit": "ddc61671 Fifty Etsy demand figures read live, and they demote my own top pick",
+  "last_commit_at": "2026-09-12T09:54:09+09:30"
  },
  "facts": {
   "available": true,
