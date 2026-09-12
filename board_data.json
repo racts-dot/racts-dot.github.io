@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-12 15:01",
+ "generated_at": "2026-09-12 15:31",
  "generated_date": "2026-09-12",
  "reviews": {
   "available": true,
-  "spent_usd": 20.38,
+  "spent_usd": 20.67,
   "authorized_usd": 40.0,
-  "pct": 51.0,
-  "runs": 340,
+  "pct": 51.7,
+  "runs": 342,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 12.74,
+    "spent_usd": 13.0,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.64,
+    "spent_usd": 7.67,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,8 +25,8 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 111,
-    "usd": 5.72,
+    "runs": 113,
+    "usd": 6.01,
     "first": "2026-09-03",
     "last": "2026-09-12"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 20.79,
+  "attributed_usd": 21.08,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-12 15:01",
+  "read_at": "2026-09-12 15:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -172,9 +172,9 @@
  },
  "gates": {
   "available": true,
-  "products_gated": 48,
-  "required_gates": 267,
-  "negative_tested": 267,
+  "products_gated": 49,
+  "required_gates": 272,
+  "negative_tested": 272,
   "live_listings_recorded": 25,
   "coverage_unproven": true,
   "source": "counted from release_registry.json, not from memory",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 6,
-  "last_commit": "a3316474 Nightly automatic backup: 7 file(s)",
-  "last_commit_at": "2026-09-12T15:00:21+09:30"
+  "uncommitted_files": 5,
+  "last_commit": "0e922d1f Nightly automatic backup: 12 file(s)",
+  "last_commit_at": "2026-09-12T15:30:18+09:30"
  },
  "facts": {
   "available": true,
@@ -443,8 +443,8 @@
   },
   {
    "severity": "watch",
-   "what": "Gate coverage is UNPROVEN - 267 of 267 gates pass, across 48 products",
-   "why": "That counts gates, not products and not checks. The shop last recorded 25 active listings against 48 gated products. Nobody has compared the registry against the live listings, and the last time two products were missing from it, both went on sale ungated. A full score here is not evidence of coverage."
+   "what": "Gate coverage is UNPROVEN - 272 of 272 gates pass, across 49 products",
+   "why": "That counts gates, not products and not checks. The shop last recorded 25 active listings against 49 gated products. Nobody has compared the registry against the live listings, and the last time two products were missing from it, both went on sale ungated. A full score here is not evidence of coverage."
   },
   {
    "severity": "watch",
