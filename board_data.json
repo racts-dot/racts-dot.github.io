@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-12 17:01",
+ "generated_at": "2026-09-12 17:32",
  "generated_date": "2026-09-12",
  "reviews": {
   "available": true,
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-12 17:01",
+  "read_at": "2026-09-12 17:32",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -172,9 +172,9 @@
  },
  "gates": {
   "available": true,
-  "products_gated": 49,
-  "required_gates": 272,
-  "negative_tested": 272,
+  "products_gated": 50,
+  "required_gates": 277,
+  "negative_tested": 277,
   "live_listings_recorded": 25,
   "coverage_unproven": true,
   "source": "counted from release_registry.json, not from memory",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 5,
-  "last_commit": "d5e65831 Nightly automatic backup: 9 file(s)",
-  "last_commit_at": "2026-09-12T17:00:52+09:30"
+  "uncommitted_files": 15,
+  "last_commit": "f06e5871 Board data refresh (automatic) - generated files only, no AI",
+  "last_commit_at": "2026-09-12T17:01:09+09:30"
  },
  "facts": {
   "available": true,
@@ -443,8 +443,8 @@
   },
   {
    "severity": "watch",
-   "what": "Gate coverage is UNPROVEN - 272 of 272 gates pass, across 49 products",
-   "why": "That counts gates, not products and not checks. The shop last recorded 25 active listings against 49 gated products. Nobody has compared the registry against the live listings, and the last time two products were missing from it, both went on sale ungated. A full score here is not evidence of coverage."
+   "what": "Gate coverage is UNPROVEN - 277 of 277 gates pass, across 50 products",
+   "why": "That counts gates, not products and not checks. The shop last recorded 25 active listings against 50 gated products. Nobody has compared the registry against the live listings, and the last time two products were missing from it, both went on sale ungated. A full score here is not evidence of coverage."
   },
   {
    "severity": "watch",
