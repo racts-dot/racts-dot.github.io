@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-12 11:01",
+ "generated_at": "2026-09-12 11:31",
  "generated_date": "2026-09-12",
  "reviews": {
   "available": true,
-  "spent_usd": 20.24,
+  "spent_usd": 20.38,
   "authorized_usd": 40.0,
-  "pct": 50.6,
-  "runs": 338,
+  "pct": 51.0,
+  "runs": 340,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 12.64,
+    "spent_usd": 12.74,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.6,
+    "spent_usd": 7.64,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,8 +25,8 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 109,
-    "usd": 5.57,
+    "runs": 111,
+    "usd": 5.72,
     "first": "2026-09-03",
     "last": "2026-09-12"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 20.65,
+  "attributed_usd": 20.79,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-12 11:01",
+  "read_at": "2026-09-12 11:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -184,8 +184,8 @@
  "git": {
   "branch": "main",
   "uncommitted_files": 5,
-  "last_commit": "990d7d0f Nightly automatic backup: 7 file(s)",
-  "last_commit_at": "2026-09-12T11:00:21+09:30"
+  "last_commit": "404ab617 Nightly automatic backup: 5 file(s)",
+  "last_commit_at": "2026-09-12T11:30:19+09:30"
  },
  "facts": {
   "available": true,
