@@ -392,6 +392,15 @@ nav.tabs button .g{font-size:16px;line-height:1}
 nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 .dot{position:absolute;transform:translate(13px,-4px);width:7px;height:7px;border-radius:50%;
   background:var(--stop)}
+#nowbar{position:fixed;left:0;right:0;bottom:58px;z-index:25;display:none;
+  background:var(--bar);color:var(--bar-ink);padding:9px 14px calc(9px + env(safe-area-inset-bottom));
+  align-items:center;gap:11px;box-shadow:0 -4px 18px -8px rgba(0,0,0,.5)}
+#nowbar.on{display:flex}
+#nowbar .nt{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;opacity:.75;flex:1;min-width:0;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+#nowbar button{background:transparent;border:1px solid rgba(255,255,255,.32);color:var(--bar-ink);
+  min-height:0;padding:6px 11px;font-size:13px;border-radius:2px;white-space:nowrap}
 #toast{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;background:var(--ink);
   color:var(--surface);padding:10px 16px;border-radius:3px;font-size:14px;z-index:50;
   box-shadow:var(--shadow);max-width:88vw;text-align:center}
@@ -808,6 +817,13 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     <div id="tileBody"></div>
     <p class="swipe-note">◀ swipe to move between them ▶</p>
   </div></div></div>
+
+<div id="nowbar">
+  <span class="nt" id="nowWhat">Reading</span>
+  <button id="nowPrev" aria-label="Previous part">⏮</button>
+  <button id="nowNext" aria-label="Next part">⏭</button>
+  <button id="nowStop">■ Stop</button>
+</div>
 
 <nav class="tabs" id="tabs">
   <button data-go="ideas" class="on"><span class="g">✦</span>Ideas</button>
@@ -1384,7 +1400,7 @@ function go(id){
   $("#eyebrow").textContent = (id==="paper" && NEWS) ? longDate(NEWS.date)
     : new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
   $("#briefCard").classList.toggle("hide", !(id==="ideas"||id==="today"||id==="listen"));
-  closeSheets(); stopSpeaking(); window.scrollTo(0,0);
+  closeSheets(); window.scrollTo(0,0); paintPlaying();
 }
 function closeSheets(){ $$(".sheet").forEach(s=>s.classList.remove("on")); }
 function openSheet(id){ closeSheets(); $("#"+id).classList.add("on"); }
@@ -1551,11 +1567,22 @@ function fillVoices(){
     : "This device only has the plain robot voice. On iPhone: Settings, Accessibility, Spoken Content, Voices — download an English voice marked Enhanced or Premium, then reopen this.";
 }
 const currentVoice = () => VOICES.find(v=>v.voiceURI===voiceURI) || null;
+function paintPlaying(){
+  const el=$("#recAudio");
+  const audioOn = el && el.src && !el.paused && !el.ended;
+  const on = playing || audioOn;
+  $("#nowbar").classList.toggle("on", !!on);
+  if(!on) return;
+  const heads=headIdx();
+  $("#nowWhat").textContent = audioOn ? "Playing the recorded brief"
+    : "Reading · part "+(heads.filter(i=>i<=qi).length||1)+" of "+(heads.length||1);
+}
 function stopSpeaking(){
   clearTimeout(gapTimer); gapTimer=null; playing=false; queue=[]; qi=0;
   if(window.speechSynthesis) speechSynthesis.cancel();
   $("#stopBtn").hidden=true; $("#playBrief").textContent="▶ Play the brief";
   $("#player").classList.remove("on"); $("#pFill").style.width="0"; $("#pNow").textContent="Ready";
+  paintPlaying();
 }
 const headIdx = () => queue.map((p,i)=>p.head?i:-1).filter(i=>i>=0);
 function jump(dir){
@@ -1572,6 +1599,7 @@ function step(){
   const part=queue[qi];
   $("#pFill").style.width = Math.round((qi/queue.length)*100)+"%";
   const heads=headIdx(); $("#pNow").textContent = "Part "+(heads.filter(i=>i<=qi).length||1)+" of "+(heads.length||1);
+  paintPlaying();
   const u=new SpeechSynthesisUtterance(part.t);
   const v=currentVoice(); if(v){ u.voice=v; u.lang=v.lang; }
   u.rate=rate;
@@ -1586,7 +1614,7 @@ function say(parts, isBrief){
   queue = parts.filter(p=>p && p.t && p.t.trim()); qi=0; playing=true;
   $("#stopBtn").hidden=false; $("#player").classList.add("on");
   if(isBrief) $("#playBrief").textContent="▮▮ Playing…";
-  step();
+  step(); paintPlaying();
 }
 
 /* ---------------- ask Claude ---------------- */
@@ -1932,9 +1960,10 @@ $("#playBrief").addEventListener("click", ()=>{
     el.play().catch(()=>say(briefScript(),true)); return; }
   if(!$("#stopBtn").hidden){ stopSpeaking(); return; }
   say(briefScript(),true); });
-$("#recAudio").addEventListener("play", ()=>{ stopSpeaking(); $("#playBrief").textContent="▮▮ Playing…"; });
-$("#recAudio").addEventListener("pause", ()=>{ $("#playBrief").textContent="▶ Play the brief"; });
-$("#recAudio").addEventListener("ended", ()=>{ $("#playBrief").textContent="▶ Play the brief"; });
+$("#recAudio").addEventListener("play", ()=>{ stopSpeaking();
+  $("#playBrief").textContent="▮▮ Playing…"; paintPlaying(); });
+$("#recAudio").addEventListener("pause", ()=>{ $("#playBrief").textContent="▶ Play the brief"; paintPlaying(); });
+$("#recAudio").addEventListener("ended", ()=>{ $("#playBrief").textContent="▶ Play the brief"; paintPlaying(); });
 $("#recAudio").addEventListener("error", ()=>{
   /* The recording lives with the Claude copy. On her own website it cannot be fetched, so the
      player is hidden rather than left sitting there doing nothing when pressed. */
@@ -1943,10 +1972,19 @@ $("#recAudio").addEventListener("error", ()=>{
 $("#stopBtn").addEventListener("click", stopSpeaking);
 $("#pNext").addEventListener("click", ()=>jump(1));
 $("#pPrev").addEventListener("click", ()=>jump(-1));
-document.addEventListener("visibilitychange", ()=>{ if(document.hidden && playing) stopSpeaking(); });
+$("#nowNext").addEventListener("click", ()=>{ const el=$("#recAudio");
+  if(el && !el.paused){ el.currentTime = Math.min(el.duration||0, el.currentTime+30); return; } jump(1); });
+$("#nowPrev").addEventListener("click", ()=>{ const el=$("#recAudio");
+  if(el && !el.paused){ el.currentTime = Math.max(0, el.currentTime-30); return; } jump(-1); });
+$("#nowStop").addEventListener("click", ()=>{ const el=$("#recAudio");
+  if(el && !el.paused) el.pause(); stopSpeaking(); });
+/* Deliberately NOT stopping on visibilitychange. It used to stop the moment she looked at
+   anything else, which is the opposite of what a brief is for. Browsers may still pause it
+   themselves when the screen locks - that is theirs, not ours, and the recorded voice is the
+   only thing that survives it. */
 
 function onVoice(v){ voiceURI=v; const el=currentVoice(); saveSettings(); saveVoicePref();
-  stopSpeaking();
+  if(playing){ clearTimeout(gapTimer); speechSynthesis.cancel(); step(); return; }
   if(el && "speechSynthesis" in window){
     const u=new SpeechSynthesisUtterance("This is how I will read your morning.");
     u.voice=el; u.lang=el.lang; u.rate=rate; speechSynthesis.speak(u); }
