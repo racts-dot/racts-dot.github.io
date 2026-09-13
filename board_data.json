@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-14 03:31",
+ "generated_at": "2026-09-14 04:01",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 21.4,
+  "spent_usd": 21.53,
   "authorized_usd": 40.0,
-  "pct": 53.5,
-  "runs": 355,
+  "pct": 53.8,
+  "runs": 360,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 13.52,
+    "spent_usd": 13.62,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.87,
+    "spent_usd": 7.91,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,8 +25,8 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 125,
-    "usd": 6.7,
+    "runs": 128,
+    "usd": 6.73,
     "first": "2026-09-03",
     "last": "2026-09-14"
    },
@@ -94,18 +94,18 @@
     "last": "2026-09-06"
    },
    {
+    "task": "Red eye clinical workbook",
+    "runs": 5,
+    "usd": 0.19,
+    "first": "2026-09-07",
+    "last": "2026-09-14"
+   },
+   {
     "task": "Maze book - The Quiet Atlas",
     "runs": 4,
     "usd": 0.15,
     "first": "2026-08-28",
     "last": "2026-09-04"
-   },
-   {
-    "task": "Red eye clinical workbook",
-    "runs": 3,
-    "usd": 0.09,
-    "first": "2026-09-07",
-    "last": "2026-09-07"
    },
    {
     "task": "Cosy Cottage Animals",
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 21.81,
+  "attributed_usd": 21.94,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 03:31",
+  "read_at": "2026-09-14 04:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 7,
-  "last_commit": "d504c8f4 Nightly automatic backup: 14 file(s)",
-  "last_commit_at": "2026-09-14T03:30:14+09:30"
+  "uncommitted_files": 11,
+  "last_commit": "34f0dc8b Red eye paperback: cover A chosen and locked, upload sheet written",
+  "last_commit_at": "2026-09-14T04:01:04+09:30"
  },
  "facts": {
   "available": true,
