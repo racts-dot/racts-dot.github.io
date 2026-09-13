@@ -3,9 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Rachie's Desk</title>
-<meta name="description" content="Everything waiting on you, and every fact with the day it was read.">
 <meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Everything waiting on you, and every fact with the day it was read.">
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#1b4965">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,6 +12,12 @@
 <meta name="apple-mobile-web-app-title" content="Desk">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
+<style>:root{color-scheme:light dark}html,body{margin:0;padding:0}
+body{padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs{padding-bottom:env(safe-area-inset-bottom)!important}</style>
+</head>
+<body>
+<title>Rachie's Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -27,6 +32,7 @@
   --ok:#14684a; --ok-soft:#e0f2ea;
   --shadow:0 1px 2px rgba(20,26,32,.06), 0 8px 24px -12px rgba(20,26,32,.18);
   --bar:#141a20; --bar-ink:#e6eaee;
+  --glass:rgba(255,255,255,.82); --glass-2:rgba(255,255,255,.64);
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --ground:#0f1418; --surface:#171e24; --surface-2:#1d262d;
@@ -38,8 +44,9 @@
   --ok:#5cc79a; --ok-soft:#12301f;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
   --bar:#070a0c; --bar-ink:#c9d4dc;
+  --glass:rgba(19,26,32,.74); --glass-2:rgba(19,26,32,.56);
 }}
-:root[data-theme="dark"]{
+:root[data-theme="dark"], :root.sky-night{
   --ground:#0f1418; --surface:#171e24; --surface-2:#1d262d;
   --ink:#e7edf1; --ink-soft:#a2b0bb; --ink-faint:#798793;
   --line:#2a343d; --line-soft:#222b33;
@@ -49,503 +56,2060 @@
   --ok:#5cc79a; --ok-soft:#12301f;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.7);
   --bar:#070a0c; --bar-ink:#c9d4dc;
+  --glass:rgba(19,26,32,.74); --glass-2:rgba(19,26,32,.56);
 }
 *{box-sizing:border-box}
-html,body{margin:0}
+#sky{position:fixed;inset:0;z-index:0;display:block;pointer-events:none}
 body{background:var(--ground);color:var(--ink);
   font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
-  padding:env(safe-area-inset-top) 16px calc(96px + env(safe-area-inset-bottom))}
-.wrap{max-width:760px;margin:0 auto}
-.masthead{padding:26px 0 18px;border-bottom:2px solid var(--ink)}
-.eyebrow{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:11px;
-  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px}
-h1{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:clamp(30px,7.5vw,46px);
-  line-height:1.03;letter-spacing:-.02em;margin:0;text-wrap:balance}
-.standfirst{font-family:"Newsreader",Georgia,serif;font-size:clamp(16px,2.6vw,19px);
-  font-style:italic;color:var(--ink-soft);margin:11px 0 0;max-width:56ch}
-.tools{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;margin:0;
+  padding:0 16px 106px}
+.wrap{max-width:760px;margin:0 auto;position:relative;z-index:2}
+
+/* ---------- masthead ---------- */
+.masthead{padding:22px 0 16px;border-bottom:2px solid var(--ink)}
+.mast-top{display:flex;align-items:flex-start;gap:12px}
+.mast-top .grow{flex:1;min-width:0}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-faint);margin:0 0 8px}
+h1{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:clamp(28px,7vw,42px);
+  line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.why{font-family:"Newsreader",Georgia,serif;font-size:clamp(15px,2.4vw,18px);font-style:italic;
+  color:var(--ink-soft);margin:9px 0 0;max-width:54ch}
+.corner{display:flex;gap:7px;flex-shrink:0}
+.corner button{background:transparent;border:1px solid var(--line);color:var(--ink-soft);
+  width:40px;height:40px;min-height:0;padding:0;border-radius:3px;font-size:16px;cursor:pointer;
+  display:grid;place-items:center}
+.corner button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
 button{font-family:"Public Sans",sans-serif;font-size:15px;font-weight:700;color:var(--surface);
   background:var(--ink);border:1px solid var(--ink);border-radius:2px;padding:11px 17px;
   cursor:pointer;min-height:46px}
 button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+button:disabled{opacity:.45;cursor:default}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-section.panel{display:none}
-section.panel.on{display:block}
-.block{margin-top:34px}
-.sec-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+input,textarea,select{width:100%;font-family:inherit;font-size:16px;padding:11px 12px;
+  border:1px solid var(--line);border-radius:2px;background:var(--surface);color:var(--ink)}
+textarea{min-height:76px;resize:vertical}
+input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+
+section.page{display:none}
+section.page.on{display:block}
+.block{margin-top:30px}
+.sec-head{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;
   border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:4px}
-h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:23px;margin:0}
+h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:0}
 .sec-note{font-size:13px;color:var(--ink-faint);margin:0}
 .count{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-faint);margin-left:auto}
-.job{display:grid;grid-template-columns:auto 1fr;gap:0 14px;background:var(--surface);
+.none{font-size:14px;color:var(--ink-faint);padding:16px 0;margin:0}
+
+/* ---------- the brief ---------- */
+.brief{margin-top:16px;border:2px solid var(--ink);background:var(--glass);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:4px 18px;
+  align-items:center;padding:15px 17px}
+.brief-h{font-family:"Newsreader",Georgia,serif;font-size:20px;font-weight:600;margin:0;grid-column:1}
+.brief-sub{grid-column:1;font-size:13px;color:var(--ink-soft);margin:3px 0 0;max-width:44ch}
+.brief button{grid-column:2;grid-row:1 / span 2;white-space:nowrap;font-size:16px;padding:14px 19px}
+.brief-run{grid-column:1 / -1;margin:11px 0 0;padding-top:10px;border-top:1px solid var(--line-soft);
+  font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;
+  color:var(--ink-faint);display:flex;flex-wrap:wrap;gap:5px 13px}
+.brief-run b{font-weight:500;color:var(--ink-soft)}
+.brief-run .at{color:var(--accent);font-weight:500}
+@media (max-width:520px){.brief{grid-template-columns:1fr}
+  .brief button{grid-column:1;grid-row:auto;width:100%;margin-top:11px}}
+.rec{grid-column:1 / -1;margin-top:11px;padding-top:11px;border-top:1px solid var(--line-soft);display:none}
+.rec.on{display:block}
+.rec-lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ok);margin:0 0 7px}
+.rec audio{width:100%;height:40px}
+.player{grid-column:1 / -1;margin-top:11px;padding-top:11px;border-top:1px solid var(--line-soft)}
+.p-bar{height:4px;background:var(--line-soft);border-radius:2px;overflow:hidden;opacity:.35}
+.player.on .p-bar{opacity:1}
+.p-bar span{display:block;height:100%;width:0;background:var(--accent);transition:width .25s linear}
+.p-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px}
+.p-btn{background:transparent;color:var(--ink);border:1px solid var(--line);border-radius:2px;
+  min-height:0;padding:6px 12px;font-size:14px}
+.p-now{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-faint);margin-left:auto}
+.p-lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-faint)}
+.player select{width:auto;flex:1 1 120px;min-width:108px;font-size:14px;padding:8px 10px}
+.p-note{font-size:12px;color:var(--ink-faint);margin:9px 0 0;max-width:56ch}
+
+/* ---------- rows and cards ---------- */
+.card{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border:1px solid var(--line-soft);border-left:4px solid var(--line);border-radius:2px;
-  padding:16px 18px;margin-top:12px;box-shadow:var(--shadow)}
-.job.sev-stop{border-left-color:var(--stop)}
-.job.sev-watch{border-left-color:var(--watch)}
-.job.sev-ask{border-left-color:var(--accent)}
-.job.is-done{opacity:.5}
-.job.is-done .job-title{text-decoration:line-through}
+  padding:14px 16px;margin-top:10px;box-shadow:var(--shadow)}
+.card.sev-stop{border-left-color:var(--stop)}
+.card.sev-watch{border-left-color:var(--watch)}
+.card.sev-ask,.card.sev-mine{border-left-color:var(--accent)}
+.card.tickable{display:grid;grid-template-columns:auto 1fr;gap:0 13px}
+.card.done{opacity:.5}
+.card.done .c-title{text-decoration:line-through}
 .tick{appearance:none;width:26px;height:26px;margin:1px 0 0;border:2px solid var(--ink-soft);
-  border-radius:3px;background:transparent;cursor:pointer;grid-row:1 / span 4}
+  border-radius:3px;background:transparent;cursor:pointer;grid-row:1 / span 4;flex-shrink:0}
 .tick:checked{background:var(--ok);border-color:var(--ok)}
 .tick:checked::after{content:"✓";display:block;color:#fff;font-size:17px;line-height:22px;
   text-align:center;font-weight:700}
-.tick:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.job-title{font-size:17px;font-weight:700;margin:0;line-height:1.35;text-wrap:balance}
-.job-body{font-size:14.5px;color:var(--ink-soft);margin:6px 0 0;max-width:62ch}
-.job-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.c-title{font-size:16.5px;font-weight:700;margin:0;line-height:1.35;text-wrap:balance}
+.c-body{font-size:14.5px;color:var(--ink-soft);margin:5px 0 0;max-width:62ch}
+.c-meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;align-items:center}
 .pill{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:500;letter-spacing:.08em;
-  text-transform:uppercase;padding:3px 8px;border-radius:2px;white-space:nowrap}
-.pill-stop{background:var(--stop-soft);color:var(--stop)}
-.pill-watch{background:var(--watch-soft);color:var(--watch)}
-.pill-ok{background:var(--ok-soft);color:var(--ok)}
-.pill-cool{background:var(--accent-soft);color:var(--accent)}
-.pill-plain{background:var(--surface-2);color:var(--ink-faint)}
-.pill-stale{background:transparent;color:var(--stop);border:1px dashed var(--stop)}
-.reading{display:grid;grid-template-columns:1fr auto;gap:4px 16px;padding:14px 0;
+  text-transform:uppercase;padding:3px 8px;border-radius:2px;white-space:nowrap;
+  background:var(--surface-2);color:var(--ink-faint)}
+.pill.stop{background:var(--stop-soft);color:var(--stop)}
+.pill.watch{background:var(--watch-soft);color:var(--watch)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.cool{background:var(--accent-soft);color:var(--accent)}
+.pill.stale{background:transparent;color:var(--stop);border:1px dashed var(--stop)}
+.xbtn{border:1px solid var(--line);background:transparent;color:var(--ink-faint);cursor:pointer;
+  font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+  padding:3px 8px;min-height:0;border-radius:2px;font-weight:500}
+
+/* ---------- adders ---------- */
+.adder{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:13px;align-items:start}
+.adder .full{grid-column:1 / -1}
+.adder button{min-height:46px}
+.adder .hint{grid-column:1 / -1;font-size:12.5px;color:var(--ink-faint);margin:0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:9px;grid-column:1 / -1}
+@media(max-width:480px){.two{grid-template-columns:1fr}}
+
+/* ---------- diary ---------- */
+.diary{margin-top:9px;border-top:1px solid var(--line-soft)}
+.ev{display:grid;grid-template-columns:74px 1fr;gap:2px 13px;padding:10px 0;
+  border-bottom:1px solid var(--line-soft);align-items:baseline}
+.ev-t{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--accent);
+  font-variant-numeric:tabular-nums;font-weight:500}
+.ev-s{font-size:15px;font-weight:500;margin:0}
+.ev-day{grid-column:1 / -1;font-family:"IBM Plex Mono",monospace;font-size:11px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint);padding:12px 0 2px}
+
+/* ---------- status tiles ---------- */
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:7px;margin-top:12px}
+.tile{background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--line-soft);border-top:3px solid var(--line);border-radius:2px;
+  padding:9px 9px 8px;cursor:pointer;text-align:left;min-height:0;color:var(--ink);
+  font-family:inherit;font-weight:400;box-shadow:var(--shadow);display:grid;gap:3px}
+.tile:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tile.s-live{border-top-color:var(--ok)}
+.tile.s-work{border-top-color:var(--accent)}
+.tile.s-hold{border-top-color:var(--watch)}
+.tile.s-dead{border-top-color:var(--stop)}
+.tile .tn{font-size:12px;font-weight:700;line-height:1.2;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
+.tile .ts{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-faint)}
+
+/* ---------- overlays ---------- */
+.sheet{position:fixed;inset:0;z-index:40;display:none}
+.sheet.on{display:block}
+.sheet .veil{position:absolute;inset:0;background:rgba(8,12,16,.55);
+  backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.sheet .panel{position:absolute;left:0;right:0;bottom:0;max-height:86vh;overflow-y:auto;
+  background:var(--surface);border-top:2px solid var(--ink);border-radius:6px 6px 0 0;
+  padding:18px 18px 30px;box-shadow:0 -8px 40px -12px rgba(0,0,0,.5)}
+.sheet .panel .inner{max-width:720px;margin:0 auto}
+.sheet-head{display:flex;align-items:baseline;gap:12px;margin-bottom:4px}
+.sheet-head h2{flex:1}
+.sheet-head .x{background:transparent;border:1px solid var(--line);color:var(--ink-soft);
+  min-height:0;padding:6px 11px;font-size:13px;border-radius:2px}
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:14px}
+.menu button{background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
+  text-align:left;padding:12px 13px;border-radius:2px;font-weight:400;display:grid;gap:2px}
+.menu .mn{font-weight:700;font-size:15px}
+.menu .mw{font-size:12px;color:var(--ink-faint);line-height:1.35}
+.setrow{display:flex;align-items:center;gap:11px;flex-wrap:wrap;padding:12px 0;
+  border-bottom:1px solid var(--line-soft)}
+.setrow label{font-size:14.5px;flex:1 1 160px}
+.setrow select,.setrow input[type=text]{width:auto;flex:1 1 140px;font-size:14px;padding:8px 10px}
+.swipe-note{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-faint);text-align:center;margin:14px 0 0}
+
+/* ---------- money, readings, stories ---------- */
+.money{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:1px;
+  background:var(--line-soft);border:1px solid var(--line-soft);margin-top:12px}
+.m-cell{background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  padding:13px 15px}
+.m-figure{font-family:"IBM Plex Mono",monospace;font-size:22px;font-weight:500;margin:0;
+  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.m-label{font-size:12.5px;color:var(--ink-faint);margin:3px 0 0;line-height:1.3}
+.reading{display:grid;grid-template-columns:1fr auto;gap:4px 15px;padding:13px 0;
   border-bottom:1px solid var(--line-soft);align-items:start}
-.reading:last-child{border-bottom:0}
 .r-label{font-weight:700;font-size:15px;margin:0}
-.r-value{font-size:14.5px;color:var(--ink-soft);margin:3px 0 0;max-width:60ch;grid-column:1;
+.r-value{font-size:14.5px;color:var(--ink-soft);margin:3px 0 0;max-width:58ch;grid-column:1;
   font-variant-numeric:tabular-nums}
 .r-when{grid-column:2;grid-row:1 / span 2;text-align:right}
 .r-date{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-faint);
   white-space:nowrap;display:block;margin-bottom:5px}
-.money{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
-  background:var(--line-soft);border:1px solid var(--line-soft);margin-top:14px}
-.m-cell{background:var(--surface);padding:14px 16px}
-.m-figure{font-family:"IBM Plex Mono",monospace;font-size:23px;font-weight:500;margin:0;
-  font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.m-label{font-size:12.5px;color:var(--ink-faint);margin:3px 0 0;line-height:1.3}
-.never{border:1px solid var(--line);border-radius:2px;padding:14px 16px;margin-top:12px;
-  background:var(--surface-2)}
+.story{padding:18px 0;border-bottom:1px solid var(--line-soft)}
+.story h3{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:19px;margin:0 0 6px;
+  line-height:1.22;text-wrap:balance}
+.story .lede{font-size:15px;color:var(--ink-soft);margin:0 0 8px;max-width:64ch}
+.story ul{margin:0;padding-left:18px}
+.story li{font-size:14.5px;color:var(--ink-soft);margin-bottom:6px;max-width:62ch}
+/* ---- the paper, set like a paper ---- */
+.edition{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);
+  padding-bottom:9px;margin-top:4px}
+.edition .ed-name{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:26px;
+  letter-spacing:-.01em}
+.edition .ed-when{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-faint);margin-left:auto}
+.lead{padding:20px 0 22px;border-bottom:3px double var(--line)}
+.lead .kick{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--stop);margin:0 0 9px}
+.lead h3{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:clamp(23px,5.4vw,32px);
+  line-height:1.08;margin:0 0 10px;letter-spacing:-.02em;text-wrap:balance}
+.lead .lede{font-size:16px;color:var(--ink-soft);margin:0 0 12px;max-width:60ch}
+.lead .lede::first-letter{float:left;font-family:"Newsreader",Georgia,serif;font-weight:600;
+  font-size:3.1em;line-height:.82;padding:3px 9px 0 0;color:var(--accent)}
+.pullquote{font-family:"Newsreader",Georgia,serif;font-style:italic;font-size:19px;
+  line-height:1.34;color:var(--ink);border-left:3px solid var(--accent);padding:4px 0 4px 15px;
+  margin:16px 0 4px;max-width:46ch}
+.story .kick{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-faint);margin:0 0 6px}
+.means{display:grid;grid-template-columns:auto 1fr;gap:0 12px;align-items:start;
+  background:var(--accent-soft);border-left:4px solid var(--accent);border-radius:0 2px 2px 0;
+  padding:12px 14px;margin-top:12px}
+.means .tag{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent);font-weight:500;grid-row:1 / span 2}
+.means p{font-size:14.5px;color:var(--ink);margin:0;max-width:56ch}
+.paper-cols{column-count:1}
+@media(min-width:680px){ .paper-cols{column-count:2;column-gap:34px}
+  .paper-cols .story{break-inside:avoid} }
+.takeaway{border-top:3px double var(--line);margin-top:22px;padding-top:18px}
+.takeaway h3{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:20px;margin:0 0 8px}
+.takeaway p{font-size:15.5px;color:var(--ink-soft);margin:0 0 8px;max-width:62ch}
+
+/* ---- the log ---- */
+.logday{margin-top:20px}
+.logday > h3{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-faint);margin:0 0 2px;font-weight:500;
+  display:flex;align-items:baseline;gap:10px;border-bottom:1px solid var(--line-soft);
+  padding-bottom:6px}
+.logday > h3 b{color:var(--ink);font-weight:700;font-size:14px;
+  font-family:"Public Sans",sans-serif;letter-spacing:0;text-transform:none}
+.logday > h3 span{margin-left:auto}
+.logrow{display:grid;grid-template-columns:52px auto 1fr;gap:0 11px;align-items:baseline;
+  padding:8px 0;border-bottom:1px solid var(--line-soft)}
+.logrow:last-child{border-bottom:0}
+.logrow .lt{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-faint);
+  font-variant-numeric:tabular-nums}
+.logrow .lk{font-family:"IBM Plex Mono",monospace;font-size:9.5px;letter-spacing:.08em;
+  text-transform:uppercase;padding:2px 7px;border-radius:2px;background:var(--surface-2);
+  color:var(--ink-faint);white-space:nowrap}
+.logrow .lk.did{background:var(--ok-soft);color:var(--ok)}
+.logrow .lk.new{background:var(--accent-soft);color:var(--accent)}
+.logrow .lk.gone{background:var(--stop-soft);color:var(--stop)}
+.logrow .lx{font-size:14.5px;color:var(--ink-soft);max-width:56ch}
+/* ---- how the secretary is doing ---- */
+.gauge{display:grid;grid-template-columns:1fr auto;gap:5px 14px;align-items:center;
+  background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--line-soft);border-left:4px solid var(--line);border-radius:2px;
+  padding:13px 15px;margin-top:9px;box-shadow:var(--shadow)}
+.gauge.g-ok{border-left-color:var(--ok)} .gauge.g-warn{border-left-color:var(--watch)}
+.gauge.g-bad{border-left-color:var(--stop)}
+.gauge .gn{font-weight:700;font-size:15.5px}
+.gauge .gs{grid-column:1;font-size:13.5px;color:var(--ink-soft);max-width:56ch}
+.gauge .gv{grid-row:1 / span 2;grid-column:2;font-family:"IBM Plex Mono",monospace;
+  font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:2px;
+  white-space:nowrap}
+.gauge.g-ok .gv{background:var(--ok-soft);color:var(--ok)}
+.gauge.g-warn .gv{background:var(--watch-soft);color:var(--watch)}
+.gauge.g-bad .gv{background:var(--stop-soft);color:var(--stop)}
+.cannot{background:var(--surface-2);border:1px solid var(--line);border-radius:2px;
+  padding:14px 16px;margin-top:10px}
+.cannot h4{margin:0 0 6px;font-size:15px}
+.cannot p{margin:0;font-size:14px;color:var(--ink-soft);max-width:60ch}
+.caveat{border-left:3px solid var(--watch);background:var(--watch-soft);color:var(--watch);
+  padding:11px 14px;font-size:14px;margin-top:13px;border-radius:2px}
+.never{border:1px solid var(--line);border-radius:2px;padding:13px 15px;margin-top:10px;
+  background:var(--glass-2)}
 .never h3{font-size:15px;margin:0 0 4px;font-weight:700}
 .never p{font-size:13.5px;color:var(--ink-soft);margin:0;max-width:62ch}
 .never .ruling{font-family:"Newsreader",Georgia,serif;font-style:italic;color:var(--ink);
   margin-top:6px;display:block}
-/* newspaper */
-.story{padding:20px 0;border-bottom:1px solid var(--line-soft)}
-.story:last-child{border-bottom:0}
-.story h3{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:20px;
-  margin:0 0 6px;line-height:1.22;text-wrap:balance}
-.story .lede{font-size:15px;color:var(--ink-soft);margin:0 0 8px;max-width:64ch}
-.story ul{margin:0;padding-left:18px}
-.story li{font-size:14.5px;color:var(--ink-soft);margin-bottom:6px;max-width:62ch}
-.caveat{border-left:3px solid var(--watch);background:var(--watch-soft);color:var(--watch);
-  padding:11px 14px;font-size:14px;margin-top:14px;border-radius:2px}
-#noteBox{width:100%;font-family:inherit;font-size:16px;padding:12px;border:1px solid var(--line);
-  border-radius:2px;background:var(--surface);color:var(--ink);min-height:88px;resize:vertical}
-.notes-list{list-style:none;padding:0;margin:14px 0 0}
-.notes-list li{border-left:3px solid var(--accent);padding:8px 0 8px 12px;margin-bottom:8px;
-  font-size:14.5px}
+
+/* ---------- hours ---------- */
+.hbar{display:grid;grid-template-columns:56px 1fr;gap:9px;align-items:center;padding:7px 0;
+  border-bottom:1px solid var(--line-soft)}
+.hbar .hd{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-faint)}
+.hbar .track{display:flex;height:20px;border-radius:2px;overflow:hidden;background:var(--surface-2)}
+.hbar .track i{display:block;height:100%}
+.hkey{display:flex;gap:11px;flex-wrap:wrap;margin-top:11px}
+.hkey span{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-faint);display:flex;align-items:center;gap:5px}
+.hkey i{width:11px;height:11px;border-radius:2px;display:block}
+
+/* ---------- streaks ---------- */
+.streak{background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid var(--line-soft);border-radius:2px;padding:13px 15px;margin-top:9px;
+  box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center}
+.streak .sn{font-weight:700;font-size:15.5px}
+.streak .ss{grid-column:1;font-size:13.5px;color:var(--ink-soft)}
+.streak .dots{grid-column:1 / -1;display:flex;gap:3px;margin-top:3px}
+.streak .dots i{width:100%;max-width:14px;height:14px;border-radius:2px;background:var(--surface-2);
+  border:1px solid var(--line-soft);display:block}
+.streak .dots i.hit{background:var(--ok);border-color:var(--ok)}
+.streak .act{grid-row:1 / span 2;grid-column:2}
+
+/* ---------- lesson, notes, chat ---------- */
+.lesson{background:var(--glass);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-left:4px solid var(--accent);padding:16px 18px;margin-top:12px;
+  box-shadow:var(--shadow)}
+.lesson h3{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:20px;margin:0 0 8px;
+  line-height:1.25;text-wrap:balance}
+.lesson p{font-size:15px;color:var(--ink-soft);margin:0 0 9px;max-width:62ch}
+.lesson p:last-child{margin-bottom:0}
+.notes-list{list-style:none;padding:0;margin:12px 0 0}
+.notes-list li{border-left:3px solid var(--accent);padding:8px 0 8px 12px;margin-bottom:8px;font-size:14.5px}
 .notes-list time{display:block;font-family:"IBM Plex Mono",monospace;font-size:11px;
   color:var(--ink-faint);margin-top:3px}
-footer{margin-top:44px;padding-top:16px;border-top:1px solid var(--line);font-size:12.5px;
-  color:var(--ink-faint);line-height:1.6}
-.empty{background:var(--surface);border:1px solid var(--line);border-radius:2px;
-  padding:26px 22px;margin-top:24px;box-shadow:var(--shadow)}
-.empty h2{margin:0 0 10px}
-.empty p{color:var(--ink-soft);font-size:15px;max-width:60ch;margin:0 0 10px}
+.turn{margin-top:14px}
+.turn.you{text-align:right}
+.bubble{display:inline-block;max-width:88%;text-align:left;padding:11px 14px;border-radius:3px;
+  font-size:15px;line-height:1.5;white-space:pre-wrap;box-shadow:var(--shadow)}
+.you .bubble{background:var(--accent);color:#fff;border-bottom-right-radius:0}
+.me .bubble{background:var(--surface);border:1px solid var(--line-soft);border-bottom-left-radius:0}
+.turn .who{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.chip{font-size:13.5px;font-weight:500;background:var(--surface);color:var(--ink-soft);
+  border:1px solid var(--line);border-radius:14px;padding:8px 13px;cursor:pointer;min-height:0}
+.off{background:var(--glass);border:1px solid var(--line);border-radius:2px;padding:18px 20px;
+  margin-top:14px;box-shadow:var(--shadow)}
+.off h3{margin:0 0 8px;font-size:17px}
+.off p{color:var(--ink-soft);font-size:14.5px;max-width:58ch;margin:0}
 .hide{display:none !important}
-/* tab bar */
+footer{margin-top:36px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;
+  color:var(--ink-faint);line-height:1.6}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--bar);display:grid;
-  grid-template-columns:repeat(5,1fr);padding-bottom:env(safe-area-inset-bottom);z-index:20}
-nav.tabs button{background:transparent;border:0;color:var(--bar-ink);opacity:.55;
-  font-size:11px;font-weight:700;letter-spacing:.04em;padding:9px 2px 10px;min-height:0;
-  display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:0;
-  border-top:2px solid transparent}
-nav.tabs button .g{font-size:17px;line-height:1}
+  grid-template-columns:repeat(6,1fr);z-index:20}
+nav.tabs button{background:transparent;border:0;color:var(--bar-ink);opacity:.55;font-size:10.5px;
+  font-weight:700;letter-spacing:.02em;padding:9px 1px 10px;min-height:0;display:flex;
+  flex-direction:column;align-items:center;gap:3px;border-radius:0;border-top:2px solid transparent}
+nav.tabs button .g{font-size:16px;line-height:1}
 nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
-nav.tabs button .dot{position:absolute;transform:translate(14px,-4px);width:7px;height:7px;
-  border-radius:50%;background:var(--stop)}
-#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(78px + env(safe-area-inset-bottom));
-  background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:3px;font-size:14px;
-  z-index:30;box-shadow:var(--shadow)}
-@media (prefers-reduced-motion:no-preference){.job,.reading{transition:opacity .18s ease}}
+.dot{position:absolute;transform:translate(13px,-4px);width:7px;height:7px;border-radius:50%;
+  background:var(--stop)}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:86px;background:var(--ink);
+  color:var(--surface);padding:10px 16px;border-radius:3px;font-size:14px;z-index:50;
+  box-shadow:var(--shadow);max-width:88vw;text-align:center}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
-</head>
-<body>
+
+<canvas id="sky" aria-hidden="true"></canvas>
+
 <div class="wrap">
   <header class="masthead">
-    <p class="eyebrow" id="todayLine">Your desk</p>
-    <h1 id="pageTitle">Rachie's Desk</h1>
-    <p class="standfirst" id="standfirst">Nothing loaded yet.</p>
-    <div class="tools" id="tools">
-      <button id="speak">▶ Read this to me</button>
-      <button id="stopBtn" class="ghost" hidden>■ Stop</button>
-      <button id="hideDone" class="ghost">Hide ticked</button>
+    <div class="mast-top">
+      <div class="grow">
+        <p class="eyebrow" id="eyebrow">Your desk</p>
+        <h1 id="pageTitle">Rachie's Desk</h1>
+      </div>
+      <div class="corner">
+        <button id="chatBtn" aria-label="Ask Claude" title="Ask Claude">✻</button>
+        <button id="setBtn" aria-label="Settings" title="Settings">⚙</button>
+      </div>
+    </div>
+    <p class="why" id="pageWhy">Loading…</p>
+
+    <div class="brief" id="briefCard">
+      <p class="brief-h">The morning brief</p>
+      <p class="brief-sub">Everything in one listen — your diary, what is waiting, your list,
+        the money, the paper, and today's lesson.</p>
+      <button id="playBrief">▶ Play the brief</button>
+      <div class="brief-run" id="briefRun"></div>
+      <div class="rec" id="rec">
+        <p class="rec-lab" id="recLab">Recorded this morning in a real voice</p>
+        <audio id="recAudio" controls preload="metadata"></audio>
+      </div>
+      <div class="player" id="player">
+        <div class="p-bar"><span id="pFill"></span></div>
+        <div class="p-row">
+          <button class="p-btn" id="pPrev" aria-label="Previous part">⏮</button>
+          <button class="p-btn" id="pNext" aria-label="Next part">⏭</button>
+          <button class="p-btn" id="stopBtn" hidden>■ Stop</button>
+          <span class="p-now" id="pNow">Ready</span>
+        </div>
+        <div class="p-row">
+          <label class="p-lab" for="voiceSel">Voice</label>
+          <select id="voiceSel"></select>
+          <label class="p-lab" for="rateSel">Speed</label>
+          <select id="rateSel">
+            <option value="0.8">Slow</option><option value="0.95" selected>Normal</option>
+            <option value="1.1">Brisk</option><option value="1.3">Fast</option>
+          </select>
+        </div>
+        <p class="p-note" id="pNote"></p>
+      </div>
     </div>
   </header>
 
-  <!-- DESK -->
-  <section class="panel on" id="p-desk">
-    <div id="deskEmpty" class="empty">
-      <h2>This desk is empty</h2>
-      <p>Nothing is stored on this web address. A desk arrives through a private link, and from then on it lives on this device only.</p>
-      <p>If you opened this by accident, there is nothing here to see.</p>
-    </div>
-    <div id="deskBody" class="hide">
-      <div class="block">
-        <div class="sec-head"><h2>Waiting on you</h2>
-          <p class="sec-note">Nobody else can do these.</p>
-          <span class="count" id="waitingCount"></span></div>
-        <div id="waiting"></div>
+  <!-- 1 IDEAS -->
+  <section class="page on" id="p-ideas">
+    <div class="block">
+      <div class="adder" id="ideaAdd">
+        <textarea class="full" id="ideaText" placeholder="However it comes out. No tidying up."></textarea>
+        <span></span><button id="ideaGo">Park it</button>
+        <p class="hint">Nothing is asked of you here. Scoring, deciding and building all happen later.</p>
       </div>
-      <div class="block" id="blockedSec">
-        <div class="sec-head"><h2>Not yours to fix</h2>
-          <p class="sec-note">Blocked on somebody else. Here so you stop carrying them.</p></div>
-        <div id="blocked"></div>
-      </div>
-      <footer><div id="asOf"></div></footer>
+      <div class="sec-head" style="margin-top:26px"><h2>Parked</h2>
+        <p class="sec-note">Your words, kept exactly.</p>
+        <span class="count" id="ideaCount"></span></div>
+      <div id="ideas"></div>
     </div>
   </section>
 
-  <!-- NEWS -->
-  <section class="panel" id="p-news">
-    <div id="newsEmpty" class="empty">
-      <h2>No paper yet</h2>
-      <p>The daily digest arrives here through its own link, separate from your desk, so neither one has to be small.</p>
+  <!-- 2 TODAY -->
+  <section class="page" id="p-today">
+    <div class="block" id="diaryBlock">
+      <div class="sec-head"><h2>Your diary</h2>
+        <p class="sec-note" id="diaryNote">Straight off your Google Calendar.</p>
+        <span class="count" id="diaryCount"></span></div>
+      <div class="diary" id="diary"></div>
     </div>
-    <div id="newsBody" class="hide">
+    <div class="block">
+      <div class="sec-head"><h2>Waiting on you</h2>
+        <p class="sec-note">Nobody else can do these.</p>
+        <span class="count" id="waitCount"></span></div>
+      <div id="waiting"></div>
+    </div>
+    <div class="block" id="blockedBlock">
+      <div class="sec-head"><h2>Not yours to fix</h2>
+        <p class="sec-note">Blocked on somebody else. Here so you stop carrying them.</p></div>
+      <div id="blocked"></div>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>Your own list</h2>
+        <p class="sec-note">Jobs and shopping together. A date is optional.</p>
+        <span class="count" id="mineCount"></span></div>
+      <div id="mine"></div>
+      <div class="adder" id="mineAdd">
+        <input class="full" id="mineText" type="text" placeholder="Ring the accountant. Printer ink.">
+        <input id="mineWhen" type="date"><button id="mineGo">Add</button>
+        <p class="hint">With a date it says “due today” or “overdue” in the brief until you tick it.</p>
+      </div>
+      <footer id="asOf"></footer>
+    </div>
+  </section>
+
+  <!-- 3 STATUS -->
+  <section class="page" id="p-status">
+    <div class="block">
+      <div class="sec-head"><h2>Everything, at a glance</h2>
+        <p class="sec-note">Tap a tile to open it. Swipe to move between them.</p>
+        <span class="count" id="statCount"></span></div>
+      <div class="tiles" id="tiles"></div>
+      <div class="adder" id="statAdd">
+        <input class="full" id="statName" type="text" placeholder="Name of the product, listing or item">
+        <select id="statStage">
+          <option value="idea">Idea</option><option value="built">Built</option>
+          <option value="listed">Listed</option><option value="selling">Selling</option>
+          <option value="paused">Paused</option><option value="blocked">Blocked</option>
+          <option value="killed">Killed</option>
+        </select>
+        <button id="statGo">Add</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 MONEY -->
+  <section class="page" id="p-money">
+    <div class="block">
+      <div class="sec-head"><h2>What is running</h2>
+        <p class="sec-note">Only what somebody actually read off an account.</p></div>
+      <div class="money" id="money"></div>
+      <p class="sec-note" style="margin-top:11px">Not counted here on purpose: Etsy listing fees,
+        Etsy Plus, Higgsfield and the Claude subscription. Nobody has read a bill for those, so
+        they are not figures.</p>
+    </div>
+  </section>
+
+  <!-- 5 PAPER -->
+  <section class="page" id="p-paper">
+    <div id="paperEmpty" class="off"><h3>No paper yet</h3>
+      <p>The daily digest lands here once it has run.</p></div>
+    <div id="paperBody" class="hide">
+      <div class="edition"><span class="ed-name">The Paper</span>
+        <span class="ed-when" id="edWhen"></span></div>
       <div id="newsCaveat"></div>
-      <div id="stories"></div>
-      <footer id="newsFoot"></footer>
+      <div id="leadStory"></div>
+      <div class="paper-cols" id="stories"></div>
+      <div id="takeaway"></div>
+      <footer id="newsFoot"></footer></div>
+  </section>
+
+  <!-- 6 LISTEN -->
+  <section class="page" id="p-listen">
+    <div class="block">
+      <div class="sec-head"><h2>What it will say</h2>
+        <p class="sec-note">In this order, every time.</p></div>
+      <div id="runOrder"></div>
+    </div>
+  </section>
+
+  <!-- 7 ROLLING -->
+  <section class="page" id="p-rolling">
+    <div class="block">
+      <div class="sec-head"><h2>Comes back on its own</h2>
+        <p class="sec-note">Tick it and it returns when it is next due.</p>
+        <span class="count" id="rollCount"></span></div>
+      <div id="rolling"></div>
+      <div class="adder" id="rollAdd">
+        <input class="full" id="rollText" type="text" placeholder="Read the real Etsy fees off an invoice">
+        <select id="rollEvery">
+          <option value="7">Every week</option><option value="14">Every fortnight</option>
+          <option value="30">Every month</option><option value="90">Every quarter</option>
+          <option value="365">Every year</option>
+        </select>
+        <button id="rollGo">Add</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 SCOREBOARD -->
+  <section class="page" id="p-score">
+    <div class="block">
+      <div class="sec-head"><h2>The numbers</h2>
+        <p class="sec-note">A number with no reading date is not a fact.</p></div>
+      <div id="score"></div>
+      <div class="adder" id="scoreAdd">
+        <input class="full" id="scName" type="text" placeholder="What the number is">
+        <div class="two"><input id="scNow" type="text" placeholder="Where it is now">
+          <input id="scTarget" type="text" placeholder="Where it should be"></div>
+        <span></span><button id="scGo">Add</button>
+      </div>
+    </div>
+    <div class="block" id="neverBlock">
+      <div class="sec-head"><h2>Decided already</h2>
+        <p class="sec-note">Here so it does not get re-argued.</p></div>
+      <div id="never"></div>
+    </div>
+  </section>
+
+  <!-- 9 HOURS -->
+  <section class="page" id="p-hours">
+    <div class="block">
+      <div class="sec-head"><h2>The last fortnight</h2>
+        <p class="sec-note">One bar a day. Roughly is enough.</p></div>
+      <div id="hours"></div>
+      <div class="hkey" id="hoursKey"></div>
+      <div class="adder" id="hoursAdd">
+        <p class="hint" style="margin-top:4px">Today, in hours. Leave a box empty for none.</p>
+        <div class="two">
+          <input id="hMaking" type="number" min="0" max="24" step="0.5" placeholder="Making">
+          <input id="hSelling" type="number" min="0" max="24" step="0.5" placeholder="Selling"></div>
+        <div class="two">
+          <input id="hAdmin" type="number" min="0" max="24" step="0.5" placeholder="Admin">
+          <input id="hLearning" type="number" min="0" max="24" step="0.5" placeholder="Learning"></div>
+        <input id="hLife" type="number" min="0" max="24" step="0.5" placeholder="Work, family, rest">
+        <button id="hGo">Save today</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 PLAN -->
+  <section class="page" id="p-plan">
+    <div class="block">
+      <div class="sec-head"><h2>This week</h2>
+        <p class="sec-note">Written Monday. Read Friday. No excuses box, on purpose.</p></div>
+      <div id="planNow"></div>
+      <div class="adder" id="planAdd">
+        <textarea class="full" id="planText" placeholder="What this week is meant to be."></textarea>
+        <span></span><button id="planGo">Set the week</button>
+      </div>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>Weeks before</h2>
+        <p class="sec-note">Kept, so a pattern shows.</p></div>
+      <div id="planPast"></div>
+    </div>
+  </section>
+
+  <!-- 11 OUTBOX -->
+  <section class="page" id="p-outbox">
+    <div class="block">
+      <div class="sec-head"><h2>Waiting to go out</h2>
+        <p class="sec-note">Nothing here sends itself. Ever.</p>
+        <span class="count" id="outCount"></span></div>
+      <div id="outbox"></div>
+      <div class="adder" id="outAdd">
+        <div class="two"><input id="outWho" type="text" placeholder="Who">
+          <select id="outKind">
+            <option value="reply">A reply I owe</option><option value="send">Something to send</option>
+            <option value="chase">A follow-up</option><option value="buyer">A buyer message</option>
+          </select></div>
+        <textarea class="full" id="outWhat" placeholder="What it is about, and the draft if you have one."></textarea>
+        <span></span><button id="outGo">Add</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 RENEWALS -->
+  <section class="page" id="p-renewals">
+    <div class="block">
+      <div class="sec-head"><h2>What renews, and when</h2>
+        <p class="sec-note">Warned before the charge, not after.</p>
+        <span class="count" id="renCount"></span></div>
+      <div id="renewals"></div>
+      <div class="adder" id="renAdd">
+        <input class="full" id="renName" type="text" placeholder="What it is">
+        <div class="two"><input id="renCost" type="text" placeholder="What it costs">
+          <input id="renDate" type="date"></div>
+        <span></span><button id="renGo">Add</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 STREAKS -->
+  <section class="page" id="p-streaks">
+    <div class="block">
+      <div class="sec-head"><h2>Kept going</h2>
+        <p class="sec-note">One line each. Tap the box to tick today.</p></div>
+      <div id="streaks"></div>
+      <div class="adder" id="strAdd">
+        <input class="full" id="strName" type="text" placeholder="Walk. Read. The evening page.">
+        <span></span><button id="strGo">Add</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 14 YOURS -->
+  <section class="page" id="p-yours">
+    <div class="block">
+      <div class="sec-head"><h2>Today's lesson</h2>
+        <p class="sec-note" id="lessonNote">One idea a day, on a topic you choose.</p></div>
+      <div id="lesson"></div>
+      <div class="adder" id="topicAdd">
+        <input class="full" id="topicText" type="text" placeholder="Compound interest. Why bread rises.">
+        <span></span><button id="topicGo">Set the topic</button>
+        <p class="hint" id="topicNote">Nothing to do with work — that is your own rule.</p>
+      </div>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>Notes</h2>
+        <p class="sec-note" id="notesNote">Saved here, and Claude can read them.</p></div>
+      <textarea id="noteBox" placeholder="Type it however it comes out."></textarea>
+      <div class="adder"><span></span><button id="addNote">Save note</button></div>
+      <ul class="notes-list" id="notes"></ul>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>Files</h2>
+        <p class="sec-note">Kept with the app.</p>
+        <span class="count" id="filesCount"></span></div>
+      <div id="filesOff" class="off hide"><h3>Not available here</h3>
+        <p>Keeping files needs the Claude app.</p></div>
+      <div id="filesOn">
+        <div class="adder"><span></span><button id="pickFile">Add a file</button></div>
+        <input id="fileInput" type="file" multiple hidden>
+        <ul class="notes-list" id="files"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOG -->
+  <section class="page" id="p-log">
+    <div class="block">
+      <div class="sec-head"><h2>Everything, in order</h2>
+        <p class="sec-note">Written as it happens. Never edited, never tidied.</p>
+        <span class="count" id="logCount"></span></div>
+      <div id="log"></div>
+    </div>
+  </section>
+
+  <!-- SECRETARY -->
+  <section class="page" id="p-secretary">
+    <div class="block">
+      <div class="sec-head"><h2>How it is doing</h2>
+        <p class="sec-note">Each part, and how old it is. Amber means look at it.</p></div>
+      <div id="gauges"></div>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>What it cannot do</h2>
+        <p class="sec-note">Named, so you never wait on something that is not coming.</p></div>
+      <div id="cannots"></div>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>How it should be</h2>
+        <p class="sec-note">The bar it is held to. Anything short of this is a fault, not a feature.</p></div>
+      <div id="shoulds"></div>
     </div>
   </section>
 
   <!-- SHOP -->
-  <section class="panel" id="p-shop">
-    <div id="shopEmpty" class="empty"><h2>Nothing loaded</h2>
-      <p>Your shop readings arrive with the desk.</p></div>
-    <div id="shopBody" class="hide">
-      <div class="block">
-        <div class="sec-head"><h2>What is true today</h2>
-          <p class="sec-note">A number with no reading date is not a fact.</p></div>
-        <div id="readings"></div>
-      </div>
-      <div class="block" id="neverSec">
-        <div class="sec-head"><h2>Do not list</h2>
-          <p class="sec-note">Decided already. Here so it does not get re-argued.</p></div>
-        <div id="never"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- MONEY -->
-  <section class="panel" id="p-money">
-    <div id="moneyEmpty" class="empty"><h2>Nothing loaded</h2>
-      <p>Your money figures arrive with the desk.</p></div>
-    <div id="moneyBody" class="hide">
-      <div class="block">
-        <div class="sec-head"><h2>Money</h2>
-          <p class="sec-note">Only what somebody actually read off an account.</p></div>
-        <div class="money" id="money"></div>
-        <p class="sec-note" style="margin-top:12px">Not counted here on purpose: Etsy listing fees, Etsy Plus, Higgsfield and the Claude subscription. Nobody has read a bill for those, so they are not figures.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- NOTES -->
-  <section class="panel" id="p-notes">
+  <section class="page" id="p-shop">
     <div class="block">
-      <div class="sec-head"><h2>Tell me something</h2>
-        <p class="sec-note">Saved on this phone only. It does not reach Claude by itself &mdash; use Send to Claude below.</p></div>
-      <textarea id="noteBox" placeholder="Type it however it comes out."></textarea>
-      <div class="tools"><button id="addNote">Save note</button>
-        <button id="copyNotes" class="ghost">Send to Claude</button></div>
-      <ul class="notes-list" id="notes"></ul>
-      <footer>Everything you tick or type stays on this phone. Nothing is uploaded, and nothing
-        is sent anywhere on its own. <b>Send to Claude</b> copies your notes so you can paste them
-        into a chat &mdash; that one paste is the only way they reach him.</footer>
+      <div class="sec-head"><h2>What is true today</h2>
+        <p class="sec-note">A number with no reading date is not a fact.</p></div>
+      <div id="readings"></div>
     </div>
   </section>
+
+  <footer id="foot"></footer>
 </div>
 
+<!-- MORE -->
+<div class="sheet" id="moreSheet"><div class="veil" data-close></div>
+  <div class="panel"><div class="inner">
+    <div class="sheet-head"><h2>Everything else</h2>
+      <button class="x" data-close>Close</button></div>
+    <div class="menu" id="moreMenu"></div>
+  </div></div></div>
+
+<!-- SETTINGS -->
+<div class="sheet" id="setSheet"><div class="veil" data-close></div>
+  <div class="panel"><div class="inner">
+    <div class="sheet-head"><h2>Settings</h2><button class="x" data-close>Close</button></div>
+    <p class="sec-note">Set once and forget.</p>
+    <div class="setrow"><label for="setVoice">Reading voice</label><select id="setVoice"></select></div>
+    <div class="setrow"><label for="setRate">Speed</label><select id="setRate">
+      <option value="0.8">Slow</option><option value="0.95">Normal</option>
+      <option value="1.1">Brisk</option><option value="1.3">Fast</option></select></div>
+    <div class="setrow"><label for="setSky">Moving sky</label><select id="setSky">
+      <option value="on">On</option><option value="off">Off</option></select></div>
+    <div class="setrow"><label for="setHome">Open on</label><select id="setHome"></select></div>
+    <div class="setrow"><label for="setPaper">Read the paper in the brief</label>
+      <select id="setPaper"><option value="on">Yes</option><option value="off">No</option></select></div>
+    <div class="setrow" style="border-bottom:0"><label for="setLesson">Read the lesson in the brief</label>
+      <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
+    <p class="sec-note" style="margin-top:14px" id="setWhere"></p>
+  </div></div></div>
+
+<!-- CHAT -->
+<div class="sheet" id="chatSheet"><div class="veil" data-close></div>
+  <div class="panel"><div class="inner">
+    <div class="sheet-head"><h2>Ask Claude</h2><button class="x" data-close>Close</button></div>
+    <p class="sec-note" id="chatWhere">He can see this whole desk.</p>
+    <div id="askOff" class="off hide"><h3>Not available here</h3>
+      <p>This needs the Claude app. On your own web address there is no Claude to ask — use
+        Notes instead.</p></div>
+    <div id="askOn">
+      <div id="thread"></div>
+      <div class="chips" id="chips">
+        <button class="chip" data-q="What should I do first today, and why that one?">What first today?</button>
+        <button class="chip" data-q="Which of these facts is too old to trust now?">What has gone stale?</button>
+        <button class="chip" data-q="Look at my own list and my diary together. Is today realistic?">Is today realistic?</button>
+        <button class="chip" data-q="What am I forgetting that is not on this desk?">What am I forgetting?</button>
+      </div>
+      <div style="margin-top:13px">
+        <textarea id="askBox" placeholder="Ask anything about your business."></textarea>
+        <div class="adder"><span></span><button id="askGo">Ask</button></div>
+      </div>
+      <p class="sec-note" style="margin-top:10px">A fresh Claude every time — he reads this desk
+        and your one message, and remembers nothing before it.</p>
+    </div>
+  </div></div></div>
+
+<!-- STATUS DETAIL -->
+<div class="sheet" id="tileSheet"><div class="veil" data-close></div>
+  <div class="panel" id="tilePanel"><div class="inner">
+    <div class="sheet-head"><h2 id="tileName">—</h2><button class="x" data-close>Close</button></div>
+    <div id="tileBody"></div>
+    <p class="swipe-note">◀ swipe to move between them ▶</p>
+  </div></div></div>
+
 <nav class="tabs" id="tabs">
-  <button data-tab="desk"  class="on"><span class="g">▤</span>Desk<span class="dot hide" id="deskDot"></span></button>
-  <button data-tab="news"><span class="g">◫</span>Paper</button>
-  <button data-tab="shop"><span class="g">◈</span>Shop</button>
-  <button data-tab="money"><span class="g">$</span>Money</button>
-  <button data-tab="notes"><span class="g">✎</span>Notes</button>
+  <button data-go="ideas" class="on"><span class="g">✦</span>Ideas</button>
+  <button data-go="today"><span class="g">▤</span>Today<span class="dot hide" id="deskDot"></span></button>
+  <button data-go="status"><span class="g">◈</span>Status</button>
+  <button data-go="money"><span class="g">$</span>Money</button>
+  <button data-go="paper"><span class="g">◫</span>Paper</button>
+  <button data-more><span class="g">⋯</span>More</button>
 </nav>
 
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const DAY = 86400000;
-const K = { desk:"desk.sec.desk", news:"desk.sec.news", done:"desk.done", notes:"desk.notes", tab:"desk.tab" };
+const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const DAY = 86400000, CAL = "Google Calendar";
 
-let DESK = null, NEWS = null, done = {}, notes = [], hidingDone = false, tab = "desk";
+const PAGES = [
+  {id:"ideas",   name:"Ideas",              why:"Say it however it comes out. Nothing is asked of you here.", nav:1},
+  {id:"today",   name:"Today",              why:"Everything with a box beside it — your diary, what is waiting, and your own list.", nav:1},
+  {id:"status",  name:"Status",             why:"One tile per thing. Which stage it is at, and what is blocking it.", nav:1},
+  {id:"money",   name:"Money",              why:"Only figures somebody actually read off a real account.", nav:1},
+  {id:"paper",   name:"The Paper",          why:"The AFR, in plain words, with what it means for you.", nav:1},
+  {id:"listen",  name:"Listen",             why:"The whole morning in one go, hands free."},
+  {id:"rolling", name:"Rolling",            why:"The ones that never finish. Ticked today, back on their own."},
+  {id:"score",   name:"Scoreboard",         why:"The number you are trying to move, and how close it is."},
+  {id:"hours",   name:"Where the day went", why:"How the hours went — not the money. Roughly is enough."},
+  {id:"plan",    name:"Plan vs actual",     why:"What the week was meant to be, beside what it actually was."},
+  {id:"outbox",  name:"Outbox",             why:"Anything whose next move is a message. Nothing here sends itself."},
+  {id:"renewals",name:"Renewals",           why:"Every subscription with the day it bills. Warned before, not after."},
+  {id:"streaks", name:"Streaks",            why:"One line each. Never a chart."},
+  {id:"yours",   name:"Notes & files",      why:"Today's lesson, your own notes, and the files you keep here."},
+  {id:"shop",    name:"Your Shop",          why:"What is true today, and the day each thing was read."},
+  {id:"log",     name:"The log",            why:"What you did and when, in order. Written as it happens and never edited."},
+  {id:"secretary",name:"How I am doing",     why:"The secretary on itself: what it knows, how old it is, and what it still cannot do."},
+];
+const PAGE = id => PAGES.find(p=>p.id===id) || PAGES[0];
 
-/* ---------- the link carries a section; the server never sees it ---------- */
-function b64bytes(s){
-  s = s.replace(/-/g,"+").replace(/_/g,"/");
-  while (s.length % 4) s += "=";
-  const bin = atob(s), out = new Uint8Array(bin.length);
-  for (let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-async function unpack(token, gz){
-  const bytes = b64bytes(token);
-  if (!gz) return JSON.parse(new TextDecoder().decode(bytes));
-  if (typeof DecompressionStream === "undefined")
-    throw new Error("This browser is too old to open a packed link.");
-  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
-  return JSON.parse(await new Response(stream).text());
-}
+/* ---------------- state ---------------- */
+let DESK=null, NEWS=null, AUDIO=null, LESSON=null;
+let done={}, notes=[], mine=[], thread=[], files=[];
+let ideas=[], rolling=[], status=[], score=[], hours={}, plan={now:null,past:[]},
+    outbox=[], renewals=[], streaks=[];
+let settings={sky:"on", home:"ideas", paper:"on", lesson:"on"};
+let logbook=[];
+let page="ideas", db=null, sample=null, assets=null, mcp=null, asking=false;
+let events=null, evError=null;
 
-async function takeFragment(){
-  const frag = location.hash.slice(1);
-  if (!frag) return null;
-  const part = k => (frag.split("&").find(p => p.startsWith(k+"=")) || "").slice(k.length+1);
-  const token = part("d");
-  if (!token) return null;
-  const section = part("s") || "desk";
-  try {
-    const payload = await unpack(token, frag.includes("z=1"));
-    localStorage.setItem(K[section] || ("desk.sec."+section), JSON.stringify(payload));
-    history.replaceState(null, "", location.pathname + location.search);
-    return section;
-  } catch (e) {
-    // A damaged link must never wipe a good section.
-    toast("That link did not arrive whole. Nothing was changed.");
-    history.replaceState(null, "", location.pathname + location.search);
-    return null;
-  }
-}
-
-function readStore(){
-  const get = k => { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch(e){ return null; } };
-  DESK = get(K.desk); NEWS = get(K.news);
-  done = get(K.done) || {}; notes = get(K.notes) || [];
-  tab = localStorage.getItem(K.tab) || "desk";
-}
-function save(){
-  try {
-    localStorage.setItem(K.done, JSON.stringify(done));
-    localStorage.setItem(K.notes, JSON.stringify(notes));
-    localStorage.setItem(K.tab, tab);
-  } catch(e){}
-}
-
-/* ---------- dates ---------- */
+const todayISO = () => { const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 const daysSince = iso => { const t=new Date(iso+"T00:00:00"), n=new Date(); n.setHours(0,0,0,0);
   return Math.round((n-t)/DAY); };
+const plusDays = (iso,n) => { const d=new Date(iso+"T00:00:00"); d.setDate(d.getDate()+n);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 const agoWords = iso => { const d=daysSince(iso);
   return d<=0?"read today":d===1?"read yesterday":"read "+d+" days ago"; };
-const longDate = iso => new Date(iso+"T00:00:00")
-  .toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
-const shortDate = iso => new Date(iso+"T00:00:00")
-  .toLocaleDateString(undefined,{day:"numeric",month:"long"});
+const shortDate = iso => new Date(iso+"T00:00:00").toLocaleDateString(undefined,{day:"numeric",month:"long"});
+const longDate  = iso => new Date(iso+"T00:00:00").toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
+const uid = p => p + Date.now().toString(36) + Math.floor(Math.random()*900+100);
 
-/* ---------- desk ---------- */
-function jobHTML(j, tickable){
-  const isDone = tickable && done[j.id];
-  const sev = j.sev==="stop" ? '<span class="pill pill-stop">Needs you</span>'
-            : j.sev==="watch"? '<span class="pill pill-watch">On a live listing</span>'
-            :                  '<span class="pill pill-cool">A decision</span>';
-  return `<article class="job sev-${esc(j.sev)}${isDone?" is-done":""}" data-id="${esc(j.id)}">
-    ${tickable?`<input class="tick" type="checkbox" ${isDone?"checked":""} aria-label="Mark done: ${esc(j.title)}">`
-              :`<span aria-hidden="true"></span>`}
-    <h3 class="job-title">${esc(j.title)}</h3>
-    <p class="job-body">${esc(j.body)}</p>
-    <div class="job-meta">${sev}<span class="pill pill-plain">${esc(j.tag)}</span>
-      <span class="pill pill-plain">${esc(agoWords(j.read))}</span></div></article>`;
+let toastTimer;
+function toast(m){ let e=$("#toast"); if(!e){ e=document.createElement("div"); e.id="toast";
+  document.body.appendChild(e);} e.textContent=m; e.hidden=false;
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>e.hidden=true,3200); }
+
+/* ---------------- saving ----------------
+   One file, two homes. On the Claude link there is a database; on her own website there is
+   not, and the phone's own store takes over. Neither copy knows or cares which it is. */
+const LS = {
+  get(k){ try{ return JSON.parse(localStorage.getItem("desk."+k) || "null"); }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem("desk."+k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+};
+async function save(doc, data, quiet){
+  if(db){ try{ await db.doc(doc).set(data); return; }catch(e){} }
+  if(!LS.set(doc, data) && !quiet) toast("Could not save that. This browser is refusing to store anything.");
+}
+async function load(doc){
+  if(db){ try{ const d = await db.doc(doc).get(); const v = d && (d.data ? d.data() : d);
+    if(v) return v; }catch(e){} }
+  return LS.get(doc);
+}
+const saveIdeas   = () => save("state/ideas",   {items:ideas}, 1);
+const saveMine    = () => save("state/mine",    {items:mine}, 1);
+const saveTicks   = () => save("state/ticks",   {done, at:new Date().toISOString()}, 1);
+const saveRolling = () => save("state/rolling", {items:rolling}, 1);
+const saveStatus  = () => save("state/status",  {items:status}, 1);
+const saveScore   = () => save("state/score",   {items:score}, 1);
+const saveHours   = () => save("state/hours",   {days:hours}, 1);
+const savePlan    = () => save("state/plan",    plan, 1);
+const saveOutbox  = () => save("state/outbox",  {items:outbox}, 1);
+const saveRenew   = () => save("state/renewals",{items:renewals}, 1);
+const saveStreaks = () => save("state/streaks", {items:streaks}, 1);
+const saveNotes   = () => save("state/notes",   {items:notes}, 1);
+const saveFiles   = () => save("state/files",   {items:files}, 1);
+const saveThread  = () => save("state/thread",  {turns:thread.slice(-40)}, 1);
+const saveLesson  = () => save("state/lesson",  LESSON, 1);
+const saveSettings= () => save("state/settings",settings, 1);
+const saveLog     = () => save("state/log",     {items:logbook.slice(-600)}, 1);
+
+/* Append-only. Nothing in this app edits or removes a line once it is written - that is the
+   whole point of it, and it is why the cap trims the OLDEST rather than rewriting anything. */
+function logIt(kind, text){
+  logbook.push({at:new Date().toISOString(), kind, text});
+  if(logbook.length>600) logbook = logbook.slice(-600);
+  saveLog(); renderLog();
 }
 
-function renderDesk(){
-  const has = !!DESK;
-  $("#deskEmpty").classList.toggle("hide", has);
-  $("#deskBody").classList.toggle("hide", !has);
-  $("#shopEmpty").classList.toggle("hide", has);
-  $("#shopBody").classList.toggle("hide", !has);
-  $("#moneyEmpty").classList.toggle("hide", has);
-  $("#moneyBody").classList.toggle("hide", !has);
-  if (!has){ $("#deskDot").classList.add("hide"); return; }
+/* ---------------- diary ---------------- */
+const evStart = e => (e.start && (e.start.dateTime || e.start.date)) || "";
+function evDayISO(e){ const s=evStart(e); if(!s) return "";
+  if(s.length===10) return s; const d=new Date(s);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function evTime(e){ const s=evStart(e); if(!s||s.length===10) return "All day";
+  return new Date(s).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}); }
+function evTimeSpoken(e){ const s=evStart(e); if(!s||s.length===10) return "All day";
+  const d=new Date(s), h=d.getHours(), m=d.getMinutes();
+  const part = h<12?"in the morning":h<18?"in the afternoon":"in the evening";
+  const hh = (h%12)||12;
+  return (m===0 ? hh+" o'clock " : hh+" "+String(m).padStart(2,"0")+" ") + part; }
+const todaysEvents = () => !events ? [] :
+  events.filter(e=>e.status!=="cancelled" && evDayISO(e)===todayISO());
+const comingEvents = () => !events ? [] :
+  events.filter(e=>e.status!=="cancelled" && evDayISO(e)>todayISO()).slice(0,6);
 
-  const W = DESK.waiting||[], B = DESK.blocked||[], R = DESK.readings||[],
-        M = DESK.money||[], N = DESK.never||[];
+function renderDiary(){
+  const box=$("#diary"), n=$("#diaryNote"), c=$("#diaryCount");
+  if(evError){ n.textContent=evError; c.textContent=""; box.innerHTML=""; return; }
+  if(events===null){ n.textContent="Reading your calendar…"; c.textContent=""; box.innerHTML=""; return; }
+  n.textContent="Straight off your Google Calendar.";
+  const T=todaysEvents(), C=comingEvents();
+  c.textContent = T.length ? T.length+(T.length===1?" thing today":" things today") : "clear today";
+  const row = e => `<div class="ev"><span class="ev-t">${esc(evTime(e))}</span>
+    <p class="ev-s">${esc(e.summary||"Untitled")}</p></div>`;
+  let h = T.length ? T.map(row).join("") : `<p class="none">Nothing in your diary today.</p>`;
+  if(C.length){ let last="";
+    h += C.map(e=>{ const d=evDayISO(e); let pre="";
+      if(d!==last){ last=d; pre=`<div class="ev"><span class="ev-day">${esc(longDate(d))}</span></div>`; }
+      return pre+row(e); }).join(""); }
+  box.innerHTML=h;
+}
 
-  $("#waiting").innerHTML = W.filter(j=>!(hidingDone&&done[j.id])).map(j=>jobHTML(j,true)).join("")
-    || `<p class="sec-note" style="padding:18px 0">Nothing waiting on you.</p>`;
-  $("#blocked").innerHTML = B.map(j=>jobHTML(j,false)).join("");
-  $("#blockedSec").classList.toggle("hide", B.length===0);
+/* ---------------- small renderers ---------------- */
+function cardHTML(o){
+  const sev = o.sev ? " sev-"+o.sev : "";
+  return `<article class="card${sev}${o.tick!==undefined?" tickable":""}${o.done?" done":""}" ${o.attr||""}>
+    ${o.tick!==undefined?`<input class="tick" type="checkbox" ${o.done?"checked":""} aria-label="Mark done: ${esc(o.title)}">`:""}
+    <h3 class="c-title">${esc(o.title)}</h3>
+    ${o.body?`<p class="c-body">${esc(o.body)}</p>`:""}
+    ${o.meta&&o.meta.length?`<div class="c-meta">${o.meta.join("")}</div>`:""}</article>`;
+}
+const pill = (t,k) => `<span class="pill${k?" "+k:""}">${esc(t)}</span>`;
+const xbtn = (t,cls,id) => `<button class="xbtn ${cls}" data-id="${esc(id)}">${esc(t)}</button>`;
+const dueWords = d => { if(!d) return null; const n=daysSince(d);
+  return n>0 ? "Overdue by "+n+(n===1?" day":" days") : n===0 ? "Due today"
+    : n===-1 ? "Due tomorrow" : "Due "+shortDate(d); };
 
-  const open = W.filter(j=>!done[j.id]).length;
-  $("#waitingCount").textContent = open+" of "+W.length+" still open";
-  $("#deskDot").classList.toggle("hide", open===0);
-
-  $("#readings").innerHTML = R.map(r=>{
-    const stale = daysSince(r.read) > (r.stale||7);
+/* ---------------- pages ---------------- */
+function renderIdeas(){
+  $("#ideaCount").textContent = ideas.length ? ideas.length+(ideas.length===1?" idea":" ideas") : "";
+  $("#ideas").innerHTML = ideas.length ? ideas.slice().reverse().map(i=>cardHTML({
+    title:i.text, sev:"mine",
+    meta:[pill(agoWords(i.at.slice(0,10))), xbtn("Remove","delIdea",i.id)]
+  })).join("") : `<p class="none">Nothing parked yet. That is the only empty page here that is a good sign — it means nothing is waiting to be forgotten.</p>`;
+}
+function renderMine(){
+  const open = mine.filter(m=>!m.done).length;
+  $("#mineCount").textContent = mine.length ? open+" of "+mine.length+" still open" : "";
+  const list = mine.slice().sort((a,b)=>{
+    if(a.done!==b.done) return a.done?1:-1;
+    const ad=a.due?daysSince(a.due):-9999, bd=b.due?daysSince(b.due):-9999; return bd-ad; });
+  $("#mine").innerHTML = list.length ? list.map(m=>{
+    const d=dueWords(m.due), late=m.due&&daysSince(m.due)>0, tod=m.due&&daysSince(m.due)===0;
+    return cardHTML({ title:m.text, sev:"mine", tick:1, done:m.done, attr:`data-mid="${esc(m.id)}"`,
+      meta:[ d?pill(d, late?"stop":tod?"watch":""):"", xbtn("Remove","delMine",m.id) ]});
+  }).join("") : `<p class="none">Nothing on your own list.</p>`;
+}
+function renderWaiting(){
+  if(!DESK){ $("#waiting").innerHTML=`<p class="none">Your desk has not been loaded yet.</p>`;
+    $("#blockedBlock").classList.add("hide"); return; }
+  const W=DESK.waiting||[], B=DESK.blocked||[];
+  const open=W.filter(j=>!done[j.id]).length;
+  $("#waitCount").textContent = open+" of "+W.length+" still open";
+  $("#waiting").innerHTML = W.length ? W.map(j=>cardHTML({
+    title:j.title, body:j.body, sev:j.sev, tick:1, done:!!done[j.id], attr:`data-wid="${esc(j.id)}"`,
+    meta:[ pill(j.sev==="stop"?"Needs you":j.sev==="watch"?"On a live listing":"A decision",
+           j.sev==="stop"?"stop":j.sev==="watch"?"watch":"cool"),
+           pill(j.tag), pill(agoWords(j.read)) ]
+  })).join("") : `<p class="none">Nothing waiting on you.</p>`;
+  $("#blockedBlock").classList.toggle("hide", !B.length);
+  $("#blocked").innerHTML = B.map(j=>cardHTML({
+    title:j.title, body:j.body, sev:j.sev,
+    meta:[pill(j.tag), pill(agoWords(j.read))] })).join("");
+  const age=DESK.built?daysSince(DESK.built):null;
+  $("#asOf").textContent = age===null ? "" : age<=0
+    ? "Read on or before "+shortDate(DESK.built)+", and written up today."
+    : "Last rebuilt "+age+(age===1?" day":" days")+" ago, on "+shortDate(DESK.built)+".";
+  $("#deskDot").classList.toggle("hide", open===0 && !mine.filter(m=>!m.done&&m.due&&daysSince(m.due)>=0).length);
+}
+const STAGE = {idea:["Idea","work"],built:["Built","work"],listed:["Listed","live"],
+  selling:["Selling","live"],paused:["Paused","hold"],blocked:["Blocked","hold"],killed:["Killed","dead"]};
+function renderStatus(){
+  $("#statCount").textContent = status.length ? status.length+" things" : "";
+  $("#tiles").innerHTML = status.length ? status.map((s,i)=>{
+    const st = STAGE[s.stage] || ["—","work"];
+    return `<button class="tile s-${st[1]}" data-i="${i}">
+      <span class="tn">${esc(s.name)}</span><span class="ts">${esc(st[0])}</span></button>`;
+  }).join("") : `<p class="none">Nothing here yet.</p>`;
+}
+function renderRolling(){
+  const due = rolling.filter(r=>daysSince(r.next)>=0).length;
+  $("#rollCount").textContent = rolling.length ? due+" due now of "+rolling.length : "";
+  $("#rolling").innerHTML = rolling.length ? rolling.slice().sort((a,b)=>
+    daysSince(b.next)-daysSince(a.next)).map(r=>{
+      const n=daysSince(r.next), late=n>0, now=n===0;
+      return cardHTML({ title:r.text, sev: late?"stop":now?"watch":"mine",
+        attr:`data-rid="${esc(r.id)}"`,
+        meta:[ pill(dueWords(r.next), late?"stop":now?"watch":""),
+               pill("every "+r.every+" days"),
+               r.last?pill("last done "+shortDate(r.last)):pill("never done"),
+               xbtn("Tick it","doRoll",r.id), xbtn("Remove","delRoll",r.id) ]});
+    }).join("") : `<p class="none">Nothing repeating yet.</p>`;
+}
+function renderScore(){
+  $("#score").innerHTML = score.length ? score.map(s=>{
+    const stale = s.read && daysSince(s.read) > (s.stale||7);
+    return `<div class="reading"><p class="r-label">${esc(s.name)}</p>
+      <p class="r-value">${esc(s.now)}${s.target?` <span style="color:var(--ink-faint)">— aiming for ${esc(s.target)}</span>`:""}
+      ${s.note?`<br><span style="color:var(--ink-faint);font-size:13.5px">${esc(s.note)}</span>`:""}</p>
+      <div class="r-when">${s.read?`<span class="r-date">${esc(shortDate(s.read))}</span>
+        <span class="pill ${stale?"stale":"ok"}">${stale?"Go and look again":esc(agoWords(s.read))}</span>`
+        :`<span class="pill stale">Never read</span>`}
+        <div style="margin-top:6px">${xbtn("Remove","delScore",s.id)}</div></div></div>`;
+  }).join("") : `<p class="none">No numbers yet.</p>`;
+  const N = (DESK && DESK.never) || [];
+  $("#neverBlock").classList.toggle("hide", !N.length);
+  $("#never").innerHTML = N.map(n=>`<div class="never"><h3>${esc(n.product)}</h3>
+    <p>${esc(n.why)}<span class="ruling">${esc(n.ruling)}</span></p></div>`).join("");
+}
+const HKINDS = [["making","Making","#1b4965"],["selling","Selling","#14684a"],
+  ["admin","Admin","#7d5800"],["learning","Learning","#5b3fa0"],["life","Life","#7c8a96"]];
+function renderHours(){
+  const days=[]; for(let i=13;i>=0;i--) days.push(plusDays(todayISO(),-i));
+  const any = days.some(d=>hours[d]);
+  $("#hours").innerHTML = any ? days.map(d=>{
+    const h=hours[d]||{}, total=HKINDS.reduce((t,[k])=>t+(+h[k]||0),0);
+    const label=new Date(d+"T00:00:00").toLocaleDateString(undefined,{weekday:"short",day:"numeric"});
+    return `<div class="hbar"><span class="hd">${esc(label)}</span>
+      <span class="track">${ total ? HKINDS.map(([k,,c])=>{
+        const v=+h[k]||0; return v? `<i style="width:${(v/total*100).toFixed(2)}%;background:${c}"></i>`:""; }).join("")
+        : "" }</span></div>`;
+  }).join("") : `<p class="none">Nothing filled in yet. One day is enough to start.</p>`;
+  $("#hoursKey").innerHTML = HKINDS.map(([,n,c])=>
+    `<span><i style="background:${c}"></i>${esc(n)}</span>`).join("");
+}
+function weekKey(){ const d=new Date(); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function renderPlan(){
+  const wk=weekKey();
+  const cur = plan.now && plan.now.week===wk ? plan.now : null;
+  $("#planNow").innerHTML = cur
+    ? cardHTML({ title:"Week of "+shortDate(wk), body:cur.planned,
+        sev:"mine", meta:[ pill("set "+agoWords(cur.at.slice(0,10))),
+          xbtn("Close the week","closeWeek",wk) ]})
+    : `<p class="none">This week has not been written down. Two lines is enough.</p>`;
+  $("#planPast").innerHTML = plan.past.length ? plan.past.slice().reverse().map(p=>cardHTML({
+    title:"Week of "+shortDate(p.week), body:p.planned,
+    sev: p.verdict==="done"?"":p.verdict==="part"?"watch":"stop",
+    meta:[ pill(p.verdict==="done"?"Done":p.verdict==="part"?"Part done":p.verdict==="changed"?"Changed my mind":"Did not happen",
+      p.verdict==="done"?"ok":p.verdict==="part"?"watch":"stop"),
+      p.actual?pill(p.actual):"" ]})).join("")
+    : `<p class="none">No closed weeks yet.</p>`;
+}
+const OKIND = {reply:"A reply you owe", send:"To send", chase:"Follow-up", buyer:"Buyer message"};
+function renderOutbox(){
+  const open = outbox.filter(o=>!o.sent).length;
+  $("#outCount").textContent = outbox.length ? open+" of "+outbox.length+" still out" : "";
+  $("#outbox").innerHTML = outbox.length ? outbox.slice().sort((a,b)=>
+    (a.sent?1:0)-(b.sent?1:0) || a.at.localeCompare(b.at)).map(o=>{
+      const waited = daysSince(o.at.slice(0,10));
+      return cardHTML({ title:o.who, body:o.what, done:o.sent,
+        sev: o.sent?"":waited>=3?"stop":o.kind==="buyer"?"watch":"mine",
+        meta:[ pill(OKIND[o.kind]||o.kind),
+          pill(waited<=0?"added today":waited===1?"1 day waiting":waited+" days waiting",
+               waited>=3&&!o.sent?"stop":""),
+          xbtn(o.sent?"Not sent after all":"Mark it sent","doOut",o.id),
+          xbtn("Remove","delOut",o.id) ]});
+    }).join("") : `<p class="none">Nothing owed to anybody.</p>`;
+}
+function renderRenewals(){
+  const soon = renewals.filter(r=>r.renews && daysSince(r.renews)>=-14).length;
+  $("#renCount").textContent = renewals.length
+    ? (soon?soon+" inside a fortnight":"none due soon") : "";
+  $("#renewals").innerHTML = renewals.length ? renewals.slice().sort((a,b)=>
+    (a.renews||"9999").localeCompare(b.renews||"9999")).map(r=>{
+      const n = r.renews ? daysSince(r.renews) : null;
+      const when = n===null ? "No date — nobody has looked"
+        : n>0 ? "Billed "+n+(n===1?" day":" days")+" ago"
+        : n===0 ? "Bills today" : "In "+(-n)+(n===-1?" day":" days")+", on "+shortDate(r.renews);
+      return cardHTML({ title:r.name, body:r.note||"",
+        sev: n===null?"watch" : n>=-3 ? "stop" : n>=-14 ? "watch" : "mine",
+        meta:[ pill(r.cost||"cost unknown", r.cost?"":"stale"),
+               pill(when, n===null?"stale":n>=-3?"stop":""),
+               xbtn("Remove","delRen",r.id) ]});
+    }).join("") : `<p class="none">Nothing listed yet.</p>`;
+}
+function renderStreaks(){
+  const t=todayISO();
+  $("#streaks").innerHTML = streaks.length ? streaks.map(s=>{
+    const set=new Set(s.dates||[]);
+    let run=0; for(let i=0;i<400;i++){ const d=plusDays(t,-i);
+      if(set.has(d)) run++; else if(i>0) break; }
+    const last14=[]; for(let i=13;i>=0;i--) last14.push(set.has(plusDays(t,-i)));
+    const hit=last14.filter(Boolean).length;
+    const lastDay=(s.dates||[]).slice().sort().pop();
+    const sentence = hit===0 ? "Not once in the last fortnight."
+      : hit+" of the last 14 days."+(lastDay? (lastDay===t?" Ticked today." :
+        daysSince(lastDay)===1?" Last one yesterday.":" Last one "+shortDate(lastDay)+".") : "");
+    return `<div class="streak" data-sid="${esc(s.id)}">
+      <span class="sn">${esc(s.name)}</span>
+      <span class="ss">${esc(sentence)}${run>1?" Run of "+run+".":""}</span>
+      <span class="act">${xbtn(set.has(t)?"✓ Today":"Tick today","doStreak",s.id)}</span>
+      <span class="dots">${last14.map(h=>`<i class="${h?"hit":""}"></i>`).join("")}</span></div>`;
+  }).join("") : `<p class="none">Nothing tracked yet.</p>`;
+}
+function renderMoney(){
+  const M=(DESK&&DESK.money)||[];
+  $("#money").innerHTML = M.length ? M.map(m=>
+    `<div class="m-cell"><p class="m-figure" style="color:${m.sev==="watch"?"var(--watch)":m.sev==="cool"?"var(--accent)":"var(--ink)"}">${esc(m.figure)}</p>
+     <p class="m-label">${esc(m.label)}</p></div>`).join("")
+    : `<p class="none">Nothing loaded.</p>`;
+}
+function renderShop(){
+  const R=(DESK&&DESK.readings)||[];
+  $("#readings").innerHTML = R.length ? R.map(r=>{ const st=daysSince(r.read)>(r.stale||7);
     return `<div class="reading"><p class="r-label">${esc(r.label)}</p>
       <p class="r-value">${esc(r.value)}<br><span style="color:var(--ink-faint);font-size:13.5px">${esc(r.note||"")}</span></p>
       <div class="r-when"><span class="r-date">${esc(shortDate(r.read))}</span>
-      <span class="pill ${stale?"pill-stale":"pill-ok"}">${stale?"Go and look again":esc(agoWords(r.read))}</span>
-      </div></div>`; }).join("");
+      <span class="pill ${st?"stale":"ok"}">${st?"Go and look again":esc(agoWords(r.read))}</span></div></div>`;
+  }).join("") : `<p class="none">Nothing loaded.</p>`;
+}
+function renderPaper(){
+  const has=!!NEWS;
+  $("#paperEmpty").classList.toggle("hide",has);
+  $("#paperBody").classList.toggle("hide",!has);
+  if(!has) return;
+  const age=daysSince(NEWS.date);
+  $("#edWhen").textContent = (age<=0?"This morning":age===1?"Yesterday":age+" days old")
+    + " · " + longDate(NEWS.date);
+  $("#newsCaveat").innerHTML = NEWS.caveat?`<div class="caveat">${esc(NEWS.caveat)}</div>`:"";
 
-  $("#money").innerHTML = M.map(m=>`<div class="m-cell">
-    <p class="m-figure" style="color:${m.sev==="watch"?"var(--watch)":m.sev==="cool"?"var(--accent)":"var(--ink)"}">${esc(m.figure)}</p>
-    <p class="m-label">${esc(m.label)}</p></div>`).join("");
+  /* A point beginning "What it means for you" is the only line written for HER rather than
+     for a reader of the paper, so it gets its own box instead of hiding in a bullet list. */
+  const MEANS = /^(what it means for you|for you)\s*[:.\-—]?\s*/i;
+  const parts = pts => (pts||[]).map(p=>{
+    const m = String(p).match(MEANS);
+    return m ? {means:true, t:String(p).slice(m[0].length)} : {means:false, t:String(p)}; });
+  const bullets = ps => { const b=ps.filter(x=>!x.means);
+    return b.length ? `<ul>${b.map(x=>`<li>${esc(x.t)}</li>`).join("")}</ul>` : ""; };
+  const meansBox = ps => ps.filter(x=>x.means).map(x=>
+    `<div class="means"><span class="tag">For you</span><p>${esc(x.t)}</p></div>`).join("");
+  const strip = h => String(h).replace(/^\s*\d+\.\s*/,"");
 
-  $("#never").innerHTML = N.map(n=>`<div class="never"><h3>${esc(n.product)}</h3>
-    <p>${esc(n.why)}<span class="ruling">${esc(n.ruling)}</span></p></div>`).join("");
-  $("#neverSec").classList.toggle("hide", N.length===0);
+  const all = (NEWS.stories||[]).slice();
+  const last = all.length>1 && /take away|read twice|one thing/i.test(all[all.length-1].h)
+    ? all.pop() : null;
+  const lead = all.shift();
 
-  const age = daysSince(DESK.built);
-  $("#asOf").textContent = age<=0
-    ? "Read on or before "+shortDate(DESK.built)+", and written up today."
-    : "This desk was last rebuilt "+age+(age===1?" day":" days")+" ago, on "+shortDate(DESK.built)
-      +". Ask for a rebuild and the figures are re-read off the live accounts.";
+  if(lead){
+    const ps = parts(lead.pts);
+    const quote = ps.find(x=>!x.means && x.t.length>40 && x.t.length<170);
+    $("#leadStory").innerHTML = `<article class="lead">
+      <p class="kick">The one to read first</p>
+      <h3>${esc(strip(lead.h))}</h3>
+      ${lead.p?`<p class="lede">${esc(lead.p)}</p>`:""}
+      ${quote?`<blockquote class="pullquote">${esc(quote.t)}</blockquote>`:""}
+      ${bullets(ps.filter(x=>x!==quote))}
+      ${meansBox(ps)}</article>`;
+  } else $("#leadStory").innerHTML="";
+
+  $("#stories").innerHTML = all.map((s,i)=>{
+    const ps=parts(s.pts);
+    return `<article class="story">
+      <p class="kick">${String(i+2).padStart(2,"0")}</p>
+      <h3>${esc(strip(s.h))}</h3>
+      ${s.p?`<p class="lede">${esc(s.p)}</p>`:""}
+      ${bullets(ps)}${meansBox(ps)}</article>`; }).join("");
+
+  $("#takeaway").innerHTML = last ? `<div class="takeaway">
+    <h3>${esc(strip(last.h))}</h3>
+    ${last.p?`<p>${esc(last.p)}</p>`:""}
+    ${(last.pts||[]).map(p=>`<p>${esc(p)}</p>`).join("")}</div>` : "";
+
+  $("#newsFoot").textContent = age<=0?"This morning's edition."
+    : age===1?"Yesterday's edition." : "This edition is "+age+" days old.";
 }
 
-/* ---------- newspaper ---------- */
-function renderNews(){
-  const has = !!NEWS;
-  $("#newsEmpty").classList.toggle("hide", has);
-  $("#newsBody").classList.toggle("hide", !has);
-  if (!has) return;
-  $("#newsCaveat").innerHTML = NEWS.caveat ? `<div class="caveat">${esc(NEWS.caveat)}</div>` : "";
-  $("#stories").innerHTML = (NEWS.stories||[]).map(s=>`<article class="story">
-    <h3>${esc(s.h)}</h3>
-    ${s.p?`<p class="lede">${esc(s.p)}</p>`:""}
-    ${s.pts&&s.pts.length?`<ul>${s.pts.map(p=>`<li>${esc(p)}</li>`).join("")}</ul>`:""}
-  </article>`).join("");
-  const age = daysSince(NEWS.date);
-  $("#newsFoot").textContent = age<=0 ? "This morning's edition."
-    : age===1 ? "Yesterday's edition." : "This edition is "+age+" days old.";
+/* ---------------- the log ---------------- */
+const LKIND = {did:"did", new:"added", gone:"removed", set:"set", note:""};
+function renderLog(){
+  const box=$("#log"); if(!box) return;
+  $("#logCount").textContent = logbook.length
+    ? logbook.length+(logbook.length===1?" entry":" entries") : "";
+  if(!logbook.length){
+    box.innerHTML = `<p class="none">Nothing logged yet. From now on, everything you tick, add
+      or change lands here with the day and the time — so in a month you can see what actually
+      moved, not what you remember moving.</p>`; return; }
+  const days={};
+  logbook.forEach(e=>{ const d=e.at.slice(0,10); (days[d]=days[d]||[]).push(e); });
+  const keys=Object.keys(days).sort().reverse();
+  box.innerHTML = keys.map(d=>{
+    const rows=days[d].slice().reverse();
+    const doneN=rows.filter(r=>r.kind==="did").length;
+    const n=daysSince(d);
+    return `<div class="logday"><h3><b>${esc(longDate(d))}</b>
+      ${esc(n===0?"today":n===1?"yesterday":n+" days ago")}
+      <span>${rows.length} ${rows.length===1?"thing":"things"}${doneN?" · "+doneN+" ticked":""}</span></h3>
+      ${rows.map(r=>`<div class="logrow">
+        <span class="lt">${esc(new Date(r.at).toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}))}</span>
+        <span class="lk ${esc(r.kind)}">${esc(LKIND[r.kind]||r.kind)}</span>
+        <span class="lx">${esc(r.text)}</span></div>`).join("")}</div>`;
+  }).join("");
 }
 
-/* ---------- chrome ---------- */
-const TITLES = {
-  desk:  ["Rachie's Desk", d => { const W=(d&&d.waiting)||[], o=W.filter(j=>!done[j.id]).length;
-           return !d ? "Nothing is stored here. A desk arrives through a private link."
-                : (o===0?"Nothing is waiting on you.":o+(o===1?" thing is waiting on you.":" things are waiting on you."))
-                  +" Every fact carries the day it was read."; }],
-  news:  ["The Paper", () => NEWS ? (NEWS.title || "Your daily digest")
-           + (NEWS.minutes ? " — " + NEWS.minutes.replace(/^About a/,"about a") : "")
-           : "No edition has been loaded yet."],
-  shop:  ["Your Shop", () => "What is true today, and what was already decided."],
-  money: ["Money", () => "Only figures somebody read off a real account."],
-  notes: ["Notes", () => "Anything you want the next session to know."]
-};
+/* ---------------- how the secretary is doing ---------------- */
+function renderSecretary(){
+  const t=todayISO(), g=[];
+  const add=(name, ok, value, said)=>g.push({name,
+    cls: ok===2?"g-ok":ok===1?"g-warn":"g-bad", value, said});
 
-function setTab(t){
-  tab = t; save();
-  $$("nav.tabs button").forEach(b => b.classList.toggle("on", b.dataset.tab===t));
-  $$("section.panel").forEach(p => p.classList.toggle("on", p.id === "p-"+t));
-  const [title, sub] = TITLES[t];
-  $("#pageTitle").textContent = title;
-  $("#standfirst").textContent = sub(t==="desk"?DESK:null);
-  $("#todayLine").textContent = t==="news" && NEWS
-    ? longDate(NEWS.date)
-    : new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
-  $("#hideDone").classList.toggle("hide", t!=="desk");
-  $("#tools").classList.toggle("hide", !(t==="desk"?DESK:t==="news"?NEWS:false));
-  window.scrollTo(0,0);
-  speechSynthesis && speechSynthesis.cancel();
-  $("#speak").hidden=false; $("#stopBtn").hidden=true;
-}
+  const dAge = DESK && DESK.built ? daysSince(DESK.built) : null;
+  add("What is waiting on you", dAge===null?0:dAge<=1?2:dAge<=3?1:0,
+    dAge===null?"not loaded":dAge===0?"today":dAge+"d old",
+    dAge===null ? "The business desk has not loaded at all."
+      : "Rebuilt "+(dAge===0?"today":dAge+" days ago")+", by hand. Nothing refreshes it on its own yet.");
 
-/* ---------- read aloud: whatever is on screen ---------- */
-function script(){
-  if (tab==="news" && NEWS){
-    const b=["Here is the paper."+(NEWS.title?" "+NEWS.title+".":"")];
-    if (NEWS.caveat) b.push("One note first. "+NEWS.caveat);
-    (NEWS.stories||[]).forEach(s=>{ b.push(s.h+"."); if(s.p) b.push(s.p);
-      (s.pts||[]).forEach(p=>b.push(p)); });
-    return b.join(" ");
-  }
-  if (!DESK) return "Nothing is loaded yet.";
-  const W=(DESK.waiting||[]).filter(j=>!done[j.id]);
-  if (tab==="money"){
-    return "Money. "+(DESK.money||[]).map(m=>m.figure+". "+m.label).join(" ");
-  }
-  if (tab==="shop"){
-    const b=["What is true today."];
-    (DESK.readings||[]).forEach(r=>{ const stale=daysSince(r.read)>(r.stale||7);
-      b.push(r.label+". "+r.value+" That was "+agoWords(r.read)+"."
-        +(stale?" That is past its use-by, so treat it as needing another look.":"")); });
-    (DESK.never||[]).forEach(n=>b.push("Do not list. "+n.product+". "+n.why));
-    return b.join(" ");
-  }
-  const b=["Here is your desk."];
-  b.push(W.length===0?"Nothing is waiting on you."
-    :W.length===1?"One thing is waiting on you.":W.length+" things are waiting on you.");
-  W.forEach((j,i)=>b.push("Number "+(i+1)+". "+j.title+". "+j.body));
-  (DESK.blocked||[]).forEach(j=>b.push("Not yours to fix. "+j.title+". "+j.body));
-  return b.join(" ");
-}
-function speak(){
-  if (!("speechSynthesis" in window)){ toast("This browser cannot read aloud."); return; }
-  speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(script()); u.rate = 0.98;
-  u.onend = ()=>{ $("#speak").hidden=false; $("#stopBtn").hidden=true; };
-  $("#speak").hidden=true; $("#stopBtn").hidden=false;
-  speechSynthesis.speak(u);
-}
+  const nAge = NEWS ? daysSince(NEWS.date) : null;
+  add("The paper", nAge===null?0:nAge<=1?2:nAge<=2?1:0,
+    nAge===null?"none":nAge===0?"today":nAge+"d old",
+    nAge===null ? "No edition on file."
+      : "Two of the last three six a.m. runs produced nothing, so a person had to start it.");
 
+  const aFresh = AUDIO && AUDIO.date===t;
+  add("The recorded voice", AUDIO ? (aFresh?2:1) : 0,
+    AUDIO ? (aFresh?"today":"older") : "none",
+    AUDIO ? (aFresh ? "Today's brief is recorded and plays on your lock screen."
+      : "The recording is from "+shortDate(AUDIO.date)+", so it is older than the desk it reads.")
+      : "No recording. The brief falls back to the on-device voice, which stops when the screen locks.");
+
+  add("Your calendar", evError?0:events===null?1:2,
+    evError?"not reading":events===null?"waiting":"live",
+    evError ? evError : events===null ? "Still waiting on an answer."
+      : "Read live every fifteen minutes. This is the one thing here that cannot go stale.");
+
+  const stale = ((DESK&&DESK.readings)||[]).filter(r=>daysSince(r.read)>(r.stale||7)).length;
+  add("Shop readings", stale===0?2:stale<=2?1:0, stale===0?"all fresh":stale+" stale",
+    stale===0 ? "Every reading is inside its own use-by."
+      : stale+" of them are past the day they should have been read again.");
+
+  const noDate = renewals.filter(r=>!r.renews).length;
+  add("Renewals", noDate===0?2:noDate<=2?1:0, noDate?noDate+" with no date":"all dated",
+    noDate ? noDate+" have never had a bill opened, so nothing can warn you before they charge."
+      : "Every one has a date, so the warning comes before the charge.");
+
+  add("Google Tasks", 0, "not wired",
+    "Chosen on 13 September, and it cannot ever work on this copy — a page published on the "
+    + "Claude link is walled in and can never call Google. It needs the website copy and a sign-in key.");
+
+  add("What it keeps", db?2:0, db?"kept":"nothing kept",
+    db ? "Everything you type is stored with the app and comes back tomorrow."
+       : "This copy cannot store anything. Nothing you type here will be here tomorrow.");
+
+  $("#gauges").innerHTML = g.map(x=>`<div class="gauge ${x.cls}">
+    <span class="gn">${esc(x.name)}</span><span class="gv">${esc(x.value)}</span>
+    <span class="gs">${esc(x.said)}</span></div>`).join("");
+
+  $("#cannots").innerHTML = [
+    ["It never sends anything","No message, no email, no listing, no post. The Outbox holds drafts and counts the days; pressing send is always you."],
+    ["It never spends anything","It cannot buy, renew, cancel or top up. It can only tell you a date is coming."],
+    ["It never changes your shop","No price, no title, no photograph, no publish. It reports what was read off Etsy and nothing more."],
+    ["It cannot see inside your files","It knows a file's name and its type. Not what is in it."],
+    ["It does not go and look","Every fact here was put in by a person, or by a script a person ran. Nothing here refreshes itself except your calendar."],
+  ].map(([h,p])=>`<div class="cannot"><h4>${esc(h)}</h4><p>${esc(p)}</p></div>`).join("");
+
+  $("#shoulds").innerHTML = [
+    ["Every number carries the day it was read","A figure with no date is not a fact. One without a date here is a fault, not a style."],
+    ["Nothing is said twice","One fact, one place. When the same thing sits in two places they drift, and one of them quietly goes wrong."],
+    ["It says what it does not know","An empty section says so plainly instead of looking finished. Silence is the failure this whole thing exists to stop."],
+    ["It asks nothing of you to write in it","Ideas take your words exactly. Nothing is refused for being untidy, and nothing is tidied up behind you."],
+    ["It is over quickly","The brief is about five minutes. If a page starts needing a sit-down, it is wrong and should be cut."],
+    ["You can always stop it","Every read-aloud stops on one tap, and nothing plays until you press something."],
+  ].map(([h,p])=>`<div class="cannot" style="border-left:4px solid var(--accent)">
+    <h4>${esc(h)}</h4><p>${esc(p)}</p></div>`).join("");
+}
+function renderLesson(){
+  const box=$("#lesson"), t=todayISO();
+  if(LESSON && LESSON.date===t && LESSON.title){
+    box.innerHTML=`<div class="lesson"><h3>${esc(LESSON.title)}</h3>
+      ${(LESSON.paras||[]).map(p=>`<p>${esc(p)}</p>`).join("")}</div>`;
+    $("#lessonNote").textContent="Today's, on "+(LESSON.topic||"your topic")+".";
+    return; }
+  const topic = LESSON && LESSON.topic;
+  box.innerHTML=`<div class="lesson"><h3>No lesson written for today</h3>
+    <p>${topic?"Your topic is "+esc(topic)+".":"You have not picked a topic yet. Put one below and tomorrow's lesson is written on it."}</p></div>`;
+  $("#lessonNote").textContent = topic ? "Topic set: "+topic+"." : "One idea a day, on a topic you choose.";
+}
 function renderNotes(){
   $("#notes").innerHTML = notes.slice().reverse().map(n=>
     `<li>${esc(n.text)}<time>${esc(new Date(n.at).toLocaleString())}</time></li>`).join("");
 }
-let toastTimer;
-function toast(msg){
-  let el = $("#toast"); if (!el){ el=document.createElement("div"); el.id="toast"; document.body.appendChild(el); }
-  el.textContent = msg; el.hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ el.hidden = true; }, 3600);
+const KB = n => n<1024 ? n+" B" : n<1048576 ? (n/1024).toFixed(0)+" KB" : (n/1048576).toFixed(1)+" MB";
+function renderFiles(){
+  $("#filesCount").textContent = files.length ? files.length+(files.length===1?" file":" files") : "";
+  $("#files").innerHTML = files.length ? files.slice().reverse().map(f=>
+    `<li><a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.name)}</a>
+      <time>${esc(KB(f.size))} &middot; ${esc(new Date(f.at).toLocaleDateString())}</time>
+      ${xbtn("Remove","delFile",f.id)}</li>`).join("")
+    : `<p class="none">Nothing kept here yet.</p>`;
+}
+function renderThread(){
+  $("#thread").innerHTML = thread.map(t=>`<div class="turn ${t.role==="user"?"you":"me"}">
+    <span class="who">${t.role==="user"?"You":"Claude"}</span>
+    <div class="bubble">${esc(t.text)}</div></div>`).join("");
+  if(thread.length) $("#thread").lastElementChild.scrollIntoView({block:"nearest"});
+}
+function renderRunOrder(){
+  const rows = briefRows();
+  $("#briefRun").innerHTML = rows.map(([k,v])=>
+    `<span><b>${esc(k)}</b> <span class="at">${esc(String(v))}</span></span>`).join("");
+  $("#runOrder").innerHTML = rows.map(([k,v],i)=>cardHTML({
+    title:(i+1)+". "+k, body:"", meta:[pill(String(v))] })).join("");
+}
+function briefRows(){
+  const T=todaysEvents().length, W=DESK?(DESK.waiting||[]).filter(j=>!done[j.id]).length:0;
+  const M=mine.filter(m=>!m.done).length, MO=DESK?(DESK.money||[]).length:0;
+  const R=rolling.filter(r=>daysSince(r.next)>=0).length;
+  const O=outbox.filter(o=>!o.sent).length;
+  const RN=renewals.filter(r=>r.renews && daysSince(r.renews)>=-14).length;
+  const na=NEWS?daysSince(NEWS.date):null;
+  const lessonOn = LESSON && LESSON.date===todayISO() && LESSON.title;
+  return [["Diary", events===null?"reading":T?T:"clear"], ["Waiting", W], ["Your list", M],
+    ["Rolling due", R], ["Outbox", O], ["Renewals soon", RN], ["Money", MO],
+    ["Paper", NEWS ? (settings.paper==="off"?"muted":(na<=0?"today":na+"d old")) : "none"],
+    ["Lesson", settings.lesson==="off" ? "muted" : (lessonOn?"ready":"not picked")]];
+}
+function renderAudio(){
+  const box=$("#rec"), el=$("#recAudio");
+  const fresh = AUDIO && AUDIO.url && AUDIO.date===todayISO();
+  box.classList.toggle("on", !!(AUDIO && AUDIO.url));
+  if(!AUDIO || !AUDIO.url){ $("#playBrief").textContent="▶ Play the brief"; return; }
+  if(el.getAttribute("src")!==AUDIO.url) el.setAttribute("src",AUDIO.url);
+  const mins = AUDIO.seconds ? Math.floor(AUDIO.seconds/60)+" min "+String(Math.round(AUDIO.seconds%60)).padStart(2,"0") : "";
+  $("#recLab").textContent = fresh
+    ? "Recorded this morning in a real voice"+(mins?" · "+mins:"")
+    : "Recorded "+shortDate(AUDIO.date)+" — older than today's desk"+(mins?" · "+mins:"");
+  $("#recLab").style.color = fresh ? "var(--ok)" : "var(--watch)";
+  if("mediaSession" in navigator){
+    try{ navigator.mediaSession.metadata = new MediaMetadata({
+      title:"The morning brief", artist:"Rachie's Desk", album:longDate(AUDIO.date)}); }catch(e){}
+  }
+}
+function renderAll(){
+  renderIdeas(); renderMine(); renderWaiting(); renderStatus(); renderRolling(); renderScore();
+  renderHours(); renderPlan(); renderOutbox(); renderRenewals(); renderStreaks();
+  renderMoney(); renderShop(); renderPaper(); renderLesson(); renderNotes(); renderFiles();
+  renderThread(); renderDiary(); renderAudio(); renderLog(); renderSecretary(); renderRunOrder();
 }
 
-/* ---------- go ---------- */
-(async function(){
-  readStore();
-  const landed = await takeFragment();
-  if (landed) readStore();
-  renderDesk(); renderNews(); renderNotes();
-  setTab(landed || tab);
-  if (landed) toast(landed==="news" ? "Today's paper loaded." : "Your desk loaded.");
-})();
+/* ---------------- navigation ---------------- */
+function go(id){
+  page=id;
+  const P=PAGE(id);
+  $$("section.page").forEach(s=>s.classList.toggle("on", s.id==="p-"+id));
+  $$("nav.tabs button[data-go]").forEach(b=>b.classList.toggle("on", b.dataset.go===id));
+  $("#pageTitle").textContent = P.name;
+  $("#pageWhy").textContent = P.why;
+  $("#eyebrow").textContent = (id==="paper" && NEWS) ? longDate(NEWS.date)
+    : new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
+  $("#briefCard").classList.toggle("hide", !(id==="ideas"||id==="today"||id==="listen"));
+  closeSheets(); stopSpeaking(); window.scrollTo(0,0);
+}
+function closeSheets(){ $$(".sheet").forEach(s=>s.classList.remove("on")); }
+function openSheet(id){ closeSheets(); $("#"+id).classList.add("on"); }
 
 $("#tabs").addEventListener("click", e=>{
-  const b = e.target.closest("button[data-tab]"); if (b) setTab(b.dataset.tab);
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.hasAttribute("data-more")){ openSheet("moreSheet"); return; }
+  if(b.dataset.go) go(b.dataset.go);
 });
-$("#waiting").addEventListener("change", e=>{
-  if (!e.target.classList.contains("tick")) return;
-  done[e.target.closest(".job").dataset.id] = e.target.checked;
-  save(); renderDesk(); setTab("desk");
-});
-$("#speak").addEventListener("click", speak);
-$("#stopBtn").addEventListener("click", ()=>{ speechSynthesis.cancel();
-  $("#speak").hidden=false; $("#stopBtn").hidden=true; });
-$("#hideDone").addEventListener("click", e=>{ hidingDone=!hidingDone;
-  e.target.textContent = hidingDone?"Show ticked":"Hide ticked"; renderDesk(); });
-$("#copyNotes").addEventListener("click", async ()=>{
-  if (!notes.length){ toast("No notes to send yet."); return; }
-  const text = "Notes from my Desk app:\n\n" + notes.map(n =>
-    "- " + n.text + "  (" + new Date(n.at).toLocaleString() + ")").join("\n");
-  try {
-    await navigator.clipboard.writeText(text);
-    toast("Copied. Paste it into a chat with Claude.");
-  } catch (e) {
-    // Clipboard is blocked in some in-app browsers. Select it instead so a
-    // long-press copy still works - never leave her with a dead button.
-    const ta = $("#noteBox");
-    ta.value = text; ta.focus(); ta.select();
-    toast("Could not copy. It is in the box above - copy it by hand.");
+document.addEventListener("click", e=>{ if(e.target.closest("[data-close]")) closeSheets(); });
+$("#moreMenu").innerHTML = PAGES.filter(p=>!p.nav).map(p=>
+  `<button data-go="${p.id}"><span class="mn">${esc(p.name)}</span>
+    <span class="mw">${esc(p.why)}</span></button>`).join("");
+$("#moreMenu").addEventListener("click", e=>{
+  const b=e.target.closest("button[data-go]"); if(b) go(b.dataset.go); });
+$("#setBtn").addEventListener("click", ()=>openSheet("setSheet"));
+$("#chatBtn").addEventListener("click", ()=>openSheet("chatSheet"));
+
+/* ---------------- status tiles: tap and swipe ---------------- */
+let tileIdx = 0;
+function openTile(i){
+  if(!status.length) return;
+  tileIdx = (i + status.length) % status.length;
+  const s = status[tileIdx], st = STAGE[s.stage] || ["—","work"];
+  $("#tileName").textContent = s.name;
+  $("#tileBody").innerHTML = `
+    <div class="c-meta" style="margin-bottom:10px">${pill(st[0], st[1]==="live"?"ok":st[1]==="hold"?"watch":st[1]==="dead"?"stop":"cool")}
+      ${pill((tileIdx+1)+" of "+status.length)}${s.read?pill(agoWords(s.read)):pill("never read","stale")}</div>
+    ${s.note?`<p class="c-body">${esc(s.note)}</p>`:`<p class="none">Nothing written about this one yet.</p>`}
+    <div class="setrow" style="margin-top:12px"><label for="tileStage">Stage</label>
+      <select id="tileStage">${Object.entries(STAGE).map(([k,v])=>
+        `<option value="${k}"${k===s.stage?" selected":""}>${v[0]}</option>`).join("")}</select></div>
+    <div class="adder"><textarea class="full" id="tileNote" placeholder="What is true about it now.">${esc(s.note||"")}</textarea>
+      <span></span><button id="tileSave">Save</button></div>
+    <div class="adder"><span></span>${xbtn("Remove this one","delStat",s.id)}</div>`;
+  openSheet("tileSheet");
+}
+$("#tiles").addEventListener("click", e=>{
+  const t=e.target.closest(".tile"); if(t) openTile(+t.dataset.i); });
+document.addEventListener("click", e=>{
+  if(e.target.id==="tileSave"){
+    const s=status[tileIdx]; if(!s) return;
+    const was=s.stage;
+    s.stage=$("#tileStage").value; s.note=$("#tileNote").value.trim(); s.read=todayISO();
+    saveStatus(); renderStatus(); openTile(tileIdx);
+    logIt(was===s.stage?"note":"set", was===s.stage
+      ? "Updated what is true about "+s.name
+      : s.name+": "+((STAGE[was]||["?"])[0])+" → "+((STAGE[s.stage]||["?"])[0]));
+    toast("Saved.");
+  }});
+(function(){
+  let x0=null;
+  const p=$("#tilePanel");
+  p.addEventListener("touchstart", e=>{ x0 = e.touches[0].clientX; }, {passive:true});
+  p.addEventListener("touchend", e=>{
+    if(x0===null) return; const dx = e.changedTouches[0].clientX - x0; x0=null;
+    if(Math.abs(dx) > 55) openTile(tileIdx + (dx<0?1:-1));
+  }, {passive:true});
+})();
+
+/* ---------------- speaking ---------------- */
+function briefScript(){
+  const b=[]; const H=t=>b.push({t,head:true}), L=t=>b.push({t,head:false});
+  H("Good morning. It is "+longDate(todayISO())+".");
+  if(evError) { H("First, your diary."); L("I could not read your calendar this morning."); }
+  else if(events===null){ H("First, your diary."); L("Your calendar has not answered yet."); }
+  else { const T=todaysEvents();
+    if(!T.length) H("Your diary is clear today.");
+    else { H("First, your diary. "+(T.length===1?"One thing in it.":T.length+" things in it."));
+      T.forEach(e=>L(evTimeSpoken(e)+". "+(e.summary||"Untitled")+"."));
+      const C=comingEvents();
+      if(C.length) L("Next after today. "+C.slice(0,2).map(e=>
+        (e.summary||"Untitled")+", "+longDate(evDayISO(e))).join(". ")+"."); } }
+
+  if(DESK){ const W=(DESK.waiting||[]).filter(j=>!done[j.id]);
+    H(W.length===0?"Nothing from the business is waiting on you."
+      :W.length===1?"Now the business. One thing is waiting on you."
+      :"Now the business. "+W.length+" things are waiting on you.");
+    W.forEach((j,i)=>{ L("Number "+(i+1)+". "+j.title+"."); L(j.body); });
+    const B=DESK.blocked||[];
+    if(B.length){ H("Not yours to fix."); B.forEach(j=>{ L(j.title+"."); L(j.body); }); }
+  } else H("Your desk has not been loaded.");
+
+  const M=mine.filter(m=>!m.done);
+  if(!M.length) H("Your own list is empty.");
+  else { H("Now your own list. "+(M.length===1?"One thing.":M.length+" things."));
+    const over=M.filter(m=>m.due&&daysSince(m.due)>0), tod=M.filter(m=>m.due&&daysSince(m.due)===0);
+    if(over.length){ L("Overdue."); over.forEach(m=>L(m.text+".")); }
+    if(tod.length){ L("Due today."); tod.forEach(m=>L(m.text+".")); }
+    const rest=M.filter(m=>!m.due||daysSince(m.due)<0);
+    if(rest.length){ L("No date on these."); rest.forEach(m=>L(m.text+".")); } }
+
+  const RD=rolling.filter(r=>daysSince(r.next)>=0);
+  if(RD.length){ H("Repeating jobs due. "+RD.length+".");
+    RD.forEach(r=>L(r.text+".")); }
+
+  const OO=outbox.filter(o=>!o.sent);
+  if(OO.length){ H("Waiting to go out. "+(OO.length===1?"One message.":OO.length+" messages."));
+    OO.forEach(o=>{ const w=daysSince(o.at.slice(0,10));
+      L(o.who+". "+(OKIND[o.kind]||"")+"."+(w>=1?" Waiting "+w+(w===1?" day.":" days."):"")); }); }
+
+  const RN=renewals.filter(r=>r.renews && daysSince(r.renews)>=-14 && daysSince(r.renews)<=0);
+  if(RN.length){ H("Renewing inside a fortnight.");
+    RN.forEach(r=>{ const n=-daysSince(r.renews);
+      L(r.name+". "+(r.cost||"cost unknown")+". "+(n===0?"Today.":"In "+n+(n===1?" day.":" days."))); }); }
+
+  if(DESK && (DESK.money||[]).length){ H("Money running.");
+    (DESK.money||[]).forEach(m=>L(m.figure+". "+m.label)); }
+
+  if(NEWS && settings.paper!=="off"){ const age=daysSince(NEWS.date);
+    H(age<=0?"Now the paper, this morning's.":age===1?"Now the paper, yesterday's."
+      :"Now the paper. Careful with this one, it is "+age+" days old.");
+    (NEWS.stories||[]).forEach(s=>{ L(String(s.h).replace(/^\s*\d+\.\s*/,"")+".");
+      if(s.p) L(s.p); }); }
+
+  if(settings.lesson!=="off"){
+    if(LESSON && LESSON.date===todayISO() && LESSON.title){
+      H("And last, today's lesson. "+LESSON.title+".");
+      (LESSON.paras||[]).forEach(p=>L(p));
+    } else if(LESSON && LESSON.topic){
+      H("No lesson is written for today. Your topic is "+LESSON.topic+".");
+    } else {
+      H("Last thing. You have not picked a lesson topic yet.");
+      L("Open Notes and files, and type any topic."); } }
+  H("That is everything.");
+  return b;
+}
+function pageParts(){
+  const P=PAGE(page); const b=[{t:P.name+". "+P.why, head:true}];
+  const grab = sel => $$(sel).map(n=>n.textContent.trim()).filter(Boolean);
+  const lines = grab("#p-"+page+" .c-title, #p-"+page+" .c-body, #p-"+page+" .r-label, #p-"+page+" .r-value, #p-"+page+" .m-figure, #p-"+page+" .m-label, #p-"+page+" .story h3, #p-"+page+" .lede, #p-"+page+" .sn, #p-"+page+" .ss, #p-"+page+" .lesson h3, #p-"+page+" .lesson p");
+  lines.forEach(t=>b.push({t, head:false}));
+  if(b.length===1) b.push({t:"There is nothing on this page yet.", head:false});
+  return b;
+}
+
+let VOICES=[], voiceURI=null, rate=0.95;
+let queue=[], qi=0, playing=false, gapTimer=null;
+function voiceScore(v){ let n=0; const nm=(v.name||"")+" "+(v.voiceURI||"");
+  if(/premium|enhanced|natural|neural|siri/i.test(nm)) n+=100;
+  if(/google/i.test(nm)) n+=40;
+  if(/^en-AU/i.test(v.lang)) n+=30; else if(/^en-GB/i.test(v.lang)) n+=22;
+  else if(/^en-US/i.test(v.lang)) n+=14; else if(/^en/i.test(v.lang)) n+=8; else n-=200;
+  if(v.localService) n+=6;
+  if(/compact|eloquence|novelty|whisper|bells|bubbles|zarvox|trinoids|bahh/i.test(nm)) n-=140;
+  return n; }
+function fillVoices(){
+  if(!("speechSynthesis" in window)) return;
+  const all = speechSynthesis.getVoices()||[];
+  VOICES = all.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a));
+  if(!VOICES.length) VOICES = all.slice();
+  const opts = VOICES.map(v=>{
+    const up = /premium|enhanced|natural|neural|siri/i.test(v.name) ? " · better" : "";
+    return `<option value="${esc(v.voiceURI)}">${esc(v.name)} (${esc(v.lang)})${up}</option>`;
+  }).join("") || `<option value="">Only the built-in voice</option>`;
+  ["#voiceSel","#setVoice"].forEach(sel=>{ const el=$(sel); if(!el) return; el.innerHTML=opts;
+    if(voiceURI && VOICES.some(v=>v.voiceURI===voiceURI)) el.value=voiceURI;
+    else if(VOICES.length) el.value=VOICES[0].voiceURI; });
+  if(!voiceURI && VOICES.length) voiceURI=VOICES[0].voiceURI;
+  const best = VOICES[0] && /premium|enhanced|natural|neural|siri/i.test(VOICES[0].name);
+  $("#pNote").textContent = (AUDIO && AUDIO.url)
+    ? "This is the fallback voice, for a day with no recording. The recording above keeps playing when your screen locks."
+    : best ? "Using the best voice on this device. On a phone it still stops when the screen locks — that is the browser, not the app."
+    : "This device only has the plain robot voice. On iPhone: Settings, Accessibility, Spoken Content, Voices — download an English voice marked Enhanced or Premium, then reopen this.";
+}
+const currentVoice = () => VOICES.find(v=>v.voiceURI===voiceURI) || null;
+function stopSpeaking(){
+  clearTimeout(gapTimer); gapTimer=null; playing=false; queue=[]; qi=0;
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  $("#stopBtn").hidden=true; $("#playBrief").textContent="▶ Play the brief";
+  $("#player").classList.remove("on"); $("#pFill").style.width="0"; $("#pNow").textContent="Ready";
+}
+const headIdx = () => queue.map((p,i)=>p.head?i:-1).filter(i=>i>=0);
+function jump(dir){
+  if(!queue.length) return;
+  const heads=headIdx(); let target;
+  if(dir>0) target = heads.find(i=>i>qi);
+  else { const before=heads.filter(i=>i<qi-1); target = before.length?before[before.length-1]:0; }
+  if(target===undefined){ stopSpeaking(); return; }
+  clearTimeout(gapTimer); speechSynthesis.cancel(); qi=target; step();
+}
+function step(){
+  if(!playing) return;
+  if(qi>=queue.length){ stopSpeaking(); return; }
+  const part=queue[qi];
+  $("#pFill").style.width = Math.round((qi/queue.length)*100)+"%";
+  const heads=headIdx(); $("#pNow").textContent = "Part "+(heads.filter(i=>i<=qi).length||1)+" of "+(heads.length||1);
+  const u=new SpeechSynthesisUtterance(part.t);
+  const v=currentVoice(); if(v){ u.voice=v; u.lang=v.lang; }
+  u.rate=rate;
+  u.onend=()=>{ if(!playing) return; qi++;
+    gapTimer=setTimeout(step, queue[qi] && queue[qi].head ? 620 : 190); };
+  u.onerror=()=>{ if(!playing) return; qi++; gapTimer=setTimeout(step,120); };
+  speechSynthesis.speak(u);
+}
+function say(parts, isBrief){
+  if(!("speechSynthesis" in window)){ toast("This browser cannot read aloud."); return; }
+  stopSpeaking();
+  queue = parts.filter(p=>p && p.t && p.t.trim()); qi=0; playing=true;
+  $("#stopBtn").hidden=false; $("#player").classList.add("on");
+  if(isBrief) $("#playBrief").textContent="▮▮ Playing…";
+  step();
+}
+
+/* ---------------- ask Claude ---------------- */
+function deskForClaude(){
+  const L=[]; L.push("TODAY: "+todayISO()+". She is looking at the "+PAGE(page).name+" page.");
+  if(events){ const T=todaysEvents();
+    L.push("\nDIARY TODAY:"); if(!T.length) L.push("- nothing");
+    T.forEach(e=>L.push("- "+evTime(e)+" "+(e.summary||"Untitled"))); }
+  if(mine.length){ L.push("\nHER OWN LIST:");
+    mine.forEach(m=>L.push("- ["+(m.done?"done":"open")+"] "+m.text+(m.due?" (due "+m.due+")":" (no date)"))); }
+  if(ideas.length){ L.push("\nPARKED IDEAS, HER WORDS:"); ideas.forEach(i=>L.push("- "+i.text)); }
+  if(rolling.length){ L.push("\nREPEATING:");
+    rolling.forEach(r=>L.push("- "+r.text+" every "+r.every+" days, next "+r.next)); }
+  if(status.length){ L.push("\nWHERE EACH THING IS:");
+    status.forEach(s=>L.push("- "+s.name+": "+((STAGE[s.stage]||["?"])[0])+(s.note?" — "+s.note:""))); }
+  if(score.length){ L.push("\nSCOREBOARD:");
+    score.forEach(s=>L.push("- "+s.name+": "+s.now+(s.target?" (aiming "+s.target+")":"")+(s.read?" read "+s.read:" NEVER READ"))); }
+  if(outbox.length){ L.push("\nOUTBOX:");
+    outbox.filter(o=>!o.sent).forEach(o=>L.push("- "+o.who+": "+o.what+" ("+daysSince(o.at.slice(0,10))+" days waiting)")); }
+  if(renewals.length){ L.push("\nRENEWALS:");
+    renewals.forEach(r=>L.push("- "+r.name+" "+(r.cost||"cost unknown")+(r.renews?" renews "+r.renews:" NO DATE"))); }
+  if(streaks.length){ L.push("\nSTREAKS:");
+    streaks.forEach(s=>L.push("- "+s.name+": "+((s.dates||[]).length)+" days ticked in total")); }
+  if(plan.now) L.push("\nTHIS WEEK'S PLAN: "+plan.now.planned);
+  if(!DESK) return L.join("\n");
+  L.push("\nThe business desk was last rebuilt "+DESK.built+".");
+  L.push("\nWAITING ON HER:");
+  (DESK.waiting||[]).forEach(j=>L.push("- ["+(done[j.id]?"ticked":"open")+"] "+j.title+" — "+j.body+" (read "+j.read+")"));
+  (DESK.blocked||[]).forEach(j=>L.push("- BLOCKED ON SOMEONE ELSE: "+j.title+" — "+j.body));
+  L.push("\nWHAT IS TRUE, WITH THE DAY IT WAS READ:");
+  (DESK.readings||[]).forEach(r=>L.push("- "+r.label+": "+r.value+" (read "+r.read
+    +(daysSince(r.read)>(r.stale||7)?", ALREADY STALE":"")+"). "+(r.note||"")));
+  L.push("\nMONEY:"); (DESK.money||[]).forEach(m=>L.push("- "+m.figure+" — "+m.label));
+  (DESK.never||[]).forEach(n=>L.push("\nDECIDED, DO NOT RE-ARGUE — "+n.product+": "+n.why+" Ruling: "+n.ruling));
+  if(NEWS) L.push("\nTHE PAPER ON FILE ("+NEWS.date+", "+daysSince(NEWS.date)+" days old): "
+    +(NEWS.stories||[]).map(s=>s.h).join(" | "));
+  if(notes.length) L.push("\nHER NOTES:\n"+notes.map(n=>"- "+n.text).join("\n"));
+  return L.join("\n");
+}
+async function ask(q){
+  if(!sample || asking || !q.trim()) return;
+  openSheet("chatSheet");
+  asking=true; $("#askGo").disabled=true;
+  thread.push({role:"user",text:q}); thread.push({role:"assistant",text:"Thinking…"}); renderThread();
+  const idx=thread.length-1;
+  const prompt =
+`You are Rachel's secretary, inside her Desk app. She runs a printable-products business
+alone, is not technical, reads part of the day and listens the rest.
+
+HOW TO ANSWER HER:
+- Answer in the very first line. Never open with what she asked or what you are about to do.
+- Plain words first, then the term in brackets if it is worth learning.
+- Short. A few sentences. No headings, no tables, no markdown - this is a chat bubble.
+- If the desk does not contain the answer, say so plainly rather than guessing.
+- Every fact below carries the day it was read. If something is marked stale, say it needs
+  looking at again rather than repeating it as current.
+
+HER DESK RIGHT NOW:
+${deskForClaude()}
+
+HER QUESTION: ${q}`;
+  try{
+    const res = await sample(prompt, {modelTier:"default",
+      onText:({text})=>{ thread[idx].text=text; renderThread(); }});
+    thread[idx].text = (res && res.text) ? res.text : thread[idx].text;
+  }catch(e){
+    const c = e && e.code;
+    thread[idx].text = c==="not_granted" ? "You said no to letting this page ask Claude. Nothing was sent."
+      : c==="rate_limited" ? "Too many questions too quickly. Give it a minute."
+      : "That did not get through. Nothing was sent.";
   }
-});
-$("#addNote").addEventListener("click", ()=>{
-  const t=$("#noteBox").value.trim(); if(!t) return;
+  renderThread(); asking=false; $("#askGo").disabled=false; saveThread();
+}
+async function writeLesson(topic){
+  if(!sample) return false;
+  try{
+    const out = await sample.json(
+`Write today's lesson for Rachel. Her topic: ${topic}
+
+She is a full-time worker building a small business on the side, sharp but not technical,
+and she LISTENS to this rather than reading it. Nothing about her work, marketing, selling
+or AI - this is the part of the day that is hers.
+
+Give back JSON only: {"title": "...", "paras": ["...", "...", "..."]}
+- title: a short plain-English question or statement, under 9 words.
+- paras: exactly 3 short paragraphs, 2 to 4 sentences each, written to be spoken aloud.
+  No lists, no symbols, no markdown. One real example, and one thing she can notice today.`,
+      {modelTier:"default"});
+    if(out && out.title && Array.isArray(out.paras)){
+      LESSON={topic, date:todayISO(), title:out.title, paras:out.paras};
+      await saveLesson(); renderLesson(); renderRunOrder(); return true; }
+  }catch(e){}
+  return false;
+}
+
+/* ---------------- the sky ---------------- */
+let skyStop=null;
+function startSky(){
+  const cv=$("#sky"); if(!cv) return;
+  const ctx=cv.getContext("2d");
+  const REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let W=0,H=0,DPR=1,live=true;
+  function size(){ DPR=Math.min(devicePixelRatio||1,2); W=innerWidth; H=innerHeight;
+    cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+"px"; cv.style.height=H+"px";
+    ctx.setTransform(DPR,0,0,DPR,0,0); }
+  addEventListener("resize",size);
+  const lerp=(a,b,t)=>a+(b-a)*t;
+  const mix=(c,d,t)=>[lerp(c[0],d[0],t),lerp(c[1],d[1],t),lerp(c[2],d[2],t)];
+  const rgb=c=>"rgb("+(c[0]|0)+","+(c[1]|0)+","+(c[2]|0)+")";
+  const rgba=(c,a)=>"rgba("+(c[0]|0)+","+(c[1]|0)+","+(c[2]|0)+","+a+")";
+  const KEYS=[{m:0,top:[9,14,26],hor:[17,24,42],light:.06},{m:300,top:[19,28,52],hor:[54,52,86],light:.10},
+    {m:355,top:[44,58,104],hor:[168,110,110],light:.28},{m:400,top:[86,122,176],hor:[243,157,92],light:.52},
+    {m:450,top:[118,164,208],hor:[249,196,140],light:.74},{m:600,top:[128,176,222],hor:[206,224,240],light:.94},
+    {m:780,top:[120,170,220],hor:[198,220,238],light:1},{m:1020,top:[128,166,206],hor:[226,208,186],light:.90},
+    {m:1080,top:[104,132,182],hor:[245,176,116],light:.72},{m:1125,top:[64,74,132],hor:[226,116,96],light:.44},
+    {m:1170,top:[30,38,76],hor:[96,62,84],light:.20},{m:1260,top:[12,18,34],hor:[22,30,52],light:.07},
+    {m:1439,top:[9,14,26],hor:[17,24,42],light:.06}];
+  function skyAt(m){ let a=KEYS[0],b=KEYS[KEYS.length-1];
+    for(let i=0;i<KEYS.length-1;i++) if(m>=KEYS[i].m&&m<=KEYS[i+1].m){a=KEYS[i];b=KEYS[i+1];break;}
+    const t=b.m===a.m?0:(m-a.m)/(b.m-a.m), e=t*t*(3-2*t);
+    return {top:mix(a.top,b.top,e),hor:mix(a.hor,b.hor,e),light:lerp(a.light,b.light,e)}; }
+  const RISE=380,SET=1090;
+  function sunPos(m){ const t=(m-RISE)/(SET-RISE); if(t<-.08||t>1.08) return null;
+    const c=Math.max(0,Math.min(1,t));
+    return {x:W*(.10+.80*t), y:H*(.90-.74*Math.sin(Math.PI*c)), t}; }
+  const STARS=Array.from({length:130},()=>({x:Math.random(),y:Math.random()*.7,
+    r:Math.random()*1.1+.3,p:Math.random()*6.28,s:.5+Math.random()}));
+  const CLOUDS=[...Array.from({length:5},()=>({x:Math.random(),y:.05+Math.random()*.30,
+      w:.22+Math.random()*.30,h:.030+Math.random()*.045,v:.000030+Math.random()*.000030,a:.10+Math.random()*.13})),
+    ...Array.from({length:3},()=>({x:Math.random(),y:.40+Math.random()*.34,
+      w:.16+Math.random()*.22,h:.022+Math.random()*.030,v:.000115+Math.random()*.000085,a:.13+Math.random()*.16}))];
+  const nowMin = () => { const d=new Date(); return d.getHours()*60+d.getMinutes(); };
+  function frame(now){
+    if(!live) return;
+    const m=nowMin(), s=skyAt(m);
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,rgb(s.top)); g.addColorStop(.62,rgb(mix(s.top,s.hor,.55))); g.addColorStop(1,rgb(s.hor));
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    if(s.light<.34){ const a=(.34-s.light)/.34; ctx.fillStyle="#fff";
+      for(const st of STARS){ const tw=REDUCED?1:(.55+.45*Math.sin(now*.0018*st.s+st.p));
+        ctx.globalAlpha=a*tw*.85; ctx.beginPath(); ctx.arc(st.x*W,st.y*H,st.r,0,6.29); ctx.fill(); }
+      ctx.globalAlpha=1; }
+    const sun=sunPos(m);
+    if(sun){ const warm=sun.t<.18||sun.t>.82, core=warm?[255,168,84]:[255,246,214], R=warm?70:44;
+      let h=ctx.createRadialGradient(sun.x,sun.y,0,sun.x,sun.y,R*5);
+      h.addColorStop(0,rgba(core,warm?.40:.28)); h.addColorStop(.45,rgba(core,.09)); h.addColorStop(1,rgba(core,0));
+      ctx.fillStyle=h; ctx.beginPath(); ctx.arc(sun.x,sun.y,R*5,0,6.29); ctx.fill();
+      let d=ctx.createRadialGradient(sun.x,sun.y,0,sun.x,sun.y,R);
+      d.addColorStop(0,rgba(warm?[255,214,150]:[255,255,240],.94)); d.addColorStop(.7,rgba(core,.78));
+      d.addColorStop(1,rgba(core,0)); ctx.fillStyle=d; ctx.beginPath(); ctx.arc(sun.x,sun.y,R,0,6.29); ctx.fill();
+    } else { const mx=W*.76,my=H*.18;
+      let mg=ctx.createRadialGradient(mx,my,0,mx,my,110);
+      mg.addColorStop(0,"rgba(226,234,246,.28)"); mg.addColorStop(1,"rgba(226,234,246,0)");
+      ctx.fillStyle=mg; ctx.beginPath(); ctx.arc(mx,my,110,0,6.29); ctx.fill();
+      ctx.fillStyle="rgba(232,238,248,.9)"; ctx.beginPath(); ctx.arc(mx,my,16,0,6.29); ctx.fill();
+      ctx.globalCompositeOperation="destination-out";
+      ctx.beginPath(); ctx.arc(mx+7,my-5,14,0,6.29); ctx.fill();
+      ctx.globalCompositeOperation="source-over"; }
+    const tint = s.light>.5?[255,255,255]:mix(s.hor,[255,255,255],.35);
+    for(const c of CLOUDS){
+      const x=((c.x+(REDUCED?0:now*c.v))%1.35-.18)*W, y=c.y*H, w=c.w*W, hh=c.h*H;
+      const cg=ctx.createRadialGradient(x,y,0,x,y,w);
+      cg.addColorStop(0,rgba(tint,c.a*(.45+s.light*.55))); cg.addColorStop(1,rgba(tint,0));
+      ctx.save(); ctx.translate(x,y); ctx.scale(1,hh/w); ctx.translate(-x,-y);
+      ctx.fillStyle=cg; ctx.beginPath(); ctx.arc(x,y,w,0,6.29); ctx.fill(); ctx.restore(); }
+    ctx.fillStyle = rgba(s.light<.5?[10,14,18]:[232,236,240], .30); ctx.fillRect(0,0,W,H);
+    document.documentElement.classList.toggle("sky-night", s.light<.5);
+    requestAnimationFrame(frame);
+  }
+  size(); requestAnimationFrame(frame);
+  skyStop = () => { live=false; ctx.clearRect(0,0,cv.width,cv.height);
+    document.documentElement.classList.remove("sky-night"); };
+}
+function applySky(){
+  if(settings.sky==="off"){ if(skyStop){ skyStop(); skyStop=null; } $("#sky").style.display="none"; }
+  else { $("#sky").style.display="block"; if(!skyStop) startSky(); }
+}
+
+/* ---------------- calendar ---------------- */
+function watchCalendar(){
+  if(!mcp){ evError="Your calendar is not connected in this copy."; renderDiary(); renderRunOrder(); return; }
+  const start=new Date(); start.setHours(0,0,0,0);
+  const end=new Date(start.getTime()+8*DAY);
+  try{
+    mcp.watchTool(CAL,"list_events",
+      {startTime:start.toISOString(), endTime:end.toISOString(), orderBy:"startTime", pageSize:50},
+      ev=>{
+        if(ev.type==="error"){
+          if(events===null) evError = ev.error && ev.error.code==="not_granted"
+            ? "You said no to reading your calendar. Nothing was sent."
+            : "Your calendar did not answer.";
+          renderDiary(); renderRunOrder(); return; }
+        const p = ev.result && ev.result.payload;
+        events = (p && Array.isArray(p.events)) ? p.events : [];
+        evError=null; renderDiary(); renderRunOrder();
+      }, {refetchInterval: 900000});
+  }catch(e){ evError="Your calendar did not answer."; renderDiary(); renderRunOrder(); }
+}
+
+/* ---------------- wiring: adders ---------------- */
+function add(btnSel, fn){ const b=$(btnSel); if(b) b.addEventListener("click", fn); }
+
+add("#ideaGo", ()=>{ const t=$("#ideaText").value.trim(); if(!t){ toast("Type it first."); return; }
+  ideas.push({id:uid("i"), text:t, at:new Date().toISOString()});
+  $("#ideaText").value=""; renderIdeas(); saveIdeas(); logIt("new","Parked an idea: "+t);
+  toast("Parked, in your words."); });
+
+add("#mineGo", ()=>{ const t=$("#mineText").value.trim(); if(!t){ toast("Type it first."); return; }
+  mine.push({id:uid("m"), text:t, due:$("#mineWhen").value||null, done:false, at:new Date().toISOString()});
+  $("#mineText").value=""; $("#mineWhen").value="";
+  renderMine(); renderWaiting(); renderRunOrder(); saveMine();
+  logIt("new","Added to your list: "+t); toast("On your list."); });
+$("#mineText").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#mineGo").click(); });
+
+add("#statGo", ()=>{ const n=$("#statName").value.trim(); if(!n){ toast("Give it a name."); return; }
+  status.push({id:uid("s"), name:n, stage:$("#statStage").value, note:"", read:todayISO()});
+  $("#statName").value=""; renderStatus(); saveStatus();
+  logIt("new","Started tracking "+n); toast("Added."); });
+
+add("#rollGo", ()=>{ const t=$("#rollText").value.trim(); if(!t){ toast("Type it first."); return; }
+  const every=+$("#rollEvery").value;
+  rolling.push({id:uid("r"), text:t, every, last:null, next:todayISO()});
+  $("#rollText").value=""; renderRolling(); renderRunOrder(); saveRolling();
+  logIt("new","Repeating every "+every+" days: "+t); toast("It will come back."); });
+
+add("#scGo", ()=>{ const n=$("#scName").value.trim(); if(!n){ toast("Name the number."); return; }
+  score.push({id:uid("c"), name:n, now:$("#scNow").value.trim()||"—",
+    target:$("#scTarget").value.trim(), read:todayISO(), stale:7});
+  $("#scName").value=""; $("#scNow").value=""; $("#scTarget").value="";
+  renderScore(); saveScore(); logIt("new","Watching a number: "+n); toast("Added."); });
+
+add("#hGo", ()=>{ const g=id=>{ const v=parseFloat($(id).value); return isNaN(v)?0:v; };
+  const row={making:g("#hMaking"), selling:g("#hSelling"), admin:g("#hAdmin"),
+    learning:g("#hLearning"), life:g("#hLife")};
+  const total=Object.values(row).reduce((a,b)=>a+b,0);
+  if(!total){ toast("Put at least one number in."); return; }
+  hours[todayISO()]=row;
+  ["#hMaking","#hSelling","#hAdmin","#hLearning","#hLife"].forEach(s=>$(s).value="");
+  renderHours(); saveHours();
+  logIt("set","Hours today: "+HKINDS.filter(([k])=>row[k]).map(([k,n])=>n.toLowerCase()+" "+row[k]).join(", "));
+  toast("Saved for today."); });
+
+add("#planGo", ()=>{ const t=$("#planText").value.trim(); if(!t){ toast("Write the week first."); return; }
+  plan.now={week:weekKey(), planned:t, at:new Date().toISOString()};
+  $("#planText").value=""; renderPlan(); savePlan();
+  logIt("set","Wrote the week: "+t); toast("The week is written down."); });
+
+add("#outGo", ()=>{ const w=$("#outWho").value.trim(), t=$("#outWhat").value.trim();
+  if(!w){ toast("Who is it for?"); return; }
+  outbox.push({id:uid("o"), who:w, kind:$("#outKind").value, what:t, sent:false, at:new Date().toISOString()});
+  $("#outWho").value=""; $("#outWhat").value="";
+  renderOutbox(); renderRunOrder(); saveOutbox();
+  logIt("new","Owed to "+w+": "+(OKIND[$("#outKind").value]||"")); toast("Added. Nothing has been sent."); });
+
+add("#renGo", ()=>{ const n=$("#renName").value.trim(); if(!n){ toast("Name it first."); return; }
+  renewals.push({id:uid("n"), name:n, cost:$("#renCost").value.trim(), renews:$("#renDate").value||null,
+    read:todayISO()});
+  $("#renName").value=""; $("#renCost").value=""; $("#renDate").value="";
+  renderRenewals(); renderRunOrder(); saveRenew();
+  logIt("new","Renewal listed: "+n); toast("Added."); });
+
+add("#strGo", ()=>{ const n=$("#strName").value.trim(); if(!n){ toast("Name it first."); return; }
+  streaks.push({id:uid("k"), name:n, dates:[]});
+  $("#strName").value=""; renderStreaks(); saveStreaks();
+  logIt("new","Started keeping: "+n); toast("Added."); });
+
+add("#topicGo", async ()=>{ const t=$("#topicText").value.trim();
+  if(!t){ toast("Type a topic first."); return; }
+  const b=$("#topicGo"); b.disabled=true; b.textContent="Writing…";
+  LESSON={topic:t, date:null, title:null, paras:[]}; await saveLesson();
+  const ok = await writeLesson(t);
+  b.disabled=false; b.textContent="Set the topic"; $("#topicText").value="";
+  toast(ok?"Topic set, and today's lesson is written.":"Topic saved. The lesson did not come back.");
+  renderLesson(); });
+
+add("#addNote", ()=>{ const t=$("#noteBox").value.trim(); if(!t) return;
   notes.push({text:t, at:new Date().toISOString()}); $("#noteBox").value="";
-  save(); renderNotes(); toast("Saved.");
+  renderNotes(); saveNotes(); logIt("new","Wrote a note");
+  toast(db?"Saved. Claude can read it.":"Saved on this device."); });
+
+/* ---------------- wiring: ticks and buttons ---------------- */
+document.addEventListener("change", e=>{
+  const t=e.target;
+  if(!t.classList || !t.classList.contains("tick")) return;
+  const card=t.closest(".card");
+  if(card.dataset.wid){ done[card.dataset.wid]=t.checked; saveTicks(); renderWaiting(); renderRunOrder();
+    const j=((DESK&&DESK.waiting)||[]).find(x=>x.id===card.dataset.wid);
+    if(j) logIt(t.checked?"did":"note",(t.checked?"Ticked off: ":"Put back: ")+j.title); }
+  else if(card.dataset.mid){ const m=mine.find(x=>x.id===card.dataset.mid);
+    if(m){ m.done=t.checked; saveMine(); renderMine(); renderWaiting(); renderRunOrder();
+      logIt(t.checked?"did":"note",(t.checked?"Ticked off: ":"Put back: ")+m.text); } }
 });
-window.addEventListener("hashchange", async ()=>{
-  const landed = await takeFragment();
-  if (landed){ readStore(); renderDesk(); renderNews(); setTab(landed);
-    toast(landed==="news" ? "Today's paper loaded." : "Your desk loaded."); }
+document.addEventListener("click", async e=>{
+  const b=e.target.closest(".xbtn"); if(!b) return;
+  const id=b.dataset.id;
+  if(b.classList.contains("delIdea")){ const o=ideas.find(x=>x.id===id);
+    ideas=ideas.filter(x=>x.id!==id); renderIdeas(); saveIdeas();
+    if(o) logIt("gone","Removed an idea: "+o.text); }
+  else if(b.classList.contains("delMine")){ const o=mine.find(x=>x.id===id);
+    mine=mine.filter(x=>x.id!==id); renderMine(); renderRunOrder(); saveMine();
+    if(o) logIt("gone","Removed from your list: "+o.text); }
+  else if(b.classList.contains("delRoll")){ rolling=rolling.filter(x=>x.id!==id); renderRolling(); renderRunOrder(); saveRolling(); }
+  else if(b.classList.contains("doRoll")){ const r=rolling.find(x=>x.id===id);
+    if(r){ r.last=todayISO(); r.next=plusDays(todayISO(), r.every);
+      renderRolling(); renderRunOrder(); saveRolling();
+      logIt("did","Did the repeating job: "+r.text+". Back on "+shortDate(r.next)+".");
+      toast("Back on "+shortDate(r.next)+"."); } }
+  else if(b.classList.contains("delScore")){ score=score.filter(x=>x.id!==id); renderScore(); saveScore(); }
+  else if(b.classList.contains("delStat")){ status=status.filter(x=>x.id!==id);
+    closeSheets(); renderStatus(); saveStatus(); }
+  else if(b.classList.contains("doOut")){ const o=outbox.find(x=>x.id===id);
+    if(o){ o.sent=!o.sent; renderOutbox(); renderRunOrder(); saveOutbox();
+      logIt(o.sent?"did":"note",(o.sent?"Sent it to ":"Marked not sent after all: ")+o.who); } }
+  else if(b.classList.contains("delOut")){ outbox=outbox.filter(x=>x.id!==id); renderOutbox(); renderRunOrder(); saveOutbox(); }
+  else if(b.classList.contains("delRen")){ renewals=renewals.filter(x=>x.id!==id); renderRenewals(); renderRunOrder(); saveRenew(); }
+  else if(b.classList.contains("doStreak")){ const s=streaks.find(x=>x.id===id);
+    if(s){ const t=todayISO(); s.dates=s.dates||[];
+      const was=s.dates.includes(t);
+      s.dates = was ? s.dates.filter(d=>d!==t) : s.dates.concat(t);
+      renderStreaks(); saveStreaks();
+      logIt(was?"note":"did",(was?"Un-ticked ":"Ticked ")+s.name); } }
+  else if(b.classList.contains("closeWeek")){
+    const v = prompt("How did the week go?\n\ndone / part / no / changed", "part");
+    if(!v) return;
+    const key = /^d/i.test(v)?"done": /^p/i.test(v)?"part": /^c/i.test(v)?"changed":"no";
+    plan.past.push(Object.assign({}, plan.now, {verdict:key,
+      actual:(plan.now && plan.now.actual) || ""}));
+    const verdictSaid={done:"done",part:"part done",changed:"changed my mind",no:"did not happen"}[key];
+    plan.now=null; renderPlan(); savePlan();
+    logIt("set","Closed the week: "+verdictSaid); toast("Week closed. It is kept."); }
+  else if(b.classList.contains("delFile")){
+    const f=files.find(x=>x.id===id); if(!f||!assets) return;
+    if(!confirm("Remove "+f.name+" for good? This cannot be undone.")) return;
+    try{ await assets.delete(f.id); }catch(err){}
+    files=files.filter(x=>x.id!==id); renderFiles(); saveFiles(); toast("Removed."); }
 });
-if ("serviceWorker" in navigator)
-  window.addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+
+/* ---------------- wiring: brief and voice ---------------- */
+$("#playBrief").addEventListener("click", ()=>{
+  const el=$("#recAudio");
+  if(AUDIO && AUDIO.url){
+    if(!el.paused){ el.pause(); return; }
+    el.play().catch(()=>say(briefScript(),true)); return; }
+  if(!$("#stopBtn").hidden){ stopSpeaking(); return; }
+  say(briefScript(),true); });
+$("#recAudio").addEventListener("play", ()=>{ stopSpeaking(); $("#playBrief").textContent="▮▮ Playing…"; });
+$("#recAudio").addEventListener("pause", ()=>{ $("#playBrief").textContent="▶ Play the brief"; });
+$("#recAudio").addEventListener("ended", ()=>{ $("#playBrief").textContent="▶ Play the brief"; });
+$("#recAudio").addEventListener("error", ()=>{
+  /* The recording lives with the Claude copy. On her own website it cannot be fetched, so the
+     player is hidden rather than left sitting there doing nothing when pressed. */
+  AUDIO=null; $("#rec").classList.remove("on");
+  $("#playBrief").textContent="▶ Play the brief"; fillVoices(); });
+$("#stopBtn").addEventListener("click", stopSpeaking);
+$("#pNext").addEventListener("click", ()=>jump(1));
+$("#pPrev").addEventListener("click", ()=>jump(-1));
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden && playing) stopSpeaking(); });
+
+function onVoice(v){ voiceURI=v; const el=currentVoice(); saveSettings(); saveVoicePref();
+  stopSpeaking();
+  if(el && "speechSynthesis" in window){
+    const u=new SpeechSynthesisUtterance("This is how I will read your morning.");
+    u.voice=el; u.lang=el.lang; u.rate=rate; speechSynthesis.speak(u); }
+  ["#voiceSel","#setVoice"].forEach(s=>{ if($(s)) $(s).value=v; }); }
+const saveVoicePref = () => save("state/voice", {voiceURI, rate}, 1);
+$("#voiceSel").addEventListener("change", e=>onVoice(e.target.value));
+$("#setVoice").addEventListener("change", e=>onVoice(e.target.value));
+function onRate(v){ rate=parseFloat(v)||0.95; saveVoicePref();
+  ["#rateSel","#setRate"].forEach(s=>{ if($(s)) $(s).value=String(rate); });
+  if(playing){ clearTimeout(gapTimer); speechSynthesis.cancel(); step(); } }
+$("#rateSel").addEventListener("change", e=>onRate(e.target.value));
+$("#setRate").addEventListener("change", e=>onRate(e.target.value));
+
+/* ---------------- wiring: settings ---------------- */
+$("#setHome").innerHTML = PAGES.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join("");
+function bindSet(sel, key, after){
+  const el=$(sel); if(!el) return;
+  el.addEventListener("change", ()=>{ settings[key]=el.value; saveSettings();
+    if(after) after(); toast("Saved."); }); }
+bindSet("#setSky","sky",applySky);
+bindSet("#setHome","home");
+bindSet("#setPaper","paper",()=>renderRunOrder());
+bindSet("#setLesson","lesson",()=>renderRunOrder());
+
+/* ---------------- wiring: chat and files ---------------- */
+$("#askGo").addEventListener("click", ()=>{ const q=$("#askBox").value.trim(); if(!q) return;
+  $("#askBox").value=""; ask(q); });
+$("#chips").addEventListener("click", e=>{ const c=e.target.closest(".chip"); if(c) ask(c.dataset.q); });
+$("#askBox").addEventListener("keydown", e=>{ if(e.key==="Enter"&&(e.metaKey||e.ctrlKey)) $("#askGo").click(); });
+$("#pickFile").addEventListener("click", ()=>$("#fileInput").click());
+$("#fileInput").addEventListener("change", async e=>{
+  const chosen=[...e.target.files]; e.target.value="";
+  if(!assets || !chosen.length) return;
+  for(const file of chosen){
+    if(file.size > 20*1024*1024){ toast(file.name+" is over 20 MB."); continue; }
+    toast("Adding "+file.name+"…");
+    try{ const r=await assets.upload(file);
+      files.push({id:r.id, url:r.url, name:file.name, type:r.contentType||file.type||"file",
+        size:r.sizeBytes||file.size, at:new Date().toISOString()});
+      renderFiles(); await saveFiles(); toast(file.name+" kept.");
+    }catch(err){ toast("Could not add "+file.name+"."); }
+  }});
+
+/* ---------------- a section arriving by private link ----------------
+   The website copy holds nothing. A section arrives in the part of the address after the #,
+   which a browser never sends to the server, so nothing of hers is ever stored in public.
+   The link is consumed and wiped from the address bar the moment it lands. */
+const LINKABLE = {desk:"content/desk", news:"content/news", audio:"content/audio",
+  status:"state/status", renewals:"state/renewals", score:"state/score",
+  mine:"state/mine", ideas:"state/ideas", rolling:"state/rolling", streaks:"state/streaks"};
+function b64bytes(x){
+  x = x.replace(/-/g,"+").replace(/_/g,"/"); while(x.length % 4) x += "=";
+  const bin = atob(x), out = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function takeLink(){
+  const frag = location.hash.slice(1);
+  if(!frag) return null;
+  const part = k => (frag.split("&").find(p=>p.startsWith(k+"=")) || "").slice(k.length+1);
+  const token = part("d"); if(!token) return null;
+  const which = part("s") || "desk";
+  const doc = LINKABLE[which];
+  const clear = () => history.replaceState(null,"",location.pathname+location.search);
+  if(!doc){ toast("That link names a section this app does not have."); clear(); return null; }
+  try{
+    const bytes = b64bytes(token);
+    let text;
+    if(frag.includes("z=1")){
+      if(typeof DecompressionStream === "undefined") throw new Error("old browser");
+      const st = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+      text = await new Response(st).text();
+    } else text = new TextDecoder().decode(bytes);
+    const payload = JSON.parse(text);
+    await save(doc, payload, 1);
+    clear();
+    return which;
+  }catch(e){
+    /* A damaged link must never wipe a good section. */
+    toast("That link did not arrive whole. Nothing was changed.");
+    clear(); return null;
+  }
+}
+
+/* ---------------- connect ---------------- */
+async function connect(){
+  try{ db = await claude.use("db"); }catch(e){ db=null; }
+  try{ sample = await claude.use("sample"); }catch(e){ sample=null; }
+  try{ assets = await claude.use("assets"); }catch(e){ assets=null; }
+  try{ mcp = await claude.use("mcp"); }catch(e){ mcp=null; }
+
+  $("#filesOff").classList.toggle("hide", !!assets);
+  $("#filesOn").classList.toggle("hide", !assets);
+  $("#askOff").classList.toggle("hide", !!sample);
+  $("#askOn").classList.toggle("hide", !sample);
+  $("#topicAdd").classList.toggle("hide", !(db&&sample));
+  if(!sample) $("#topicNote").textContent="Writing a lesson needs the Claude app.";
+  $("#notesNote").textContent = db ? "Saved here, and Claude can read them." : "Saved on this device only.";
+  $("#chatWhere").textContent = sample ? "He can see this whole desk." : "Not available in this copy.";
+  $("#setWhere").textContent = db
+    ? "Everything you type is kept with this app, and Claude can read it."
+    : "This copy cannot store anything. Nothing you type here will be here tomorrow.";
+  watchCalendar();
+  const landed = await takeLink();
+
+  {
+    const get = load;
+    try{
+      const [d,n,au,tk,nt,fl,mn,ls,vc,st,id,rl,sc,hr,pl,ob,rn,sk,su,lg] = await Promise.all([
+        get("content/desk"), get("content/news"), get("content/audio"),
+        get("state/ticks"), get("state/notes"), get("state/files"), get("state/mine"),
+        get("state/lesson"), get("state/voice"), get("state/settings"), get("state/ideas"),
+        get("state/rolling"), get("state/score"), get("state/hours"), get("state/plan"),
+        get("state/outbox"), get("state/renewals"), get("state/streaks"),
+        get("state/status"), get("state/log")]);
+      if(d && d.built) DESK=d;
+      if(n && n.date) NEWS=n;
+      if(au && au.url) AUDIO=au;
+      if(tk && tk.done) done=tk.done;
+      if(nt && Array.isArray(nt.items)) notes=nt.items;
+      if(fl && Array.isArray(fl.items)) files=fl.items;
+      if(mn && Array.isArray(mn.items)) mine=mn.items;
+      if(ls && ls.topic) LESSON=ls;
+      if(vc && vc.voiceURI){ voiceURI=vc.voiceURI; if(vc.rate) rate=vc.rate; }
+      if(st) settings=Object.assign(settings, st);
+      if(id && Array.isArray(id.items)) ideas=id.items;
+      if(rl && Array.isArray(rl.items)) rolling=rl.items;
+      if(sc && Array.isArray(sc.items)) score=sc.items;
+      if(hr && hr.days) hours=hr.days;
+      if(pl && (pl.now!==undefined || pl.past)) plan={now:pl.now||null, past:pl.past||[]};
+      if(ob && Array.isArray(ob.items)) outbox=ob.items;
+      if(rn && Array.isArray(rn.items)) renewals=rn.items;
+      if(sk && Array.isArray(sk.items)) streaks=sk.items;
+      if(su && Array.isArray(su.items)) status=su.items;
+      if(lg && Array.isArray(lg.items)) logbook=lg.items;
+      const th = await get("state/thread");
+      if(th && Array.isArray(th.turns)) thread=th.turns;
+    }catch(e){}
+  }
+  ["#setSky","#setHome","#setPaper","#setLesson"].forEach(s=>{
+    const k={ "#setSky":"sky","#setHome":"home","#setPaper":"paper","#setLesson":"lesson" }[s];
+    if($(s)) $(s).value = settings[k]; });
+  applySky(); fillVoices();
+  ["#rateSel","#setRate"].forEach(s=>{ if($(s)) $(s).value=String(rate); });
+  renderAll();
+  go(landed==="news" ? "paper" : landed==="desk" ? "today" : PAGE(settings.home).id);
+  if(landed) toast("Loaded, and the link has been wiped from the address bar.");
+  addEventListener("hashchange", async ()=>{ const l = await takeLink(); if(!l) return;
+    await connect(); toast("Loaded."); });
+  $("#foot").textContent = "Everything here carries the day it was read. Nothing is sent, listed or "
+    + "published from this app — it only ever writes to itself.";
+  if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
+}
+
+/* ---------------- go ---------------- */
+applySky();
+if("speechSynthesis" in window){ fillVoices(); speechSynthesis.addEventListener("voiceschanged", fillVoices); }
+renderAll(); go("ideas");
+connect();
 </script>
-</body>
-</html>
+
+<script>
+if("serviceWorker" in navigator)
+  addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body></html>
