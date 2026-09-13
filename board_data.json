@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-14 07:31",
+ "generated_at": "2026-09-14 08:01",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 26.46,
+  "spent_usd": 27.32,
   "authorized_usd": 40.0,
-  "pct": 66.1,
-  "runs": 424,
+  "pct": 68.3,
+  "runs": 435,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 14.12,
+    "spent_usd": 14.54,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 12.34,
+    "spent_usd": 12.78,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -32,8 +32,8 @@
    },
    {
     "task": "SQL / worksheet products",
-    "runs": 61,
-    "usd": 4.23,
+    "runs": 72,
+    "usd": 5.08,
     "first": "2026-09-06",
     "last": "2026-09-14"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 26.87,
+  "attributed_usd": 27.73,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 199,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 07:31",
+  "read_at": "2026-09-14 08:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 8,
-  "last_commit": "5e51a5d5 Nightly automatic backup: 16 file(s)",
-  "last_commit_at": "2026-09-14T07:30:13+09:30"
+  "uncommitted_files": 5,
+  "last_commit": "8a1b0311 Nightly automatic backup: 10 file(s)",
+  "last_commit_at": "2026-09-14T08:00:14+09:30"
  },
  "facts": {
   "available": true,
