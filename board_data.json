@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-09-12 22:01",
- "generated_date": "2026-09-12",
+ "generated_at": "2026-09-13 16:02",
+ "generated_date": "2026-09-13",
  "reviews": {
   "available": true,
-  "spent_usd": 20.93,
+  "spent_usd": 21.0,
   "authorized_usd": 40.0,
-  "pct": 52.3,
-  "runs": 344,
+  "pct": 52.5,
+  "runs": 346,
   "kill_switch_on": false,
   "providers": [
    {
@@ -17,7 +17,7 @@
    },
    {
     "provider": "vertex",
-    "spent_usd": 7.71,
+    "spent_usd": 7.77,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,10 +25,10 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 115,
-    "usd": 6.27,
+    "runs": 116,
+    "usd": 6.3,
     "first": "2026-09-03",
-    "last": "2026-09-12"
+    "last": "2026-09-13"
    },
    {
     "task": "How Claude works - rules, gates, QA, communication",
@@ -53,10 +53,10 @@
    },
    {
     "task": "Etsy listings, titles and SEO",
-    "runs": 36,
-    "usd": 1.81,
+    "runs": 37,
+    "usd": 1.84,
     "first": "2026-09-04",
-    "last": "2026-09-11"
+    "last": "2026-09-13"
    },
    {
     "task": "TripShare trip planner app",
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 21.34,
+  "attributed_usd": 21.41,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-12 22:01",
+  "read_at": "2026-09-13 16:02",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 5,
-  "last_commit": "be6933e0 The Emergency Binder is LIVE - Etsy 4573899828, A$12.55 to the shopper",
-  "last_commit_at": "2026-09-12T22:00:12+09:30"
+  "uncommitted_files": 3,
+  "last_commit": "bf4f643c Nightly automatic backup: 23 file(s)",
+  "last_commit_at": "2026-09-13T16:02:03+09:30"
  },
  "facts": {
   "available": true,
@@ -198,7 +198,7 @@
     "source": "Etsy Shop Manager > Listings, read directly",
     "stale_after_days": 7,
     "note": "This said 'four active' in the project rules until 6 Sep. Because no record knew the two colouring books existed, neither was ever registered for gating, and both went on sale ungated.",
-    "age_days": 6,
+    "age_days": 7,
     "stale": false
    },
    {
@@ -209,7 +209,7 @@
     "source": "Etsy Ads dashboard, opened and read live at ~17:00",
     "stale_after_days": 30,
     "note": "Every earlier figure is superseded: 136/0/US$0.00 -> 301/2/US$0.63 -> 383/3/US$1.09 -> 404/4/US$1.20 -> 414/5/US$1.27. One measurement at five moments, not five facts. Nobody logged who switched it off; all three automated attempts failed. Etsy Ads bills PER CLICK. 414 shown and 5 clicked (~1 in 83) implicates the thumbnail, title or price - it does not say the shop is invisible. The test stopped well short of the 1,000 impressions its own plan specified, so it did not answer its own question.",
-    "age_days": 3,
+    "age_days": 4,
     "stale": false
    },
    {
@@ -220,7 +220,7 @@
     "source": "Etsy Shop Stats, read live",
     "stale_after_days": 7,
     "note": "The 'Etsy search' row EXCLUDES in-app search and ad clicks, so it is a LOWER BOUND, never a measurement of search traffic. 19 'direct' is an UPPER bound on Rachel's own page loads.",
-    "age_days": 6,
+    "age_days": 7,
     "stale": false
    },
    {
@@ -231,7 +231,7 @@
     "source": "KDP Bookshelf, signed in",
     "stale_after_days": 7,
     "note": "US$11.99, author Rachie J. Went to Amazon WITHOUT the physical print proof the outside review called a hard gate.",
-    "age_days": 8,
+    "age_days": 9,
     "stale": true
    },
    {
@@ -242,7 +242,7 @@
     "source": "listing-price-input in the live listing editor",
     "stale_after_days": 14,
     "note": "AU$6.99 is DEAD - Rachel cut the price and no record was updated. Do not 'correct' 3.63 back to 6.99.",
-    "age_days": 5,
+    "age_days": 6,
     "stale": false
    },
    {
@@ -253,7 +253,7 @@
     "source": "Etsy listing page",
     "stale_after_days": 14,
     "note": "Her pause was right and still is. On the CORRECTED measuring scale it still fails: p012 3.39% under 2.5mm against 2.0% allowed. Two of its 25 pages have zero colourable regions.",
-    "age_days": 5,
+    "age_days": 6,
     "stale": false
    },
    {
@@ -264,7 +264,7 @@
     "source": "listing editor 4562427400, then reloaded from the server",
     "stale_after_days": 14,
     "note": "It had silently reverted to a Cottage-Garden-led title, and a real recommendation was killed on the strength of a remembered state rather than a reading.",
-    "age_days": 6,
+    "age_days": 7,
     "stale": false
    }
   ],
@@ -276,7 +276,7 @@
     "who": "Closed 2026-09-09 ~17:00, read off the live dashboard",
     "why": "Approved 'till ninth September' and it stopped on the ninth. Final US$1.27 for 414 views and 5 clicks, US$0 earned. Nobody logged who clicked it; all three automated attempts failed and two of them reported success. Do not restart the campaign - Etsy upsells a US$25 budget on that page and US$3.80 of unused ads credit now shows there, and spending it is Rachel's call.",
     "severity": "info",
-    "days_left": -3,
+    "days_left": -4,
     "overdue": true,
     "due_today": false
    },
@@ -287,7 +287,7 @@
     "who": "automatic",
     "why": "At the limit Apify SUSPENDS rather than bills, so the risk is a scrape dying mid-task, not an invoice.",
     "severity": "watch",
-    "days_left": 9,
+    "days_left": 8,
     "overdue": false,
     "due_today": false
    }
@@ -301,7 +301,7 @@
     "read_on": "2026-09-04",
     "evidence": "Radio state read off the live KDP Content page DOM, title T9994FF0SYK: has-ai-content = no (checked).",
     "severity": "stop",
-    "age_days": 8
+    "age_days": 9
    },
    {
     "id": "caregiver_listing_images",
@@ -311,7 +311,7 @@
     "read_on": "2026-09-06",
     "evidence": "Windows font-path bug: every path missed, PIL fell back to a bitmap font that ignores the size argument. Nothing errored. Code fixed; the live images were not rebuilt.",
     "severity": "watch",
-    "age_days": 6
+    "age_days": 7
    },
    {
     "id": "kawaii_page_count",
@@ -321,7 +321,7 @@
     "read_on": "2026-09-07",
     "evidence": "geometry.analyse divided a 210mm render by 180mm, making every measurement 1.1667x too small. Fixed; selftest_raster_scale.py 3 of 3.",
     "severity": "watch",
-    "age_days": 5
+    "age_days": 6
    }
   ],
   "do_not_list": [
@@ -346,13 +346,13 @@
     "label": "OpenAI API spend limit",
     "unit": "US$",
     "as_of": "2026-09-11",
-    "read_days_ago": 1,
+    "read_days_ago": 2,
     "read_stale": false,
     "left_when_read": 1.24,
     "of_total": 25.0,
     "per_day": 2.86,
-    "left_now": -1.62,
-    "days_left": -0.6,
+    "left_now": -4.48,
+    "days_left": -1.6,
     "refills_on": "2026-09-30",
     "what_happens": "The AI reviews stop. Auto-reload is OFF and the US$25 limit stops them sooner, so it STOPS rather than bills - two brakes, no runaway.",
     "where_read": "platform.openai.com limits and usage pages, read in Chrome on the MacBook 2026-09-11"
@@ -362,13 +362,13 @@
     "label": "Google Vertex free credit",
     "unit": "A$",
     "as_of": "2026-09-11",
-    "read_days_ago": 1,
+    "read_days_ago": 2,
     "read_stale": false,
     "left_when_read": 167.45,
     "of_total": 431.69,
     "per_day": 12.46,
-    "left_now": 154.99,
-    "days_left": 12.4,
+    "left_now": 142.53,
+    "days_left": 11.4,
     "refills_on": null,
     "what_happens": "Google starts charging real money, and NO spend cap is set on Vertex today. This one CAN run away.",
     "where_read": "Google Cloud billing console, signed in as rachierachies7, read 2026-09-11. Burn rate agreed two ways: $264.24 over 21 days and A$111.08 over 9 days."
