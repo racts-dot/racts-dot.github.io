@@ -122,18 +122,19 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
 /* ---------- the brief ---------- */
 .brief{margin-top:16px;border:2px solid var(--ink);background:var(--glass);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  box-shadow:var(--shadow);display:grid;grid-template-columns:1fr auto;gap:4px 18px;
+  box-shadow:var(--shadow);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 18px;
   align-items:center;padding:15px 17px}
+.brief > *{min-width:0}
 .brief-h{font-family:"Newsreader",Georgia,serif;font-size:20px;font-weight:600;margin:0;grid-column:1}
 .brief-sub{grid-column:1;font-size:13px;color:var(--ink-soft);margin:3px 0 0;max-width:44ch}
-.brief button{grid-column:2;grid-row:1 / span 2;white-space:nowrap;font-size:16px;padding:14px 19px}
+.brief > button{grid-column:2;grid-row:1 / span 2;white-space:nowrap;font-size:16px;padding:14px 19px}
 .brief-run{grid-column:1 / -1;margin:11px 0 0;padding-top:10px;border-top:1px solid var(--line-soft);
   font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;
   color:var(--ink-faint);display:flex;flex-wrap:wrap;gap:5px 13px}
 .brief-run b{font-weight:500;color:var(--ink-soft)}
 .brief-run .at{color:var(--accent);font-weight:500}
 @media (max-width:520px){.brief{grid-template-columns:1fr}
-  .brief button{grid-column:1;grid-row:auto;width:100%;margin-top:11px}}
+  .brief > button{grid-column:1;grid-row:auto;width:100%;margin-top:11px}}
 .rec{grid-column:1 / -1;margin-top:11px;padding-top:11px;border-top:1px solid var(--line-soft);display:none}
 .rec.on{display:block}
 .rec-lab{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
@@ -248,6 +249,21 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
 .cast-jump{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
 .cast-jump button{font-family:"Public Sans",sans-serif;font-weight:600;font-size:13px;line-height:1;padding:9px 13px;border-radius:999px;
   border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+/* ---- just say it: one box, and it decides where each line belongs ---- */
+#sayFab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));
+  width:56px;height:56px;border-radius:50%;border:0;z-index:28;cursor:pointer;
+  background:var(--accent);color:#fff;font-size:23px;line-height:1;
+  box-shadow:0 6px 20px -6px rgba(20,26,32,.55)}
+#sayFab:active{transform:scale(.94)}
+body.swiping #sayFab{opacity:.35}
+.say-row{border-top:1px solid var(--line-soft);padding:10px 0}
+.say-row:first-child{border-top:0}
+.say-txt{margin:0 0 7px;font-size:14.5px;color:var(--ink)}
+.say-where{display:flex;flex-wrap:wrap;gap:6px}
+.say-where button{font-family:"Public Sans",sans-serif;font-weight:600;font-size:12px;
+  padding:6px 10px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-faint);cursor:pointer}
+.say-where button.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .swipe-note{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;
   text-transform:uppercase;color:var(--ink-faint);text-align:center;margin:14px 0 0}
 
@@ -823,7 +839,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 12</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 13</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -856,6 +872,18 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   </div></div></div>
 
 <!-- STATUS DETAIL -->
+<button id="sayFab" aria-label="Just say it" title="Just say it">&#127908;</button>
+<div class="sheet" id="saySheet"><div class="veil" data-close></div>
+  <div class="panel"><div class="inner">
+    <div class="sheet-head"><h2>Just say it</h2><button class="x" data-close>Close</button></div>
+    <p class="sec-note" id="sayHow">Tap the microphone on your keyboard and talk. One thought
+      per line. It works out where each one belongs; tap a name to change it.</p>
+    <textarea class="full" id="sayBox" rows="4"
+      placeholder="Renew the AFR on the 2nd. Reply to the buyer about the lamp. Walked this morning."></textarea>
+    <div class="adder"><span></span><button id="sayGo">File them</button></div>
+    <div id="sayPlan"></div>
+  </div></div></div>
+
 <div class="sheet" id="castSheet"><div class="veil" data-close></div>
   <div class="panel" id="castPanel"><div class="inner">
     <div class="sheet-head"><h2 id="castName">—</h2><button class="x" data-close>Close</button></div>
@@ -914,6 +942,11 @@ const PAGES = [
   {id:"secretary",name:"How I am doing",     why:"The secretary on itself: what it knows, how old it is, and what it still cannot do."},
 ];
 const PAGE = id => PAGES.find(p=>p.id===id) || PAGES[0];
+/* where to open: the page she left, if it is still a real page */
+function startPage(){
+  const l = LS.get("lastPage");
+  return (l && PAGES.some(p=>p.id===l)) ? l : PAGE(settings.home).id;
+}
 
 /* ---------------- state ---------------- */
 /* Today's recording, built in. She was asked whether to keep the address private and said
@@ -1501,6 +1534,7 @@ $("#moreMenu").innerHTML = PAGES.filter(p=>!p.nav).map(p=>
     <span class="mw">${esc(p.why)}</span></button>`).join("");
 $("#moreMenu").addEventListener("click", e=>{
   const b=e.target.closest("button[data-go]"); if(b) go(b.dataset.go); });
+$("#sayFab").addEventListener("click", ()=>openSheet("saySheet"));
 $("#setBtn").addEventListener("click", ()=>openSheet("setSheet"));
 $("#chatBtn").addEventListener("click", ()=>openSheet("chatSheet"));
 
@@ -2273,6 +2307,78 @@ async function takeLink(){
 })();
 
 
+
+/* ---------------- just say it ----------------
+   Her ask was a box she can talk into that puts things where they belong. The listening is
+   the phone's own dictation - the keyboard microphone - because that is the same engine the
+   dictation apps use and it costs nothing, works offline on newer phones, and never sends her
+   words anywhere. This code is only the sorting: one line in, one row of a section out.
+   It shows what it decided BEFORE filing, because a wrong guess filed silently is worse than
+   no guess at all. */
+const SAY_WHERE = [
+  ["outbox",  "Outbox",   /\b(reply|replies|email|e-?mail|message|text|send|sends|write to|call|ring|chase|follow up|get back to)\b/i],
+  ["renewals","Renewals", /\b(renew|renewal|subscription|subscribe|billing|bills on|direct debit|membership)\b/i],
+  ["streaks", "Streaks",  /\b(walked|ran|run|gym|exercise|steps|swim|yoga|stretch|every morning|every day|streak)\b/i],
+  ["rolling", "Rolling",  /\b(every week|weekly|every month|monthly|every fortnight|each week|keep doing|ongoing)\b/i],
+  ["status",  "Status",   /\b(ebay|etsy|temu|listing|listed|product|stock|shop|sold|stage|blocked on)\b/i],
+  ["ideas",   "Ideas",    /\b(idea|what if|maybe we|we could|could we|thinking about|worth trying)\b/i],
+  ["today",   "Today",    /\b(today|tomorrow|tonight|this morning|this afternoon|need to|have to|must|book|pay|buy|pick up)\b/i],
+];
+const SAY_ALL = SAY_WHERE.map(w=>[w[0],w[1]]).concat([["notes","Notes"]]);
+const sayGuess = line => (SAY_WHERE.find(w => w[2].test(line)) || ["notes"])[0];
+
+let sayRows = [];
+function sayRender(){
+  $("#sayPlan").innerHTML = sayRows.map((r,i)=>
+    `<div class="say-row"><p class="say-txt">${esc(r.text)}</p>
+      <div class="say-where">${SAY_ALL.map(w=>
+        `<button data-say="${i}" data-to="${w[0]}"${w[0]===r.to?' class="on"':''}>${esc(w[1])}</button>`
+       ).join("")}</div></div>`).join("");
+}
+function sayFile(to, text){
+  const at = new Date().toISOString();
+  if(to==="ideas"){ ideas.push({id:uid("i"), text, at}); saveIdeas(); renderIdeas(); }
+  else if(to==="today"){ mine.push({id:uid("m"), text, due:null, done:false, at}); saveMine(); renderMine(); }
+  else if(to==="outbox"){
+    const m = text.match(/\b(?:to|for)\s+([A-Z][\w'-]*(?:\s+[A-Z][\w'-]*)?)/);
+    outbox.push({id:uid("o"), who: m ? m[1] : "—", kind:"reply", what:text, sent:false, at});
+    saveOutbox(); renderOutbox(); }
+  else if(to==="renewals"){ renewals.push({id:uid("n"), name:text, cost:"", renews:null, read:todayISO()});
+    saveRenew(); renderRenewals(); renderRunOrder(); }
+  else if(to==="streaks"){ streaks.push({id:uid("k"), name:text, dates:[]}); saveStreaks(); renderStreaks(); }
+  else if(to==="rolling"){ rolling.push({id:uid("r"), text, every:7, last:null, next:todayISO()});
+    saveRolling(); renderRolling(); }
+  else if(to==="status"){ status.push({id:uid("s"), name:text, stage:"idea", note:"", read:todayISO()});
+    saveStatus(); renderStatus(); }
+  else { notes.push({text, at}); saveNotes(); renderNotes(); }
+  const name = (SAY_ALL.find(w=>w[0]===to)||["","Notes"])[1];
+  logIt("new", name + ": " + text);
+  return name;
+}
+$("#sayBox").addEventListener("input", ()=>{
+  /* no lookbehind - older phones throw on it and the whole script would stop */
+  const lines = $("#sayBox").value.replace(/([.!?])\s+/g, "$1\n").split(/\n+/)
+    .map(s=>s.trim()).filter(s=>s.length>2);
+  const keep = {}; sayRows.forEach(r=>{ if(r.picked) keep[r.text]=r.to; });
+  sayRows = lines.map(text=>({text, to: keep[text] || sayGuess(text), picked: !!keep[text]}));
+  sayRender();
+});
+$("#sayPlan").addEventListener("click", e=>{
+  const b = e.target.closest("[data-say]"); if(!b) return;
+  sayRows[+b.dataset.say].to = b.dataset.to;
+  sayRows[+b.dataset.say].picked = true;
+  sayRender();
+});
+$("#sayGo").addEventListener("click", ()=>{
+  if(!sayRows.length){ toast("Nothing to file yet."); return; }
+  const counts = {};
+  sayRows.forEach(r=>{ const n = sayFile(r.to, r.text); counts[n] = (counts[n]||0)+1; });
+  const n = sayRows.length;
+  $("#sayBox").value=""; sayRows=[]; sayRender();
+  toast("Filed " + n + " — " + Object.entries(counts).map(([k,v])=>v+" to "+k).join(", ") + ".");
+  closeSheets();
+});
+
 /* ---------------- swiping between the five ----------------
    The page tracks the finger and the next one rides in beside it, so the move is one
    continuous thing rather than a jump. Vertical wins the first 10 pixels, so scrolling
@@ -2392,23 +2498,21 @@ async function connect(){
   ["#rateSel","#setRate"].forEach(s=>{ if($(s)) $(s).value=String(rate); });
   renderAll();
   /* a reload puts her back where she was, not back at the front */
-  const last = LS.get("lastPage");
-  const back = (last && PAGES.some(p=>p.id===last)) ? last : PAGE(settings.home).id;
-  go(landed==="news" ? "paper" : landed==="desk" ? "today" : back);
+  go(landed==="news" ? "paper" : landed==="desk" ? "today" : startPage());
   if(landed) toast("Loaded, and the link has been wiped from the address bar.");
   addEventListener("hashchange", async ()=>{ const l = await takeLink(); if(!l) return;
     await connect(); toast("Loaded."); });
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-13 · build 12</span>";
+    + "BUILD 2026-09-13 · build 13</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
 /* ---------------- go ---------------- */
 applySky();
 if("speechSynthesis" in window){ fillVoices(); speechSynthesis.addEventListener("voiceschanged", fillVoices); }
-renderAll(); go("ideas");
+renderAll(); go(startPage());
 connect();
 </script>
 
