@@ -839,7 +839,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 13</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 14</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -2245,7 +2245,8 @@ async function takeLink(){
   const part = k => (frag.split("&").find(p=>p.startsWith(k+"=")) || "").slice(k.length+1);
   const token = part("d"); if(!token) return null;
   const which = part("s") || "desk";
-  const doc = LINKABLE[which];
+  /* "all" carries every section in one link, so filling the desk is one tap, not seven */
+  const doc = which === "all" ? "all" : LINKABLE[which];
   const clear = () => history.replaceState(null,"",location.pathname+location.search);
   if(!doc){ toast("That link names a section this app does not have."); clear(); return null; }
   try{
@@ -2257,7 +2258,9 @@ async function takeLink(){
       text = await new Response(st).text();
     } else text = new TextDecoder().decode(bytes);
     const payload = JSON.parse(text);
-    await save(doc, payload, 1);
+    if(which === "all"){
+      for(const k of Object.keys(payload)) if(LINKABLE[k]) await save(LINKABLE[k], payload[k], 1);
+    } else await save(doc, payload, 1);
     clear();
     return which;
   }catch(e){
@@ -2505,7 +2508,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-13 · build 13</span>";
+    + "BUILD 2026-09-13 · build 14</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
