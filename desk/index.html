@@ -425,8 +425,8 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
     <div class="brief" id="briefCard">
       <p class="brief-h">The morning brief</p>
-      <p class="brief-sub">Everything in one listen — your diary, what is waiting, your list,
-        the money, the paper, and today's lesson.</p>
+      <p class="brief-sub" id="briefSub">Everything in one listen — your diary, what is waiting,
+        your list, the money, the paper, and today's lesson.</p>
       <button id="playBrief">▶ Play the brief</button>
       <div class="brief-run" id="briefRun"></div>
       <div class="rec" id="rec">
@@ -784,7 +784,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 7</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 8</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -867,7 +867,15 @@ const PAGES = [
 const PAGE = id => PAGES.find(p=>p.id===id) || PAGES[0];
 
 /* ---------------- state ---------------- */
-let DESK=null, NEWS=null, AUDIO=null, LESSON=null;
+/* Today's recording, built in. She was asked whether to keep the address private and said
+   what she wanted was for it to play, full stop - so it loads with no tap. The trade she
+   accepted: this address is readable in the page source. */
+const DEFAULT_AUDIO = {
+  date:"2026-09-13",
+  url:"https://racts-dot.github.io/desk/audio/brief-1a80684fd22fd2f5.mp4",
+  seconds:319, voice:"en-AU-Chirp3-HD-Achernar", characters:4888
+};
+let DESK=null, NEWS=null, AUDIO=DEFAULT_AUDIO, LESSON=null;
 let done={}, notes=[], mine=[], thread=[], files=[];
 let ideas=[], rolling=[], status=[], score=[], hours={}, plan={now:null,past:[]},
     outbox=[], renewals=[], streaks=[];
@@ -1370,13 +1378,23 @@ function briefRows(){
   return [["Diary", events===null?"reading":T?T:"clear"], ["Waiting", W], ["Your list", M],
     ["Rolling due", R], ["Outbox", O], ["Renewals soon", RN], ["Money", MO],
     ["Paper", NEWS ? (settings.paper==="off"?"muted":(na<=0?"today":na+"d old")) : "none"],
-    ["Lesson", settings.lesson==="off" ? "muted" : (lessonOn?"ready":"not picked")]];
+    ["Lesson", settings.lesson==="off" ? "muted" : (lessonOn?"ready":"not picked")],
+    ["Voice", (AUDIO && AUDIO.url) ? "recorded" : "device only"]];
 }
 function renderAudio(){
   const box=$("#rec"), el=$("#recAudio");
   const fresh = AUDIO && AUDIO.url && AUDIO.date===todayISO();
   box.classList.toggle("on", !!(AUDIO && AUDIO.url));
-  if(!AUDIO || !AUDIO.url){ $("#playBrief").textContent="▶ Play the brief"; return; }
+  if(!AUDIO || !AUDIO.url){
+    /* It used to say "Play the brief" and quietly use the robot voice, which iOS kills the
+       moment she leaves. A button that does not say that is lying about what it does. */
+    $("#playBrief").textContent="▶ Read it aloud";
+    $("#briefSub").innerHTML = "No recording on this phone, so this reads aloud in the "
+      + "device voice — <b>which stops the moment you leave the app.</b> "
+      + "Load today's recording and it keeps going in your pocket instead.";
+    return; }
+  $("#briefSub").textContent = "Everything in one listen — your diary, what is waiting, your "
+    + "list, the money, the paper, and today's lesson.";
   if(el.getAttribute("src")!==AUDIO.url) el.setAttribute("src",AUDIO.url);
   const mins = AUDIO.seconds ? Math.floor(AUDIO.seconds/60)+" min "+String(Math.round(AUDIO.seconds%60)).padStart(2,"0") : "";
   $("#recLab").textContent = fresh
@@ -1974,7 +1992,12 @@ $("#playBrief").addEventListener("click", ()=>{
   const el=$("#recAudio");
   if(AUDIO && AUDIO.url){
     if(!el.paused){ el.pause(); return; }
-    el.play().catch(()=>say(briefScript(),true)); return; }
+    /* The tap is what earns iOS permission to play, so the file must be started inside this
+       handler - not after an await, which loses the gesture and silently does nothing. */
+    if(!el.getAttribute("src")) el.setAttribute("src", AUDIO.url);
+    const p = el.play();
+    if(p && p.catch) p.catch(()=>{ toast("Your phone refused to start the recording."); });
+    return; }
   if(!$("#stopBtn").hidden){ stopSpeaking(); return; }
   say(briefScript(),true); });
 $("#recAudio").addEventListener("play", ()=>{ stopSpeaking();
@@ -1982,7 +2005,7 @@ $("#recAudio").addEventListener("play", ()=>{ stopSpeaking();
 $("#recAudio").addEventListener("pause", ()=>{ $("#playBrief").textContent="▶ Play the brief"; paintPlaying(); });
 $("#recAudio").addEventListener("ended", ()=>{ $("#playBrief").textContent="▶ Play the brief"; paintPlaying(); });
 $("#recAudio").addEventListener("error", ()=>{
-  if(AUDIO && AUDIO.url) toast("The recording would not load. Falling back to the on-device voice.");
+  if(AUDIO && AUDIO.url) toast("The recording would not load. Falling back to the device voice, which stops when you leave.");
   /* The recording lives with the Claude copy. On her own website it cannot be fetched, so the
      player is hidden rather than left sitting there doing nothing when pressed. */
   AUDIO=null; $("#rec").classList.remove("on");
@@ -2134,7 +2157,7 @@ async function connect(){
         get("state/status"), get("state/log")]);
       if(d && d.built) DESK=d;
       if(n && n.date) NEWS=n;
-      if(au && au.url) AUDIO=au;
+      if(au && au.url) AUDIO=au;   /* a loaded pointer beats the built-in one */
       if(tk && tk.done) done=tk.done;
       if(nt && Array.isArray(nt.items)) notes=nt.items;
       if(fl && Array.isArray(fl.items)) files=fl.items;
@@ -2169,7 +2192,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-13 · build 7</span>";
+    + "BUILD 2026-09-13 · build 8</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
