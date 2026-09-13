@@ -782,6 +782,12 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setPaper"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-bottom:0"><label for="setLesson">Read the lesson in the brief</label>
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
+    <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
+      <label>This copy</label>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 7</span></div>
+    <div class="setrow" style="border-bottom:0">
+      <label for="hardReload">Not seeing a change?</label>
+      <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
     <p class="sec-note" style="margin-top:14px" id="setWhere"></p>
   </div></div></div>
 
@@ -2021,6 +2027,20 @@ bindSet("#setHome","home");
 bindSet("#setPaper","paper",()=>renderRunOrder());
 bindSet("#setLesson","lesson",()=>renderRunOrder());
 
+/* A change that does not arrive is indistinguishable from a change that was never made.
+   This throws away every cached copy and any leftover service worker, then reloads. */
+$("#hardReload").addEventListener("click", async ()=>{
+  const b=$("#hardReload"); b.disabled=true; b.textContent="Clearing…";
+  try{
+    if("serviceWorker" in navigator){
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for(const r of regs) await r.unregister();
+    }
+    if(window.caches){ for(const k of await caches.keys()) await caches.delete(k); }
+  }catch(e){}
+  location.replace(location.pathname + "?fresh=" + Date.now());
+});
+
 /* ---------------- wiring: chat and files ---------------- */
 $("#askGo").addEventListener("click", ()=>{ const q=$("#askBox").value.trim(); if(!q) return;
   $("#askBox").value=""; ask(q); });
@@ -2146,8 +2166,10 @@ async function connect(){
   if(landed) toast("Loaded, and the link has been wiped from the address bar.");
   addEventListener("hashchange", async ()=>{ const l = await takeLink(); if(!l) return;
     await connect(); toast("Loaded."); });
-  $("#foot").textContent = "Everything here carries the day it was read. Nothing is sent, listed or "
-    + "published from this app — it only ever writes to itself.";
+  $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
+    + "or published from this app — it only ever writes to itself."
+    + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
+    + "BUILD 2026-09-13 · build 7</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
@@ -2159,7 +2181,12 @@ connect();
 </script>
 
 <script>
-if("serviceWorker" in navigator)
-  addEventListener("load", ()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+/* Actively remove the old offline worker rather than waiting for it to notice.
+   It was intercepting audio byte ranges and serving stale pages. */
+if("serviceWorker" in navigator){
+  navigator.serviceWorker.getRegistrations()
+    .then(rs => rs.forEach(r => r.unregister())).catch(()=>{});
+  if(window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(()=>{});
+}
 </script>
 </body></html>
