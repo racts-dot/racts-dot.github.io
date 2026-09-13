@@ -521,11 +521,8 @@ $("#hideDone").addEventListener("click", e=>{ hidingDone=!hidingDone;
   e.target.textContent = hidingDone?"Show ticked":"Hide ticked"; renderDesk(); });
 $("#copyNotes").addEventListener("click", async ()=>{
   if (!notes.length){ toast("No notes to send yet."); return; }
-  const text = "Notes from my Desk app:
-
-" + notes.map(n =>
-    "- " + n.text + "  (" + new Date(n.at).toLocaleString() + ")").join("
-");
+  const text = "Notes from my Desk app:\n\n" + notes.map(n =>
+    "- " + n.text + "  (" + new Date(n.at).toLocaleString() + ")").join("\n");
   try {
     await navigator.clipboard.writeText(text);
     toast("Copied. Paste it into a chat with Claude.");
