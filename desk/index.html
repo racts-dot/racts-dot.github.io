@@ -878,7 +878,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-14 · build 20</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-14 · build 21</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -1572,12 +1572,13 @@ function renderAll(){
    Where the day went takes none: those are her hours, and a suggested hour would be invented. */
 const SUG_PAGES = {ideas:"#sug-ideas", rolling:"#sug-rolling", plan:"#sug-plan",
   outbox:"#sug-outbox", streaks:"#sug-streaks"};
-const sugSame = (a,b) => String(a||"").trim().toLowerCase() === String(b||"").trim().toLowerCase();
+const sugNorm = s => String(s||"").toLowerCase().replace(/[\s.,;:!?\u2014\u2013-]+/g," ").trim();
+const sugSame = (a,b) => sugNorm(a) === sugNorm(b);
 function sugAlready(pg, s){
   if(pg==="ideas")   return ideas.some(i=>sugSame(i.text,s.text));
   if(pg==="rolling") return rolling.some(r=>sugSame(r.text,s.text));
   if(pg==="plan")    return !!(plan.now && plan.now.week===weekKey()
-                         && String(plan.now.planned||"").toLowerCase().includes(String(s.text||"").toLowerCase()));
+                         && sugNorm(plan.now.planned).includes(sugNorm(s.text)));
   if(pg==="outbox")  return outbox.some(o=>sugSame(o.who,s.who) && sugSame(o.what,s.what));
   if(pg==="streaks") return streaks.some(k=>sugSame(k.name,s.name));
   return false;
@@ -2499,6 +2500,9 @@ document.addEventListener("click", async e=>{
     if(b.classList.contains("dropSug")){
       sugTaken[sid]="no"; saveSugTaken(); renderSuggest();
       logIt("note","Not for me: "+words); return; }
+    if(sugAlready(pg, s)){ renderSuggest(); toast("That is already on the page."); return; }
+    if(pg==="plan" && plan.now && plan.now.week!==weekKey()){
+      toast("Last week is still open. Close it first, then add this."); return; }
     const at = new Date().toISOString();
     if(pg==="ideas"){ ideas.push({id:uid("i"), text:s.text, at}); renderIdeas(); saveIdeas(); }
     else if(pg==="rolling"){ rolling.push({id:uid("r"), text:s.text, every:+s.every||7, last:null, next:todayISO()});
@@ -2795,7 +2799,12 @@ async function collectToday(){
     doc = await r.json();
   }catch(e){ return false; }
   if(!doc || typeof doc.rev !== "number") return false;
-  if(doc.rev <= (LS.get("feedRev") || 0)) return false;   /* nothing new; do not ask for anything */
+  const took = LS.get("feedTook") || [];
+  /* An OLD delivery is opened again only for a section this phone has never held at all, and
+     then only that section is written - never status, renewals or score she may have edited. */
+  const old = doc.rev <= (LS.get("feedRev") || 0);
+  const unseen = (doc.has || []).filter(k => FEED_KEYS[k] && !took.includes(k) && LS.get(FEED_KEYS[k]) === null);
+  if(old && !unseen.length) return false;   /* nothing new; do not ask for anything */
 
   const phrase = LS.get("feedPhrase");
   if(!phrase){ $("#feedWanted").classList.remove("hide"); return false; }
@@ -2812,9 +2821,11 @@ async function collectToday(){
   let n = 0;
   for(const k of Object.keys(sec)){
     const to = FEED_KEYS[k]; if(!to) continue;
+    if(old && !unseen.includes(k)) continue;
     await save(to, sec[k], 1); n++;
   }
-  LS.set("feedRev", doc.rev);
+  if(!old) LS.set("feedRev", doc.rev);
+  LS.set("feedTook", Array.from(new Set(took.concat(Object.keys(sec).filter(k => FEED_KEYS[k])))));
   $("#feedWanted").classList.add("hide");
   logIt("set", "Today's delivery arrived — " + n + " sections, " + (doc.made || "undated"));
   return n > 0;
@@ -3051,7 +3062,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-14 · build 20</span>";
+    + "BUILD 2026-09-14 · build 21</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
