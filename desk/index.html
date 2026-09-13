@@ -810,6 +810,10 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     </div>
   </section>
 
+  <div class="block hide" id="feedWanted">
+    <div class="job plain"><p class="c-body"><b>Today's delivery is waiting.</b> It is locked.
+      Open Settings, top right, and type your delivery phrase once.</p></div>
+  </div>
   <footer id="foot"></footer>
 </div>
 
@@ -839,10 +843,18 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 15</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 17</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
+    <div style="border-top:1px solid var(--line-soft);margin-top:10px;padding-top:12px">
+      <h3 style="font-family:'Newsreader',Georgia,serif;font-size:17px;font-weight:600;margin:0">Delivery phrase</h3>
+      <p class="sec-note" style="margin:4px 0 8px">Type it once. After that today's paper, money
+        and status arrive on their own each morning. The phrase stays on this phone and is not
+        in the file, which is locked before it goes anywhere.</p>
+      <input class="full" id="phraseBox" type="password" autocomplete="off" placeholder="Your delivery phrase">
+      <div class="adder"><span></span><button id="phraseGo">Save the phrase</button></div>
+    </div>
     <div style="border-top:1px solid var(--line-soft);margin-top:10px;padding-top:12px">
       <h3 style="font-family:'Newsreader',Georgia,serif;font-size:17px;font-weight:600;margin:0">Fill this desk from a link</h3>
       <p class="sec-note" style="margin:4px 0 8px">Tapping a link opens Safari, and Safari keeps
@@ -2335,6 +2347,82 @@ async function takeLink(){
 
 
 
+
+/* ---------------- today's delivery ----------------
+   Her ruling, 13 Sep 2026: no pasting, ever. So the six sections I build each morning sit on
+   her own site and the app collects them on its own.
+
+   TWO THINGS THIS DELIBERATELY DOES NOT DO, because they would cost her work:
+   - It never carries anything she types. Ideas, her list, notes, ticks, streaks, the outbox
+     and the log are not in the file and are never touched by it.
+   - It only acts when the delivery is NEWER than the last one taken, so opening the app forty
+     times a day does not keep overwriting the same six sections.
+   The file has a random name, is not linked from anywhere, and the site says noindex - so it
+   is on a public address but not a findable one. That is the same trade she accepted for the
+   recording. It is not a password: anyone given the address can read it. */
+const FEED = "feed/09814a7934ef1d3e.json";
+const FEED_KEYS = {desk:"content/desk", news:"content/news", audio:"content/audio",
+  status:"state/status", renewals:"state/renewals", score:"state/score"};
+
+/* The file is locked. Her site is a PUBLIC repository - the folder listing is browsable and
+   indexable - so a plain file would put her money figures in front of anyone who opened it.
+   She types one phrase, once; the phrase never leaves this phone and is never in the file.
+   PBKDF2-SHA256 to a key, then AES-GCM, which fails loudly rather than returning rubbish. */
+async function openFeed(doc, phrase){
+  const enc = new TextEncoder();
+  const raw = await crypto.subtle.importKey("raw", enc.encode(phrase), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey(
+    {name:"PBKDF2", salt:b64bytes(doc.salt), iterations:doc.rounds||250000, hash:"SHA-256"},
+    raw, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+  const plain = await crypto.subtle.decrypt({name:"AES-GCM", iv:b64bytes(doc.iv)}, key, b64bytes(doc.ct));
+  return JSON.parse(new TextDecoder().decode(plain));
+}
+
+async function collectToday(){
+  if(inArtifact) return false;            /* the Claude copy is not allowed to fetch anything */
+  let doc;
+  try{
+    const r = await fetch(FEED + "?v=" + Date.now(), {cache:"no-store"});
+    if(!r.ok) return false;
+    doc = await r.json();
+  }catch(e){ return false; }
+  if(!doc || typeof doc.rev !== "number") return false;
+  if(doc.rev <= (LS.get("feedRev") || 0)) return false;   /* nothing new; do not ask for anything */
+
+  const phrase = LS.get("feedPhrase");
+  if(!phrase){ $("#feedWanted").classList.remove("hide"); return false; }
+
+  let body;
+  try{ body = await openFeed(doc, phrase); }
+  catch(e){
+    /* a wrong phrase must never wipe a good desk */
+    toast("Today's delivery would not open with your phrase.");
+    $("#feedWanted").classList.remove("hide");
+    return false;
+  }
+  const sec = body && body.sections; if(!sec) return false;
+  let n = 0;
+  for(const k of Object.keys(sec)){
+    const to = FEED_KEYS[k]; if(!to) continue;
+    await save(to, sec[k], 1); n++;
+  }
+  LS.set("feedRev", doc.rev);
+  $("#feedWanted").classList.add("hide");
+  logIt("set", "Today's delivery arrived — " + n + " sections, " + (doc.made || "undated"));
+  return n > 0;
+}
+
+$("#phraseGo").addEventListener("click", async ()=>{
+  const v = $("#phraseBox").value.trim();
+  if(v.length < 12){ toast("That phrase is too short to guard anything."); return; }
+  LS.set("feedPhrase", v);
+  $("#phraseBox").value = "";
+  const got = await collectToday();
+  if(got){ toast("Opened. Bringing today in…");
+    setTimeout(()=>location.replace(location.pathname + "?day=" + Date.now()), 700); }
+  else toast("Saved, but nothing opened with it. Check the phrase.");
+});
+
 /* ---------------- filling the desk from inside it ---------------- */
 $("#pasteGrab").addEventListener("click", async ()=>{
   try{ $("#pasteLink").value = await navigator.clipboard.readText(); toast("Pasted. Now tap Fill it."); }
@@ -2545,12 +2633,15 @@ async function connect(){
   /* a reload puts her back where she was, not back at the front */
   go(landed==="news" ? "paper" : landed==="desk" ? "today" : startPage());
   if(landed) toast("Loaded, and the link has been wiped from the address bar.");
+  /* collect today's delivery in the background; a reload is the certain way to show it */
+  collectToday().then(got=>{ if(got){ toast("Today's arrived.");
+    setTimeout(()=>location.replace(location.pathname + "?day=" + Date.now()), 900); } });
   addEventListener("hashchange", async ()=>{ const l = await takeLink(); if(!l) return;
     await connect(); toast("Loaded."); });
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-13 · build 15</span>";
+    + "BUILD 2026-09-13 · build 17</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
