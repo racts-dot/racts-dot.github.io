@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-14 06:01",
+ "generated_at": "2026-09-14 06:31",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
@@ -132,9 +132,9 @@
   "cap_usd": 29.0,
   "left_usd": 1.06,
   "pct": 96.3,
-  "total_runs": 202,
+  "total_runs": 199,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 06:01",
+  "read_at": "2026-09-14 06:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -163,8 +163,8 @@
    },
    {
     "actor": "apify/rag-web-browser",
-    "runs": 75,
-    "usd": 0.53
+    "runs": 73,
+    "usd": 0.52
    }
   ],
   "source": "live Apify API, via spend_ledger.py",
@@ -184,8 +184,8 @@
  "git": {
   "branch": "main",
   "uncommitted_files": 5,
-  "last_commit": "8b00a7f5 Nightly automatic backup: 7 file(s)",
-  "last_commit_at": "2026-09-14T06:00:12+09:30"
+  "last_commit": "13e3dddc Nightly automatic backup: 7 file(s)",
+  "last_commit_at": "2026-09-14T06:30:11+09:30"
  },
  "facts": {
   "available": true,
