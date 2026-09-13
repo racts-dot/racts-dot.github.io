@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-13 23:01",
+ "generated_at": "2026-09-13 23:31",
  "generated_date": "2026-09-13",
  "reviews": {
   "available": true,
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-13 23:01",
+  "read_at": "2026-09-13 23:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 8,
-  "last_commit": "f6e96785 Nightly automatic backup: 166 file(s)",
-  "last_commit_at": "2026-09-13T23:00:15+09:30"
+  "uncommitted_files": 5,
+  "last_commit": "4c0feccf Nightly automatic backup: 4 file(s)",
+  "last_commit_at": "2026-09-13T23:30:07+09:30"
  },
  "facts": {
   "available": true,
