@@ -241,6 +241,20 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
 .setrow label{font-size:14.5px;flex:1 1 160px}
 .setrow select,.setrow input[type=text]{width:auto;flex:1 1 140px;font-size:14px;padding:8px 10px}
 /* ---- the cast: her five posters. Small in multiple, tap to open, swipe across. ---- */
+
+/* ---- the drawings. Every one is her own numbers, never decoration. ---- */
+.dia{margin:0 0 14px;padding:14px 15px;border:1px solid var(--line);border-radius:3px;
+  background:var(--glass-2)}
+.dia h4{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--ink-faint);margin:0 0 11px;font-weight:500}
+.dia svg{display:block;width:100%;height:auto;overflow:visible}
+.dia .cap{font-size:12.5px;color:var(--ink-faint);margin:9px 0 0}
+.dia text{font-family:"Public Sans",sans-serif}
+.readbar{display:block;width:100%;margin:12px 0 0;padding:11px 14px;cursor:pointer;
+  border:1px solid var(--line);border-radius:3px;background:var(--glass-2);color:var(--ink);
+  font-family:"Public Sans",sans-serif;font-weight:600;font-size:14px;text-align:left}
+.readbar:active{background:var(--accent-soft)}
+.readbar.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .cast-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .cast-t{position:relative;border:0;padding:0;background:none;border-radius:10px;overflow:hidden;
   aspect-ratio:2/3;box-shadow:0 2px 10px rgba(0,0,0,.28);cursor:pointer}
@@ -250,12 +264,8 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
 .cast-jump button{font-family:"Public Sans",sans-serif;font-weight:600;font-size:13px;line-height:1;padding:9px 13px;border-radius:999px;
   border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 /* ---- just say it: one box, and it decides where each line belongs ---- */
-#sayFab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));
-  width:56px;height:56px;border-radius:50%;border:0;z-index:28;cursor:pointer;
-  background:var(--accent);color:#fff;font-size:23px;line-height:1;
-  box-shadow:0 6px 20px -6px rgba(20,26,32,.55)}
-#sayFab:active{transform:scale(.94)}
-body.swiping #sayFab{opacity:.35}
+/* It used to float over the page and sat on top of a control. In the corner it covers nothing. */
+#sayFab{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
 .say-row{border-top:1px solid var(--line-soft);padding:10px 0}
 .say-row:first-child{border-top:0}
 .say-txt{margin:0 0 7px;font-size:14.5px;color:var(--ink)}
@@ -463,11 +473,13 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <h1 id="pageTitle">Rachie's Desk</h1>
       </div>
       <div class="corner">
+        <button id="sayFab" aria-label="Just say it" title="Just say it">&#127908;</button>
         <button id="chatBtn" aria-label="Ask Claude" title="Ask Claude">✻</button>
         <button id="setBtn" aria-label="Settings" title="Settings">⚙</button>
       </div>
     </div>
     <p class="why" id="pageWhy">Loading…</p>
+    <button id="readPage" class="readbar">&#9654; Read this page aloud</button>
 
     <div class="brief" id="briefCard">
       <p class="brief-h">The morning brief</p>
@@ -518,6 +530,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
   <!-- 2 TODAY -->
   <section class="page" id="p-today">
+    <div id="diaToday"></div>
     <div class="block" id="diaryBlock">
       <div class="sec-head"><h2>Your diary</h2>
         <p class="sec-note" id="diaryNote">Straight off your Google Calendar.</p>
@@ -551,6 +564,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
   <!-- 3 STATUS -->
   <section class="page" id="p-status">
+    <div id="diaStatus"></div>
     <div class="block">
       <div class="sec-head"><h2>Everything, at a glance</h2>
         <p class="sec-note">Tap a tile to open it. Swipe to move between them.</p>
@@ -571,6 +585,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
   <!-- 4 MONEY -->
   <section class="page" id="p-money">
+    <div id="diaMoney"></div>
     <div class="block">
       <div class="sec-head"><h2>What is running</h2>
         <p class="sec-note">Only what somebody actually read off an account.</p></div>
@@ -625,6 +640,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
   <!-- 8 SCOREBOARD -->
   <section class="page" id="p-score">
+    <div id="diaScore"></div>
     <div class="block">
       <div class="sec-head"><h2>The numbers</h2>
         <p class="sec-note">A number with no reading date is not a fact.</p></div>
@@ -645,6 +661,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
   <!-- 9 HOURS -->
   <section class="page" id="p-hours">
+    <div id="diaHours"></div>
     <div class="block">
       <div class="sec-head"><h2>The last fortnight</h2>
         <p class="sec-note">One bar a day. Roughly is enough.</p></div>
@@ -684,6 +701,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
   <!-- 11 OUTBOX -->
   <section class="page" id="p-outbox">
+    <div id="diaOutbox"></div>
     <div class="block">
       <div class="sec-head"><h2>Waiting to go out</h2>
         <p class="sec-note">Nothing here sends itself. Ever.</p>
@@ -703,6 +721,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
   <!-- 12 RENEWALS -->
   <section class="page" id="p-renewals">
+    <div id="diaRenew"></div>
     <div class="block">
       <div class="sec-head"><h2>What renews, and when</h2>
         <p class="sec-note">Warned before the charge, not after.</p>
@@ -719,6 +738,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
   <!-- 13 STREAKS -->
   <section class="page" id="p-streaks">
+    <div id="diaStreaks"></div>
     <div class="block">
       <div class="sec-head"><h2>Kept going</h2>
         <p class="sec-note">One line each. Tap the box to tick today.</p></div>
@@ -843,7 +863,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 17</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 19</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -892,7 +912,6 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   </div></div></div>
 
 <!-- STATUS DETAIL -->
-<button id="sayFab" aria-label="Just say it" title="Just say it">&#127908;</button>
 <div class="sheet" id="saySheet"><div class="veil" data-close></div>
   <div class="panel"><div class="inner">
     <div class="sheet-head"><h2>Just say it</h2><button class="x" data-close>Close</button></div>
@@ -1520,6 +1539,7 @@ function renderAudio(){
   }
 }
 function renderAll(){
+  try{ renderDiagrams(); }catch(e){}
   renderIdeas(); renderMine(); renderWaiting(); renderStatus(); renderRolling(); renderScore();
   renderHours(); renderPlan(); renderOutbox(); renderRenewals(); renderStreaks();
   renderMoney(); renderShop(); renderPaper(); renderLesson(); renderNotes(); renderFiles();
@@ -1775,7 +1795,12 @@ function paintPlaying(){
   $("#nowWhat").textContent = audioOn ? "Playing the recorded brief"
     : "Reading · part "+(heads.filter(i=>i<=qi).length||1)+" of "+(heads.length||1);
 }
+function restoreReadBar(){
+  const b = $("#readPage"); if(!b) return;
+  b.classList.remove("on"); b.innerHTML = "&#9654; Read this page aloud";
+}
 function stopSpeaking(){
+  restoreReadBar();
   clearTimeout(gapTimer); gapTimer=null; playing=false; queue=[]; qi=0;
   if(window.speechSynthesis) speechSynthesis.cancel();
   $("#stopBtn").hidden=true; $("#playBrief").textContent="▶ Play the brief";
@@ -1814,6 +1839,308 @@ function say(parts, isBrief){
   if(isBrief) $("#playBrief").textContent="▮▮ Playing…";
   step(); paintPlaying();
 }
+
+
+
+/* ---------------- the drawings ----------------
+   Her ask, 13 Sep 2026: lots of diagrams. Every one below is drawn from the same numbers the
+   page lists, so a picture can never say something the words do not. Nothing here is decoration
+   and nothing is invented: a page with no numbers gets no drawing rather than an empty frame. */
+const DIA_INK = {work:"#1b4965", live:"#14684a", hold:"#7d5800", dead:"#9d1b21", faint:"#9aa7b2"};
+const dcut = (s,n) => { s = String(s||""); if(s.length <= n) return s;
+  const c = s.slice(0, n); const sp = c.lastIndexOf(" ");
+  return (sp > n*0.55 ? c.slice(0, sp) : c).replace(/[\s,\-–—:]+$/, "") + "\u2026"; };
+const dtxt = (x,y,t,o) => `<text x="${x}" y="${y}" font-size="${(o&&o.s)||11}" fill="${(o&&o.f)||"currentColor"}"${
+  o&&o.a?` text-anchor="${o.a}"`:""}${o&&o.w?` font-weight="${o.w}"`:""}>${esc(String(t))}</text>`;
+
+/* EACH ROW IS SCALED TO ITS OWN LIMIT, NEVER TO THE BIGGEST ROW.
+   Drawn the other way it lied outright: A$264 of Vertex credit with A$0 actually billed filled
+   the chart, while Apify at 96% of its allowance was a stub. A shared scale only means anything
+   when every row is the same currency measuring the same thing - which these are not.
+   A row with no limit gets NO bar. There is nothing for it to be a fraction of, and a bar
+   drawn anyway would invite a comparison that does not exist. */
+function diaBars(rows, unitLabel){
+  const H = 26, top = 4, w = 300, lw = 112, bw = w - lw - 46;
+  const body = rows.map((r,i)=>{
+    const y = top + i*H;
+    const lab = dtxt(lw-6, y+14, r.label, {a:"end", s:10.5, f:"var(--ink-soft)"});
+    if(!r.of){
+      return lab + dtxt(lw+4, y+14, r.shown!==undefined?r.shown:r.value,
+        {s:11, w:600, f:"var(--ink-soft)"}) +
+        dtxt(lw+4, y+23, "no limit set", {s:8, f:DIA_INK.faint});
+    }
+    const frac = r.value / r.of;
+    const len = Math.max(1, Math.round(bw * Math.min(1, frac)));
+    const over = frac > 1;
+    return `<rect x="${lw}" y="${y+5}" width="${bw}" height="11" fill="${DIA_INK.faint}" opacity=".2" rx="1"/>
+      <rect x="${lw}" y="${y+5}" width="${len}" height="11" rx="1"
+        fill="${over ? DIA_INK.dead : (r.colour||DIA_INK.work)}"/>
+      ${lab}
+      ${dtxt(lw+bw+5, y+14, r.shown!==undefined?r.shown:r.value, {s:10, f:"var(--ink-faint)"})}
+      ${dtxt(lw+2, y+23, Math.round(frac*100) + "% of it", {s:8, f: over?DIA_INK.dead:DIA_INK.faint})}`;
+  }).join("");
+  return `<svg viewBox="0 0 ${w} ${top*2 + rows.length*H}" role="img" aria-label="${esc(unitLabel||"")}">${body}</svg>`;
+}
+
+function diaPipe(steps){
+  /* a left-to-right pipeline with a count in each box */
+  const n = steps.length, w = 300, bw = Math.floor((w - (n-1)*10) / n), h = 46;
+  return `<svg viewBox="0 0 ${w} ${h+4}" role="img">` + steps.map((s,i)=>{
+    const x = i*(bw+10);
+    return `<rect x="${x}" y="0" width="${bw}" height="${h}" rx="2" fill="${s.n?s.colour:"transparent"}"
+        opacity="${s.n?1:.5}" stroke="${s.n?"none":DIA_INK.faint}" stroke-dasharray="${s.n?"":"2 2"}"/>
+      ${dtxt(x+bw/2, 21, s.n, {a:"middle", s:16, w:600, f:s.n?"#fff":DIA_INK.faint})}
+      ${dtxt(x+bw/2, 36, s.label, {a:"middle", s:9, f:s.n?"#fff":DIA_INK.faint})}
+      ${i<n-1?`<path d="M${x+bw+2} ${h/2} l6 0" stroke="${DIA_INK.faint}" stroke-width="1.5"/>`:""}`;
+  }).join("") + `</svg>`;
+}
+
+function diaDays(items, days){
+  /* one row per thing, one dot per day, filled on the days it happened */
+  const w = 300, rh = 22, lw = 96, gap = Math.max(6, Math.min(14, (w-lw-6)/days));
+  return `<svg viewBox="0 0 ${w} ${items.length*rh + 14}" role="img">` +
+    items.map((it,i)=>{
+      const y = i*rh + 12;
+      const dots = [];
+      for(let d = days-1; d >= 0; d--){
+        const iso = plusDays(todayISO(), -d);
+        const on = (it.dates||[]).indexOf(iso) >= 0;
+        dots.push(`<circle cx="${lw + (days-1-d)*gap + 4}" cy="${y-4}" r="${on?4:2.5}"
+          fill="${on?DIA_INK.live:DIA_INK.faint}" opacity="${on?1:.35}"/>`);
+      }
+      return dtxt(lw-8, y, dcut(it.name,16), {a:"end", s:10.5, f:"var(--ink-soft)"}) + dots.join("");
+    }).join("") +
+    dtxt(lw, items.length*rh + 10, days + " days, oldest on the left", {s:9, f:DIA_INK.faint}) + `</svg>`;
+}
+
+function diaCalendar(marks){
+  /* the next 60 days as a line, with a mark on each billing day */
+  const w = 300, y = 26;
+  const inner = marks.filter(m=>m.days >= 0 && m.days <= 60);
+  return `<svg viewBox="0 0 ${w} 56" role="img">
+    <line x1="4" y1="${y}" x2="${w-4}" y2="${y}" stroke="${DIA_INK.faint}" stroke-width="1.5"/>
+    ${[0,15,30,45,60].map(d=>`<line x1="${4+(w-8)*d/60}" y1="${y-4}" x2="${4+(w-8)*d/60}" y2="${y+4}"
+        stroke="${DIA_INK.faint}" stroke-width="1"/>` +
+        dtxt(4+(w-8)*d/60, y+16, d===0?"today":"+"+d, {a:"middle", s:9, f:DIA_INK.faint})).join("")}
+    ${inner.map(m=>{ const x = 4 + (w-8)*m.days/60;
+      return `<circle cx="${x}" cy="${y}" r="4.5" fill="${m.days<=7?DIA_INK.dead:DIA_INK.work}"/>` +
+        dtxt(x, y-10, dcut(m.label,12), {a:"middle", s:8.5, f:"var(--ink-soft)"});
+    }).join("")}
+  </svg>` + (inner.length ? "" : `<p class="cap">Nothing bills in the next sixty days.</p>`);
+}
+
+function diaStack(parts, total){
+  /* one bar, split by where the hours went */
+  const w = 300, h = 26; let x = 0;
+  const body = parts.map(p=>{
+    const len = total ? (w * p.value / total) : 0, seg =
+      `<rect x="${x}" y="0" width="${Math.max(0,len)}" height="${h}" fill="${p.colour}"/>` +
+      (len > 34 ? dtxt(x+len/2, 17, p.value, {a:"middle", s:10.5, f:"#fff", w:600}) : "");
+    x += len; return seg;
+  }).join("");
+  return `<svg viewBox="0 0 ${w} ${h}" role="img">${body}</svg>`;
+}
+
+function dia(title, svg, cap){
+  return `<div class="dia"><h4>${esc(title)}</h4>${svg}${cap?`<p class="cap">${esc(cap)}</p>`:""}</div>`;
+}
+
+function renderDiagrams(){
+  const put = (id, html) => { const el = $(id); if(el) el.innerHTML = html || ""; };
+
+  /* STATUS - the pipeline every product walks down */
+  const order = [["idea","Idea",DIA_INK.work],["built","Built",DIA_INK.work],
+                 ["listed","Listed",DIA_INK.live],["selling","Selling",DIA_INK.live]];
+  const stuck = status.filter(s=>s.stage==="blocked"||s.stage==="paused").length;
+  put("#diaStatus", status.length ? dia("Where the " + status.length + " of them are",
+    diaPipe(order.map(([k,lab,c])=>({label:lab, n:status.filter(s=>s.stage===k).length, colour:c}))),
+    stuck ? stuck + " held or blocked, off the line." : "None held or blocked.") : "");
+
+  /* MONEY - each figure against the allowance it eats into */
+  const M = DESK ? (DESK.money||[]) : [];
+  const num = s => { const m = String(s).match(/([\d,.]+)/); return m ? parseFloat(m[1].replace(/,/g,"")) : 0; };
+  const mrows = M.map(m=>{
+    /* the limit is written into the label in her own words - "of a US$29 monthly allowance",
+       "against a US$25 cap" - so both shapes have to be read, not just the first one. */
+    const of = (String(m.label).match(/(?:of|against)\s+(?:a\s+)?[A-Z]*\$?\s*([\d,.]+)/i)||[])[1];
+    return {label:dcut((m.label||"").split(",")[0], 22), value:num(m.figure),
+            of: of ? parseFloat(of.replace(/,/g,"")) : 0, shown:m.figure,
+            colour: m.sev==="stop"?DIA_INK.dead : m.sev==="watch"?DIA_INK.hold : DIA_INK.work};
+  }).filter(r=>r.value > 0);
+  put("#diaMoney", mrows.length ? dia("How much of each allowance is gone", diaBars(mrows),
+    "Each bar is that one thing against its own limit, so they can be compared. "
+    + "Rows with no limit are written out instead.") : "");
+
+  /* SCOREBOARD - now against target */
+  /* only rows whose NOW is a plain number can be drawn; "#2 for dementia caregiver binder"
+     is a sentence, and a bar drawn from it would be a bar that lies. Those are read, not drawn. */
+  const plain = v => /^[\d,.]+$/.test(String(v||"").trim());
+  const srows = score.filter(c=>plain(c.now)).map(c=>({
+    label:dcut(c.name, 22), value:num(c.now), of: plain(c.target) ? num(c.target) : num(c.now),
+    shown: plain(c.target) ? c.now + " / " + c.target : c.now, colour:DIA_INK.live}));
+  const words = score.length - srows.length;
+  put("#diaScore", srows.length ? dia("How close each one is", diaBars(srows),
+    "Each bar is that one against its own target." + (words ? " " + words + " more are sentences, not numbers - they are listed below." : "")) : "");
+
+  /* RENEWALS - the next sixty days */
+  const rm = renewals.filter(r=>r.renews).map(r=>({label:r.name||"", days:daysSince(r.renews)*-1}));
+  const undated = renewals.length - renewals.filter(r=>r.renews).length;
+  put("#diaRenew", renewals.length ? dia("What bills, and when", diaCalendar(rm),
+    "Red means inside a week." + (undated ? " " + undated + " have no date on them yet." : "")) : "");
+
+  /* STREAKS - a dot for every day */
+  put("#diaStreaks", streaks.length
+    ? dia("The last three weeks", diaDays(streaks.map(s=>({name:s.name||"", dates:s.dates||[]})), 21))
+    : "");
+
+  /* WHERE THE DAY WENT - one bar, split */
+  const h = hours[todayISO()] || {};
+  const total = HKINDS.reduce((t,[k])=>t + (+h[k]||0), 0);
+  put("#diaHours", total ? dia("Today, " + total + " hours",
+    diaStack(HKINDS.map(([k,lab,c])=>({value:+h[k]||0, colour:c})), total),
+    HKINDS.filter(([k])=>+h[k]).map(([k,lab])=>lab + " " + h[k]).join(" · ")) : "");
+
+  /* TODAY - what is waiting against what is done */
+  if(DESK){
+    const W = (DESK.waiting||[]), openN = W.filter(j=>!done[j.id]).length;
+    const mineOpen = mine.filter(m=>!m.done).length;
+    put("#diaToday", dia("What is left today", diaBars([
+      {label:"Waiting on you", value:openN, of:W.length, shown:openN + " of " + W.length, colour:DIA_INK.hold},
+      {label:"Your own list", value:mineOpen, of:mine.length || 1,
+       shown:mineOpen + " of " + mine.length, colour:DIA_INK.work}
+    ]), "Each bar is how much of that list is still open."));
+  }
+
+  /* OUTBOX - sent against waiting */
+  const un = outbox.filter(o=>!o.sent).length;
+  put("#diaOutbox", outbox.length ? dia("Messages owed",
+    diaBars([{label:"Still owed", value:un, of:outbox.length, shown:un + " of " + outbox.length,
+              colour: un ? DIA_INK.dead : DIA_INK.live}]),
+    un ? "Nothing here sends itself." : "Nothing owed.") : "");
+}
+
+/* ---------------- reading any page aloud ----------------
+   Her ask, 13 Sep 2026: the reader is for every section, not only the morning brief. Each page
+   builds its own script from the same state the page is drawn from, so what she hears and what
+   she sees can never drift apart. Empty pages say so rather than reading nothing. */
+function pageScript(id){
+  const b = []; const H = t => b.push({t, head:true}), L = t => b.push({t, head:false});
+  const P = PAGE(id);
+  H(P.name + ".");
+  const none = w => L("Nothing here yet. " + w);
+
+  if(id === "ideas"){
+    if(!ideas.length) none("This is where anything you say goes first.");
+    else { L(ideas.length === 1 ? "One idea." : ideas.length + " ideas.");
+      ideas.slice().reverse().forEach((i,n)=>L("Number " + (n+1) + ". " + i.text)); }
+  }
+  else if(id === "today"){
+    const T = (typeof todaysEvents === "function" && events) ? todaysEvents() : [];
+    if(T.length){ H("Your diary."); T.forEach(e=>L(evTimeSpoken(e) + ". " + (e.summary||"Untitled") + ".")); }
+    const W = DESK ? (DESK.waiting||[]).filter(j=>!done[j.id]) : [];
+    H(W.length ? (W.length === 1 ? "One thing is waiting on you." : W.length + " things are waiting on you.")
+               : "Nothing from the business is waiting on you.");
+    W.forEach((j,n)=>{ L("Number " + (n+1) + ". " + j.title + "."); L(j.body); });
+    const open = mine.filter(m=>!m.done);
+    H(open.length ? "Your own list. " + open.length + " open." : "Your own list is clear.");
+    open.forEach(m=>L(m.text + (m.due ? ", due " + shortDate(m.due) + "." : ".")));
+  }
+  else if(id === "status"){
+    if(!status.length) none("One tile for each thing you sell.");
+    else { L(status.length + " things.");
+      Object.keys(STAGE).forEach(k=>{ const n = status.filter(s=>s.stage===k).length;
+        if(n) L(n + " " + (STAGE[k][0]).toLowerCase() + "."); });
+      status.forEach(s=>L(s.name + ". " + (STAGE[s.stage]||["unknown"])[0] + "." +
+        (s.note ? " " + s.note : ""))); }
+  }
+  else if(id === "money"){
+    const M = DESK ? (DESK.money||[]) : [];
+    if(!M.length) none("Only figures somebody actually read off a real account.");
+    else M.forEach(m=>L(m.figure + ". " + m.label));
+  }
+  else if(id === "paper"){
+    if(!NEWS) none("The paper lands here once it has run.");
+    else { L(NEWS.title || "The paper."); L("From " + longDate(NEWS.date) + ".");
+      (NEWS.stories||[]).forEach((s,n)=>{ H("Story " + (n+1) + ". " + s.h);
+        if(s.p) L(s.p); (s.pts||[]).forEach(p=>L(p)); });
+      if(NEWS.caveat) L(NEWS.caveat); }
+  }
+  else if(id === "listen"){ return briefScript(); }
+  else if(id === "rolling"){
+    if(!rolling.length) none("The ones that never finish.");
+    else rolling.forEach(r=>L(r.text + ". Every " + r.every + " days." +
+      (r.next ? " Next on " + shortDate(r.next) + "." : "")));
+  }
+  else if(id === "score"){
+    if(!score.length) none("The numbers you are trying to move.");
+    else score.forEach(c=>L(c.name + ". Now " + c.now +
+      (c.target ? ", target " + c.target : "") + "." + (c.note ? " " + c.note : "")));
+  }
+  else if(id === "hours"){
+    const t = todayISO(), h = hours[t];
+    if(!h) none("How the hours went today.");
+    else HKINDS.forEach(([k,lab])=>{ if(+h[k]) L(lab + ", " + h[k] + " hours."); });
+  }
+  else if(id === "plan"){
+    if(plan.now) { H("This week you planned."); L(plan.now.planned); }
+    else none("What the week was meant to be.");
+    (plan.past||[]).slice(-2).forEach(p=>{ H("Week of " + p.week + "."); L("Planned. " + p.planned);
+      if(p.actual) L("What happened. " + p.actual); });
+  }
+  else if(id === "outbox"){
+    const O = outbox.filter(o=>!o.sent);
+    if(!O.length) none("Anything whose next move is a message.");
+    else { L(O.length + " waiting on a message from you.");
+      O.forEach(o=>L((o.who && o.who !== "—" ? o.who + ". " : "") + o.what)); }
+  }
+  else if(id === "renewals"){
+    if(!renewals.length) none("Every subscription with the day it bills.");
+    else renewals.slice().sort((a,b)=>(a.renews||"9").localeCompare(b.renews||"9"))
+      .forEach(r=>L(r.name + "." + (r.cost ? " " + r.cost + "." : "") +
+        (r.renews ? " Bills " + shortDate(r.renews) + "." : " No date on it.")));
+  }
+  else if(id === "streaks"){
+    if(!streaks.length) none("One line each, never a chart.");
+    else streaks.forEach(s=>{ const d = (s.dates||[]).length;
+      L(s.name + ". " + (d ? d + (d === 1 ? " day marked." : " days marked.") : "Not started.")); });
+  }
+  else if(id === "yours"){
+    if(LESSON && LESSON.title){ H("Today's lesson. " + LESSON.title);
+      (LESSON.paras||[]).forEach(p=>L(p)); }
+    if(notes.length){ H(notes.length === 1 ? "One note." : notes.length + " notes.");
+      notes.slice().reverse().slice(0,10).forEach(n=>L(n.text)); }
+    if(!notes.length && !(LESSON && LESSON.title)) none("Today's lesson and your own notes.");
+  }
+  else if(id === "shop"){
+    const R = DESK ? (DESK.readings||[]) : [];
+    if(!R.length) none("What is true today, with the day each thing was read.");
+    else R.forEach(r=>L(r.label + ". " + r.value + " Read " + agoWords(r.read) + "."));
+  }
+  else if(id === "log"){
+    if(!logbook.length) none("What you did, in order.");
+    else { L("The last " + Math.min(15, logbook.length) + ".");
+      logbook.slice(-15).reverse().forEach(e=>L(e.text + ".")); }
+  }
+  else if(id === "cast"){
+    CAST.forEach(c=>{ H(c.name + "."); L(c.keeps); });
+  }
+  else if(id === "secretary"){
+    L(P.why);
+    L("Built " + (DESK && DESK.built ? shortDate(DESK.built) : "at an unknown date") + ".");
+    L("It cannot send anything, list anything, or publish anything. It only ever writes to itself.");
+  }
+  else L(P.why);
+
+  if(b.length === 1) L("There is nothing on this page yet.");
+  return b;
+}
+
+$("#readPage").addEventListener("click", ()=>{
+  if(playing){ stopSpeaking(); return; }
+  say(pageScript(page), false);
+  $("#readPage").classList.add("on");
+  $("#readPage").innerHTML = "&#9632; Stop reading";
+});
 
 /* ---------------- ask Claude ---------------- */
 function deskForClaude(){
@@ -2641,7 +2968,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-13 · build 17</span>";
+    + "BUILD 2026-09-13 · build 19</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
