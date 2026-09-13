@@ -184,6 +184,16 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
   font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
   padding:3px 8px;min-height:0;border-radius:2px;font-weight:500}
 
+/* ---------- suggestions: hers to take or leave (14 Sep 2026) ---------- */
+.sugg:empty{display:none}
+.sugg{margin-top:18px}
+.sugg-h{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--ink-faint);margin:0 0 2px}
+.card.sugg-card{border-left:4px dashed var(--accent);background:transparent;box-shadow:none;
+  backdrop-filter:none;-webkit-backdrop-filter:none}
+.sugg-card .c-title{font-weight:600}
+.xbtn.takeSug{border-color:var(--accent);color:var(--accent);font-weight:600}
+
 /* ---------- adders ---------- */
 .adder{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:13px;align-items:start}
 .adder .full{grid-column:1 / -1}
@@ -525,6 +535,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <p class="sec-note">Your words, kept exactly.</p>
         <span class="count" id="ideaCount"></span></div>
       <div id="ideas"></div>
+      <div class="sugg" id="sug-ideas"></div>
     </div>
   </section>
 
@@ -626,6 +637,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <p class="sec-note">Tick it and it returns when it is next due.</p>
         <span class="count" id="rollCount"></span></div>
       <div id="rolling"></div>
+      <div class="sugg" id="sug-rolling"></div>
       <div class="adder" id="rollAdd">
         <input class="full" id="rollText" type="text" placeholder="Read the real Etsy fees off an invoice">
         <select id="rollEvery">
@@ -687,6 +699,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <div class="sec-head"><h2>This week</h2>
         <p class="sec-note">Written Monday. Read Friday. No excuses box, on purpose.</p></div>
       <div id="planNow"></div>
+      <div class="sugg" id="sug-plan"></div>
       <div class="adder" id="planAdd">
         <textarea class="full" id="planText" placeholder="What this week is meant to be."></textarea>
         <span></span><button id="planGo">Set the week</button>
@@ -707,6 +720,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <p class="sec-note">Nothing here sends itself. Ever.</p>
         <span class="count" id="outCount"></span></div>
       <div id="outbox"></div>
+      <div class="sugg" id="sug-outbox"></div>
       <div class="adder" id="outAdd">
         <div class="two"><input id="outWho" type="text" placeholder="Who">
           <select id="outKind">
@@ -743,6 +757,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <div class="sec-head"><h2>Kept going</h2>
         <p class="sec-note">One line each. Tap the box to tick today.</p></div>
       <div id="streaks"></div>
+      <div class="sugg" id="sug-streaks"></div>
       <div class="adder" id="strAdd">
         <input class="full" id="strName" type="text" placeholder="Walk. Read. The evening page.">
         <span></span><button id="strGo">Add</button>
@@ -863,7 +878,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 19</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-14 · build 20</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -997,6 +1012,7 @@ const DEFAULT_AUDIO = {
   seconds:319, voice:"en-AU-Chirp3-HD-Achernar", characters:4888
 };
 let DESK=null, NEWS=null, AUDIO=DEFAULT_AUDIO, LESSON=null;
+let SUGGEST=null, sugTaken={};
 let done={}, notes=[], mine=[], thread=[], files=[];
 let ideas=[], rolling=[], status=[], score=[], hours={}, plan={now:null,past:[]},
     outbox=[], renewals=[], streaks=[];
@@ -1055,6 +1071,7 @@ const saveThread  = () => save("state/thread",  {turns:thread.slice(-40)}, 1);
 const saveLesson  = () => save("state/lesson",  LESSON, 1);
 const saveSettings= () => save("state/settings",settings, 1);
 const saveLog     = () => save("state/log",     {items:logbook.slice(-600)}, 1);
+const saveSugTaken= () => save("state/suggestTaken", {ids:sugTaken}, 1);
 
 /* Append-only. Nothing in this app edits or removes a line once it is written - that is the
    whole point of it, and it is why the cap trims the OLDEST rather than rewriting anything. */
@@ -1544,6 +1561,45 @@ function renderAll(){
   renderHours(); renderPlan(); renderOutbox(); renderRenewals(); renderStreaks();
   renderMoney(); renderShop(); renderPaper(); renderLesson(); renderNotes(); renderFiles();
   renderThread(); renderDiary(); renderAudio(); renderLog(); renderSecretary(); renderRunOrder();
+  renderSuggest();
+}
+
+/* ---------------- suggestions ----------------
+   Her ruling, 14 Sep 2026: "Suggest, I tap to add". A session draws them from her register and
+   they arrive in the LOCKED delivery, never in this file - this site is a public repository.
+   Nothing is added until she taps Add, and it goes in through the same path as her own typing.
+   "Not for me" hides one for good. One already on the page in the same words is not offered.
+   Where the day went takes none: those are her hours, and a suggested hour would be invented. */
+const SUG_PAGES = {ideas:"#sug-ideas", rolling:"#sug-rolling", plan:"#sug-plan",
+  outbox:"#sug-outbox", streaks:"#sug-streaks"};
+const sugSame = (a,b) => String(a||"").trim().toLowerCase() === String(b||"").trim().toLowerCase();
+function sugAlready(pg, s){
+  if(pg==="ideas")   return ideas.some(i=>sugSame(i.text,s.text));
+  if(pg==="rolling") return rolling.some(r=>sugSame(r.text,s.text));
+  if(pg==="plan")    return !!(plan.now && plan.now.week===weekKey()
+                         && String(plan.now.planned||"").toLowerCase().includes(String(s.text||"").toLowerCase()));
+  if(pg==="outbox")  return outbox.some(o=>sugSame(o.who,s.who) && sugSame(o.what,s.what));
+  if(pg==="streaks") return streaks.some(k=>sugSame(k.name,s.name));
+  return false;
+}
+function sugList(pg){
+  return ((SUGGEST && SUGGEST.pages && SUGGEST.pages[pg]) || [])
+    .filter(s => s && s.id && !sugTaken[s.id] && !sugAlready(pg, s));
+}
+function renderSuggest(){
+  for(const [pg, sel] of Object.entries(SUG_PAGES)){
+    const box = $(sel); if(!box) continue;
+    const list = sugList(pg);
+    box.innerHTML = list.length
+      ? `<p class="sugg-h">Suggestions \u2014 nothing is added until you tap Add</p>` + list.map(s => cardHTML({
+          title: pg==="outbox" ? s.who : pg==="streaks" ? s.name : s.text,
+          body: [pg==="outbox" ? s.what : "", s.why].filter(Boolean).join(" \u00b7 "),
+          meta: [ pg==="rolling" && s.every ? pill("every "+s.every+" days") : "",
+                  s.from ? pill("from "+s.from) : "",
+                  xbtn("Add","takeSug",pg+"|"+s.id), xbtn("Not for me","dropSug",pg+"|"+s.id) ]
+        }).replace('class="card', 'class="card sugg-card')).join("")
+      : "";
+  }
 }
 
 /* ---------------- navigation ---------------- */
@@ -2435,6 +2491,31 @@ document.addEventListener("change", e=>{
 document.addEventListener("click", async e=>{
   const b=e.target.closest(".xbtn"); if(!b) return;
   const id=b.dataset.id;
+  if(b.classList.contains("takeSug") || b.classList.contains("dropSug")){
+    const cut = id.indexOf("|"), pg = id.slice(0,cut), sid = id.slice(cut+1);
+    const s = ((SUGGEST && SUGGEST.pages && SUGGEST.pages[pg]) || []).find(x=>x.id===sid);
+    if(!s) return;
+    const words = s.text || s.name || s.who;
+    if(b.classList.contains("dropSug")){
+      sugTaken[sid]="no"; saveSugTaken(); renderSuggest();
+      logIt("note","Not for me: "+words); return; }
+    const at = new Date().toISOString();
+    if(pg==="ideas"){ ideas.push({id:uid("i"), text:s.text, at}); renderIdeas(); saveIdeas(); }
+    else if(pg==="rolling"){ rolling.push({id:uid("r"), text:s.text, every:+s.every||7, last:null, next:todayISO()});
+      renderRolling(); renderRunOrder(); saveRolling(); }
+    else if(pg==="plan"){
+      const cur = plan.now && plan.now.week===weekKey() ? plan.now : null;
+      /* added to the week she already wrote, never written over it */
+      plan.now = {week:weekKey(), planned: cur ? cur.planned+"\n"+s.text : s.text, at: cur ? cur.at : at};
+      renderPlan(); savePlan(); }
+    else if(pg==="outbox"){ outbox.push({id:uid("o"), who:s.who, kind:s.kind||"send", what:s.what||"", sent:false, at});
+      renderOutbox(); renderRunOrder(); saveOutbox(); }
+    else if(pg==="streaks"){ streaks.push({id:uid("k"), name:s.name, dates:[]}); renderStreaks(); saveStreaks(); }
+    else return;
+    sugTaken[sid]="yes"; saveSugTaken(); renderSuggest();
+    logIt("new","Took a suggestion: "+words); toast("Added.");
+    return;
+  }
   if(b.classList.contains("delIdea")){ const o=ideas.find(x=>x.id===id);
     ideas=ideas.filter(x=>x.id!==id); renderIdeas(); saveIdeas();
     if(o) logIt("gone","Removed an idea: "+o.text); }
@@ -2688,7 +2769,7 @@ async function takeLink(){
    is on a public address but not a findable one. That is the same trade she accepted for the
    recording. It is not a password: anyone given the address can read it. */
 const FEED = "feed/09814a7934ef1d3e.json";
-const FEED_KEYS = {desk:"content/desk", news:"content/news", audio:"content/audio",
+const FEED_KEYS = {desk:"content/desk", news:"content/news", audio:"content/audio", suggest:"content/suggest",
   status:"state/status", renewals:"state/renewals", score:"state/score"};
 
 /* The file is locked. Her site is a PUBLIC repository - the folder listing is browsable and
@@ -2947,6 +3028,8 @@ async function connect(){
       if(sk && Array.isArray(sk.items)) streaks=sk.items;
       if(su && Array.isArray(su.items)) status=su.items;
       if(lg && Array.isArray(lg.items)) logbook=lg.items;
+      const sg = await get("content/suggest"); if(sg && sg.pages) SUGGEST=sg;
+      const stk = await get("state/suggestTaken"); if(stk && stk.ids) sugTaken=stk.ids;
       const th = await get("state/thread");
       if(th && Array.isArray(th.turns)) thread=th.turns;
     }catch(e){}
@@ -2968,7 +3051,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-13 · build 19</span>";
+    + "BUILD 2026-09-14 · build 20</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
