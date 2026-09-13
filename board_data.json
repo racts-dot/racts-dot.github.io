@@ -1,6 +1,6 @@
 {
- "generated_at": "2026-09-13 23:31",
- "generated_date": "2026-09-13",
+ "generated_at": "2026-09-14 00:01",
+ "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
   "spent_usd": 21.38,
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-13 23:31",
+  "read_at": "2026-09-14 00:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -184,8 +184,8 @@
  "git": {
   "branch": "main",
   "uncommitted_files": 5,
-  "last_commit": "4c0feccf Nightly automatic backup: 4 file(s)",
-  "last_commit_at": "2026-09-13T23:30:07+09:30"
+  "last_commit": "dbdba457 Nightly automatic backup: 8 file(s)",
+  "last_commit_at": "2026-09-14T00:00:12+09:30"
  },
  "facts": {
   "available": true,
@@ -198,8 +198,8 @@
     "source": "Etsy Shop Manager > Listings, read directly",
     "stale_after_days": 7,
     "note": "This said 'four active' in the project rules until 6 Sep. Because no record knew the two colouring books existed, neither was ever registered for gating, and both went on sale ungated.",
-    "age_days": 7,
-    "stale": false
+    "age_days": 8,
+    "stale": true
    },
    {
     "id": "etsy_ads",
@@ -209,7 +209,7 @@
     "source": "Etsy Ads dashboard, opened and read live at ~17:00",
     "stale_after_days": 30,
     "note": "Every earlier figure is superseded: 136/0/US$0.00 -> 301/2/US$0.63 -> 383/3/US$1.09 -> 404/4/US$1.20 -> 414/5/US$1.27. One measurement at five moments, not five facts. Nobody logged who switched it off; all three automated attempts failed. Etsy Ads bills PER CLICK. 414 shown and 5 clicked (~1 in 83) implicates the thumbnail, title or price - it does not say the shop is invisible. The test stopped well short of the 1,000 impressions its own plan specified, so it did not answer its own question.",
-    "age_days": 4,
+    "age_days": 5,
     "stale": false
    },
    {
@@ -220,8 +220,8 @@
     "source": "Etsy Shop Stats, read live",
     "stale_after_days": 7,
     "note": "The 'Etsy search' row EXCLUDES in-app search and ad clicks, so it is a LOWER BOUND, never a measurement of search traffic. 19 'direct' is an UPPER bound on Rachel's own page loads.",
-    "age_days": 7,
-    "stale": false
+    "age_days": 8,
+    "stale": true
    },
    {
     "id": "kdp_status",
@@ -231,7 +231,7 @@
     "source": "KDP Bookshelf, signed in",
     "stale_after_days": 7,
     "note": "US$11.99, author Rachie J. Went to Amazon WITHOUT the physical print proof the outside review called a hard gate.",
-    "age_days": 9,
+    "age_days": 10,
     "stale": true
    },
    {
@@ -242,7 +242,7 @@
     "source": "listing-price-input in the live listing editor",
     "stale_after_days": 14,
     "note": "AU$6.99 is DEAD - Rachel cut the price and no record was updated. Do not 'correct' 3.63 back to 6.99.",
-    "age_days": 6,
+    "age_days": 7,
     "stale": false
    },
    {
@@ -253,7 +253,7 @@
     "source": "Etsy listing page",
     "stale_after_days": 14,
     "note": "Her pause was right and still is. On the CORRECTED measuring scale it still fails: p012 3.39% under 2.5mm against 2.0% allowed. Two of its 25 pages have zero colourable regions.",
-    "age_days": 6,
+    "age_days": 7,
     "stale": false
    },
    {
@@ -264,7 +264,7 @@
     "source": "listing editor 4562427400, then reloaded from the server",
     "stale_after_days": 14,
     "note": "It had silently reverted to a Cottage-Garden-led title, and a real recommendation was killed on the strength of a remembered state rather than a reading.",
-    "age_days": 7,
+    "age_days": 8,
     "stale": false
    }
   ],
@@ -276,7 +276,7 @@
     "who": "Closed 2026-09-09 ~17:00, read off the live dashboard",
     "why": "Approved 'till ninth September' and it stopped on the ninth. Final US$1.27 for 414 views and 5 clicks, US$0 earned. Nobody logged who clicked it; all three automated attempts failed and two of them reported success. Do not restart the campaign - Etsy upsells a US$25 budget on that page and US$3.80 of unused ads credit now shows there, and spending it is Rachel's call.",
     "severity": "info",
-    "days_left": -4,
+    "days_left": -5,
     "overdue": true,
     "due_today": false
    },
@@ -287,7 +287,7 @@
     "who": "automatic",
     "why": "At the limit Apify SUSPENDS rather than bills, so the risk is a scrape dying mid-task, not an invoice.",
     "severity": "watch",
-    "days_left": 8,
+    "days_left": 7,
     "overdue": false,
     "due_today": false
    }
@@ -301,7 +301,7 @@
     "read_on": "2026-09-04",
     "evidence": "Radio state read off the live KDP Content page DOM, title T9994FF0SYK: has-ai-content = no (checked).",
     "severity": "stop",
-    "age_days": 9
+    "age_days": 10
    },
    {
     "id": "caregiver_listing_images",
@@ -311,7 +311,7 @@
     "read_on": "2026-09-06",
     "evidence": "Windows font-path bug: every path missed, PIL fell back to a bitmap font that ignores the size argument. Nothing errored. Code fixed; the live images were not rebuilt.",
     "severity": "watch",
-    "age_days": 7
+    "age_days": 8
    },
    {
     "id": "kawaii_page_count",
@@ -321,7 +321,7 @@
     "read_on": "2026-09-07",
     "evidence": "geometry.analyse divided a 210mm render by 180mm, making every measurement 1.1667x too small. Fixed; selftest_raster_scale.py 3 of 3.",
     "severity": "watch",
-    "age_days": 6
+    "age_days": 7
    }
   ],
   "do_not_list": [
@@ -336,7 +336,7 @@
     "ruling": "REWORK 46%. Do not sell it and do not bundle it."
    }
   ],
-  "stale_count": 1
+  "stale_count": 3
  },
  "runways": {
   "available": true,
@@ -346,13 +346,13 @@
     "label": "OpenAI API spend limit",
     "unit": "US$",
     "as_of": "2026-09-11",
-    "read_days_ago": 2,
+    "read_days_ago": 3,
     "read_stale": false,
     "left_when_read": 1.24,
     "of_total": 25.0,
     "per_day": 2.86,
-    "left_now": -4.48,
-    "days_left": -1.6,
+    "left_now": -7.34,
+    "days_left": -2.6,
     "refills_on": "2026-09-30",
     "what_happens": "The AI reviews stop. Auto-reload is OFF and the US$25 limit stops them sooner, so it STOPS rather than bills - two brakes, no runaway.",
     "where_read": "platform.openai.com limits and usage pages, read in Chrome on the MacBook 2026-09-11"
@@ -362,13 +362,13 @@
     "label": "Google Vertex free credit",
     "unit": "A$",
     "as_of": "2026-09-11",
-    "read_days_ago": 2,
+    "read_days_ago": 3,
     "read_stale": false,
     "left_when_read": 167.45,
     "of_total": 431.69,
     "per_day": 12.46,
-    "left_now": 142.53,
-    "days_left": 11.4,
+    "left_now": 130.07,
+    "days_left": 10.4,
     "refills_on": null,
     "what_happens": "Google starts charging real money, and NO spend cap is set on Vertex today. This one CAN run away.",
     "where_read": "Google Cloud billing console, signed in as rachierachies7, read 2026-09-11. Burn rate agreed two ways: $264.24 over 21 days and A$111.08 over 9 days."
@@ -448,7 +448,7 @@
   },
   {
    "severity": "watch",
-   "what": "1 platform reading(s) have gone stale: The Quiet Atlas on Amazon KDP",
+   "what": "3 platform reading(s) have gone stale: Etsy listings live, Shop visits, 1-6 Sep, The Quiet Atlas on Amazon KDP",
    "why": "Nobody has opened the platform since. The number on the board is ageing, not wrong."
   },
   {
