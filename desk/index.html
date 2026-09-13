@@ -431,7 +431,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <div class="brief-run" id="briefRun"></div>
       <div class="rec" id="rec">
         <p class="rec-lab" id="recLab">Recorded this morning in a real voice</p>
-        <audio id="recAudio" controls preload="metadata"></audio>
+        <audio id="recAudio" controls preload="auto" playsinline></audio>
       </div>
       <div class="player" id="player">
         <div class="p-bar"><span id="pFill"></span></div>
@@ -1378,8 +1378,19 @@ function renderAudio(){
     : "Recorded "+shortDate(AUDIO.date)+" — older than today's desk"+(mins?" · "+mins:"");
   $("#recLab").style.color = fresh ? "var(--ok)" : "var(--watch)";
   if("mediaSession" in navigator){
-    try{ navigator.mediaSession.metadata = new MediaMetadata({
-      title:"The morning brief", artist:"Rachie's Desk", album:longDate(AUDIO.date)}); }catch(e){}
+    try{
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title:"The morning brief", artist:"Rachie's Desk", album:longDate(AUDIO.date)});
+      /* Without these iOS shows no lock-screen controls and is quicker to suspend the tab. */
+      navigator.mediaSession.setActionHandler("play",  ()=>el.play());
+      navigator.mediaSession.setActionHandler("pause", ()=>el.pause());
+      navigator.mediaSession.setActionHandler("seekbackward", ()=>{
+        el.currentTime = Math.max(0, el.currentTime-15); });
+      navigator.mediaSession.setActionHandler("seekforward", ()=>{
+        el.currentTime = Math.min(el.duration||0, el.currentTime+30); });
+      navigator.mediaSession.setActionHandler("seekto", d=>{
+        if(d && d.seekTime!=null) el.currentTime = d.seekTime; });
+    }catch(e){}
   }
 }
 function renderAll(){
@@ -1965,6 +1976,7 @@ $("#recAudio").addEventListener("play", ()=>{ stopSpeaking();
 $("#recAudio").addEventListener("pause", ()=>{ $("#playBrief").textContent="▶ Play the brief"; paintPlaying(); });
 $("#recAudio").addEventListener("ended", ()=>{ $("#playBrief").textContent="▶ Play the brief"; paintPlaying(); });
 $("#recAudio").addEventListener("error", ()=>{
+  if(AUDIO && AUDIO.url) toast("The recording would not load. Falling back to the on-device voice.");
   /* The recording lives with the Claude copy. On her own website it cannot be fetched, so the
      player is hidden rather than left sitting there doing nothing when pressed. */
   AUDIO=null; $("#rec").classList.remove("on");
