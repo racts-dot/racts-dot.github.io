@@ -839,10 +839,18 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 14</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-13 · build 15</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
+    <div style="border-top:1px solid var(--line-soft);margin-top:10px;padding-top:12px">
+      <h3 style="font-family:'Newsreader',Georgia,serif;font-size:17px;font-weight:600;margin:0">Fill this desk from a link</h3>
+      <p class="sec-note" style="margin:4px 0 8px">Tapping a link opens Safari, and Safari keeps
+        its own separate desk. Paste the link in here instead and it fills the one you are looking at.</p>
+      <textarea class="full" id="pasteLink" rows="2" placeholder="Paste the whole link here."></textarea>
+      <div class="adder"><button id="pasteGrab" class="ghost">Paste from clipboard</button>
+        <button id="pasteGo">Fill it</button></div>
+    </div>
     <p class="sec-note" style="margin-top:14px" id="setWhere"></p>
   </div></div></div>
 
@@ -2239,35 +2247,50 @@ function b64bytes(x){
   for(let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
   return out;
 }
-async function takeLink(){
-  const frag = location.hash.slice(1);
-  if(!frag) return null;
+/* Unpack one section link. Takes the part after the #, whether it arrived in the address
+   bar or was pasted in by hand. Returns the section name, or null and says why.
+   ⚠ A phone kept two copies of this app - the home-screen icon and Safari have SEPARATE
+   stores - so a link opened in Safari filled a desk she never looks at. That is why the
+   same unpacking is reachable from inside Settings. */
+async function applyLink(frag){
   const part = k => (frag.split("&").find(p=>p.startsWith(k+"=")) || "").slice(k.length+1);
-  const token = part("d"); if(!token) return null;
+  const token = part("d"); if(!token){ toast("That is not a load link."); return null; }
   const which = part("s") || "desk";
-  /* "all" carries every section in one link, so filling the desk is one tap, not seven */
   const doc = which === "all" ? "all" : LINKABLE[which];
-  const clear = () => history.replaceState(null,"",location.pathname+location.search);
-  if(!doc){ toast("That link names a section this app does not have."); clear(); return null; }
+  if(!doc){ toast("That link names a section this app does not have."); return null; }
+  let text;
   try{
     const bytes = b64bytes(token);
-    let text;
     if(frag.includes("z=1")){
-      if(typeof DecompressionStream === "undefined") throw new Error("old browser");
+      if(typeof DecompressionStream === "undefined"){
+        toast("This phone is too old to unpack a packed link. Ask for a plain one.");
+        return null;
+      }
       const st = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
       text = await new Response(st).text();
     } else text = new TextDecoder().decode(bytes);
+  }catch(e){
+    /* A damaged link must never wipe a good section. */
+    toast("That link did not arrive whole. Nothing was changed.");
+    return null;
+  }
+  try{
     const payload = JSON.parse(text);
     if(which === "all"){
       for(const k of Object.keys(payload)) if(LINKABLE[k]) await save(LINKABLE[k], payload[k], 1);
     } else await save(doc, payload, 1);
-    clear();
     return which;
   }catch(e){
-    /* A damaged link must never wipe a good section. */
     toast("That link did not arrive whole. Nothing was changed.");
-    clear(); return null;
+    return null;
   }
+}
+async function takeLink(){
+  const frag = location.hash.slice(1);
+  if(!frag) return null;
+  const r = await applyLink(frag);
+  history.replaceState(null,"",location.pathname+location.search);
+  return r;
 }
 
 /* ---------------- pull down to reload ----------------
@@ -2310,6 +2333,25 @@ async function takeLink(){
 })();
 
 
+
+
+/* ---------------- filling the desk from inside it ---------------- */
+$("#pasteGrab").addEventListener("click", async ()=>{
+  try{ $("#pasteLink").value = await navigator.clipboard.readText(); toast("Pasted. Now tap Fill it."); }
+  catch(e){ toast("Your phone would not hand over the clipboard. Hold in the box and pick Paste."); }
+});
+$("#pasteGo").addEventListener("click", async ()=>{
+  const v = $("#pasteLink").value.trim();
+  if(!v){ toast("Nothing pasted yet."); return; }
+  const frag = v.includes("#") ? v.slice(v.indexOf("#")+1) : v;
+  const which = await applyLink(frag);
+  if(!which) return;
+  $("#pasteLink").value = "";
+  logIt("set", "Filled the desk from a link");
+  toast("Loaded. Bringing it in…");
+  /* it is already saved; a reload is the one certain way to have every page re-read it */
+  setTimeout(()=>location.replace(location.pathname + "?filled=" + Date.now()), 600);
+});
 
 /* ---------------- just say it ----------------
    Her ask was a box she can talk into that puts things where they belong. The listening is
@@ -2508,7 +2550,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-13 · build 14</span>";
+    + "BUILD 2026-09-13 · build 15</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
