@@ -1,17 +1,17 @@
 {
- "generated_at": "2026-09-14 03:01",
+ "generated_at": "2026-09-14 03:31",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 21.38,
+  "spent_usd": 21.4,
   "authorized_usd": 40.0,
-  "pct": 53.4,
-  "runs": 353,
+  "pct": 53.5,
+  "runs": 355,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 13.51,
+    "spent_usd": 13.52,
     "authorized_usd": 20.0,
     "enabled": true
    },
@@ -25,10 +25,10 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 123,
-    "usd": 6.68,
+    "runs": 125,
+    "usd": 6.7,
     "first": "2026-09-03",
-    "last": "2026-09-13"
+    "last": "2026-09-14"
    },
    {
     "task": "How Claude works - rules, gates, QA, communication",
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 21.79,
+  "attributed_usd": 21.81,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 03:01",
+  "read_at": "2026-09-14 03:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 5,
-  "last_commit": "cd8f593b Nightly automatic backup: 2 file(s)",
-  "last_commit_at": "2026-09-14T03:00:11+09:30"
+  "uncommitted_files": 7,
+  "last_commit": "d504c8f4 Nightly automatic backup: 14 file(s)",
+  "last_commit_at": "2026-09-14T03:30:14+09:30"
  },
  "facts": {
   "available": true,
