@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-14 04:31",
+ "generated_at": "2026-09-14 05:01",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 22.98,
+  "spent_usd": 25.14,
   "authorized_usd": 40.0,
-  "pct": 57.5,
-  "runs": 380,
+  "pct": 62.8,
+  "runs": 411,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 13.86,
+    "spent_usd": 13.91,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 9.13,
+    "spent_usd": 11.23,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,9 +25,16 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 131,
-    "usd": 6.95,
+    "runs": 134,
+    "usd": 7.03,
     "first": "2026-09-03",
+    "last": "2026-09-14"
+   },
+   {
+    "task": "SQL / worksheet products",
+    "runs": 53,
+    "usd": 3.67,
+    "first": "2026-09-06",
     "last": "2026-09-14"
    },
    {
@@ -57,13 +64,6 @@
     "usd": 1.84,
     "first": "2026-09-04",
     "last": "2026-09-13"
-   },
-   {
-    "task": "SQL / worksheet products",
-    "runs": 25,
-    "usd": 1.6,
-    "first": "2026-09-06",
-    "last": "2026-09-14"
    },
    {
     "task": "TripShare trip planner app",
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 23.39,
+  "attributed_usd": 25.55,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 202,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 04:31",
+  "read_at": "2026-09-14 05:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 7,
-  "last_commit": "72462822 Nightly automatic backup: 652 file(s)",
-  "last_commit_at": "2026-09-14T04:30:27+09:30"
+  "uncommitted_files": 10,
+  "last_commit": "460bd52d Nightly automatic backup: 30 file(s)",
+  "last_commit_at": "2026-09-14T05:00:11+09:30"
  },
  "facts": {
   "available": true,
