@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-14 11:01",
+ "generated_at": "2026-09-14 11:31",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 27.32,
+  "spent_usd": 29.07,
   "authorized_usd": 40.0,
-  "pct": 68.3,
-  "runs": 435,
+  "pct": 72.7,
+  "runs": 479,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 14.54,
+    "spent_usd": 14.6,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 12.78,
+    "spent_usd": 14.47,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,15 +25,15 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 139,
-    "usd": 7.79,
+    "runs": 182,
+    "usd": 9.48,
     "first": "2026-09-03",
     "last": "2026-09-14"
    },
    {
     "task": "SQL / worksheet products",
-    "runs": 72,
-    "usd": 5.08,
+    "runs": 73,
+    "usd": 5.15,
     "first": "2026-09-06",
     "last": "2026-09-14"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 27.73,
+  "attributed_usd": 29.48,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 199,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 11:01",
+  "read_at": "2026-09-14 11:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 5,
-  "last_commit": "1afb7e36 Register: SQL print file paths for the Mac; cover tie-break blocked until Windows Chrome reconnects",
-  "last_commit_at": "2026-09-14T11:00:27+09:30"
+  "uncommitted_files": 7,
+  "last_commit": "4a2be553 Nightly automatic backup: 19 file(s)",
+  "last_commit_at": "2026-09-14T11:30:14+09:30"
  },
  "facts": {
   "available": true,
