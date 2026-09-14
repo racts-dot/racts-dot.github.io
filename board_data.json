@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-14 21:01",
+ "generated_at": "2026-09-14 21:31",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 34.64,
+  "spent_usd": 34.74,
   "authorized_usd": 40.0,
-  "pct": 86.6,
-  "runs": 562,
+  "pct": 86.9,
+  "runs": 564,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 15.56,
+    "spent_usd": 15.63,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 19.08,
+    "spent_usd": 19.11,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,8 +25,8 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 261,
-    "usd": 14.49,
+    "runs": 263,
+    "usd": 14.59,
     "first": "2026-09-03",
     "last": "2026-09-14"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 34.75,
+  "attributed_usd": 34.85,
   "unattributed_usd": -0.11,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.4,
   "total_runs": 199,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 21:01",
+  "read_at": "2026-09-14 21:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 5,
-  "last_commit": "b2516586 Nightly automatic backup: 23 file(s)",
-  "last_commit_at": "2026-09-14T21:00:43+09:30"
+  "uncommitted_files": 16,
+  "last_commit": "c21b7324 Review cadence: Chrome every 6th review through 19 Sep, back to 5th on 20 Sep",
+  "last_commit_at": "2026-09-14T21:16:15+09:30"
  },
  "facts": {
   "available": true,
@@ -443,7 +443,7 @@
   },
   {
    "severity": "watch",
-   "what": "Review board has spent US$34.64 of US$40.00 authorised",
+   "what": "Review board has spent US$34.74 of US$40.00 authorised",
    "why": "Raise the authorisation deliberately or stop reviewing - do not drift into it."
   },
   {
