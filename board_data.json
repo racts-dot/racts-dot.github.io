@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-14 13:31",
+ "generated_at": "2026-09-14 14:01",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 30.45,
+  "spent_usd": 30.78,
   "authorized_usd": 40.0,
-  "pct": 76.1,
-  "runs": 522,
+  "pct": 77.0,
+  "runs": 529,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 14.79,
+    "spent_usd": 15.02,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 15.67,
+    "spent_usd": 15.76,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,15 +25,15 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 223,
-    "usd": 10.71,
+    "runs": 229,
+    "usd": 10.96,
     "first": "2026-09-03",
     "last": "2026-09-14"
    },
    {
     "task": "SQL / worksheet products",
-    "runs": 75,
-    "usd": 5.31,
+    "runs": 76,
+    "usd": 5.38,
     "first": "2026-09-06",
     "last": "2026-09-14"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 30.86,
+  "attributed_usd": 31.19,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 199,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 13:31",
+  "read_at": "2026-09-14 14:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 9,
-  "last_commit": "c25e3c0a Nightly automatic backup: 18 file(s)",
-  "last_commit_at": "2026-09-14T13:30:22+09:30"
+  "uncommitted_files": 5,
+  "last_commit": "3a775cdc Maths heroes: Place Value grade 1-5 -> 1-3 to match the PDF (verifier caught it); register updated",
+  "last_commit_at": "2026-09-14T14:00:43+09:30"
  },
  "facts": {
   "available": true,
