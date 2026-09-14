@@ -909,6 +909,9 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <input class="full" id="xl-try-link" type="url" placeholder="Video link (optional)">
         <span></span><button type="button" class="xl-go" data-list="try">Add</button>
       </div>
+      <div class="sec-head" style="margin-top:24px"><h2>From the Reading Room</h2>
+        <p class="sec-note">Your highlights and notes, read from Notion. Tap Add to put one on the list above.</p></div>
+      <div id="rr-feed"><p class="none">Opens when you visit this page.</p></div>
     </div>
   </section>
   <section class="page" id="p-keep">
@@ -1854,6 +1857,31 @@ document.addEventListener("click", e=>{
     save("state/tlnotes",{items:tlNotes},1); renderTimeline();
     const row=document.querySelector(`.tl-row[data-tl="${CSS.escape(id)}"] .tl-more`); if(row) row.hidden=false;
     logIt("note", text?"Corrected an achievement: "+text:"Removed a note on an achievement"); toast(text?"Note kept. It goes to Notion with the rest.":"Note removed."); }
+});
+let rrRows = [];
+async function loadReadingRoom(){
+  const box=$("#rr-feed"); if(!box) return;
+  if(!window.NotionSync || !NotionSync.connected || !NotionSync.connected()){
+    box.innerHTML='<p class="none">Tap “Connect to Notion” once, and your Reading Room highlights and notes show here.</p>'; return; }
+  box.innerHTML='<p class="none">Reading your Reading Room notes from Notion…</p>';
+  try{
+    const out=await NotionSync.list("reading");
+    rrRows=((out&&out.rows)||[]).filter(r=>r&&r.id).sort((a,b)=>String(b.when||b.edited||"").localeCompare(String(a.when||a.edited||""))).slice(0,40);
+    box.innerHTML = rrRows.length ? rrRows.map(r=>{ const d=r.data||{}, already=xl.try.some(x=>x.rr===r.id);
+      return cardHTML({ title:(r.detail||r.title||"").slice(0,220), sev:"mine", body:r.title||"",
+        meta:[ d.url?`<a class="pill" href="${esc(d.url)}" target="_blank" rel="noopener">Open video</a>`:"",
+               `<span class="stamp">${esc(stampWords(r.when||r.edited))}</span>`,
+               already?pill("On your list","ok"):xbtn("Add to Want to try","rrAdd",r.id) ]}); }).join("")
+      : '<p class="none">No highlights or notes in Notion yet. Highlight a line in the Reading Room and it lands here.</p>';
+  }catch(e){ box.innerHTML='<p class="none">Could not read Notion just now. Try again when you are online.</p>'; }
+}
+document.addEventListener("click", e=>{
+  const g=e.target.closest('[data-go="try"]'); if(g){ setTimeout(loadReadingRoom, 60); return; }
+  const a=e.target.closest(".xbtn.rrAdd"); if(!a) return;
+  const r=rrRows.find(x=>x.id===a.dataset.id); if(!r) return;
+  const d=r.data||{};
+  xl.try.push({id:uid("x"), rr:r.id, text:(r.detail||r.title||"").slice(0,300), link:d.url||"", at:new Date().toISOString(), done:false, cat:d.creator||""});
+  saveXL("try"); renderXL("try"); loadReadingRoom(); logIt("new","Want to try, from the Reading Room: "+(r.detail||r.title)); toast("On your Want to try list.");
 });
 function renderEbayTodos(){
   const box=$("#ebayTodos"); if(!box) return;
