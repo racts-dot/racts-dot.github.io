@@ -1858,6 +1858,28 @@ document.addEventListener("click", e=>{
     const row=document.querySelector(`.tl-row[data-tl="${CSS.escape(id)}"] .tl-more`); if(row) row.hidden=false;
     logIt("note", text?"Corrected an achievement: "+text:"Removed a note on an achievement"); toast(text?"Note kept. It goes to Notion with the rest.":"Note removed."); }
 });
+/* Her Notion "Desk inbox" (15 Sep 2026): "I send you on Notion ... You pick it up and put it in there."
+   Each row is filed once; the ids already filed are remembered, so ticking or removing one here is final. */
+async function pullInbox(){
+  if(!window.NotionSync || !NotionSync.connected || !NotionSync.connected()) return;
+  let done = {};
+  try{ const d = await load("state/inboxDone"); if(d && d.ids) done = d.ids; }catch(e){}
+  let rows = [];
+  try{ const out = await NotionSync.list("desk"); rows = ((out&&out.rows)||[]).filter(r=>r && String(r.id||"").startsWith("inbox:")); }catch(e){ return; }
+  let added = 0;
+  rows.forEach(r=>{
+    if(done[r.id]) return;
+    const d = r.data || {}, text = String(d.text || r.detail || "").trim(); if(!text) return;
+    const at = new Date().toISOString();
+    if(d.kind==="learn"){ xl.learn.push({id:uid("x"), text, at, done:false, from:"Desk inbox"}); saveXL("learn"); }
+    else if(d.kind==="try"){ xl.try.push({id:uid("x"), text, at, done:false, from:"Desk inbox"}); saveXL("try"); }
+    else if(d.kind==="todo"){ mine.push({id:uid("m"), text, cat:TODO_CATS.includes(d.cat)?d.cat:"Life", due:null, done:false, at}); saveMine(); }
+    else return;
+    done[r.id] = at; added++;
+    logIt("new", "From your Notion inbox: "+text);
+  });
+  if(added){ save("state/inboxDone", {ids:done}, 1); renderMine(); renderExtra(); toast(added+(added===1?" thing":" things")+" arrived from your Notion inbox."); }
+}
 let rrRows = [];
 async function loadReadingRoom(){
   const box=$("#rr-feed"); if(!box) return;
@@ -1896,6 +1918,7 @@ async function loadExtra(){
     try{ const d=await load("state/"+(k==="try"?"trylist":k)); if(d && Array.isArray(d.items)) xl[k]=d.items; }catch(e){}
   }
   try{ const n=await load("state/tlnotes"); if(n && Array.isArray(n.items)) tlNotes=n.items; }catch(e){}
+  setTimeout(pullInbox, 1500);
   renderExtra();
 }
 document.addEventListener("click", e=>{
