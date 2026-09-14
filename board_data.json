@@ -1,12 +1,12 @@
 {
- "generated_at": "2026-09-14 11:31",
+ "generated_at": "2026-09-14 12:01",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 29.07,
+  "spent_usd": 30.16,
   "authorized_usd": 40.0,
-  "pct": 72.7,
-  "runs": 479,
+  "pct": 75.4,
+  "runs": 516,
   "kill_switch_on": false,
   "providers": [
    {
@@ -17,7 +17,7 @@
    },
    {
     "provider": "vertex",
-    "spent_usd": 14.47,
+    "spent_usd": 15.56,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,8 +25,8 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 182,
-    "usd": 9.48,
+    "runs": 219,
+    "usd": 10.57,
     "first": "2026-09-03",
     "last": "2026-09-14"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 29.48,
+  "attributed_usd": 30.57,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 199,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 11:31",
+  "read_at": "2026-09-14 12:01",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 7,
-  "last_commit": "4a2be553 Nightly automatic backup: 19 file(s)",
-  "last_commit_at": "2026-09-14T11:30:14+09:30"
+  "uncommitted_files": 34,
+  "last_commit": "cc025a09 Glaucoma guide: trace check and first six chapters of fact-traced content",
+  "last_commit_at": "2026-09-14T11:57:45+09:30"
  },
  "facts": {
   "available": true,
