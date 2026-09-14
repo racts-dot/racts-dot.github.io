@@ -226,7 +226,13 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
 .tl-mon{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin:18px 0 6px}
 .tl-row{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line-soft)}
 .tl-date{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;color:var(--ink-faint)}
-.tl-t{margin:0;font-weight:600}.tl-d{margin:2px 0 6px;color:var(--ink-soft)}
+.tl-t{margin:0;font:inherit;font-weight:600;text-align:left;background:none;border:0;padding:0;color:var(--ink);cursor:pointer}
+.tl-t::after{content:" ›";color:var(--ink-faint);font-weight:400}
+.tl-t[aria-expanded="true"]::after{content:" ⌄"}
+.tl-more{margin-top:6px}
+.tl-nl{display:block;font-size:12.5px;color:var(--ink-faint);margin:10px 0 4px}
+.tl-note{width:100%;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--surface);color:var(--ink)}
+.tl-save{margin-top:6px}.tl-d{margin:2px 0 6px;color:var(--ink-soft)}
 /* her 15 Sep ask: "too many things ... if I click onto that, it will give me the information".
    A card shows its title; the detail opens on a tap. */
 .card:has(.c-body) .c-title{cursor:pointer}
@@ -1824,10 +1830,28 @@ function renderTimeline(){
   let last="";
   box.innerHTML = it.slice().reverse().map(r=>{ const mon=String(r.date).slice(0,7); let head="";
     if(mon!==last){ last=mon; head=`<h3 class="tl-mon">${esc(new Date(mon+"-01T00:00:00").toLocaleDateString(undefined,{month:"long",year:"numeric"}))}</h3>`; }
-    return head+`<div class="tl-row"><span class="tl-date">${esc(String(r.date).length>7?shortDate(r.date):"")}</span>
-      <div><p class="tl-t">${esc(r.title)}</p><p class="tl-d">${esc(r.detail||"")}</p>
-      <div class="c-meta">${pill(r.cat||"","cool")}<span class="stamp">${esc(r.source||"")}</span></div></div></div>`; }).join("");
+    const id = tlId(r), note = (tlNotes.find(n=>n.id===id)||{}).text||"";
+    return head+`<div class="tl-row${note?" noted":""}" data-tl="${esc(id)}"><span class="tl-date">${esc(String(r.date).length>7?shortDate(r.date):"")}</span>
+      <div><button type="button" class="tl-t" aria-expanded="false">${esc(r.title)}${note?' <span class="pill watch">Your note</span>':""}</button>
+      <div class="tl-more" hidden><p class="tl-d">${esc(r.detail||"")}</p>
+      <div class="c-meta">${pill(r.cat||"","cool")}<span class="stamp">Recorded in ${esc(r.source||"")}</span></div>
+      <label class="tl-nl" for="tln-${esc(id)}">Not right? Say what is true</label>
+      <textarea id="tln-${esc(id)}" class="tl-note" rows="2" placeholder="e.g. It was 22 listings, not 19">${esc(note)}</textarea>
+      <button type="button" class="tl-save xbtn" data-id="${esc(id)}">Save note</button></div></div></div>`; }).join("");
 }
+let tlNotes = [];
+const tlId = r => String(r.date)+"|"+String(r.title).slice(0,40);
+document.addEventListener("click", e=>{
+  const t=e.target.closest(".tl-t"); if(t){ const more=t.parentNode.querySelector(".tl-more");
+    more.hidden=!more.hidden; t.setAttribute("aria-expanded", !more.hidden); return; }
+  const s=e.target.closest(".tl-save"); if(s){ const id=s.dataset.id, ta=s.parentNode.querySelector(".tl-note");
+    const text=(ta.value||"").trim(); const it=(TIMELINE.items||[]).find(r=>tlId(r)===id);
+    tlNotes=tlNotes.filter(n=>n.id!==id);
+    if(text) tlNotes.push({id, title:it?it.title:id, text, at:new Date().toISOString()});
+    save("state/tlnotes",{items:tlNotes},1); renderTimeline();
+    const row=document.querySelector(`.tl-row[data-tl="${CSS.escape(id)}"] .tl-more`); if(row) row.hidden=false;
+    logIt("note", text?"Corrected an achievement: "+text:"Removed a note on an achievement"); toast(text?"Note kept. It goes to Notion with the rest.":"Note removed."); }
+});
 function renderEbayTodos(){
   const box=$("#ebayTodos"); if(!box) return;
   const e=mine.filter(m=>m.cat==="E-commerce" && (!m.done || (m.doneAt && isoDay(m.doneAt)===todayISO())));
@@ -1840,6 +1864,7 @@ async function loadExtra(){
   for(const k of ["learn","try","keep","admin"]){
     try{ const d=await load("state/"+(k==="try"?"trylist":k)); if(d && Array.isArray(d.items)) xl[k]=d.items; }catch(e){}
   }
+  try{ const n=await load("state/tlnotes"); if(n && Array.isArray(n.items)) tlNotes=n.items; }catch(e){}
   renderExtra();
 }
 document.addEventListener("click", e=>{
@@ -3437,7 +3462,8 @@ if("serviceWorker" in navigator){
     "state/learn":    ["Learning",  function(r){ return r.text; }, function(r){ return (r.done?"Done":"Open")+(r.eli5?" · ELI5: "+r.eli5:"")+(r.link?" · "+r.link:""); }, "at"],
     "state/trylist":  ["Want to try",function(r){ return r.text; }, function(r){ return (r.done?"Tried":"Not yet")+(r.link?" · "+r.link:""); }, "at"],
     "state/keep":     ["Tip",       function(r){ return String(r.text||"").slice(0,80); }, function(r){ return (r.cat||"")+" · "+(r.text||""); }, "at"],
-    "state/admin":    ["AI admin",  function(r){ return r.text; }, function(r){ return r.cat||""; }, "at"]
+    "state/admin":    ["AI admin",  function(r){ return r.text; }, function(r){ return r.cat||""; }, "at"],
+    "state/tlnotes":  ["Achievement note", function(r){ return r.title; }, function(r){ return r.text; }, "at"]
   };
   function records(doc, data){
     var out = {};

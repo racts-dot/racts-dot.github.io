@@ -323,7 +323,41 @@
     },
     pending: function () { return queue().length; },
     flush: flush,
+    connected: function () { return !!store(PASS_KEY); },
+    // 15 Sep 2026: a button she can always press, instead of waiting for the sheet to appear.
+    connect: function () {
+      declined = false;
+      return askPassword().then(function (p) {
+        if (p) { status("Notion · connected", "ok"); paintConnect(); flush(); }
+        return !!p;
+      });
+    },
   };
+
+  /* ---------- the Connect to Notion chip (15 Sep 2026) ----------
+     Her words: "where is the connect button?" The sheet used to appear only when something was
+     waiting to send, and "Later" hid it until the page was reopened. The chip stays until the
+     password is in, on every app that loads this file. */
+  var chip = null;
+  function paintConnect() {
+    if (!document.body) return;
+    var need = !store(PASS_KEY);
+    if (!need) { if (chip) { chip.remove(); chip = null; } return; }
+    if (chip) return;
+    chip = document.createElement("button");
+    chip.type = "button";
+    chip.textContent = "Connect to Notion";
+    chip.setAttribute("aria-label", "Connect this app to Notion");
+    chip.style.cssText =
+      "position:fixed;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483645;" +
+      "font:600 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;" +
+      "padding:10px 14px;border-radius:999px;border:0;background:#1c1c1e;color:#fff;" +
+      "box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer";
+    chip.onclick = function () { window.NotionSync.connect(); };
+    document.body.appendChild(chip);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", paintConnect);
+  else paintConnect();
 
   window.addEventListener("online", flush);
   window.addEventListener("pagehide", dropLock);
