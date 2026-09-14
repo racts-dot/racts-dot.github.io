@@ -294,6 +294,108 @@ def copy_to_notion():
         print("NOTION COPY FAILED (pages still built): %s" % e)
 
 
+
+# ---------------- pictures and the video, 15 Sep 2026 ----------------
+# Her words: "I want it to be more illustrative. And have the references as well, so I can just
+# go and click and then it plays a video." The picture is the video's own YouTube thumbnail
+# (a real frame, never drawn). Tapping it plays the video on the page; any other link to the
+# same video with a time (&t=) plays from that time. Runs on rendered HTML so the Mac, which
+# has no recipe markdown, can apply it to the pages already built. Safe to run twice.
+VID = re.compile(r'href="https://(?:www\.)?youtube\.com/watch\?v=([A-Za-z0-9_-]{11})[^"]*"')
+ILL_MARK = "<!--illustrated-->"
+PLAYER_CSS = """
+.player{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:14px;overflow:hidden;background:#000;margin:4px 0 20px;border:1px solid var(--border)}
+.player button{all:unset;cursor:pointer;display:block;width:100%;height:100%;position:relative}
+.player img{width:100%;height:100%;object-fit:cover;display:block}
+.player .play{position:absolute;inset:0;display:grid;place-items:center}
+.player .play span{width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:28px;color:#fff;padding-left:5px;box-sizing:border-box}
+.player .cap{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;font-size:13px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+.player iframe{width:100%;height:100%;border:0;display:block}
+.card{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:start}
+.card .thumb{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;display:block;grid-row:span 3}
+.card.nothumb{display:block}
+a.ts{white-space:nowrap}
+"""
+PLAYER_JS = """<script>
+(function(){
+  function play(box, id, start){
+    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0' +
+      (start ? '&start=' + start : '') + '" title="Video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('.player button');
+    if (b) { play(b.parentNode, b.dataset.id, 0); return; }
+    var a = e.target.closest('a[href*="youtube.com/watch"]');
+    var box = document.querySelector('.player');
+    if (!a || !box) return;
+    var m = a.href.match(/[?&]v=([A-Za-z0-9_-]{11})/), t = a.href.match(/[?&]t=(\\d+)/);
+    if (!m || m[1] !== box.dataset.id) return;
+    e.preventDefault();
+    play(box, m[1], t ? t[1] : 0);
+    box.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
+})();
+</script>"""
+
+def thumb(vid):
+    return "https://i.ytimg.com/vi/%s/hqdefault.jpg" % vid
+
+def illustrate_page(page):
+    if ILL_MARK in page:
+        return page
+    m = VID.search(page)
+    page = page.replace("</style>", PLAYER_CSS + "</style>", 1)
+    # the "From:" line came through with its markdown stars showing
+    page = re.sub(r"<p>\*\*From:(.*?)·\*\*", r"<p><strong>From:</strong>\1·", page, count=1)
+    if m:
+        vid = m.group(1)
+        h1 = page.find("</h1>")
+        title = re.search(r"<h1>(.*?)</h1>", page)
+        player = ('\n<div class="player" data-id="%s"><button type="button" data-id="%s" aria-label="Play the video">'
+                  '<img src="%s" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span>'
+                  '<span class="cap">Tap to play the video this recipe comes from</span></button></div>\n'
+                  % (vid, vid, thumb(vid)))
+        if h1 != -1:
+            page = page[:h1 + 5] + player + page[h1 + 5:]
+    page = page.replace("</body>", PLAYER_JS + ILL_MARK + "\n</body>", 1)
+    return page
+
+def illustrate_index(index_html, pages):
+    """Put each recipe's video thumbnail on its card."""
+    if ILL_MARK in index_html:
+        return index_html
+    index_html = index_html.replace("</style>", PLAYER_CSS + "</style>", 1)
+    def card(m):
+        href = m.group(2)
+        vid = pages.get(href)
+        if not vid:
+            return m.group(0).replace('class="card', 'class="card nothumb', 1)
+        return m.group(1) + '<img class="thumb" src="%s" alt="" loading="lazy">' % thumb(vid)
+    index_html = re.sub(r'(<a class="card[^"]*" href="([^"]+)">)', card, index_html)
+    return index_html.replace("</body>", ILL_MARK + "\n</body>", 1)
+
+def illustrate_existing():
+    pages = {}
+    for f in sorted(glob.glob(os.path.join(OUT, "*.html"))):
+        name = os.path.basename(f)
+        if name == "index.html":
+            continue
+        s = io.open(f, encoding="utf-8").read()
+        m = VID.search(s)
+        if m:
+            pages[name] = m.group(1)
+        io.open(f, "w", encoding="utf-8", newline="\n").write(illustrate_page(s))
+    ip = os.path.join(OUT, "index.html")
+    idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
+    io.open(ip, "w", encoding="utf-8", newline="\n").write(illustrate_index(idx, pages))
+    print("illustrated %d pages (%d with a video) + index" % (len(pages) if pages else 0, len(pages)))
+
+
 if __name__ == "__main__":
-    main()
-    copy_to_notion()
+    import sys as _sys
+    if "--illustrate-existing" in _sys.argv:
+        illustrate_existing()   # the Mac has no recipe markdown; this only adds pictures and the player
+    else:
+        main()
+        illustrate_existing()
+        copy_to_notion()

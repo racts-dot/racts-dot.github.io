@@ -42,6 +42,18 @@ li{margin-bottom:6px}
 .card.warn{border-color:#5a3a3a}
 .lede{color:var(--muted);font-size:14px;margin-bottom:22px}
 .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+
+.player{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:14px;overflow:hidden;background:#000;margin:4px 0 20px;border:1px solid var(--border)}
+.player button{all:unset;cursor:pointer;display:block;width:100%;height:100%;position:relative}
+.player img{width:100%;height:100%;object-fit:cover;display:block}
+.player .play{position:absolute;inset:0;display:grid;place-items:center}
+.player .play span{width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:28px;color:#fff;padding-left:5px;box-sizing:border-box}
+.player .cap{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;font-size:13px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+.player iframe{width:100%;height:100%;border:0;display:block}
+.card{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:start}
+.card .thumb{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;display:block;grid-row:span 3}
+.card.nothumb{display:block}
+a.ts{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -49,19 +61,20 @@ li{margin-bottom:6px}
 <h1>Recipes</h1>
 <p class="lede">Ten videos, read in full and written down. One page each — what it actually teaches, and what to skip.</p>
 <div class="cards">
-<a class="card" href="recipe-01-ai-social-media-manager.html"><div class="n">Recipe 1</div><div class="t">Build an AI social media manager in Claude Code</div><div class="d">I read the whole transcript and wrote this so you can follow it. Her words are in quotes and unchanged.</div></a>
-<a class="card" href="recipe-02-seven-claude-commands.html"><div class="n">Recipe 2</div><div class="t">Seven Claude commands most people never find</div><div class="d">⭐ Three of these solve problems you had today</div></a>
-<a class="card" href="recipe-03-cowork-what-you-dont-use.html"><div class="n">Recipe 3</div><div class="t">Claude Cowork: you already know most of it</div><div class="d">You asked: &quot;see if I already know it.&quot; I read all 11,830 words.</div></a>
-<a class="card" href="recipe-04-the-grader-pattern.html"><div class="n">Recipe 4</div><div class="t">The grader that marks its own homework until it passes</div><div class="d">Most of this video is her own product again. Blotato, $29/month, connecting social accounts. You do not post to social media as a business, so nearly…</div></a>
-<a class="card" href="recipe-05-the-audience-playbook.html"><div class="n">Recipe 5</div><div class="t">How she got 1.4M followers working one day a week</div><div class="d">⭐ Of the twelve you flagged, this is the one that speaks to your actual problem. It is also the least product-demo of the lot.</div></a>
-<a class="card" href="recipe-06-she-switched-away-from-claude.html"><div class="n">Recipe 6</div><div class="t">She switched to ChatGPT. Here is her case, and my conflict of interest.</div><div class="d">I am Claude. This video argues you should use a competitor. Read what follows knowing I have an obvious reason to be unfair to it.</div></a>
-<a class="card" href="recipe-07-microsoft-copilot.html"><div class="n">Recipe 7</div><div class="t">Microsoft Copilot, and whether it is for you at all</div><div class="d">A two-hour course with a guest, Sheree Brock, who has trained 60,000 people on Copilot. 22,424 words.</div></a>
-<a class="card" href="recipe-08-her-whole-tool-stack.html"><div class="n">Recipe 8</div><div class="t">Her entire business stack, in three and a half minutes</div><div class="d">The shortest of the twelve and the densest. A whole multi-million-pound solo business, listed.</div></a>
-<a class="card" href="recipe-09-plan-mode-and-quality-gates.html"><div class="n">Recipe 9</div><div class="t">Plan mode 90% of the time, and gates on your words</div><div class="d">She calls it her &quot;ultimate Claude Code free course&quot;, built on &quot;over 500 hours using Claude Code on a regular basis.&quot; The Blotato half you can skip.…</div></a>
-<a class="card" href="recipe-10-the-social-automation-family.html"><div class="n">Recipe 10</div><div class="t">The social automation family: four videos, one build</div><div class="d">Four of the twelve you flagged teach the same thing. This is one page for all four, rather than four pages that repeat each other — your own rule…</div></a>
-<a class="card warn" href="read-2026-09-13-the-git-risk-and-what-i-got-wrong.html"><div class="n">Note</div><div class="t">The risk that ate two recipes — and the part of my own diagnosis that was wrong</div><div class="d">13 Sep 2026. Nothing here has been changed. This is a description, not a fix.</div></a>
+<a class="card" href="recipe-01-ai-social-media-manager.html"><img class="thumb" src="https://i.ytimg.com/vi/XPl6IKDADkU/hqdefault.jpg" alt="" loading="lazy"><div class="n">Recipe 1</div><div class="t">Build an AI social media manager in Claude Code</div><div class="d">I read the whole transcript and wrote this so you can follow it. Her words are in quotes and unchanged.</div></a>
+<a class="card" href="recipe-02-seven-claude-commands.html"><img class="thumb" src="https://i.ytimg.com/vi/rabGqnyd_Zw/hqdefault.jpg" alt="" loading="lazy"><div class="n">Recipe 2</div><div class="t">Seven Claude commands most people never find</div><div class="d">⭐ Three of these solve problems you had today</div></a>
+<a class="card" href="recipe-03-cowork-what-you-dont-use.html"><img class="thumb" src="https://i.ytimg.com/vi/-q_wgmmD0e0/hqdefault.jpg" alt="" loading="lazy"><div class="n">Recipe 3</div><div class="t">Claude Cowork: you already know most of it</div><div class="d">You asked: &quot;see if I already know it.&quot; I read all 11,830 words.</div></a>
+<a class="card" href="recipe-04-the-grader-pattern.html"><img class="thumb" src="https://i.ytimg.com/vi/PakM11AJAlE/hqdefault.jpg" alt="" loading="lazy"><div class="n">Recipe 4</div><div class="t">The grader that marks its own homework until it passes</div><div class="d">Most of this video is her own product again. Blotato, $29/month, connecting social accounts. You do not post to social media as a business, so nearly…</div></a>
+<a class="card" href="recipe-05-the-audience-playbook.html"><img class="thumb" src="https://i.ytimg.com/vi/8gqAd-sRyIQ/hqdefault.jpg" alt="" loading="lazy"><div class="n">Recipe 5</div><div class="t">How she got 1.4M followers working one day a week</div><div class="d">⭐ Of the twelve you flagged, this is the one that speaks to your actual problem. It is also the least product-demo of the lot.</div></a>
+<a class="card" href="recipe-06-she-switched-away-from-claude.html"><img class="thumb" src="https://i.ytimg.com/vi/TES0N3m6jkM/hqdefault.jpg" alt="" loading="lazy"><div class="n">Recipe 6</div><div class="t">She switched to ChatGPT. Here is her case, and my conflict of interest.</div><div class="d">I am Claude. This video argues you should use a competitor. Read what follows knowing I have an obvious reason to be unfair to it.</div></a>
+<a class="card" href="recipe-07-microsoft-copilot.html"><img class="thumb" src="https://i.ytimg.com/vi/rFtpXLlzzPg/hqdefault.jpg" alt="" loading="lazy"><div class="n">Recipe 7</div><div class="t">Microsoft Copilot, and whether it is for you at all</div><div class="d">A two-hour course with a guest, Sheree Brock, who has trained 60,000 people on Copilot. 22,424 words.</div></a>
+<a class="card" href="recipe-08-her-whole-tool-stack.html"><img class="thumb" src="https://i.ytimg.com/vi/cH0Pw3Dgpmc/hqdefault.jpg" alt="" loading="lazy"><div class="n">Recipe 8</div><div class="t">Her entire business stack, in three and a half minutes</div><div class="d">The shortest of the twelve and the densest. A whole multi-million-pound solo business, listed.</div></a>
+<a class="card" href="recipe-09-plan-mode-and-quality-gates.html"><img class="thumb" src="https://i.ytimg.com/vi/fYX6hHC9FhQ/hqdefault.jpg" alt="" loading="lazy"><div class="n">Recipe 9</div><div class="t">Plan mode 90% of the time, and gates on your words</div><div class="d">She calls it her &quot;ultimate Claude Code free course&quot;, built on &quot;over 500 hours using Claude Code on a regular basis.&quot; The Blotato half you can skip.…</div></a>
+<a class="card nothumb" href="recipe-10-the-social-automation-family.html"><div class="n">Recipe 10</div><div class="t">The social automation family: four videos, one build</div><div class="d">Four of the twelve you flagged teach the same thing. This is one page for all four, rather than four pages that repeat each other — your own rule…</div></a>
+<a class="card nothumb warn" href="read-2026-09-13-the-git-risk-and-what-i-got-wrong.html"><div class="n">Note</div><div class="t">The risk that ate two recipes — and the part of my own diagnosis that was wrong</div><div class="d">13 Sep 2026. Nothing here has been changed. This is a description, not a fix.</div></a>
 </div>
 <div class="foot">11 pages, built 2026-09-13.</div>
 </div>
+<!--illustrated-->
 </body>
 </html>

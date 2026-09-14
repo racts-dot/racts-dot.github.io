@@ -42,13 +42,27 @@ li{margin-bottom:6px}
 .card.warn{border-color:#5a3a3a}
 .lede{color:var(--muted);font-size:14px;margin-bottom:22px}
 .foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+
+.player{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:14px;overflow:hidden;background:#000;margin:4px 0 20px;border:1px solid var(--border)}
+.player button{all:unset;cursor:pointer;display:block;width:100%;height:100%;position:relative}
+.player img{width:100%;height:100%;object-fit:cover;display:block}
+.player .play{position:absolute;inset:0;display:grid;place-items:center}
+.player .play span{width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:28px;color:#fff;padding-left:5px;box-sizing:border-box}
+.player .cap{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;font-size:13px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+.player iframe{width:100%;height:100%;border:0;display:block}
+.card{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:start}
+.card .thumb{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;display:block;grid-row:span 3}
+.card.nothumb{display:block}
+a.ts{white-space:nowrap}
 </style>
 </head>
 <body>
 <div class="wrap">
 <a class="back" href="./">← all recipes</a>
 <h1>RECIPE 08 — Her entire business stack, in three and a half minutes</h1>
-<p>**From: <em>Every Tool I Use to Run My Multimillion Dollar Business Solo</em> · 25 Mar 2026 · 3:27 ·** <a href="https://www.youtube.com/watch?v=cH0Pw3Dgpmc" target="_blank" rel="noopener">watch</a></p>
+<div class="player" data-id="cH0Pw3Dgpmc"><button type="button" data-id="cH0Pw3Dgpmc" aria-label="Play the video"><img src="https://i.ytimg.com/vi/cH0Pw3Dgpmc/hqdefault.jpg" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span><span class="cap">Tap to play the video this recipe comes from</span></button></div>
+
+<p><strong>From:</strong> <em>Every Tool I Use to Run My Multimillion Dollar Business Solo</em> · 25 Mar 2026 · 3:27 · <a href="https://www.youtube.com/watch?v=cH0Pw3Dgpmc" target="_blank" rel="noopener">watch</a></p>
 <p><strong>The shortest of the twelve and the densest. A whole multi-million-pound solo business, listed.</strong></p>
 <hr>
 <h1>🚨 First — this corrects something I told you today</h1>
@@ -110,5 +124,25 @@ li{margin-bottom:6px}
 <p><strong>RECIPE 06</strong> — the August video where she moves off Claude Code to Codex. <strong>Read them together: this one is the before, that one is the after.</strong></p>
 <div class="foot">Built 2026-09-13 from RECIPE_08_her_whole_tool_stack.md. Edit the markdown, not this page.</div>
 </div>
+<script>
+(function(){
+  function play(box, id, start){
+    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0' +
+      (start ? '&start=' + start : '') + '" title="Video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('.player button');
+    if (b) { play(b.parentNode, b.dataset.id, 0); return; }
+    var a = e.target.closest('a[href*="youtube.com/watch"]');
+    var box = document.querySelector('.player');
+    if (!a || !box) return;
+    var m = a.href.match(/[?&]v=([A-Za-z0-9_-]{11})/), t = a.href.match(/[?&]t=(\d+)/);
+    if (!m || m[1] !== box.dataset.id) return;
+    e.preventDefault();
+    play(box, m[1], t ? t[1] : 0);
+    box.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
+})();
+</script><!--illustrated-->
 </body>
 </html>
