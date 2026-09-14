@@ -1805,7 +1805,7 @@ function renderME(){
   const read = k => { try{ return JSON.parse(localStorage.getItem("morning-evening:"+k)||"null"); }catch(e){ return null; } };
   const rows=[];
   for(let back=0; back<7; back++){
-    const day=plusDays(todayISO(), -back), m=read("mornings/"+day), ev=read("evenings/"+plusDays(day,-1));
+    const day=plusDays(todayISO(), -back), m=read("mornings/"+day), ev=read("reflections/"+plusDays(day,-1));
     if(m && m.win && (back===0 || !m.winDone))
       rows.push({text:m.win, kind:"Win for "+(back===0?"today":shortDate(day)), done:!!m.winDone, back});
     if(ev && ev.tomorrow && (back===0 || !ev.tomorrowDone))

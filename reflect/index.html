@@ -246,6 +246,7 @@
     body::before { opacity: .9; transform: none; }
   }
   @media (max-width: 420px) { h1 { font-size: 36px } .q.big { font-size: 29px } }
+.today-saved{margin:14px 0 0}.today-saved .label{margin:0 0 6px}
 </style>
 
 <main class="app">
@@ -499,7 +500,7 @@
   }
 
   const mHas = e => !!(e && (e.mood || M_FIELDS.some(f => (e[f] || "").trim())));
-  const eHas = e => !!(e && ((e.said || "").trim() || (e.tomorrow || "").trim()));
+  const eHas = e => !!(e && ((e.said || "").trim() || (e.draft || "").trim() || (e.tomorrow || "").trim()));
 
   // ---------- the sunrise ----------
   // 3am is the darkest the morning face gets; by 9am it has come all the way up.
@@ -638,13 +639,15 @@
       (r.lead ? '<p class="lead">' + esc(r.lead) + "</p>" : "") +
       (r.sub ? '<span class="sub ' + r.cls + '">' + esc(r.sub) + "</span>" : "") +
       "</div></div>").join("");
+    renderToday();
   }
 
   function renderForms() {
-    M_FIELDS.forEach(f => { $(f).value = morning[f] || ""; });
+    M_FIELDS.forEach(f => { $(f).value = (morning.draft && morning.draft[f]) || ""; });
     document.querySelectorAll("#mood button").forEach(b =>
       b.setAttribute("aria-checked", String(Number(b.dataset.mood) === morning.mood)));
-    saidEl.value = evening.said || "";
+    if (evening.said && !Array.isArray(evening.log)) evening.log = legacyLog(evening.said, evening.updatedAt);
+    saidEl.value = evening.draft || "";
     tomorrowEl.value = evening.tomorrow || "";
     if ((evening.said || "").trim() || (evening.tomorrow || "").trim()) $("one-thing").hidden = false;
     document.querySelectorAll("textarea").forEach(grow);
@@ -670,7 +673,7 @@
   // ---------- tomorrow's one thing, pulled out of what she said ----------
   function scheduleExtract() { clearTimeout(extractTimer); extractTimer = setTimeout(extract, 1600); }
   async function extract() {
-    const text = (evening.said || "").trim();
+    const text = (evening.draft || "").trim() || (evening.said || "").trim();
     if (!sample || text.length < 25 || text === lastExtracted) return;
     if ((evening.tomorrow || "").trim() && evening.tomorrowEdited) return;
     lastExtracted = text;
@@ -746,7 +749,7 @@
       if (!add) return;
       baseText = (baseText ? baseText.replace(/\s+$/, "") + " " : "") + add.trim();
       saidEl.value = baseText;
-      evening.said = baseText;
+      evening.draft = baseText;
       grow(saidEl); scheduleSave(); scheduleExtract();
     };
     rec.onerror = ev => {
@@ -774,7 +777,8 @@
   // ---------- events ----------
   document.querySelectorAll("[data-m]").forEach(el => {
     el.addEventListener("input", () => {
-      morning[el.dataset.m] = el.value;
+      morning.draft = morning.draft || {};
+      morning.draft[el.dataset.m] = el.value;
       if (el.tagName === "TEXTAREA") grow(el);
       scheduleSave();
     });
@@ -788,7 +792,7 @@
     scheduleSave();
   });
   saidEl.addEventListener("input", () => {
-    evening.said = saidEl.value; baseText = saidEl.value;
+    evening.draft = saidEl.value; baseText = saidEl.value;
     grow(saidEl); scheduleSave(); scheduleExtract();
   });
   tomorrowEl.addEventListener("input", () => {
@@ -797,12 +801,16 @@
   $("close").addEventListener("click", async () => {
     if (listening) stopListening();
     clearTimeout(saveTimer);
+    const added = commitDraft();
+    lastJson = "";
     await persist();
+    renderToday();
+    if (added) setStatus(statusEl, "Saved " + timeLabel() + ". The box is clear for the next one.", "ok");
   });
   $("m-carry-use").addEventListener("click", () => {
     const t = lastEvening && (lastEvening.tomorrow || "").trim();
     if (!t) return;
-    morning.win = t; $("win").value = t;
+    morning.win = t; renderToday();
     $("m-carry").hidden = true;
     scheduleSave();
   });
@@ -911,6 +919,77 @@
       else setStatus(s, "Could not reach Notion just now.", "warn");
     } finally { refreshNotion(); }
   });
+
+  // ---------- saved pieces (15 Sep 2026) ----------
+  const legacyLog = (text, at) => (text || "").trim() ? [{ at: at || null, text: text.trim() }] : [];
+  function commitDraft() {
+    const at = now().toISOString();
+    if (face === "evening") {
+      const t = (evening.draft || saidEl.value || "").trim();
+      if (!t) return false;
+      if (!Array.isArray(evening.log)) evening.log = legacyLog(evening.said, evening.updatedAt);
+      evening.log.push({ at, text: t });
+      evening.said = evening.log.map(x => x.text).join("\n\n");
+      evening.draft = ""; saidEl.value = ""; baseText = ""; grow(saidEl);
+      return true;
+    }
+    const d = morning.draft || {};
+    const filled = M_FIELDS.filter(f => (d[f] || "").trim());
+    if (!filled.length) return false;
+    if (!Array.isArray(morning.log)) morning.log = [];
+    const snap = { at };
+    filled.forEach(f => {
+      const v = d[f].trim(); snap[f] = v;
+      morning[f] = (f === "win" || !(morning[f] || "").trim()) ? v : morning[f].trim() + "\n" + v;
+    });
+    morning.log.push(snap);
+    morning.draft = {};
+    M_FIELDS.forEach(f => { const el = $(f); el.value = ""; if (el.tagName === "TEXTAREA") grow(el); });
+    return true;
+  }
+  const M_LABEL = { lord: "Lord", grateful: "Grateful", win: "Win", obstacle: "Obstacle", note: "Note" };
+  function renderToday() {
+    let host = $("today-saved");
+    if (!host) {
+      host = document.createElement("section");
+      host.id = "today-saved"; host.className = "today-saved";
+      const bar = document.querySelector(".savebar");
+      bar.parentNode.insertBefore(host, bar.nextSibling);
+    }
+    let items = [];
+    if (face === "evening") {
+      const log = Array.isArray(evening.log) ? evening.log : legacyLog(evening.said, evening.updatedAt);
+      items = log.map(x => ({ at: x.at, text: x.text }));
+    } else {
+      const log = Array.isArray(morning.log) ? morning.log : [];
+      items = log.map(x => ({ at: x.at, text: M_FIELDS.filter(f => x[f]).map(f => M_LABEL[f] + ": " + x[f]).join(" · ") }));
+      if (!log.length && M_FIELDS.some(f => (morning[f] || "").trim()))
+        items = [{ at: morning.updatedAt, text: M_FIELDS.filter(f => (morning[f] || "").trim()).map(f => M_LABEL[f] + ": " + morning[f].trim()).join(" · ") }];
+    }
+    host.hidden = !items.length;
+    host.innerHTML = items.length
+      ? '<p class="label">Saved ' + (face === "morning" ? "this morning" : "tonight") + '</p>' +
+        items.slice().reverse().map(x => '<div class="entry"><div class="when">' + (x.at ? timeLabel(x.at) : "earlier") +
+          '</div><div class="body"><p class="lead">' + esc(x.text) + '</p></div></div>').join("")
+      : "";
+  }
+  function flushNow() { clearTimeout(saveTimer); persist(); }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushNow(); });
+  addEventListener("pagehide", flushNow);
+  // swipe left for Evening, right for Morning
+  let swX = null, swY = 0, swT = 0;
+  document.addEventListener("touchstart", e => {
+    if (e.touches.length !== 1 || e.target.closest("textarea,input,select")) { swX = null; return; }
+    swX = e.touches[0].clientX; swY = e.touches[0].clientY; swT = Date.now();
+  }, { passive: true });
+  document.addEventListener("touchend", e => {
+    if (swX === null) return;
+    const t = e.changedTouches[0], dx = t.clientX - swX, dy = t.clientY - swY; swX = null;
+    if (Math.abs(dx) > 70 && Math.abs(dy) < 50 && Date.now() - swT < 700) {
+      const next = dx < 0 ? "evening" : "morning";
+      if (next !== face) { flushNow(); setFace(next, true); renderForms(); }
+    }
+  }, { passive: true });
 
   // ---------- start ----------
   renderHeader();
