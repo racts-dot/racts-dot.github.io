@@ -374,6 +374,88 @@ def illustrate_index(index_html, pages):
     index_html = re.sub(r'(<a class="card[^"]*" href="([^"]+)">)', card, index_html)
     return index_html.replace("</body>", ILL_MARK + "\n</body>", 1)
 
+
+# ---------------- read aloud, 15 Sep 2026 ----------------
+# Her words: "I need a reading, like the speak out loud for the recipes." The phone's own voice reads
+# the page from the top, a paragraph at a time, highlighting where it is. Free: no recording, no API.
+# It stops when she leaves the page, the same rule as the Desk.
+READ_MARK = "<!--read-aloud-->"
+READ_CSS = """
+.readbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
+.readbar button,.readbar select{font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 14px;cursor:pointer}
+.readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
+.readbar .rs{font-size:12px;color:var(--muted)}
+.reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+"""
+READ_BAR = ('<div class="readbar" role="group" aria-label="Read aloud">'
+            '<button type="button" class="primary" id="rdPlay">&#9654; Read aloud</button>'
+            '<button type="button" id="rdStop" hidden>&#9632; Stop</button>'
+            '<select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option>'
+            '<option value="1.15">Brisk</option><option value="1.3">Fast</option></select>'
+            '<span class="rs" id="rdNow"></span></div>')
+READ_JS = """<script>
+(function(){
+  if (!('speechSynthesis' in window)) { var b=document.getElementById('rdPlay'); if(b){ b.disabled=true; b.textContent='Read aloud is not available on this browser'; } return; }
+  var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
+  var parts=[], i=0, on=false, paused=false, voice=null;
+  function pickVoice(){
+    var vs=speechSynthesis.getVoices(); if(!vs.length) return null;
+    var good=/Siri|Natural|Premium|Enhanced|Karen|Lee|Catherine|Daniel|Serena/i;
+    var by=function(lang){ var l=vs.filter(function(v){return v.lang&&v.lang.replace('_','-').indexOf(lang)===0;}); return l.filter(function(v){return good.test(v.name);})[0]||l[0]; };
+    return by('en-AU')||by('en-GB')||by('en-US')||by('en')||vs[0];
+  }
+  function collect(){
+    var wrap=document.querySelector('.wrap'), out=[];
+    wrap.querySelectorAll('h1,h2,h3,p,li,blockquote,td').forEach(function(el){
+      if (el.closest('pre,.player,.readbar,.foot,.back,table td table')) return;
+      if (el.tagName==='P' && el.closest('li,blockquote,td')) return;
+      var t=(el.innerText||'').replace(/[\\u2B50\\u26A0\\u26D4\\u2705\\u274C]/g,'').replace(/\\s+/g,' ').trim();
+      if (t.length<2) return;
+      var bits=t.match(/[^.!?]+[.!?]*\\s*/g)||[t], buf='';
+      bits.forEach(function(s){ if((buf+s).length>220 && buf){ out.push({el:el,text:buf}); buf=''; } buf+=s; });
+      if (buf.trim()) out.push({el:el,text:buf});
+    });
+    return out;
+  }
+  function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); el.scrollIntoView({behavior:'smooth',block:'center'}); } }
+  function step(){
+    if(!on) return;
+    if(i>=parts.length){ finish(); return; }
+    var p=parts[i], u=new SpeechSynthesisUtterance(p.text);
+    voice=voice||pickVoice(); if(voice){ u.voice=voice; u.lang=voice.lang; }
+    u.rate=parseFloat(rate.value)||1;
+    u.onend=function(){ if(!on||paused) return; i++; step(); };
+    u.onerror=function(){ if(!on||paused) return; i++; step(); };
+    mark(p.el); now.textContent=Math.round(i/parts.length*100)+'%';
+    speechSynthesis.speak(u);
+  }
+  function finish(){ on=false; paused=false; i=0; speechSynthesis.cancel(); mark(null); play.innerHTML='&#9654; Read aloud'; stop.hidden=true; now.textContent=''; }
+  play.addEventListener('click', function(){
+    if(!on){ parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\\u23F8 Pause'; speechSynthesis.cancel(); step(); return; }
+    if(!paused){ paused=true; speechSynthesis.cancel(); play.innerHTML='&#9654; Resume'; return; }
+    paused=false; play.textContent='\\u23F8 Pause'; step();
+  });
+  stop.addEventListener('click', finish);
+  rate.addEventListener('change', function(){ if(on&&!paused){ speechSynthesis.cancel(); step(); } });
+  if (speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
+  document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden' && on) finish(); });
+  addEventListener('pagehide', function(){ if(on) finish(); });
+})();
+</script>"""
+
+def add_reader(page):
+    if READ_MARK in page:
+        return page
+    page = page.replace("</style>", READ_CSS + "</style>", 1)
+    at = page.find('<div class="player"')
+    if at != -1:
+        end = page.find("</div>", at) + len("</div>")
+    else:
+        h1 = page.find("</h1>")
+        end = h1 + 5 if h1 != -1 else page.find('<div class="wrap">') + len('<div class="wrap">')
+    page = page[:end] + "\n" + READ_BAR + "\n" + page[end:]
+    return page.replace("</body>", READ_JS + READ_MARK + "\n</body>", 1)
+
 def illustrate_existing():
     pages = {}
     for f in sorted(glob.glob(os.path.join(OUT, "*.html"))):
@@ -384,7 +466,7 @@ def illustrate_existing():
         m = VID.search(s)
         if m:
             pages[name] = m.group(1)
-        io.open(f, "w", encoding="utf-8", newline="\n").write(illustrate_page(s))
+        io.open(f, "w", encoding="utf-8", newline="\n").write(add_reader(illustrate_page(s)))
     ip = os.path.join(OUT, "index.html")
     idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
     io.open(ip, "w", encoding="utf-8", newline="\n").write(illustrate_index(idx, pages))
