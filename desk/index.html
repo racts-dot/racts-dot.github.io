@@ -3032,10 +3032,12 @@ $("#nowPrev").addEventListener("click", ()=>{ const el=$("#recAudio");
   if(el && !el.paused){ el.currentTime = Math.max(0, el.currentTime-30); return; } jump(-1); });
 $("#nowStop").addEventListener("click", ()=>{ const el=$("#recAudio");
   if(el && !el.paused) el.pause(); stopSpeaking(); });
-/* ~~Deliberately NOT stopping on visibilitychange.~~ REVERSED by her 15 Sep 2026: "whenever I get
-   out of the desk ... it will not continue to do the voice readouts. So it needs to be fixed."
-   Leaving the Desk (another app, closing it, and - the side effect - locking the phone) stops
-   both the recorded voice and the robot voice. */
+/* Deliberately NOT stopping on visibilitychange - RESTORED 15 Sep 2026. Build 22 made leaving the
+   Desk stop the brief, from a misreading of "it will not continue to do the voice readouts. So it
+   needs to be fixed" (she meant it SHOULD continue). Her words the same morning: "I can have it play
+   in the background" / "I cant play at the background". The recorded voice keeps playing when she
+   leaves the app or locks the phone; the lock-screen controls come from mediaSession above. The
+   robot voice cannot: the phone itself stops it in the background. */
 document.getElementById("briefMore").addEventListener("click", ()=>{ const c=document.getElementById("briefCard");
   c.classList.toggle("open"); const o=c.classList.contains("open");
   document.getElementById("briefMore").setAttribute("aria-expanded", o);
@@ -3043,10 +3045,7 @@ document.getElementById("briefMore").addEventListener("click", ()=>{ const c=doc
 document.getElementById("playBrief").addEventListener("click", ()=>{ const c=document.getElementById("briefCard");
   c.classList.add("open"); document.getElementById("briefMore").setAttribute("aria-expanded", true);
   document.getElementById("briefMore").textContent = "Hide ⌄"; });
-function stopOnLeave(){ try{ const el=$("#recAudio"); if(el && !el.paused) el.pause(); }catch(e){}
-  try{ stopSpeaking(); }catch(e){} }
-document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") stopOnLeave(); });
-addEventListener("pagehide", stopOnLeave);
+
 
 function onVoice(v){ voiceURI=v; const el=currentVoice(); saveSettings(); saveVoicePref();
   if(playing){ clearTimeout(gapTimer); speechSynthesis.cancel(); step(); return; }
