@@ -230,6 +230,15 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
 .tl-t::after{content:" ›";color:var(--ink-faint);font-weight:400}
 .tl-t[aria-expanded="true"]::after{content:" ⌄"}
 .tl-more{margin-top:6px}
+.ebaytiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:10px 0 6px}
+.ebaytiles div{background:var(--surface-2);border-radius:12px;padding:12px}
+.ebaytiles b{display:block;font-family:'Newsreader',Georgia,serif;font-size:26px;line-height:1.1;color:var(--accent);font-variant-numeric:tabular-nums}
+.ebaytiles span{font-size:12.5px;color:var(--ink-faint)}
+.ebaylist{display:grid;gap:8px;margin-top:6px}
+.ebayrow{display:grid;grid-template-columns:64px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line-soft);border-radius:12px;padding:8px}
+.ebayrow img,.ebayrow .noimg{grid-row:span 2;width:64px;height:64px;object-fit:cover;border-radius:8px;background:var(--surface-2)}
+.ebayrow .et{font-weight:600;font-size:14px;line-height:1.3}
+.ebayrow .em{font-size:12.5px;color:var(--ink-faint)}
 .tl-row.has-img{grid-template-columns:64px 1fr 84px}
 .tl-img{width:84px;height:84px;object-fit:cover;border-radius:10px;border:1px solid var(--line-soft)}
 .tl-metric{margin:0 0 2px;font-family:'Newsreader',Georgia,serif;font-size:22px;line-height:1.1;color:var(--accent);font-variant-numeric:tabular-nums}
@@ -931,10 +940,10 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   <section class="page" id="p-ebay">
     <div class="block">
       <div class="sec-head"><h2>eBay</h2>
-        <p class="sec-note">Your focus. This page fills from the eBay connection once it is wired.</p></div>
-      <article class="card sev-watch"><h3 class="c-title">Not connected to this page yet</h3>
-        <p class="c-body">The eBay keys and scripts live on the Mac (<code>~/pf/ebay</code>, <code>~/ebay_sync</code>). A phone page cannot hold an eBay key safely, so the list has to come through a small relay, the same way Notion does. That is the next build.</p>
-        <div class="c-meta"><span class="pill watch">Waiting on the build</span><span class="stamp">Checked 15 Sep 2026</span></div></article>
+        <p class="sec-note">Your focus. Live listings read from eBay by the Mac each morning, most watched first. Tap one to open it on eBay.</p></div>
+      <div id="ebayLive"><p class="none">Reading your listings…</p></div>
+      <input class="full xl-search" id="ebayFind" type="search" placeholder="Find a listing" aria-label="Find a listing">
+      <div id="ebayList" class="ebaylist"></div>
       <div class="sec-head" style="margin-top:22px"><h2>E-commerce to-dos</h2>
         <p class="sec-note">Everything on your to-do filed under E-commerce.</p></div>
       <div id="ebayTodos"></div>
@@ -1905,6 +1914,33 @@ document.addEventListener("click", e=>{
   xl.try.push({id:uid("x"), rr:r.id, text:(r.detail||r.title||"").slice(0,300), link:d.url||"", at:new Date().toISOString(), done:false, cat:d.creator||""});
   saveXL("try"); renderXL("try"); loadReadingRoom(); logIt("new","Want to try, from the Reading Room: "+(r.detail||r.title)); toast("On your Want to try list.");
 });
+let EBAY = null;
+async function loadEbay(){
+  const head=$("#ebayLive"); if(!head) return;
+  try{ const r=await fetch("ebay.json?"+Date.now()); if(!r.ok) throw 0; EBAY=await r.json(); }
+  catch(e){ head.innerHTML='<p class="none">Your listings show on the home-screen Desk (racts-dot.github.io/desk), not in this copy.</p>'; return; }
+  const money = n => "A$"+Number(n).toLocaleString(undefined,{maximumFractionDigits:0});
+  const age = Math.max(0, Math.round((Date.now()-new Date(EBAY.read_at))/86400000));
+  head.innerHTML = `<div class="ebaytiles">
+      <div><b>${EBAY.count}</b><span>live listings</span></div>
+      <div><b>${EBAY.watchers}</b><span>watching</span></div>
+      <div><b>${EBAY.sold}</b><span>sold from these</span></div>
+      <div><b>${money(EBAY.value)}</b><span>asking value</span></div></div>
+    <p class="stamp">Read from eBay ${esc(stampWords(EBAY.read_at))}${age>1?` · ${age} days old`:""}</p>`;
+  renderEbayList();
+}
+function renderEbayList(){
+  const box=$("#ebayList"); if(!box||!EBAY) return;
+  const q=(($("#ebayFind")||{}).value||"").toLowerCase();
+  const rows=EBAY.rows.filter(r=>!q||r.title.toLowerCase().includes(q)).slice(0, q?80:40);
+  box.innerHTML = rows.map(r=>`<a class="ebayrow" href="${esc(r.url)}" target="_blank" rel="noopener">
+      ${r.img?`<img src="${esc(r.img)}" alt="" loading="lazy">`:'<span class="noimg"></span>'}
+      <span class="et">${esc(r.title)}</span>
+      <span class="em">A$${Number(r.price).toFixed(2)}${r.watchers?` · ${r.watchers} watching`:""}${r.sold?` · ${r.sold} sold`:""}</span></a>`).join("")
+    + (EBAY.rows.length>rows.length && !q ? `<p class="none">Showing the 40 most watched of ${EBAY.count}. Search to find any.</p>` : "");
+}
+document.addEventListener("input", e=>{ if(e.target && e.target.id==="ebayFind") renderEbayList(); });
+document.addEventListener("click", e=>{ if(e.target.closest('[data-go="ebay"]')) setTimeout(()=>{ if(!EBAY) loadEbay(); }, 60); });
 function renderEbayTodos(){
   const box=$("#ebayTodos"); if(!box) return;
   const e=mine.filter(m=>m.cat==="E-commerce" && (!m.done || (m.doneAt && isoDay(m.doneAt)===todayISO())));
