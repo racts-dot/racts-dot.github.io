@@ -199,6 +199,40 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
 .adder .full{grid-column:1 / -1}
 .adder button{min-height:46px}
 .adder .hint{grid-column:1 / -1;font-size:12.5px;color:var(--ink-faint);margin:0}
+.brief-top{display:flex;gap:8px;align-items:stretch}
+.brief-top #playBrief{flex:1}
+.brief-more{font:inherit;font-size:14px;border:1px solid currentColor;background:transparent;color:inherit;border-radius:10px;padding:0 14px;cursor:pointer;opacity:.85}
+.brief:not(.open) .brief-sub,.brief:not(.open) .brief-run,.brief:not(.open) .rec,.brief:not(.open) .player{display:none}
+.todo-adder{grid-template-columns:1fr 1fr auto}
+.xl-adder select,.todo-adder select{min-height:46px}
+.catbar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 2px}
+.catchip{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:999px;padding:6px 12px;cursor:pointer}
+.catchip.on{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.stamp{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:11px;color:var(--ink-faint);letter-spacing:.02em}
+.xl-search{width:100%;margin:10px 0;min-height:42px}
+.trust{display:grid;gap:10px;margin-top:10px}
+.trust .tr{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:baseline}
+.trust .tr p{margin:0;color:var(--ink-soft)}
+@media(max-width:480px){.trust .tr{grid-template-columns:1fr;gap:4px}.todo-adder{grid-template-columns:1fr auto}}
+.howlist{padding-left:20px;display:grid;gap:8px;color:var(--ink-soft)}
+.howfig{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:14px 0}
+.hf-col{display:grid;gap:6px;justify-items:center;text-align:center;background:var(--surface-2);border-radius:12px;padding:14px 10px}
+.hf-box{border-radius:8px;padding:8px 12px;font-weight:600;background:var(--surface);border:1px solid var(--line);width:100%}
+.hf-box.desk{border-color:var(--accent);color:var(--accent)}
+.hf-arrow{font-size:12px;color:var(--ink-faint)}
+.hf-arrow::after{content:" ↓"}
+.hf-split{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
+.hf-split span{font-size:11.5px;background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:3px 8px}
+.tl-mon{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);margin:18px 0 6px}
+.tl-row{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:10px 0;border-top:1px solid var(--line-soft)}
+.tl-date{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:12px;color:var(--ink-faint)}
+.tl-t{margin:0;font-weight:600}.tl-d{margin:2px 0 6px;color:var(--ink-soft)}
+/* her 15 Sep ask: "too many things ... if I click onto that, it will give me the information".
+   A card shows its title; the detail opens on a tap. */
+.card:has(.c-body) .c-title{cursor:pointer}
+.card:has(.c-body) .c-title::after{content:" ›";color:var(--ink-faint);font-weight:400}
+.card.open .c-title::after{content:" ⌄"}
+.card:has(.c-body):not(.open) .c-body{display:none}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:9px;grid-column:1 / -1}
 @media(max-width:480px){.two{grid-template-columns:1fr}}
 
@@ -495,7 +529,8 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <p class="brief-h">The morning brief</p>
       <p class="brief-sub" id="briefSub">Everything in one listen — your diary, what is waiting,
         your list, the money, the paper, and today's lesson.</p>
-      <button id="playBrief">▶ Play the brief</button>
+      <div class="brief-top"><button id="playBrief">▶ Play the brief</button>
+        <button type="button" class="brief-more" id="briefMore" aria-expanded="false" aria-controls="briefCard">Details ›</button></div>
       <div class="brief-run" id="briefRun"></div>
       <div class="rec" id="rec">
         <p class="rec-lab" id="recLab">Recorded this morning in a real voice</p>
@@ -524,7 +559,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   </header>
 
   <!-- 1 IDEAS -->
-  <section class="page on" id="p-ideas">
+  <section class="page" id="p-ideas">
     <div class="block">
       <div class="adder" id="ideaAdd">
         <textarea class="full" id="ideaText" placeholder="However it comes out. No tidying up."></textarea>
@@ -540,7 +575,26 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   </section>
 
   <!-- 2 TODAY -->
-  <section class="page" id="p-today">
+  <section class="page on" id="p-today">
+    <div class="block" id="todoBlock">
+      <div class="sec-head"><h2>To-do</h2>
+        <p class="sec-note">Stays until you tick it, rolling over day to day. Every line keeps its date and time.</p>
+        <span class="count" id="mineCount"></span></div>
+      <div class="catbar" id="mineCats" role="group" aria-label="Show one category"></div>
+      <div id="mine"></div>
+      <div class="adder todo-adder" id="mineAdd">
+        <input class="full" id="mineText" type="text" placeholder="List the next five eBay items. Ring the accountant.">
+        <select id="mineCat" aria-label="Category"><option value="Waiting on me">Waiting on me</option><option value="Waiting on Claude">Waiting on Claude</option><option value="E-commerce">E-commerce</option><option value="Digital products">Digital products</option><option value="Learning">Learning</option><option value="Life">Life</option><option value="Admin">Admin</option></select>
+        <input id="mineWhen" type="date" aria-label="Due date, optional"><button id="mineGo">Add</button>
+        <p class="hint">A date is optional. Ticked lines show when they were done, then go to The log the next day.</p>
+      </div>
+    </div>
+    <div class="block" id="meBlock">
+      <div class="sec-head"><h2>From Morning &amp; Evening</h2>
+        <p class="sec-note">Your win for today and what you planned last night. Tick them in <a href="../reflect/">Morning &amp; Evening</a>.</p>
+        <span class="count" id="meCount"></span></div>
+      <div id="meList"></div>
+    </div>
     <div id="diaToday"></div>
     <div class="block" id="diaryBlock">
       <div class="sec-head"><h2>Your diary</h2>
@@ -560,15 +614,6 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <div id="blocked"></div>
     </div>
     <div class="block">
-      <div class="sec-head"><h2>Your own list</h2>
-        <p class="sec-note">Jobs and shopping together. A date is optional.</p>
-        <span class="count" id="mineCount"></span></div>
-      <div id="mine"></div>
-      <div class="adder" id="mineAdd">
-        <input class="full" id="mineText" type="text" placeholder="Ring the accountant. Printer ink.">
-        <input id="mineWhen" type="date"><button id="mineGo">Add</button>
-        <p class="hint">With a date it says “due today” or “overdue” in the brief until you tick it.</p>
-      </div>
       <footer id="asOf"></footer>
     </div>
   </section>
@@ -829,6 +874,136 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
 
   <!-- THE CAST -->
+  <!-- BUILD 22 PAGES -->
+  <section class="page" id="p-learn">
+    <div class="block">
+      <div class="sec-head"><h2>Learning objectives</h2>
+        <p class="sec-note">Start with a verb: understand, set up, learn. Add the video it came from and an ELI5 when you have one.</p>
+        <span class="count" id="xl-learn-count"></span></div>
+      <div id="xl-learn"></div>
+      <div class="adder xl-adder" data-list="learn">
+        <input class="full" id="xl-learn-text" type="text" placeholder="Understand how interest rates hit shop sales">
+        <input class="full" id="xl-learn-link" type="url" placeholder="Reading Room video link (optional)">
+        <input class="full" id="xl-learn-eli5" type="text" placeholder="ELI5, in one line (optional)">
+        <span></span><button type="button" class="xl-go" data-list="learn">Add</button>
+      </div>
+    </div>
+  </section>
+  <section class="page" id="p-try">
+    <div class="block">
+      <div class="sec-head"><h2>Want to try</h2>
+        <p class="sec-note">From the Reading Room. When you have time, tell Claude “try the one about …” and tick it here.</p>
+        <span class="count" id="xl-try-count"></span></div>
+      <div id="xl-try"></div>
+      <div class="adder xl-adder" data-list="try">
+        <input class="full" id="xl-try-text" type="text" placeholder="Hormozi's value equation on the binder listing">
+        <input class="full" id="xl-try-link" type="url" placeholder="Video link (optional)">
+        <span></span><button type="button" class="xl-go" data-list="try">Add</button>
+      </div>
+    </div>
+  </section>
+  <section class="page" id="p-keep">
+    <div class="block">
+      <div class="sec-head"><h2>Tips &amp; notes</h2>
+        <p class="sec-note">Anything worth coming back to. Newest first, with the date and time you wrote it.</p>
+        <span class="count" id="xl-keep-count"></span></div>
+      <input class="full xl-search" id="xl-keep-find" type="search" placeholder="Find a note" aria-label="Find a note">
+      <div id="xl-keep" class="keepgrid"></div>
+      <div class="adder xl-adder" data-list="keep">
+        <textarea class="full" id="xl-keep-text" placeholder="Enter on the tag box adds an Etsy tag when Add ignores it."></textarea>
+        <select id="xl-keep-cat" aria-label="Category"><option value="Waiting on me">Waiting on me</option><option value="Waiting on Claude">Waiting on Claude</option><option value="E-commerce">E-commerce</option><option value="Digital products">Digital products</option><option value="Learning">Learning</option><option value="Life">Life</option><option value="Admin">Admin</option></select>
+        <button type="button" class="xl-go" data-list="keep">Keep it</button>
+      </div>
+    </div>
+  </section>
+  <section class="page" id="p-ebay">
+    <div class="block">
+      <div class="sec-head"><h2>eBay</h2>
+        <p class="sec-note">Your focus. This page fills from the eBay connection once it is wired.</p></div>
+      <article class="card sev-watch"><h3 class="c-title">Not connected to this page yet</h3>
+        <p class="c-body">The eBay keys and scripts live on the Mac (<code>~/pf/ebay</code>, <code>~/ebay_sync</code>). A phone page cannot hold an eBay key safely, so the list has to come through a small relay, the same way Notion does. That is the next build.</p>
+        <div class="c-meta"><span class="pill watch">Waiting on the build</span><span class="stamp">Checked 15 Sep 2026</span></div></article>
+      <div class="sec-head" style="margin-top:22px"><h2>E-commerce to-dos</h2>
+        <p class="sec-note">Everything on your to-do filed under E-commerce.</p></div>
+      <div id="ebayTodos"></div>
+    </div>
+  </section>
+  <section class="page" id="p-admin">
+    <div class="block">
+      <div class="sec-head"><h2>AI admin</h2>
+        <p class="sec-note">Goals, plans and budget for the AI side. Short notes, dated.</p>
+        <span class="count" id="xl-admin-count"></span></div>
+      <div id="xl-admin"></div>
+      <div class="adder xl-adder" data-list="admin">
+        <input class="full" id="xl-admin-text" type="text" placeholder="Keep Claude reviews under 10c each">
+        <select id="xl-admin-cat" aria-label="Kind"><option>Goal</option><option>Plan</option><option>Budget</option></select>
+        <button type="button" class="xl-go" data-list="admin">Add</button>
+      </div>
+    </div>
+  </section>
+  <section class="page" id="p-timeline">
+    <div class="block">
+      <div class="sec-head"><h2>What you achieved</h2>
+        <p class="sec-note" id="tlNote"></p></div>
+      <div id="tlList" class="tl"></div>
+    </div>
+  </section>
+  <section class="page" id="p-sources">
+    <div class="block">
+      <div class="sec-head"><h2>How sure</h2>
+        <p class="sec-note">Every fact on this desk carries the day it was read. This is how far to trust where it came from.</p></div>
+      <div class="trust">
+        <div class="tr"><span class="pill ok">Measured</span><p>Somebody opened the thing itself this session: the Etsy dashboard, the bank export, the built file. The strongest kind.</p></div>
+        <div class="tr"><span class="pill ok">News report</span><p>Reporters writing down what happened, like most AFR stories. Reliable on facts, not on predictions.</p></div>
+        <div class="tr"><span class="pill cool">Data from a platform</span><p>Etsy search ranks, eBay sold counts, YouTube views. True on the day read, and they move.</p></div>
+        <div class="tr"><span class="pill watch">Forecast</span><p>A bank or economist predicting the future. Useful direction, often wrong on the number.</p></div>
+        <div class="tr"><span class="pill watch">Two AIs agreed</span><p>GPT and Gemini reviewed the same packet blind and agreed. Good for spotting weak points, not proof the market wants it.</p></div>
+        <div class="tr"><span class="pill watch">Opinion or creator</span><p>A columnist or a YouTube creator. One person's case, often selling something. Try it before believing it.</p></div>
+        <div class="tr"><span class="pill stop">Reported</span><p>Second-hand: another chat or a note said so and nobody re-checked. Check before acting on it.</p></div>
+        <div class="tr"><span class="pill stop">Market whisper</span><p>Insiders talking before anything is announced (AFR Street Talk). Likely, not confirmed.</p></div>
+      </div>
+      <div class="sec-head" style="margin-top:22px"><h2>How research is done here</h2></div>
+      <ol class="howlist">
+        <li>Numbers first, before anything is made: a named buyer, a demand figure with the date it was read, real competitors with prices.</li>
+        <li>Open the top three competitors and list what each one actually hands over.</li>
+        <li>Two AIs review blind. Where they disagree, a third round decides.</li>
+        <li>Anything going live is re-measured from the source by a separate check.</li>
+      </ol>
+    </div>
+  </section>
+  <section class="page" id="p-how">
+    <div class="block">
+      <div class="sec-head"><h2>How it works</h2>
+        <p class="sec-note">What you type stays on this phone and copies to Notion. What Claude prepares arrives each morning.</p></div>
+      <div class="howfig" role="img" aria-label="You type into the Desk; it saves on your phone and copies to Notion. Each morning Claude sends the brief, the AFR and suggestions. Morning and Evening feeds your to-do.">
+        <div class="hf-col">
+          <div class="hf-box you">You</div>
+          <div class="hf-arrow">types, ticks</div>
+          <div class="hf-box desk">The Desk</div>
+          <div class="hf-split"><span>saved on this phone</span><span>copied to Notion</span></div>
+        </div>
+        <div class="hf-col">
+          <div class="hf-box claude">Claude, each morning</div>
+          <div class="hf-arrow">brief, AFR, suggestions</div>
+          <div class="hf-box desk">The Desk</div>
+          <div class="hf-split"><span>locked delivery</span><span>nothing you typed is in it</span></div>
+        </div>
+        <div class="hf-col">
+          <div class="hf-box me">Morning &amp; Evening</div>
+          <div class="hf-arrow">your win, tomorrow's plan</div>
+          <div class="hf-box desk">Today's to-do</div>
+          <div class="hf-split"><span>same phone, read directly</span></div>
+        </div>
+      </div>
+      <ul class="howlist">
+        <li><b>Today</b> opens first. Anything not ticked stays and says how many days it has rolled over.</li>
+        <li><b>Categories</b> keep E-commerce in front and the automated digital-product side out of your way.</li>
+        <li><b>Want to try</b> and <b>Learning</b> are where Reading Room ideas land until you ask Claude to act on one.</li>
+        <li><b>Nothing here sends, lists or publishes.</b> It only writes to itself and to your Notion copy.</li>
+        <li>Two copies of the Desk exist: the one on your phone's home screen, and the Claude link. They do not share what you type.</li>
+      </ul>
+    </div>
+  </section>
   <section class="page" id="p-cast">
     <div class="block">
       <div class="sec-head"><h2>Your five</h2>
@@ -878,7 +1053,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-14 · build 21</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-15 · build 22</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -976,8 +1151,8 @@ const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const DAY = 86400000, CAL = "Google Calendar";
 
 const PAGES = [
+  {id:"today",   name:"Today",              why:"Your to-do first. It rolls over until you tick it, and every line keeps its date and time.", nav:1},
   {id:"ideas",   name:"Ideas",              why:"Say it however it comes out. Nothing is asked of you here.", nav:1},
-  {id:"today",   name:"Today",              why:"Everything with a box beside it — your diary, what is waiting, and your own list.", nav:1},
   {id:"status",  name:"Status",             why:"One tile per thing. Which stage it is at, and what is blocking it.", nav:1},
   {id:"money",   name:"Money",              why:"Only figures somebody actually read off a real account.", nav:1},
   {id:"paper",   name:"The Paper",          why:"The AFR, in plain words, with what it means for you.", nav:1},
@@ -994,10 +1169,21 @@ const PAGES = [
   {id:"shop",    name:"Your Shop",          why:"What is true today, and the day each thing was read."},
   {id:"log",     name:"The log",            why:"What you did and when, in order. Written as it happens and never edited."},
   {id:"secretary",name:"How I am doing",     why:"The secretary on itself: what it knows, how old it is, and what it still cannot do."},
+  {id:"learn",   name:"Learning",           why:"What you want to understand or set up, each with an ELI5 and the videos behind it."},
+  {id:"try",     name:"Want to try",        why:"Things you spotted in the Reading Room. Ask Claude to try one when you have time."},
+  {id:"keep",    name:"Tips & notes",       why:"Tips, tricks and things you write down. Stamped, searchable, easy to come back to."},
+  {id:"ebay",    name:"eBay",               why:"Your e-commerce side: the listings list, and where the eBay connection stands."},
+  {id:"admin",   name:"AI admin",           why:"Goals, plans and budget for the AI side. A few notes, kept out of your way."},
+  {id:"timeline",name:"What you achieved",  why:"Since January, in order, each one with where it was recorded."},
+  {id:"sources", name:"How sure",           why:"How far to trust each kind of source, and how things here were researched."},
+  {id:"how",     name:"How it works",       why:"Where everything on this desk comes from, in one picture."},
 ];
 const PAGE = id => PAGES.find(p=>p.id===id) || PAGES[0];
 /* where to open: the page she left, if it is still a real page */
 function startPage(){
+  /* build 22: her 15 Sep ruling makes the to-do the first page. Once per device, so a page she
+     picks afterwards is still remembered. */
+  if(!LS.get("b22home")){ LS.set("b22home", 1); settings.home="today"; LS.set("lastPage","today"); return "today"; }
   const l = LS.get("lastPage");
   return (l && PAGES.some(p=>p.id===l)) ? l : PAGE(settings.home).id;
 }
@@ -1016,9 +1202,9 @@ let SUGGEST=null, sugTaken={};
 let done={}, notes=[], mine=[], thread=[], files=[];
 let ideas=[], rolling=[], status=[], score=[], hours={}, plan={now:null,past:[]},
     outbox=[], renewals=[], streaks=[];
-let settings={sky:"on", home:"ideas", paper:"on", lesson:"on"};
+let settings={sky:"on", home:"today", paper:"on", lesson:"on"};
 let logbook=[];
-let page="ideas", db=null, sample=null, assets=null, mcp=null, asking=false;
+let page="today", db=null, sample=null, assets=null, mcp=null, asking=false;
 let events=null, evError=null;
 
 const todayISO = () => { const d=new Date();
@@ -1139,17 +1325,36 @@ function renderIdeas(){
     meta:[pill(agoWords(i.at.slice(0,10))), xbtn("Remove","delIdea",i.id)]
   })).join("") : `<p class="none">Nothing parked yet. That is the only empty page here that is a good sign — it means nothing is waiting to be forgotten.</p>`;
 }
+let mineCat = "All";
+const stampWords = iso => { if(!iso) return ""; const d=new Date(iso);
+  return d.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})+", "
+    + d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}); };
+const isoDay = iso => { const d=new Date(iso);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 function renderMine(){
+  /* ticked lines stay visible on the day they were ticked, then live on in The log */
+  const shown = mine.filter(m=>!m.done || !m.doneAt || isoDay(m.doneAt)===todayISO());
   const open = mine.filter(m=>!m.done).length;
-  $("#mineCount").textContent = mine.length ? open+" of "+mine.length+" still open" : "";
-  const list = mine.slice().sort((a,b)=>{
+  $("#mineCount").textContent = open ? open+" open" : mine.length ? "all done" : "";
+  const cats = ["All"].concat(TODO_CATS.filter(c=>shown.some(m=>(m.cat||"Life")===c)));
+  if(!cats.includes(mineCat)) mineCat="All";
+  $("#mineCats").innerHTML = cats.length>2 ? cats.map(c=>`<button type="button" class="catchip${c===mineCat?" on":""}" data-cat="${esc(c)}" aria-pressed="${c===mineCat}">${esc(c)}</button>`).join("") : "";
+  const list = shown.filter(m=>mineCat==="All"||(m.cat||"Life")===mineCat).sort((a,b)=>{
     if(a.done!==b.done) return a.done?1:-1;
-    const ad=a.due?daysSince(a.due):-9999, bd=b.due?daysSince(b.due):-9999; return bd-ad; });
+    const ad=a.due?daysSince(a.due):-9999, bd=b.due?daysSince(b.due):-9999;
+    if(ad!==bd) return bd-ad; return String(a.at||"").localeCompare(String(b.at||"")); });
   $("#mine").innerHTML = list.length ? list.map(m=>{
     const d=dueWords(m.due), late=m.due&&daysSince(m.due)>0, tod=m.due&&daysSince(m.due)===0;
+    const rolled = !m.done && m.at ? daysSince(isoDay(m.at)) : 0;
     return cardHTML({ title:m.text, sev:"mine", tick:1, done:m.done, attr:`data-mid="${esc(m.id)}"`,
-      meta:[ d?pill(d, late?"stop":tod?"watch":""):"", xbtn("Remove","delMine",m.id) ]});
-  }).join("") : `<p class="none">Nothing on your own list.</p>`;
+      meta:[ pill(m.cat||"Life","cool"),
+             d?pill(d, late?"stop":tod?"watch":""):"",
+             rolled>0?pill("Rolled over "+rolled+(rolled===1?" day":" days"),"watch"):"",
+             m.at?`<span class="stamp">Added ${esc(stampWords(m.at))}</span>`:"",
+             m.done&&m.doneAt?`<span class="stamp">Done ${esc(stampWords(m.doneAt))}</span>`:"",
+             xbtn("Remove","delMine",m.id) ]});
+  }).join("") : `<p class="none">${mineCat==="All"?"Nothing to do. Add the first one below.":"Nothing open under "+esc(mineCat)+"."}</p>`;
+  renderME();
 }
 function renderWaiting(){
   if(!DESK){ $("#waiting").innerHTML=`<p class="none">Your desk has not been loaded yet.</p>`;
@@ -1563,7 +1768,121 @@ function renderAll(){
   renderMoney(); renderShop(); renderPaper(); renderLesson(); renderNotes(); renderFiles();
   renderThread(); renderDiary(); renderAudio(); renderLog(); renderSecretary(); renderRunOrder();
   renderSuggest();
+  try{ renderExtra(); }catch(e){}
 }
+
+/* ---------------- build 22: lists, Morning & Evening, timeline ----------------
+   Her 15 Sep 2026 asks. Every list line carries the ISO time it was written (at) and, when
+   ticked, when it was done (doneAt). Saved through the same save() as everything else, so
+   the Notion copy picks them up via SECTIONS below. */
+const TODO_CATS = ["Waiting on me", "Waiting on Claude", "E-commerce", "Digital products", "Learning", "Life", "Admin"];
+const TIMELINE = {"built": null, "items": [], "gaps": ""};
+let xl = {learn:[], try:[], keep:[], admin:[]};
+const saveXL = k => save("state/"+(k==="try"?"trylist":k), {items:xl[k]}, 1);
+function xlCard(k, r){
+  return cardHTML({ title:r.text, sev:"mine", tick:(k==="keep"||k==="admin")?undefined:1, done:!!r.done,
+    attr:`data-xl="${k}" data-xid="${esc(r.id)}"`, body:r.eli5?("ELI5: "+r.eli5):"",
+    meta:[ r.cat?pill(r.cat,"cool"):"",
+           r.link?`<a class="pill" href="${esc(r.link)}" target="_blank" rel="noopener">Open video</a>`:"",
+           `<span class="stamp">${esc(stampWords(r.at))}</span>`,
+           r.done&&r.doneAt?`<span class="stamp">Done ${esc(stampWords(r.doneAt))}</span>`:"",
+           xbtn("Remove","xlDel",k+"|"+r.id) ]});
+}
+function renderXL(k){
+  const box=$("#xl-"+k); if(!box) return;
+  let items = xl[k].slice().sort((a,b)=> (a.done===b.done ? String(b.at).localeCompare(String(a.at)) : a.done?1:-1));
+  if(k==="keep"){ const q=($("#xl-keep-find")||{}).value; if(q){ const n=q.toLowerCase();
+    items=items.filter(r=>String(r.text).toLowerCase().includes(n)||String(r.cat||"").toLowerCase().includes(n)); } }
+  const open = xl[k].filter(r=>!r.done).length;
+  const c=$("#xl-"+k+"-count"); if(c) c.textContent = xl[k].length ? (k==="keep"||k==="admin" ? xl[k].length+" kept" : open+" open") : "";
+  const empty = {learn:"No objectives yet. Add the first thing you want to understand.",
+    try:"Nothing to try yet. Highlights from the Reading Room land here.",
+    keep:"No notes yet.", admin:"No goals, plans or budget notes yet."}[k];
+  box.innerHTML = items.length ? items.map(r=>xlCard(k,r)).join("") : `<p class="none">${empty}</p>`;
+}
+function renderME(){
+  const box=$("#meList"); if(!box) return;
+  const read = k => { try{ return JSON.parse(localStorage.getItem("morning-evening:"+k)||"null"); }catch(e){ return null; } };
+  const rows=[];
+  for(let back=0; back<7; back++){
+    const day=plusDays(todayISO(), -back), m=read("mornings/"+day), ev=read("evenings/"+plusDays(day,-1));
+    if(m && m.win && (back===0 || !m.winDone))
+      rows.push({text:m.win, kind:"Win for "+(back===0?"today":shortDate(day)), done:!!m.winDone, back});
+    if(ev && ev.tomorrow && (back===0 || !ev.tomorrowDone))
+      rows.push({text:ev.tomorrow, kind:"Planned the night before "+(back===0?"today":shortDate(day)), done:!!ev.tomorrowDone, back});
+  }
+  $("#meCount").textContent = rows.length ? rows.filter(r=>!r.done).length+" open" : "";
+  box.innerHTML = rows.length ? rows.map(r=>cardHTML({ title:r.text, sev:"mine", done:r.done,
+      meta:[pill(r.kind,"cool"), r.back>0&&!r.done?pill("Rolled over "+r.back+(r.back===1?" day":" days"),"watch"):""] })).join("")
+    : `<p class="none">Nothing from Morning &amp; Evening on this phone yet. It only shows here on the home-screen Desk, on the same phone.</p>`;
+}
+function renderTimeline(){
+  const box=$("#tlList"); if(!box) return;
+  const it = TIMELINE.items||[];
+  $("#tlNote").textContent = it.length ? it.length+" things, "+(TIMELINE.covers||"")+". "+(TIMELINE.gaps||"")
+    : "Being put together from your records. It appears here in the next build.";
+  let last="";
+  box.innerHTML = it.slice().reverse().map(r=>{ const mon=String(r.date).slice(0,7); let head="";
+    if(mon!==last){ last=mon; head=`<h3 class="tl-mon">${esc(new Date(mon+"-01T00:00:00").toLocaleDateString(undefined,{month:"long",year:"numeric"}))}</h3>`; }
+    return head+`<div class="tl-row"><span class="tl-date">${esc(String(r.date).length>7?shortDate(r.date):"")}</span>
+      <div><p class="tl-t">${esc(r.title)}</p><p class="tl-d">${esc(r.detail||"")}</p>
+      <div class="c-meta">${pill(r.cat||"","cool")}<span class="stamp">${esc(r.source||"")}</span></div></div></div>`; }).join("");
+}
+function renderEbayTodos(){
+  const box=$("#ebayTodos"); if(!box) return;
+  const e=mine.filter(m=>m.cat==="E-commerce" && (!m.done || (m.doneAt && isoDay(m.doneAt)===todayISO())));
+  box.innerHTML = e.length ? e.map(m=>cardHTML({title:m.text, sev:"mine", done:m.done,
+    meta:[m.at?`<span class="stamp">Added ${esc(stampWords(m.at))}</span>`:""]})).join("")
+    : `<p class="none">Nothing filed under E-commerce. Add one on Today and pick E-commerce.</p>`;
+}
+function renderExtra(){ ["learn","try","keep","admin"].forEach(renderXL); renderME(); renderTimeline(); renderEbayTodos(); }
+async function loadExtra(){
+  for(const k of ["learn","try","keep","admin"]){
+    try{ const d=await load("state/"+(k==="try"?"trylist":k)); if(d && Array.isArray(d.items)) xl[k]=d.items; }catch(e){}
+  }
+  renderExtra();
+}
+document.addEventListener("click", e=>{
+  const ti=e.target.closest(".card .c-title"); if(ti && !e.target.closest("a,button,input")){ const c=ti.closest(".card");
+    if(c.querySelector(".c-body")){ c.classList.toggle("open"); ti.setAttribute("aria-expanded", c.classList.contains("open")); } }
+  const cb=e.target.closest(".catchip"); if(cb){ mineCat=cb.dataset.cat; renderMine(); return; }
+  const go=e.target.closest(".xl-go"); if(go){ const k=go.dataset.list, t=$("#xl-"+k+"-text");
+    const text=(t&&t.value||"").trim(); if(!text){ toast("Type it first."); return; }
+    const r={id:uid("x"), text, at:new Date().toISOString(), done:false};
+    const l=$("#xl-"+k+"-link"); if(l&&l.value.trim()) r.link=l.value.trim();
+    const el=$("#xl-"+k+"-eli5"); if(el&&el.value.trim()) r.eli5=el.value.trim();
+    const ca=$("#xl-"+k+"-cat"); if(ca) r.cat=ca.value;
+    xl[k].push(r); saveXL(k); renderXL(k);
+    [t,l,el].forEach(x=>{ if(x) x.value=""; });
+    logIt("new",({learn:"New learning objective: ",try:"Want to try: ",keep:"Kept a note: ",admin:"AI admin note: "})[k]+text);
+    toast("Kept, with today's date."); return; }
+  const del=e.target.closest(".xbtn.xlDel"); if(del){ const [k,id]=del.dataset.id.split("|");
+    const o=xl[k].find(x=>x.id===id); xl[k]=xl[k].filter(x=>x.id!==id); saveXL(k); renderXL(k);
+    if(o) logIt("gone","Removed: "+o.text); }
+});
+document.addEventListener("change", e=>{
+  const t=e.target; if(!t.classList||!t.classList.contains("tick")) return;
+  const card=t.closest(".card"); if(!card||!card.dataset.xl) return;
+  const k=card.dataset.xl, r=xl[k].find(x=>x.id===card.dataset.xid); if(!r) return;
+  r.done=t.checked; r.doneAt=t.checked?new Date().toISOString():null; saveXL(k); renderXL(k);
+  logIt(t.checked?"did":"note",(t.checked?"Ticked off: ":"Put back: ")+r.text);
+});
+document.addEventListener("input", e=>{
+  if(e.target && e.target.id==="xl-keep-find") renderXL("keep");
+  if(e.target && e.target.id==="mineText"){ const g=guessCat(e.target.value); if(g && !mineCatTouched) $("#mineCat").value=g; }
+});
+/* her 15 Sep ask: "I will probably just write something and it will be categorized". A guess from
+   plain words, shown in the box before Add, so she can change it. Nothing is sent anywhere. */
+let mineCatTouched=false;
+document.addEventListener("change", e=>{ if(e.target && e.target.id==="mineCat") mineCatTouched=true; });
+function guessCat(t){ t=String(t||"").toLowerCase();
+  if(/\b(claude|ask ai|gpt|gemini|review|build me|make me|fix the)\b/.test(t)) return "Waiting on Claude";
+  if(/\b(ebay|list(ing)?s?|stock|resale|post(age)?|ship|parcel|buyer|sold|trolley|marketplace)\b/.test(t)) return "E-commerce";
+  if(/\b(etsy|printable|kdp|pdf|worksheet|binder|planner|canva)\b/.test(t)) return "Digital products";
+  if(/\b(learn|understand|course|video|read|study|practise|practice)\b/.test(t)) return "Learning";
+  if(/\b(pay|bill|tax|account(ant)?|insurance|rego|budget|subscription|renew)\b/.test(t)) return "Admin";
+  if(/\b(ring|call|sign|print|check|decide|approve|test)\b/.test(t)) return "Waiting on me";
+  return ""; }
 
 /* ---------------- suggestions ----------------
    Her ruling, 14 Sep 2026: "Suggest, I tap to add". A session draws them from her register and
@@ -2406,10 +2725,10 @@ add("#ideaGo", ()=>{ const t=$("#ideaText").value.trim(); if(!t){ toast("Type it
   toast("Parked, in your words."); });
 
 add("#mineGo", ()=>{ const t=$("#mineText").value.trim(); if(!t){ toast("Type it first."); return; }
-  mine.push({id:uid("m"), text:t, due:$("#mineWhen").value||null, done:false, at:new Date().toISOString()});
+  mine.push({id:uid("m"), text:t, cat:$("#mineCat").value||"Life", due:$("#mineWhen").value||null, done:false, at:new Date().toISOString()});
   $("#mineText").value=""; $("#mineWhen").value="";
   renderMine(); renderWaiting(); renderRunOrder(); saveMine();
-  logIt("new","Added to your list: "+t); toast("On your list."); });
+  logIt("new","Added to your to-do ("+($("#mineCat").value||"Life")+"): "+t); toast("On your to-do."); });
 $("#mineText").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#mineGo").click(); });
 
 add("#statGo", ()=>{ const n=$("#statName").value.trim(); if(!n){ toast("Give it a name."); return; }
@@ -2487,7 +2806,7 @@ document.addEventListener("change", e=>{
     const j=((DESK&&DESK.waiting)||[]).find(x=>x.id===card.dataset.wid);
     if(j) logIt(t.checked?"did":"note",(t.checked?"Ticked off: ":"Put back: ")+j.title); }
   else if(card.dataset.mid){ const m=mine.find(x=>x.id===card.dataset.mid);
-    if(m){ m.done=t.checked; saveMine(); renderMine(); renderWaiting(); renderRunOrder();
+    if(m){ m.done=t.checked; m.doneAt=t.checked?new Date().toISOString():null; saveMine(); renderMine(); renderWaiting(); renderRunOrder();
       logIt(t.checked?"did":"note",(t.checked?"Ticked off: ":"Put back: ")+m.text); } }
 });
 document.addEventListener("click", async e=>{
@@ -2595,10 +2914,21 @@ $("#nowPrev").addEventListener("click", ()=>{ const el=$("#recAudio");
   if(el && !el.paused){ el.currentTime = Math.max(0, el.currentTime-30); return; } jump(-1); });
 $("#nowStop").addEventListener("click", ()=>{ const el=$("#recAudio");
   if(el && !el.paused) el.pause(); stopSpeaking(); });
-/* Deliberately NOT stopping on visibilitychange. It used to stop the moment she looked at
-   anything else, which is the opposite of what a brief is for. Browsers may still pause it
-   themselves when the screen locks - that is theirs, not ours, and the recorded voice is the
-   only thing that survives it. */
+/* ~~Deliberately NOT stopping on visibilitychange.~~ REVERSED by her 15 Sep 2026: "whenever I get
+   out of the desk ... it will not continue to do the voice readouts. So it needs to be fixed."
+   Leaving the Desk (another app, closing it, and - the side effect - locking the phone) stops
+   both the recorded voice and the robot voice. */
+document.getElementById("briefMore").addEventListener("click", ()=>{ const c=document.getElementById("briefCard");
+  c.classList.toggle("open"); const o=c.classList.contains("open");
+  document.getElementById("briefMore").setAttribute("aria-expanded", o);
+  document.getElementById("briefMore").textContent = o ? "Hide ⌄" : "Details ›"; });
+document.getElementById("playBrief").addEventListener("click", ()=>{ const c=document.getElementById("briefCard");
+  c.classList.add("open"); document.getElementById("briefMore").setAttribute("aria-expanded", true);
+  document.getElementById("briefMore").textContent = "Hide ⌄"; });
+function stopOnLeave(){ try{ const el=$("#recAudio"); if(el && !el.paused) el.pause(); }catch(e){}
+  try{ stopSpeaking(); }catch(e){} }
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="hidden") stopOnLeave(); });
+addEventListener("pagehide", stopOnLeave);
 
 function onVoice(v){ voiceURI=v; const el=currentVoice(); saveSettings(); saveVoicePref();
   if(playing){ clearTimeout(gapTimer); speechSynthesis.cancel(); step(); return; }
@@ -3051,7 +3381,7 @@ async function connect(){
     if($(s)) $(s).value = settings[k]; });
   applySky(); fillVoices();
   ["#rateSel","#setRate"].forEach(s=>{ if($(s)) $(s).value=String(rate); });
-  renderAll();
+  renderAll(); await loadExtra();
   /* a reload puts her back where she was, not back at the front */
   go(landed==="news" ? "paper" : landed==="desk" ? "today" : startPage());
   if(landed) toast("Loaded, and the link has been wiped from the address bar.");
@@ -3063,7 +3393,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-14 · build 21</span>";
+    + "BUILD 2026-09-15 · build 22</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
@@ -3097,13 +3427,17 @@ if("serviceWorker" in navigator){
   function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
   var SECTIONS = {
     "state/ideas":    ["Idea",      function(r){ return r.text; }, function(r){ return ""; }, "at"],
-    "state/mine":     ["Today",     function(r){ return r.text; }, function(r){ return (r.done?"Done":"Open")+(r.due?" · due "+r.due:""); }, "at"],
+    "state/mine":     ["To-do",     function(r){ return r.text; }, function(r){ return (r.cat||"Life")+" · "+(r.done?"Done "+(r.doneAt||""):"Open")+(r.due?" · due "+r.due:""); }, "at"],
     "state/status":   ["Status",    function(r){ return r.name; }, function(r){ return (r.stage||"")+(r.note?" · "+r.note:""); }, "read"],
     "state/rolling":  ["Rolling",   function(r){ return r.text; }, function(r){ return "every "+r.every+" days · next "+(r.next||"?"); }, "last"],
     "state/score":    ["Scoreboard",function(r){ return r.name; }, function(r){ return "now "+(r.now||"?")+" · target "+(r.target||"?"); }, "read"],
     "state/outbox":   ["Outbox",    function(r){ return (r.kind?r.kind+": ":"")+(r.what||""); }, function(r){ return (r.who||"")+" · "+(r.sent?"sent":"not sent"); }, "at"],
     "state/renewals": ["Renewal",   function(r){ return r.name; }, function(r){ return (r.cost||"")+(r.renews?" · renews "+r.renews:""); }, "renews"],
-    "state/streaks":  ["Streak",    function(r){ return r.name; }, function(r){ return (r.dates||[]).length+" days ticked"; }, null]
+    "state/streaks":  ["Streak",    function(r){ return r.name; }, function(r){ return (r.dates||[]).length+" days ticked"; }, null],
+    "state/learn":    ["Learning",  function(r){ return r.text; }, function(r){ return (r.done?"Done":"Open")+(r.eli5?" · ELI5: "+r.eli5:"")+(r.link?" · "+r.link:""); }, "at"],
+    "state/trylist":  ["Want to try",function(r){ return r.text; }, function(r){ return (r.done?"Tried":"Not yet")+(r.link?" · "+r.link:""); }, "at"],
+    "state/keep":     ["Tip",       function(r){ return String(r.text||"").slice(0,80); }, function(r){ return (r.cat||"")+" · "+(r.text||""); }, "at"],
+    "state/admin":    ["AI admin",  function(r){ return r.text; }, function(r){ return r.cat||""; }, "at"]
   };
   function records(doc, data){
     var out = {};
