@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-14 14:01",
+ "generated_at": "2026-09-14 19:31",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 30.78,
+  "spent_usd": 33.97,
   "authorized_usd": 40.0,
-  "pct": 77.0,
-  "runs": 529,
+  "pct": 84.9,
+  "runs": 555,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 15.02,
+    "spent_usd": 15.39,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 15.76,
+    "spent_usd": 18.58,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,15 +25,15 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 229,
-    "usd": 10.96,
+    "runs": 254,
+    "usd": 14.06,
     "first": "2026-09-03",
     "last": "2026-09-14"
    },
    {
     "task": "SQL / worksheet products",
-    "runs": 76,
-    "usd": 5.38,
+    "runs": 77,
+    "usd": 5.42,
     "first": "2026-09-06",
     "last": "2026-09-14"
    },
@@ -122,8 +122,8 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 31.19,
-  "unattributed_usd": -0.41,
+  "attributed_usd": 34.33,
+  "unattributed_usd": -0.36,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
  "apify": {
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 199,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 14:01",
+  "read_at": "2026-09-14 19:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 5,
-  "last_commit": "3a775cdc Maths heroes: Place Value grade 1-5 -> 1-3 to match the PDF (verifier caught it); register updated",
-  "last_commit_at": "2026-09-14T14:00:43+09:30"
+  "uncommitted_files": 4,
+  "last_commit": "0d008b4d Nightly automatic backup: 11 file(s)",
+  "last_commit_at": "2026-09-14T19:31:32+09:30"
  },
  "facts": {
   "available": true,
@@ -440,6 +440,11 @@
    "severity": "watch",
    "what": "Apify is at 96.3% of its monthly allowance - US$1.06 left",
    "why": "At the limit it SUSPENDS rather than bills, so a scrape stops halfway."
+  },
+  {
+   "severity": "watch",
+   "what": "Review board has spent US$33.97 of US$40.00 authorised",
+   "why": "Raise the authorisation deliberately or stop reviewing - do not drift into it."
   },
   {
    "severity": "watch",
