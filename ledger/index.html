@@ -532,5 +532,44 @@ renderAll();
 feed("off", "snapshot as at 2026-09-11");
 </script>
 
+<script>
+/* ---------------- swipe left/right ----------------
+   Added 15 Sep 2026. Swipe left for All batches, right for Items. Not while a batch box is open. No wrapping past the ends.
+   Only a one-finger sideways flick counts (over 70px across, under 50px up or down, inside 700ms),
+   and never one that starts in a text box or on something that scrolls sideways. It presses the
+   app's own button, so everything that button already does still happens. */
+(function(){
+  var x0 = null, y0 = 0, t0 = 0;
+  function skip(el){
+    for (; el && el.nodeType === 1; el = el.parentElement){
+      if (el.matches("input,textarea,select") || el.isContentEditable) return true;
+      if (el.scrollWidth > el.clientWidth){
+        var o = getComputedStyle(el).overflowX;
+        if (o === "auto" || o === "scroll") return true;
+      }
+    }
+    return false;
+  }
+  function step(d){
+    if (document.getElementById("pop").open) return;
+    var b = [].slice.call(document.querySelectorAll("#views .chip"));
+    var i = b.findIndex(function(x){ return x.getAttribute("aria-pressed") === "true"; });
+    if (i >= 0 && b[i + d]) b[i + d].click();
+  }
+  document.addEventListener("touchstart", function(e){
+    x0 = null;
+    if (e.touches.length !== 1 || skip(e.target)) return;
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, {passive: true});
+  document.addEventListener("touchend", function(e){
+    if (x0 === null) return;
+    var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) <= 70 || Math.abs(dy) >= 50 || Date.now() - t0 >= 700) return;
+    step(dx < 0 ? 1 : -1);
+  }, {passive: true});
+  document.addEventListener("touchcancel", function(){ x0 = null; }, {passive: true});
+})();
+</script>
 </body>
 </html>
