@@ -275,5 +275,25 @@ def main():
     print("built %d pages + index -> %s" % (len(cards), OUT))
 
 
+def copy_to_notion():
+    """Added 14 Sep 2026: keep the Notion "Recipes" database in step with the pages.
+
+    Sends through apps-notion-relay (C:/Users/soyan/apps-notion-relay). A failure here
+    never stops the build - the pages are the job, Notion is the copy.
+    """
+    try:
+        import sys
+        sys.dont_write_bytecode = True  # keep __pycache__ out of the published site
+        sys.path.insert(0, r"C:\Users\soyan\apps-notion-relay")
+        import backfill_static
+        app, rows = backfill_static.recipes()
+        for rid, title, detail, when, data in rows:
+            backfill_static.send(app, rid, title, detail, when, data)
+        print("copied %d recipes to Notion" % len(rows))
+    except Exception as e:  # report, never break the build
+        print("NOTION COPY FAILED (pages still built): %s" % e)
+
+
 if __name__ == "__main__":
     main()
+    copy_to_notion()

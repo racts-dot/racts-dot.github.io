@@ -444,6 +444,7 @@
   async function saveDoc(coll, key, data) {
     if (db) { await db.doc(coll + "/" + key).set(data); return; }
     lsSet(coll + "/" + key, data);
+    try { if (window.reflectNotion) window.reflectNotion(coll, key, data); } catch (e) {}
   }
   async function loadAll(coll) {
     const out = {};
@@ -945,5 +946,51 @@
       try { saidEl.focus({ preventScroll: true }); } catch (e) {}
     }
   })();
+})();
+</script>
+
+<script>
+/* ---------------- copy to Notion (website copy only) ----------------
+   Added 14 Sep 2026. Mornings and evenings still save in this browser as before; each save
+   also goes to the "Morning and Evening" database in Notion through apps-notion-relay,
+   one row per morning and one per evening, keyed by the date. Typing is already debounced
+   before saveDoc runs, and repeat saves of one day update the same row. */
+(function(){
+  if (!/^(racts-dot\.github\.io|localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+  var s = document.createElement("script");
+  s.src = "../notion-sync.js"; document.head.appendChild(s);
+  var nsTries = 0;
+  function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
+  var MOODS = ["heavy","low","okay","good","bright"];
+  function line(label, v){ return v ? label + ": " + v : ""; }
+  window.reflectNotion = function(coll, key, d){
+    if (!d || !d.date) return;
+    var rec;
+    if (coll === "mornings") {
+      var mood = (typeof d.mood === "number" && d.mood > 0) ? MOODS[d.mood - 1] : "";
+      rec = { title: "Morning · " + d.date + (mood ? " · " + mood : ""),
+        detail: [line("Lord", d.lord), line("Grateful", d.grateful), line("Win", d.win),
+                 line("Obstacle", d.obstacle), line("Note", d.note),
+                 d.winDone === true ? "Win done" : d.winDone === false ? "Win not done" : ""].filter(Boolean).join("\n"),
+        when: d.date, data: d };
+    } else if (coll === "reflections") {
+      rec = { title: "Evening · " + d.date,
+        detail: [line("Said", d.said), line("Tomorrow", d.tomorrow)].filter(Boolean).join("\n"),
+        when: d.date, data: d };
+    } else return;
+    (function send(){
+      if (!window.NotionSync) return nsLater(send);
+      NotionSync.save("reflect", coll + ":" + key, rec);
+    })();
+  };
+  // Copies days already on this device too; ones Notion already has are skipped by notion-sync.
+  window.addEventListener("load", function(){
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i), m = k && k.match(/^morning-evening:(mornings|reflections)\/(.+)$/);
+        if (m) window.reflectNotion(m[1], m[2], JSON.parse(localStorage.getItem(k)));
+      }
+    } catch(e) {}
+  });
 })();
 </script>

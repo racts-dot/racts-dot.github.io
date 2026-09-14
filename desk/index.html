@@ -1048,6 +1048,7 @@ const LS = {
 async function save(doc, data, quiet){
   if(db){ try{ await db.doc(doc).set(data); return; }catch(e){} }
   if(!LS.set(doc, data) && !quiet) toast("Could not save that. This browser is refusing to store anything.");
+  try{ if(window.deskNotion) window.deskNotion(doc, data); }catch(e){}
 }
 async function load(doc){
   if(db){ try{ const d = await db.doc(doc).get(); const v = d && (d.data ? d.data() : d);
@@ -3081,5 +3082,79 @@ if("serviceWorker" in navigator){
     .then(rs => rs.forEach(r => r.unregister())).catch(()=>{});
   if(window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(()=>{});
 }
+</script>
+<script>
+/* ---------------- copy to Notion (website copy only) ----------------
+   Added 14 Sep 2026. Every save still goes to this browser exactly as before; this also sends
+   each changed record to the "Rachie's Desk" database in Notion through apps-notion-relay.
+   Only records that changed since the last send go out; a record that disappears is ticked
+   Deleted in Notion, never erased. Inside Claude the page cannot reach the relay, so it is off. */
+(function(){
+  if (!/^(racts-dot\.github\.io|localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+  var s = document.createElement("script");
+  s.src = "../notion-sync.js"; document.head.appendChild(s);
+  var nsTries = 0;
+  function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
+  var SECTIONS = {
+    "state/ideas":    ["Idea",      function(r){ return r.text; }, function(r){ return ""; }, "at"],
+    "state/mine":     ["Today",     function(r){ return r.text; }, function(r){ return (r.done?"Done":"Open")+(r.due?" · due "+r.due:""); }, "at"],
+    "state/status":   ["Status",    function(r){ return r.name; }, function(r){ return (r.stage||"")+(r.note?" · "+r.note:""); }, "read"],
+    "state/rolling":  ["Rolling",   function(r){ return r.text; }, function(r){ return "every "+r.every+" days · next "+(r.next||"?"); }, "last"],
+    "state/score":    ["Scoreboard",function(r){ return r.name; }, function(r){ return "now "+(r.now||"?")+" · target "+(r.target||"?"); }, "read"],
+    "state/outbox":   ["Outbox",    function(r){ return (r.kind?r.kind+": ":"")+(r.what||""); }, function(r){ return (r.who||"")+" · "+(r.sent?"sent":"not sent"); }, "at"],
+    "state/renewals": ["Renewal",   function(r){ return r.name; }, function(r){ return (r.cost||"")+(r.renews?" · renews "+r.renews:""); }, "renews"],
+    "state/streaks":  ["Streak",    function(r){ return r.name; }, function(r){ return (r.dates||[]).length+" days ticked"; }, null]
+  };
+  function records(doc, data){
+    var out = {};
+    if (SECTIONS[doc]) {
+      var sec = SECTIONS[doc];
+      (data && data.items || []).forEach(function(r){
+        if (!r || !r.id) return;
+        out[doc+":"+r.id] = { title: sec[0]+" · "+(sec[1](r)||"(blank)"), detail: sec[2](r), when: sec[3] ? r[sec[3]] : null, data: r };
+      });
+    } else if (doc === "state/notes") {
+      (data && data.items || []).forEach(function(r){
+        if (!r || !r.at) return;
+        out[doc+":"+r.at] = { title: "Note · "+String(r.text||"").slice(0,80), detail: r.text||"", when: r.at, data: r };
+      });
+    } else if (doc === "state/hours") {
+      var days = data && data.days || {};
+      Object.keys(days).forEach(function(d){
+        var h = days[d] || {}, parts = Object.keys(h).map(function(k){ return k+" "+h[k]; });
+        out[doc+":"+d] = { title: "Hours · "+d, detail: parts.join(" · "), when: d, data: h };
+      });
+    } else if (doc === "state/plan" && data && data.now && data.now.week) {
+      out[doc+":"+data.now.week] = { title: "Plan · week of "+data.now.week, detail: String(data.now.planned||""), when: data.now.week, data: data.now };
+    } else return null;
+    return out;
+  }
+  function fp(s){ var h = 5381; for (var i = 0; i < s.length; i++) h = (h * 33 ^ s.charCodeAt(i)) >>> 0; return h.toString(36); }
+  window.deskNotion = function(doc, data){
+    var now = records(doc, data);
+    if (!now) return;
+    var shadowKey = "desk.notionShadow." + doc, before = {};
+    try { before = JSON.parse(localStorage.getItem(shadowKey) || "{}"); } catch(e) {}
+    var sig = {}, send = function(){
+      if (!window.NotionSync) return nsLater(send);
+      Object.keys(now).forEach(function(k){
+        var r = now[k], h = String(JSON.stringify(r).length) + ":" + fp(JSON.stringify(r));
+        sig[k] = h;
+        if (before[k] !== h) NotionSync.save("desk", k, r);
+      });
+      Object.keys(before).forEach(function(k){ if (!(k in now)) NotionSync.remove("desk", k); });
+      try { localStorage.setItem(shadowKey, JSON.stringify(sig)); } catch(e) {}
+    };
+    send();
+  };
+  // First visit after this was added: copy what is already on this device, not only new saves.
+  window.addEventListener("load", function(){
+    Object.keys(SECTIONS).concat(["state/notes","state/hours","state/plan"]).forEach(function(doc){
+      var v = null;
+      try { v = JSON.parse(localStorage.getItem("desk." + doc) || "null"); } catch(e) {}
+      if (v) window.deskNotion(doc, v);
+    });
+  });
+})();
 </script>
 </body></html>

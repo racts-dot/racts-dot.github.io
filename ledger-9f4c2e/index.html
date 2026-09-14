@@ -345,6 +345,7 @@ and apply it in eBay's own bulk editor.</p>
     try {
       localStorage.setItem("ebay-ledger-edits",
         JSON.stringify({ edits: edits, notes: notes, pad: pad }));
+      try { if (window.easyNotion) window.easyNotion(ITEMS, edits, notes, pad); } catch (e) {}
       el.textContent = "Saved in this browser";
       ps.textContent = "Saved";
       setTimeout(function(){ el.textContent = ""; ps.textContent = ""; }, 2200);
@@ -417,6 +418,51 @@ and apply it in eBay's own bulk editor.</p>
       render(); updateBar();
     }
   } catch (err) { /* private windows block this; the page still works */ }
+})();
+</script>
+<script>
+/* ---------------- copy to Notion ----------------
+   Added 14 Sep 2026. All 259 listings were copied once into the "Easy Life Stock Ledger"
+   database in Notion (build: apps-notion-relay/backfill_static.py). From here, every listing
+   whose title, price or note you change is updated in Notion through apps-notion-relay, and
+   the notepad is kept as its own row. Discarding a change puts the listing's original title
+   and price back in Notion too. */
+(function(){
+  if (!/^(racts-dot\.github\.io|localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+  var s = document.createElement("script");
+  s.src = "../notion-sync.js"; document.head.appendChild(s);
+  var nsTries = 0;
+  function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
+  var timer;
+  function rec(it, e, note){
+    e = e || {};
+    var title = e.t != null ? e.t : it.t, price = e.p != null ? e.p : it.p;
+    return { title: title,
+      detail: ["A$" + price, it.n, it.c, (e.t != null || e.p != null) ? "edited" : "", note ? "Note: " + note : ""]
+        .filter(Boolean).join(" · "),
+      when: null,
+      data: { id: it.i, url: it.u, photo: it.g, title: title, price: price,
+              original_title: it.t, original_price: it.p, condition: it.n, category: it.c, note: note || "" } };
+  }
+  window.easyNotionRecord = rec;
+  function sendAll(items, edits, notes, pad){
+    if (!window.NotionSync) return nsLater(function(){ sendAll(items, edits, notes, pad); });
+    var byId = {}; items.forEach(function(it){ byId[it.i] = it; });
+    var touched = {};
+    Object.keys(edits).concat(Object.keys(notes)).forEach(function(id){ if (byId[id]) touched[id] = 1; });
+    NotionSync.knownIds("easylife").forEach(function(id){ if (byId[id]) touched[id] = 1; });
+    Object.keys(touched).forEach(function(id){
+      NotionSync.save("easylife", id, rec(byId[id], edits[id], notes[id]));
+    });
+    if (pad || NotionSync.knownIds("easylife").indexOf("notepad") >= 0) {
+      NotionSync.save("easylife", "notepad", { title: "Notepad", detail: pad || "", data: { pad: pad || "" } });
+    }
+  }
+  window.easyNotion = function(items, edits, notes, pad){
+    clearTimeout(timer);
+    var snap = JSON.parse(JSON.stringify([edits, notes, pad]));
+    timer = setTimeout(function(){ sendAll(items, snap[0], snap[1], snap[2]); }, 1500);
+  };
 })();
 </script>
 </body>

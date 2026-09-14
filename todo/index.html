@@ -96,7 +96,7 @@ const $=id=>document.getElementById(id);
 function setStatus(m,k){const e=$("status");e.textContent=m;e.className="status"+(k?" "+k:"")}
 function setMode(m){["todo","done","notes"].forEach(x=>{$("btn"+x[0].toUpperCase()+x.slice(1)).classList.toggle("active",x===m);$("page"+x[0].toUpperCase()+x.slice(1)).classList.toggle("active",x===m)})}
 async function refreshAll(){const b=$("refreshBtn");b.disabled=true;setStatus("refreshing…");await Promise.all([loadTasks(),loadNotes()]);b.disabled=false;if(!$("status").classList.contains("err"))setStatus("synced ✓","ok")}
-async function loadTasks(){const{data,error}=await db.from("tasks").select("*").order("created_at",{ascending:false});if(error){setStatus("error: "+error.message,"err");return}tasks=data||[];renderTasks();renderDone()}
+async function loadTasks(){const{data,error}=await db.from("tasks").select("*").order("created_at",{ascending:false});if(error){setStatus("error: "+error.message,"err");return}tasks=data||[];renderTasks();renderDone();try{if(window.todoNotion)todoNotion("task",tasks)}catch(e){}}
 async function addTask(){const i=$("taskInput"),t=i.value.trim();if(!t)return;const c=$("categorySelect").value;$("addTaskBtn").disabled=true;const{error}=await db.from("tasks").insert({text:t,category:c,done:false});$("addTaskBtn").disabled=false;if(error){setStatus("error: "+error.message,"err");return}i.value="";setStatus("saved ✓","ok");loadTasks()}
 async function toggleDone(id,c){await db.from("tasks").update({done:!c,done_at:c?null:new Date().toISOString()}).eq("id",id);loadTasks()}
 async function deleteTask(id){await db.from("tasks").delete().eq("id",id);loadTasks()}
@@ -106,13 +106,50 @@ function renderTabs(){const t=$("tabs");t.innerHTML="";categories.forEach(c=>{co
 function renderTasks(){renderTabs();const l=$("list");l.innerHTML="";const live=tasks.filter(t=>!t.archived);const f=activeFilter==="All"?live:live.filter(t=>t.category===activeFilter);const s=[...f].sort((a,b)=>a.done===b.done?0:a.done?1:-1);if(!s.length)l.innerHTML='<div class="empty">Nothing here — add something above.</div>';s.forEach(t=>{const r=document.createElement("div");r.className="item"+(t.done?" done":"");const b=document.createElement("div");b.className="checkbox";b.textContent=t.done?"✓":"";b.onclick=()=>toggleDone(t.id,t.done);const la=document.createElement("div");la.className="label";la.textContent=t.text;const ch=document.createElement("span");ch.className="chip";ch.textContent=t.category;const d=document.createElement("button");d.className="del";d.textContent="×";d.onclick=()=>deleteTask(t.id);r.append(b,la,ch,d);l.appendChild(r)});$("countLabel").textContent=`${live.filter(t=>!t.done).length} open · ${live.length} total`}
 function dayLabel(d){const t=new Date(),y=new Date(Date.now()-864e5);const f=x=>x.toDateString();if(f(d)===f(t))return"Today";if(f(d)===f(y))return"Yesterday";return d.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"short"})}
 function renderDone(){const l=$("doneList");l.innerHTML="";const done=tasks.filter(t=>t.done).sort((a,b)=>new Date(b.done_at||b.created_at)-new Date(a.done_at||a.created_at));if(!done.length){l.innerHTML='<div class="empty">Nothing cleared yet.</div>';return}const groups={};done.forEach(t=>{const d=new Date(t.done_at||t.created_at);const k=dayLabel(d);(groups[k]=groups[k]||[]).push(t)});Object.keys(groups).forEach(k=>{const g=document.createElement("div");g.className="daygroup";const h=document.createElement("div");h.className="dayhead";h.textContent=k+" · "+groups[k].length+" cleared";g.appendChild(h);groups[k].forEach(t=>{const r=document.createElement("div");r.className="item done";r.style.marginBottom="8px";const b=document.createElement("div");b.className="checkbox";b.textContent="✓";b.onclick=()=>toggleDone(t.id,true);const la=document.createElement("div");la.className="label";la.textContent=t.text;const ch=document.createElement("span");ch.className="chip";ch.textContent=t.category;const tm=document.createElement("span");tm.className="time";tm.textContent=t.done_at?new Date(t.done_at).toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"}):"";r.append(b,la,ch,tm);g.appendChild(r)});l.appendChild(g)})}
-async function loadNotes(){const{data,error}=await db.from("notes").select("*").order("created_at",{ascending:false});if(error){setStatus("error: "+error.message,"err");return}notes=data||[];renderNotes()}
+async function loadNotes(){const{data,error}=await db.from("notes").select("*").order("created_at",{ascending:false});if(error){setStatus("error: "+error.message,"err");return}notes=data||[];renderNotes();try{if(window.todoNotion)todoNotion("note",notes)}catch(e){}}
 async function addNote(){const i=$("noteInput"),t=i.value.trim();if(!t)return;$("addNoteBtn").disabled=true;const{error}=await db.from("notes").insert({text:t});$("addNoteBtn").disabled=false;if(error){setStatus("error: "+error.message,"err");return}i.value="";setStatus("saved ✓","ok");loadNotes()}
 async function deleteNote(id){await db.from("notes").delete().eq("id",id);loadNotes()}
 function renderNotes(){const l=$("notesList");l.innerHTML="";if(!notes.length){l.innerHTML='<div class="empty">No notes yet — write your first thought above.</div>';return}notes.forEach(n=>{const dt=new Date(n.created_at);const ds=dt.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"})+" · "+dt.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});const r=document.createElement("div");r.className="note";const m=document.createElement("div");m.className="note-meta";const da=document.createElement("span");da.className="note-date";da.textContent=ds;const d=document.createElement("button");d.className="del";d.textContent="×";d.onclick=()=>deleteNote(n.id);m.append(da,d);const b=document.createElement("div");b.className="note-text";b.textContent=n.text;r.append(m,b);l.appendChild(r)})}
 $("taskInput").addEventListener("keydown",e=>{if(e.key==="Enter")addTask()});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshAll()});
 refreshAll();
+</script>
+<script>
+/* ---------------- copy to Notion ----------------
+   Added 14 Sep 2026. Supabase stays the app's store. Each time the lists load from Supabase
+   (after every add, tick, delete or refresh), the rows are copied to the "To-Do & Reflections"
+   database in Notion through apps-notion-relay. Unchanged rows are skipped; a row that has gone
+   from Supabase is ticked Deleted in Notion. Only runs after a successful load, so a network
+   error never marks everything deleted. */
+(function(){
+  if (!/^(racts-dot\.github\.io|localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+  var s = document.createElement("script");
+  s.src = "../notion-sync.js"; document.head.appendChild(s);
+  var nsTries = 0;
+  function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
+  window.todoNotion = function(kind, rows){
+    if (!window.NotionSync) return nsLater(function(){ window.todoNotion(kind, rows); });
+    var seen = {};
+    rows.forEach(function(r){
+      var id = kind + ":" + r.id; seen[id] = 1;
+      if (kind === "task") {
+        NotionSync.save("todo", id, {
+          title: r.text,
+          detail: [r.category, r.archived ? "Cleared" : r.done ? "Done" : "Open",
+                   r.done_at ? "done " + r.done_at.slice(0, 10) : ""].filter(Boolean).join(" · "),
+          when: r.created_at, data: r });
+      } else {
+        NotionSync.save("todo", id, { title: "Note · " + String(r.text || "").slice(0, 80),
+          detail: r.text, when: r.created_at, data: r });
+      }
+    });
+    // An empty list, or one at Supabase's 1,000-row read cap, may be incomplete: never tick Deleted from it.
+    if (!rows.length || rows.length >= 1000) return;
+    NotionSync.knownIds("todo").forEach(function(id){
+      if (id.indexOf(kind + ":") === 0 && !seen[id]) NotionSync.remove("todo", id);
+    });
+  };
+})();
 </script>
 </body>
 </html>

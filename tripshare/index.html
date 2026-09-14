@@ -355,7 +355,7 @@
     try {
       var d = JSON.parse(raw);
       if (!validBackup(d)) throw new Error("shape");
-      return normDB(d);
+      return normDB(d, true); /* this device's own store: keep ids */
     } catch (e) { LOAD_BROKEN = true; return { v: 1, trips: [] }; }
   }
   /* Never let a failed write pass for a successful one. */
@@ -363,6 +363,7 @@
     try {
       localStorage.setItem(KEY, JSON.stringify(d));
       if (SAVE_FAILED) { SAVE_FAILED = false; paintAlerts(); }
+      try { if (window.tripNotion) window.tripNotion(d); } catch (e) {}
       return true;
     } catch (e) {
       /* A banner she never scrolls up to see is not a warning. The first time
@@ -413,32 +414,41 @@
      source of items can never quietly widen what is allowed to be stored.
      It was pulled out of normTrip when the planner was added, rather than
      copied, because a second copy is how the two would drift apart. */
-  function normItem(a, fallbackDate) {
+  var ID_OK = /^[a-z0-9]{6,24}$/;
+  function normItem(a, fallbackDate, keepId) {
     a = a || {};
     return {
-      i: uid(), d: isoDate(a.d) || fallbackDate, k: knownKind(a.k),
+      i: (keepId && ID_OK.test(a.i)) ? a.i : uid(), d: isoDate(a.d) || fallbackDate, k: knownKind(a.k),
       t: str(a.t, 90) || "Untitled",
       s: hhmm(a.s), e: hhmm(a.e), l: str(a.l, 120), n: str(a.n, 500),
       w: safeUrl(str(a.w)), m: safeUrl(str(a.m))
     };
   }
-  function normTrip(o, seen) {
+  /* keepIds (added 14 Sep 2026): trips reloaded from this device's own store keep their ids,
+     so the Notion copy can recognise the same trip. Shared links and planner items still get
+     fresh ids, exactly as before. */
+  function normTrip(o, seen, keepIds) {
     var t = {
-      i: uid(), t: str(o && o.t, 80) || "Untitled trip", d: str(o && o.d, 80),
+      i: (keepIds && o && ID_OK.test(o.i)) ? o.i : uid(), t: str(o && o.t, 80) || "Untitled trip", d: str(o && o.d, 80),
       s: isoDate(o && o.s), e: isoDate(o && o.e), n: str(o && o.n, 300),
       c: isoDate(o && o.c) || todayISO(), u: isoDate(o && o.u) || todayISO(), x: []
     };
     if (!t.s) t.s = todayISO();
     if (!t.e || t.e < t.s) t.e = t.s;
     var items = (o && Array.isArray(o.x)) ? o.x : [];
-    for (var i = 0; i < items.length; i++) t.x.push(normItem(items[i], t.s));
+    var itemSeen = {};
+    for (var i = 0; i < items.length; i++) {
+      var it = normItem(items[i], t.s, keepIds);
+      while (itemSeen[it.i]) it.i = uid();
+      itemSeen[it.i] = 1; t.x.push(it);
+    }
     if (seen) { while (seen[t.i]) t.i = uid(); seen[t.i] = 1; }
     return t;
   }
-  function normDB(d) {
+  function normDB(d, keepIds) {
     var out = { v: 1, trips: [] }, seen = {};
     var list = (d && Array.isArray(d.trips)) ? d.trips : [];
-    for (var i = 0; i < list.length; i++) out.trips.push(normTrip(list[i], seen));
+    for (var i = 0; i < list.length; i++) out.trips.push(normTrip(list[i], seen, !!keepIds));
     return out;
   }
   var DB = load();
@@ -1507,6 +1517,50 @@
     }
   });
   boot();
+})();
+</script>
+<script>
+/* ---------------- copy to Notion ----------------
+   Added 14 Sep 2026. Trips still save in this browser as before. Each save also copies every
+   trip, with its plan written out day by day, to the "TripShare" database in Notion through
+   apps-notion-relay, one row per trip. Typing saves on every key, so the copy waits until
+   typing has paused for two seconds. A deleted trip is ticked Deleted in Notion. */
+(function(){
+  if (!/^(racts-dot\.github\.io|localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+  var s = document.createElement("script");
+  s.src = "../notion-sync.js"; document.head.appendChild(s);
+  var nsTries = 0;
+  function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
+  var timer;
+  function itinerary(t){
+    var rows = (t.x || []).slice().sort(function(a, b){
+      return (a.d + (a.s || "99")).localeCompare(b.d + (b.s || "99"));
+    });
+    return rows.map(function(a){
+      return [a.d, a.s ? a.s + (a.e ? "–" + a.e : "") : "", a.k, a.t, a.l, a.n, a.w, a.m]
+        .filter(Boolean).join(" · ");
+    }).join("\n");
+  }
+  function sendAll(d){
+    if (!window.NotionSync) return nsLater(function(){ sendAll(d); });
+    var seen = {};
+    (d.trips || []).forEach(function(t){
+      seen[t.i] = 1;
+      NotionSync.save("tripshare", t.i, {
+        title: t.t + (t.d ? " · " + t.d : ""),
+        detail: t.s + " to " + t.e + (t.n ? "\n" + t.n : "") + "\n\n" + itinerary(t),
+        when: t.s, data: t });
+    });
+    NotionSync.knownIds("tripshare").forEach(function(id){ if (!seen[id]) NotionSync.remove("tripshare", id); });
+  }
+  window.tripNotion = function(d){
+    clearTimeout(timer);
+    var snapshot = JSON.parse(JSON.stringify(d));
+    timer = setTimeout(function(){ sendAll(snapshot); }, 2000);
+  };
+  window.addEventListener("load", function(){
+    try { var raw = localStorage.getItem("tripshare.v1"); if (raw) window.tripNotion(JSON.parse(raw)); } catch(e) {}
+  });
 })();
 </script>
 </body>

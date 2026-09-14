@@ -771,6 +771,11 @@ function markSoldPrompt(num){
  var hd=card.querySelector('.stockhead');if(hd)showStock(hd);
  scanToast('Marked #'+num+' sold'+(CFG.url?' \u2014 syncing to Sheet\u2026':' (Sheet sync not configured)'));
 
+ /* Also copy the sale to Notion (added 14 Sep 2026) - see the script at the end of this file. */
+ try{ if(window.salesNotion){salesNotion(num,{title:d.title,cost:d.cost,received:recv.toFixed(2),net:net.toFixed(2),
+  solddate:soldsort,week:d.week||'',device:d.devfull||'',oid:d.oid||'',track:d.track||'',channel:'Facebook',
+  status:status,orderdate:d.orderdate||'',buyer:d.buyer||d.recip||'',batch:d.batch||'',category:d.type||''});} }catch(e){}
+
  if(CFG.url){
   fetch(CFG.url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({
    token:CFG.token,num:num,title:d.title,cost:d.cost,received:recv.toFixed(2),net:net.toFixed(2),
@@ -794,4 +799,27 @@ function populateStockWeeks(){var sel=document.getElementById('stweek');var seen
  document.querySelectorAll('#tab-stock .stock[data-week]').forEach(function(el){var w=el.getAttribute('data-week');if(w)seen[w]=1;});
  Object.keys(seen).sort(function(a,b){return (+b.slice(1))-(+a.slice(1));}).forEach(function(w){var o=document.createElement('option');o.value=w;o.textContent=w+' (ordered)';sel.appendChild(o);});}
 populateWeeks();populateStockWeeks();applyTestMarks();applyView();(function(){var L=document.querySelector('#tab-stock .stocklist');if(L){[].slice.call(document.querySelectorAll('#tab-stock .stock')).forEach(function(e){if(!e.closest('.stocklist'))L.appendChild(e);});}})();applyStock();
-</script></body></html>
+</script><script>
+/* ---------------- copy to Notion ----------------
+   Added 14 Sep 2026. The Google Sheet stays the record. Every item already on this page was
+   copied once into the "Sales Tracker" database in Notion (apps-notion-relay/backfill_static.py);
+   from here, each Mark Sold also updates that item's row in Notion through apps-notion-relay,
+   with the same fields the Sheet receives. No Notion key or Sheet token is involved. */
+(function(){
+  if (!/^(racts-dot\.github\.io|localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+  var s = document.createElement("script");
+  s.src = "notion-sync.js"; document.head.appendChild(s);
+  var nsTries = 0;
+  function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
+  window.salesNotion = function(num, f){
+    if (!window.NotionSync) return nsLater(function(){ window.salesNotion(num, f); });
+    NotionSync.save("sales", String(num), {
+      title: "#" + num + " \u00b7 " + (f.title || ""),
+      detail: ["SOLD " + f.solddate, "received $" + f.received, "net $" + f.net, "cost " + f.cost,
+               f.channel, f.buyer, f.batch ? "batch " + f.batch : "", f.category].filter(Boolean).join(" \u00b7 "),
+      when: f.solddate || null,
+      data: Object.assign({ num: String(num), sold: true }, f) });
+  };
+})();
+</script>
+</body></html>

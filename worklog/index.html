@@ -433,7 +433,8 @@ const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&g
 /* ---------- pending store (this device only) ---------- */
 function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||'[]'); }catch(e){ return []; } }
 function save(v){ try{ localStorage.setItem(KEY, JSON.stringify(v)); }catch(e){
-  flash('저장 공간에 쓸 수 없습니다 · could not save locally','err'); } }
+  flash('저장 공간에 쓸 수 없습니다 · could not save locally','err'); }
+  try{ if(window.worklogNotion) window.worklogNotion(); }catch(e){} }
 let pend = load();
 
 /* ---------- theme ---------- */
@@ -469,7 +470,8 @@ document.querySelectorAll('.tabs button').forEach(b => b.onclick = () => {
 const SENT = 'wl-sent-v1';
 let sent = (()=>{ try{ return JSON.parse(localStorage.getItem(SENT)||'[]'); }
                   catch(e){ return []; } })();
-function saveSent(){ try{ localStorage.setItem(SENT, JSON.stringify(sent)); }catch(e){} }
+function saveSent(){ try{ localStorage.setItem(SENT, JSON.stringify(sent)); }catch(e){}
+  try{ if(window.worklogNotion) window.worklogNotion(); }catch(e){} }
 
 function current(){
   const m=new Map();
@@ -1170,6 +1172,38 @@ $('cu').addEventListener('change', suggestPrice);
 $('am').addEventListener('input', clearSuggest);
 $('pcfy').onclick = () => { clearSuggest(); flash('금액 확인됨 · amount confirmed','ok'); };
 
+</script>
+<script>
+/* ---------------- copy to Notion ----------------
+   Added 14 Sep 2026. The Sheet stays the record. Whenever entries change (a save, a correction,
+   a void, a sync or a pull), the newest revision of every job is copied to the "작업일지"
+   database in Notion through apps-notion-relay, one row per job. A voided job stays in Notion
+   marked VOID, because this app never throws an entry away. Entries not yet sent to the Sheet
+   are copied too, so Notion has them even on a phone with no Sheet set up. */
+(function(){
+  if (!/^(racts-dot\.github\.io|localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+  var s = document.createElement("script");
+  s.src = "../notion-sync.js"; document.head.appendChild(s);
+  var nsTries = 0;
+  function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
+  var timer;
+  function sendAll(){
+    if (!window.NotionSync || typeof current !== "function") return nsLater(sendAll);
+    current().forEach(function(e){
+      if (!e || !e.job_id) return;
+      var voided = e.status === "void";
+      NotionSync.save("worklog", e.job_id, {
+        title: (voided ? "VOID · " : "") + e.work_date + " · " + (e.customer || "?") + " · " + e.amount + " " + (e.type || ""),
+        detail: ["net " + e.net, "deduction " + e.deduction, e.rate != null && e.rate !== "" ? "rate " + e.rate + "%" : "",
+                 e.cancelled ? "cancelled" : "", e.note || "", e._pending ? "not yet in the Sheet" : "in the Sheet",
+                 "rev " + (e.rev || 1)].filter(Boolean).join(" · "),
+        when: e.work_date,
+        data: Object.assign({}, e, { _pending: undefined }) });
+    });
+  }
+  window.worklogNotion = function(){ clearTimeout(timer); timer = setTimeout(sendAll, 1500); };
+  window.addEventListener("load", window.worklogNotion);
+})();
 </script>
 </body>
 </html>
