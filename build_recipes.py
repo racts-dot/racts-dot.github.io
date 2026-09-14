@@ -378,7 +378,7 @@ def illustrate_index(index_html, pages):
 # ---------------- read aloud, 15 Sep 2026 ----------------
 # Her words: "I need a reading, like the speak out loud for the recipes." The phone's own voice reads
 # the page from the top, a paragraph at a time, highlighting where it is. Free: no recording, no API.
-# It stops when she leaves the page, the same rule as the Desk.
+# Not stopped on leaving the page (her 15 Sep: play in the background).
 READ_MARK = "<!--read-aloud-->"
 READ_CSS = """
 .readbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
@@ -438,8 +438,6 @@ READ_JS = """<script>
   stop.addEventListener('click', finish);
   rate.addEventListener('change', function(){ if(on&&!paused){ speechSynthesis.cancel(); step(); } });
   if (speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
-  document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden' && on) finish(); });
-  addEventListener('pagehide', function(){ if(on) finish(); });
 })();
 </script>"""
 

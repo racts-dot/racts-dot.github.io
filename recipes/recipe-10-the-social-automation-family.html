@@ -203,8 +203,6 @@ a.ts{white-space:nowrap}
   stop.addEventListener('click', finish);
   rate.addEventListener('change', function(){ if(on&&!paused){ speechSynthesis.cancel(); step(); } });
   if (speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
-  document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden' && on) finish(); });
-  addEventListener('pagehide', function(){ if(on) finish(); });
 })();
 </script><!--read-aloud-->
 </body>
