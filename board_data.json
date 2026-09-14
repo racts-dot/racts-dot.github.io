@@ -1,23 +1,23 @@
 {
- "generated_at": "2026-09-14 12:01",
+ "generated_at": "2026-09-14 12:31",
  "generated_date": "2026-09-14",
  "reviews": {
   "available": true,
-  "spent_usd": 30.16,
+  "spent_usd": 30.36,
   "authorized_usd": 40.0,
-  "pct": 75.4,
-  "runs": 516,
+  "pct": 75.9,
+  "runs": 519,
   "kill_switch_on": false,
   "providers": [
    {
     "provider": "openai",
-    "spent_usd": 14.6,
+    "spent_usd": 14.78,
     "authorized_usd": 20.0,
     "enabled": true
    },
    {
     "provider": "vertex",
-    "spent_usd": 15.56,
+    "spent_usd": 15.59,
     "authorized_usd": 20.0,
     "enabled": true
    }
@@ -25,15 +25,15 @@
   "by_task": [
    {
     "task": "Unclassified - the name did not say what it bought",
-    "runs": 219,
-    "usd": 10.57,
+    "runs": 221,
+    "usd": 10.65,
     "first": "2026-09-03",
     "last": "2026-09-14"
    },
    {
     "task": "SQL / worksheet products",
-    "runs": 73,
-    "usd": 5.15,
+    "runs": 74,
+    "usd": 5.27,
     "first": "2026-09-06",
     "last": "2026-09-14"
    },
@@ -122,7 +122,7 @@
     "last": "2026-09-04"
    }
   ],
-  "attributed_usd": 30.57,
+  "attributed_usd": 30.77,
   "unattributed_usd": -0.41,
   "source": "review_board/budget.json - written by the review scripts themselves"
  },
@@ -134,7 +134,7 @@
   "pct": 96.3,
   "total_runs": 199,
   "cycle_end": "2026-09-21",
-  "read_at": "2026-09-14 12:01",
+  "read_at": "2026-09-14 12:31",
   "top_actors": [
    {
     "actor": "yumitori/etsy-listings-scraper",
@@ -183,9 +183,9 @@
  },
  "git": {
   "branch": "main",
-  "uncommitted_files": 34,
-  "last_commit": "cc025a09 Glaucoma guide: trace check and first six chapters of fact-traced content",
-  "last_commit_at": "2026-09-14T11:57:45+09:30"
+  "uncommitted_files": 5,
+  "last_commit": "1e74d0d7 Nightly automatic backup: 16 file(s)",
+  "last_commit_at": "2026-09-14T12:30:17+09:30"
  },
  "facts": {
   "available": true,
