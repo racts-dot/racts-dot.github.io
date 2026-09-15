@@ -51,6 +51,9 @@
   base.textContent =
     ":root{--ts-scale:1;--ts-bold:0}" +
     /* bold for text that has no weight of its own: body text, then headings stay a step above it */
+    /* a page that never sets a body font-size inherits the browser default, so there is nothing to rewrite:
+       give it one that follows the scale. Zero specificity, so the page's own size always wins. */
+    ":where(html.ts-big body){font-size:calc(1rem * var(--ts-scale))}" +
     ":where(html.ts-bold body){font-weight:600}" +
     ":where(html.ts-bold) :where(button,input,select,textarea){font-weight:600}" +
     ":where(html.ts-bold) :where(h1,h2,h3,h4,h5,h6,th,dt,legend,b,strong){font-weight:800}";
