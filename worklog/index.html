@@ -257,6 +257,15 @@ textarea.show{display:block}
 .pconf b{color:var(--tx)}
 .pconf button{margin-left:auto;padding:6px 11px;font-size:12px;min-height:0}
 .pconf.warn{border-color:var(--warn);background:color-mix(in srgb,var(--warn) 12%,var(--s2))}
+/* Aa text size (textsize.js), 16 Sep 2026: at the bigger sizes the calendar keeps 7 columns inside its card and the
+   date, count and amount stop overlapping; stat tiles drop to one per row; year rows size to their labels */
+html.ts-big .cal{grid-template-columns:repeat(7,minmax(0,1fr))}
+html.ts-big .day{min-width:0;aspect-ratio:auto;min-height:calc(46px * var(--ts-scale));padding:3px}
+html.ts-big .day .n,html.ts-big .day .c{line-height:1.1}
+html.ts-big .day .c{right:3px;top:3px}
+html.ts-big .day .v{left:3px;right:3px;bottom:3px;white-space:nowrap;overflow:hidden}
+html.ts-big .tiles{grid-template-columns:repeat(auto-fit,minmax(calc(140px * var(--ts-scale)),1fr))}
+html.ts-big .yb{grid-template-columns:auto minmax(0,1fr) auto}
 </style>
 <script src="../textsize.js"></script>
 </head>
