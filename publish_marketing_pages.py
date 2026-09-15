@@ -122,6 +122,14 @@ def add_swipe(html, attrs, label):
     return f'{head}<script src="../swipe.js" {attrs} defer></script>\n</body>{tail}'
 
 
+def use_site_textsize(html, label):
+    """16 Sep 2026: the Aa text size button. The printables pages load a local textsize.js (they also deploy to
+    Cloudflare); here they load the site's one shared copy instead, so there is only one file to keep level."""
+    if 'src="textsize.js"' not in html and 'src="/textsize.js"' not in html:
+        sys.exit(f"STOP: {label}: no textsize.js tag - the source page changed, check it by hand")
+    return html.replace('<script src="textsize.js"></script>', '<script src="/textsize.js"></script>')
+
+
 def main():
     subprocess.run(["git", "-C", str(PRINTABLES), "fetch", "-q", "origin"], check=True)
 
@@ -129,8 +137,10 @@ def main():
     for path in git_list("sabrina_cookbook"):
         name = path.split("/", 1)[1]
         if name == "index.html":
-            write("cookbook/index.html",
-                  add_swipe(git_bytes(path).decode("utf-8"), 'data-select="#tool"', "cookbook swipe"))
+            page = use_site_textsize(git_bytes(path).decode("utf-8"), "cookbook")
+            # the source loads its own speak.js (Cloudflare copy); this site's one lives at the root
+            page = page.replace('<script src="speak.js" defer></script>', '<script src="../speak.js" defer></script>')
+            write("cookbook/index.html", add_swipe(page, 'data-select="#tool"', "cookbook swipe"))
         elif name in {"favicon.png", "icon-180.png", "icon-192.png", "icon-512.png", "og.png"}:
             write(f"cookbook/{name}", git_bytes(path))
     manifest = git_bytes("sabrina_cookbook/manifest.webmanifest").decode("utf-8")
@@ -141,9 +151,9 @@ def main():
     for path in git_list("apps/video_search_site/public"):
         name = path.rsplit("/", 1)[1]
         if name == "index.html":
-            write("videos/index.html", add_swipe(git_bytes(path).decode("utf-8"),
+            write("videos/index.html", add_swipe(use_site_textsize(git_bytes(path).decode("utf-8"), "videos"),
                                                  'data-chips="#chips .chip" data-input="#q"', "videos swipe"))
-        elif name != "_headers":  # Cloudflare-only file; GitHub Pages ignores it
+        elif name not in {"_headers", "textsize.js"}:  # _headers is Cloudflare-only; textsize.js: the site's root copy
             write(f"videos/{name}", git_bytes(path))
 
     print("hormozi/")
@@ -154,13 +164,13 @@ def main():
     html = replace_once(html, "Saved: <a href=\"${url}\" target=\"_blank\" rel=\"noopener\">open in Notion</a>",
                         "Sending to Notion: <a href=\"${url}\" target=\"_blank\" rel=\"noopener\">open the list</a>",
                         "hormozi saved message")
-    write("hormozi/index.html", add_notion(as_document(strip_shop(html, "hormozi")), "hormozi"))
+    write("hormozi/index.html", add_notion(as_document(strip_shop(use_site_textsize(html, "hormozi"), "hormozi")), "hormozi"))
     for path in git_list("hormozi_cookbook/audio"):
         write("hormozi/audio/" + path.rsplit("/", 1)[1], git_bytes(path))
 
     print("workflows/")
     html = git_bytes("doser_cookbook/index.html").decode("utf-8")
-    write("workflows/index.html", add_notion(as_document(strip_shop(html, "workflows")), "workflows"))
+    write("workflows/index.html", add_notion(as_document(strip_shop(use_site_textsize(html, "workflows"), "workflows")), "workflows"))
 
     import recipes_hub   # 15 Sep: the combined Recipes home, and its "All recipes" bar on these pages
     recipes_hub.main()
