@@ -790,8 +790,10 @@ function markSoldPrompt(num){
 
 var TABS=['stock','tracker','weekly','summary','print'],ti=0;
 var _sx=0,_sy=0;
-document.addEventListener('touchstart',function(e){_sx=e.touches[0].clientX;_sy=e.touches[0].clientY;},{passive:true});
-document.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-_sx,dy=e.changedTouches[0].clientY-_sy;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.5){var ni=Math.min(TABS.length-1,Math.max(0,ti+(dx<0?1:-1)));if(ni!==ti){var btns=document.querySelectorAll('.tabbtn');show(TABS[ni],btns[ni]);}}},{passive:true});
+/* 16 Sep: tab swipe no longer fires while a photo or the details panel is open, on the tab bar, in a box you type in, or on anything that scrolls sideways (wide tables) - her list item from 15 Sep. */
+var _skipSw=false;function _noTabSwipe(t){var lb=document.getElementById('lb'),inf=document.getElementById('info');if((lb&&lb.style.display==='flex')||(inf&&inf.style.display==='flex'))return true;if(!t||!t.closest)return false;if(t.closest('#lb,#info,.tabbar,input,textarea,select'))return true;for(var el=t;el&&el!==document.body;el=el.parentElement){if(el.scrollWidth>el.clientWidth+2){var ox=getComputedStyle(el).overflowX;if(ox==='auto'||ox==='scroll')return true;}}return false;}
+document.addEventListener('touchstart',function(e){_sx=e.touches[0].clientX;_sy=e.touches[0].clientY;_skipSw=_noTabSwipe(e.target);},{passive:true});
+document.addEventListener('touchend',function(e){if(_skipSw){_skipSw=false;return;}var dx=e.changedTouches[0].clientX-_sx,dy=e.changedTouches[0].clientY-_sy;if(Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.5){var ni=Math.min(TABS.length-1,Math.max(0,ti+(dx<0?1:-1)));if(ni!==ti){var btns=document.querySelectorAll('.tabbtn');show(TABS[ni],btns[ni]);}}},{passive:true});
 function populateWeeks(){var sel=document.getElementById('weeksel');var seen={};
  document.querySelectorAll('#tab-tracker tr[data-week]').forEach(function(tr){var w=tr.getAttribute('data-week');var c=tr.getAttribute('data-cat');if(w&&(c==='fb'||c==='personal'))seen[w]=1;});
  Object.keys(seen).sort(function(a,b){return (+b.slice(1))-(+a.slice(1));}).forEach(function(w){var o=document.createElement('option');o.value=w;o.textContent=w+' (ordered)';sel.appendChild(o);});}
