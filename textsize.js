@@ -89,13 +89,51 @@
     var m, re = /var\(\s*(--[\w-]+)/g;
     while ((m = re.exec(String(v || "")))) sizeVars[m[1]] = true;
   }
+  /* A font shorthand that uses var() (e.g. `font: 600 17px/1.3 var(--serif)`) hides its size and weight from
+     the style object until the page renders, so read them out of the shorthand text instead. */
+  var FONT_PREFIX = /^(?:normal|italic|oblique|small-caps|bold|bolder|lighter|ultra-condensed|extra-condensed|condensed|semi-condensed|semi-expanded|expanded|extra-expanded|ultra-expanded|\d{1,4})$/i;
+  function fontTokens(text) {
+    var out = [], buf = "", depth = 0, i, ch;
+    for (i = 0; i < text.length; i++) {
+      ch = text.charAt(i);
+      if (ch === "(") depth++;
+      if (ch === ")") depth--;
+      if (depth === 0 && (ch === " " || ch === "/")) {
+        if (buf) out.push(buf);
+        buf = "";
+        if (ch === "/") out.push("/");
+        continue;
+      }
+      buf += ch;
+    }
+    if (buf) out.push(buf);
+    return out;
+  }
+  function fontParts(style) {
+    var fs = style.getPropertyValue("font-size"), lh = style.getPropertyValue("line-height"), fw = style.getPropertyValue("font-weight");
+    var pr = { fs: style.getPropertyPriority("font-size"), lh: style.getPropertyPriority("line-height"), fw: style.getPropertyPriority("font-weight") };
+    var sh = style.getPropertyValue("font");
+    if (!fs && sh && sh.indexOf("var(") !== -1 && sh.indexOf("--ts-") === -1) {
+      var t = fontTokens(sh.trim()), i = 0, weight = "normal";
+      while (i < t.length - 1 && FONT_PREFIX.test(t[i])) {
+        if (/^(bold|\d{1,4}|normal)$/i.test(t[i]) && !/^normal$/i.test(t[i])) weight = t[i];
+        i++;
+      }
+      if (i < t.length && t[i].indexOf("var(") === -1) {
+        fs = t[i]; fw = fw || weight;
+        if (t[i + 1] === "/" && t[i + 2] && t[i + 2].indexOf("var(") === -1) lh = lh || t[i + 2];
+        pr.fs = pr.lh = pr.fw = style.getPropertyPriority("font");
+      }
+    }
+    return { fs: fs, lh: lh, fw: fw, pr: pr };
+  }
   function declFor(style) {
     var out = [], i, name, val, pr;
-    var fs = style.getPropertyValue("font-size"), lh = style.getPropertyValue("line-height"), fw = style.getPropertyValue("font-weight");
-    noteVars(fs); noteVars(lh);
-    if ((val = scaledLength(fs))) out.push("font-size:" + val + (style.getPropertyPriority("font-size") ? " !important" : ""));
-    if ((val = scaledLength(lh))) out.push("line-height:" + val + (style.getPropertyPriority("line-height") ? " !important" : ""));
-    if ((val = boldWeight(fw))) out.push("font-weight:" + val + (style.getPropertyPriority("font-weight") ? " !important" : ""));
+    var f = fontParts(style);
+    noteVars(f.fs); noteVars(f.lh);
+    if ((val = scaledLength(f.fs))) out.push("font-size:" + val + (f.pr.fs ? " !important" : ""));
+    if ((val = scaledLength(f.lh))) out.push("line-height:" + val + (f.pr.lh ? " !important" : ""));
+    if ((val = boldWeight(f.fw))) out.push("font-weight:" + val + (f.pr.fw ? " !important" : ""));
     for (i = 0; i < style.length; i++) {
       name = style.item(i);
       if (name.slice(0, 2) !== "--" || name.slice(0, 5) === "--ts-" || !sizeVars[name]) continue;
@@ -132,7 +170,7 @@
       for (var i = 0; i < list.length; i++) {
         var r = list[i];
         try {
-          if (r.style) { noteVars(r.style.getPropertyValue("font-size")); noteVars(r.style.getPropertyValue("line-height")); noteVars(r.style.getPropertyValue("font")); }
+          if (r.style) { var f = fontParts(r.style); noteVars(f.fs); noteVars(f.lh); }
           if (r.cssRules) walk(r.cssRules);
         } catch (e) {}
       }
@@ -159,11 +197,12 @@
     if (ov.previousSibling !== node) node.parentNode && node.parentNode.insertBefore(ov, node.nextSibling);
   }
   function fixInline(el) {
-    var s = el.style, v;
+    var s = el.style, v, f;
     if (!s || !s.length || el.closest && el.closest("[" + OWN + "]")) return;
-    if ((v = scaledLength(s.getPropertyValue("font-size")))) s.setProperty("font-size", v, s.getPropertyPriority("font-size"));
-    if ((v = scaledLength(s.getPropertyValue("line-height")))) s.setProperty("line-height", v, s.getPropertyPriority("line-height"));
-    if ((v = boldWeight(s.getPropertyValue("font-weight")))) s.setProperty("font-weight", v, s.getPropertyPriority("font-weight"));
+    f = fontParts(s);
+    if ((v = scaledLength(f.fs))) s.setProperty("font-size", v, f.pr.fs);
+    if ((v = scaledLength(f.lh))) s.setProperty("line-height", v, f.pr.lh);
+    if ((v = boldWeight(f.fw))) s.setProperty("font-weight", v, f.pr.fw);
   }
   function scan(root) {
     var i, list;
