@@ -151,7 +151,13 @@ a.ts{white-space:nowrap}
 </script><!--illustrated-->
 <script>
 (function(){
-  if (!('speechSynthesis' in window)) { var b=document.getElementById('rdPlay'); if(b){ b.disabled=true; b.textContent='Read aloud is not available on this browser'; } return; }
+  /* Natural voice, her 15 Sep "Everything.": if tools/record_recipes.py made a recording for this page, and every
+     line still matches, Read aloud plays that recording (keeps going with the phone locked); otherwise the phone voice. */
+  var stem=(location.pathname.split('/').pop()||'').replace(/\.html$/,''), rec=null, audio=null;
+  fetch('a/'+stem+'.json').then(function(r){ return r.ok?r.json():null; }).then(function(j){
+    if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&b.textContent.indexOf('Read aloud')>-1) b.innerHTML='&#9654; Listen (natural voice)';
+  }).catch(function(){});
+  var hasSS=('speechSynthesis' in window);
   var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
   var parts=[], i=0, on=false, paused=false, voice=null;
   function pickVoice(){
@@ -175,7 +181,7 @@ a.ts{white-space:nowrap}
   }
   function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); el.scrollIntoView({behavior:'smooth',block:'center'}); } }
   function step(){
-    if(!on) return;
+    if(!on||mode==='audio') return;
     if(i>=parts.length){ finish(); return; }
     var p=parts[i], u=new SpeechSynthesisUtterance(p.text);
     voice=voice||pickVoice(); if(voice){ u.voice=voice; u.lang=voice.lang; }
@@ -185,15 +191,44 @@ a.ts{white-space:nowrap}
     mark(p.el); now.textContent=Math.round(i/parts.length*100)+'%';
     speechSynthesis.speak(u);
   }
-  function finish(){ on=false; paused=false; i=0; speechSynthesis.cancel(); mark(null); play.innerHTML='&#9654; Read aloud'; stop.hidden=true; now.textContent=''; }
+  function matches(ps){ if(!rec||rec.parts.length!==ps.length) return false; for(var k=0;k<ps.length;k++){ if(rec.parts[k].t!==ps[k].text) return false; } return true; }
+  function label(){ return rec?'&#9654; Listen (natural voice)':'&#9654; Read aloud'; }
+  function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; now.textContent=''; }
+  function startAudio(){
+    if(!audio){
+      audio=new Audio('a/'+stem+'.mp3'); audio.preload='auto';
+      audio.addEventListener('timeupdate', function(){
+        var t=audio.currentTime, k=0; while(k+1<rec.parts.length && rec.parts[k+1].s<=t) k++;
+        if(k!==i || !document.querySelector('.reading')){ i=k; mark(parts[k]&&parts[k].el); }
+        now.textContent=Math.round(t/(rec.dur||audio.duration||1)*100)+'%';
+      });
+      audio.addEventListener('ended', finish);
+      if('mediaSession' in navigator){
+        var h=document.querySelector('h1');
+        navigator.mediaSession.metadata=new MediaMetadata({title:h?h.innerText:document.title, artist:'Recipes'});
+        navigator.mediaSession.setActionHandler('play', function(){ play.click(); });
+        navigator.mediaSession.setActionHandler('pause', function(){ play.click(); });
+        try{ navigator.mediaSession.setActionHandler('seekbackward', function(){ audio.currentTime=Math.max(0,audio.currentTime-15); });
+             navigator.mediaSession.setActionHandler('seekforward', function(){ audio.currentTime=audio.currentTime+15; }); }catch(e){}
+      }
+    }
+    audio.playbackRate=parseFloat(rate.value)||1;
+    return audio.play();
+  }
+  var mode='';
   play.addEventListener('click', function(){
-    if(!on){ parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\u23F8 Pause'; speechSynthesis.cancel(); step(); return; }
-    if(!paused){ paused=true; speechSynthesis.cancel(); play.innerHTML='&#9654; Resume'; return; }
-    paused=false; play.textContent='\u23F8 Pause'; step();
+    if(!on){
+      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\u23F8 Pause';
+      if(matches(parts)){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
+      mode='speech'; if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
+      speechSynthesis.cancel(); step(); return;
+    }
+    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654; Resume'; return; }
+    paused=false; play.textContent='\u23F8 Pause'; if(mode==='audio') audio.play(); else step();
   });
   stop.addEventListener('click', finish);
-  rate.addEventListener('change', function(){ if(on&&!paused){ speechSynthesis.cancel(); step(); } });
-  if (speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
+  rate.addEventListener('change', function(){ if(mode==='audio'&&audio){ audio.playbackRate=parseFloat(rate.value)||1; return; } if(on&&!paused){ speechSynthesis.cancel(); step(); } });
+  if (hasSS && speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
 })();
 </script><!--read-aloud-->
 </body>
