@@ -95,7 +95,8 @@
       .replace(/\s*[|·•]\s*/g, ", ").replace(/\s+/g, " ").trim();
   }
   function collect() {
-    var root = document.querySelector("[data-speak-root]") || document.querySelector("main") || document.body;
+    var roots = Array.prototype.filter.call(document.querySelectorAll("[data-speak-root]"), visible);
+    var root = roots[0] || document.querySelector("main") || document.body;   // the open reader wins when one is showing
     var picked = [];
     root.querySelectorAll(BLOCKS).forEach(function (el) {
       if (skip(el) || !visible(el)) return;
