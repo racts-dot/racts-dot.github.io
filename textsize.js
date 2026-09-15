@@ -282,7 +282,7 @@
     css.setAttribute(OWN, "");
     css.textContent =
       ".ts-fab{position:fixed;" + side + ":12px;bottom:calc(" + bottom + "px + env(safe-area-inset-bottom));z-index:2147483643;" +
-      "width:44px;height:44px;display:flex;align-items:center;justify-content:center;padding:0;margin:0;" +
+      "width:44px;height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;text-align:center;padding:0;margin:0;-webkit-appearance:none;appearance:none;" +
       "font:700 16px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0;" +
       "border-radius:999px;border:0;background:#1c1c1e;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer}" +
       ".ts-fab[hidden]{display:none}" +
@@ -296,7 +296,7 @@
       ".ts-panel .ts-row{display:flex;gap:8px;align-items:center}" +
       ".ts-panel .ts-title{flex:1;font:600 14px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}" +
       ".ts-panel .ts-pct{font:600 14px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-width:48px;text-align:center;font-variant-numeric:tabular-nums}" +
-      ".ts-panel button{flex:1;min-height:44px;min-width:44px;box-sizing:border-box;margin:0;" +
+      ".ts-panel button{flex:1;min-height:44px;min-width:44px;box-sizing:border-box;margin:0;display:flex;align-items:center;justify-content:center;text-align:center;-webkit-appearance:none;appearance:none;" +
       "font:600 15px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0;text-transform:none;" +
       "border:0;border-radius:10px;padding:0 12px;background:#f2f2f7;color:#1c1c1e;cursor:pointer;box-shadow:none}" +
       ".ts-panel button:disabled{opacity:.35;cursor:default}" +
