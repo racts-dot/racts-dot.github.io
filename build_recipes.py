@@ -61,7 +61,7 @@ HEAD = (
     '<meta name="robots" content="noindex,nofollow">\n'
     '<meta name="apple-mobile-web-app-capable" content="yes">\n'
     '<meta name="theme-color" content="#0f1115">\n'
-    '<title>{title}</title>\n<style>{css}</style>\n</head>\n<body>\n<div class="wrap">\n'
+    '<title>{title}</title>\n<style>{css}</style>\n<script src="../textsize.js"></script>\n</head>\n<body>\n<div class="wrap">\n'
 )
 TAIL = '\n<div class="foot">{foot}</div>\n</div>\n</body>\n</html>\n'
 
@@ -687,6 +687,20 @@ def add_swipe(page, order):
         return page[:a] + tag + page[b:] if a != -1 else page   # refresh the list if recipes were added
     return page.replace("</body>", tag + SWIPE_MARK + "\n</body>", 1)
 
+TEXTSIZE_TAG = '<script src="../textsize.js"></script>'
+
+def add_textsize(page):
+    """16 Sep 2026, her words: "the option to have a bolder or ... bigger fonts". The Aa button lives in the
+    site's shared textsize.js. It goes right after the page's last style block, so a saved size is in place
+    before the first paint. Idempotent."""
+    if "textsize.js" in page:
+        return page
+    i = page.rfind("</style>")
+    if i == -1:
+        return page.replace("</body>", TEXTSIZE_TAG + "\n</body>", 1)
+    j = i + len("</style>")
+    return page[:j] + "\n" + TEXTSIZE_TAG + page[j:]
+
 def illustrate_existing():
     pages = {}
     order = ["./"] + sorted(os.path.basename(f) for f in glob.glob(os.path.join(OUT, "recipe-*.html")))
@@ -698,7 +712,7 @@ def illustrate_existing():
         m = VID.search(s)
         if m:
             pages[name] = m.group(1)
-        io.open(f, "w", encoding="utf-8", newline="\n").write(add_swipe(add_reader(upgrade_player(add_timestamps(illustrate_page(s), name))), order))
+        io.open(f, "w", encoding="utf-8", newline="\n").write(add_textsize(add_swipe(add_reader(upgrade_player(add_timestamps(illustrate_page(s), name))), order)))
     ip = os.path.join(OUT, "index.html")
     idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
     if 'id="hub"' not in idx:   # 15 Sep: the index is now the combined Recipes home, rebuilt below

@@ -187,6 +187,7 @@ h1{font:600 clamp(32px,8vw,46px)/1.05 var(--serif);margin:0 0 6px;letter-spacing
 .empty{color:var(--ink2);padding:24px 4px}
 mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
 </style>
+<script src="../textsize.js"></script>
 </head>
 <body>
 <div class="wrap">
