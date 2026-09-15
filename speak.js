@@ -74,7 +74,7 @@
     voices = englishVoices();
     var cur = chosenVoice();
     voiceSel.innerHTML = voices.slice(0, 25).map(function (v) {
-      var tag = GOOD.test(v.name) ? " ★" : "";
+      var tag = GOOD.test(v.name) ? " \u2605" : "";
       return '<option value="' + v.voiceURI.replace(/"/g, "&quot;") + '"' + (cur && v.voiceURI === cur.voiceURI ? " selected" : "") + ">" +
         v.name.replace(/</g, "") + " (" + v.lang + ")" + tag + "</option>";
     }).join("") || "<option>Default voice</option>";
@@ -91,8 +91,8 @@
     return !!el.closest("script,style,template,noscript,nav,button,select,option,input,textarea,svg,[aria-hidden='true'],[hidden],.sa-panel,.sa-fab,[data-speak-skip]");
   }
   function clean(t) {
-    return String(t || "").replace(/[←-⇿⌀-➿⬀-⯿️\u{1F000}-\u{1FAFF}]/gu, " ")
-      .replace(/\s*[|·•]\s*/g, ", ").replace(/\s+/g, " ").trim();
+    return String(t || "").replace(/[\u{2190}-\u{21FF}\u{2300}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{1F000}-\u{1FAFF}]/gu, " ")
+      .replace(/\s*[|\u00B7\u2022]\s*/g, ", ").replace(/\s+/g, " ").trim();
   }
   function collect() {
     var roots = Array.prototype.filter.call(document.querySelectorAll("[data-speak-root]"), visible);
@@ -123,7 +123,7 @@
       var t = el.matches("textarea,input") ? clean(el.value) : clean(el.innerText);
       if (t.length < 2 || t === seen) return;
       seen = t;
-      var bits = t.match(/[^.!?。！？\n]+[.!?。！？]*\s*/g) || [t], buf = "";
+      var bits = t.match(/[^.!?\u3002\uFF01\uFF1F\n]+[.!?\u3002\uFF01\uFF1F]*\s*/g) || [t], buf = "";
       bits.forEach(function (s) {
         if ((buf + s).length > 200 && buf) { out.push({ el: el, text: buf.trim() }); buf = ""; }
         buf += s;
@@ -143,22 +143,22 @@
   }
   function paint() {
     if (!mainBtn) return;
-    mainBtn.textContent = !playing ? "▶ Read this page" : paused ? "▶ Resume" : "⏸ Pause";
+    mainBtn.textContent = !playing ? "\u25B6 Read this page" : paused ? "\u25B6 Resume" : "\u23F8 Pause";
     stopBtn.hidden = !playing;
-    fab.textContent = playing && !paused ? "⏸ Reading…" : "🔊 Read aloud";
+    fab.textContent = playing && !paused ? "\u23F8 Reading\u2026" : "\uD83D\uDD0A Read aloud";
     barEl.style.width = parts.length ? Math.round(idx / parts.length * 100) + "%" : "0";
   }
   function step() {
     if (!playing || paused) return;
     if (idx >= parts.length) { finish("Finished."); return; }
     var p = parts[idx], u = new SpeechSynthesisUtterance(p.text);
-    var v = /[가-힣]/.test(p.text) ? (koreanVoice() || chosenVoice()) : chosenVoice();
+    var v = /[\uAC00-\uD7A3]/.test(p.text) ? (koreanVoice() || chosenVoice()) : chosenVoice();
     if (v) { u.voice = v; u.lang = v.lang; }
     u.rate = parseFloat(store.get(K_RATE) || "1") || 1;
     u.onend = function () { if (playing && !paused) { idx++; step(); } };
     u.onerror = function (e) { if (playing && !paused && e.error !== "interrupted" && e.error !== "canceled") { idx++; step(); } };
     mark(p.el);
-    nowEl.textContent = p.text.length > 90 ? p.text.slice(0, 88) + "…" : p.text;
+    nowEl.textContent = p.text.length > 90 ? p.text.slice(0, 88) + "\u2026" : p.text;
     paint();
     SS.speak(u);
   }
@@ -179,17 +179,17 @@
     document.head.appendChild(css);
     fab = document.createElement("button");
     fab.type = "button"; fab.className = "sa-fab"; fab.setAttribute("aria-haspopup", "dialog");
-    fab.textContent = "🔊 Read aloud";
+    fab.textContent = "\uD83D\uDD0A Read aloud";
     panel = document.createElement("div");
     panel.className = "sa-panel"; panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", "Read aloud");
     panel.innerHTML =
-      '<div class="sa-row"><button type="button" class="sa-main">▶ Read this page</button>' +
-      '<button type="button" class="sa-stop" hidden>■ Stop</button><button type="button" class="sa-close" aria-label="Close">✕</button></div>' +
+      '<div class="sa-row"><button type="button" class="sa-main">\u25B6 Read this page</button>' +
+      '<button type="button" class="sa-stop" hidden>\u25A0 Stop</button><button type="button" class="sa-close" aria-label="Close">\u2715</button></div>' +
       '<div class="sa-bar"><i></i></div><div class="sa-now" aria-live="polite"></div>' +
       '<div class="sa-row"><label>Speed <select class="sa-rate"><option value="0.85">Slow</option><option value="1">Normal</option>' +
       '<option value="1.15">Brisk</option><option value="1.3">Fast</option></select></label></div>' +
       '<div class="sa-row"><label style="flex:1">Voice <select class="sa-voice" style="width:100%"></select></label></div>' +
-      '<div class="sa-now">★ = a higher-quality voice. On iPhone, more voices: Settings → Accessibility → Spoken Content → Voices → English.</div>';
+      '<div class="sa-now">\u2605 = a higher-quality voice. On iPhone, more voices: Settings \u2192 Accessibility \u2192 Spoken Content \u2192 Voices \u2192 English.</div>';
     document.body.appendChild(fab); document.body.appendChild(panel);
     mainBtn = panel.querySelector(".sa-main"); stopBtn = panel.querySelector(".sa-stop");
     rateSel = panel.querySelector(".sa-rate"); voiceSel = panel.querySelector(".sa-voice");
