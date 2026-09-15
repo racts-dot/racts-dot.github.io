@@ -1,0 +1,466 @@
+{
+ "recipe-01-ai-social-media-manager.html": [
+  [
+   "How to build an AI social media manager with Claude Code ski",
+   "XPl6IKDADkU",
+   0
+  ],
+  [
+   "Note that this is a paid feature uh that helps me reduce kin",
+   "XPl6IKDADkU",
+   272
+  ],
+  [
+   "the max 200 per month plan",
+   "XPl6IKDADkU",
+   60
+  ],
+  [
+   "The first item on the list, which has over 4 million downloa",
+   "XPl6IKDADkU",
+   31
+  ],
+  [
+   "Create a new Claude skill, an AI social media manager that k",
+   "XPl6IKDADkU",
+   90
+  ],
+  [
+   "ask me clarifying questions one at a time until you're 95% c",
+   "XPl6IKDADkU",
+   120
+  ],
+  [
+   "If you don't say one at a time, it's going to give you that ",
+   "XPl6IKDADkU",
+   480
+  ],
+  [
+   "if claude does ask you for account ids and page ids and stuf",
+   "XPl6IKDADkU",
+   240
+  ],
+  [
+   "it is important to maintain high quality content",
+   "XPl6IKDADkU",
+   330
+  ],
+  [
+   "one unified post with platform specific tweaks",
+   "XPl6IKDADkU",
+   362
+  ],
+  [
+   "for safety reasons and because you don't want to do that eve",
+   "XPl6IKDADkU",
+   600
+  ],
+  [
+   "oftentimes Claude can infer from your prompt if it should us",
+   "XPl6IKDADkU",
+   631
+  ],
+  [
+   "update the drafts and update my brand voice ... to use a few",
+   "XPl6IKDADkU",
+   690
+  ],
+  [
+   "it will be applied if you try to create other social media p",
+   "XPl6IKDADkU",
+   690
+  ],
+  [
+   "you can think of a cloud code skill as like a reusable piece",
+   "XPl6IKDADkU",
+   540
+  ]
+ ],
+ "recipe-02-seven-claude-commands.html": [
+  [
+   "regardless of your current model and your current reasoning ",
+   "rabGqnyd_Zw",
+   61
+  ],
+  [
+   "to save tokens especially... you can do all of your normal w",
+   "rabGqnyd_Zw",
+   61
+  ],
+  [
+   "Just open Claude and be like, 'Hey, I want to install this o",
+   "rabGqnyd_Zw",
+   122
+  ],
+  [
+   "it will help cut a significant percentage of output tokens i",
+   "rabGqnyd_Zw",
+   122
+  ],
+  [
+   "Claude will analyze all of your sessions in the past 30 days",
+   "rabGqnyd_Zw",
+   150
+  ],
+  [
+   "you can just type /by the way, answer this other question. A",
+   "rabGqnyd_Zw",
+   421
+  ],
+  [
+   "instead of having to open a new session which is lacking tha",
+   "rabGqnyd_Zw",
+   421
+  ],
+  [
+   "pretty much everybody will find it universally useful.",
+   "rabGqnyd_Zw",
+   392
+  ],
+  [
+   "when I switch between tasks... writing a YouTube script and ",
+   "rabGqnyd_Zw",
+   571
+  ],
+  [
+   "to millions of people for free every month",
+   "rabGqnyd_Zw",
+   0
+  ]
+ ],
+ "recipe-03-cowork-what-you-dont-use.html": [
+  [
+   "Because you don't want to explain your preferences every tim",
+   "-q_wgmmD0e0",
+   632
+  ],
+  [
+   "you could be waiting at a doctor's office or waiting in line",
+   "-q_wgmmD0e0",
+   511
+  ],
+  [
+   "you can have one skill that knows it should use a bunch of o",
+   "-q_wgmmD0e0",
+   601
+  ],
+  [
+   "if you really have no idea where to start, I recommend just ",
+   "-q_wgmmD0e0",
+   571
+  ],
+  [
+   "If you're a beginner to this, I recommend clicking allow, no",
+   "-q_wgmmD0e0",
+   241
+  ],
+  [
+   "You don't have to use an intermediate storage solution like ",
+   "-q_wgmmD0e0",
+   3121
+  ],
+  [
+   "I'm on the Max plan... most often just in Opus 4.6",
+   "-q_wgmmD0e0",
+   332
+  ]
+ ],
+ "recipe-04-the-grader-pattern.html": [
+  [
+   "The post grader uses a viral rubric to determine the viralit",
+   "PakM11AJAlE",
+   241
+  ],
+  [
+   "No M dashes, no banned words, using active voice and contrac",
+   "PakM11AJAlE",
+   420
+  ],
+  [
+   "I only want hashtags on Instagram and TikTok",
+   "PakM11AJAlE",
+   450
+  ],
+  [
+   "30 million views in 30 days",
+   "PakM11AJAlE",
+   360
+  ],
+  [
+   "everyone says pick one platform, I pick six",
+   "PakM11AJAlE",
+   360
+  ],
+  [
+   "Six platforms, 30 days, 30 million views",
+   "PakM11AJAlE",
+   392
+  ],
+  [
+   "because it's polarizing and we're posting on Twitter.",
+   "PakM11AJAlE",
+   392
+  ],
+  [
+   "Throughout the week, you just take photos or screenshots of ",
+   "PakM11AJAlE",
+   331
+  ],
+  [
+   "respecting social media safe zones for short-form vertical c",
+   "PakM11AJAlE",
+   601
+  ],
+  [
+   "This is really important because if you don't do this, then ",
+   "PakM11AJAlE",
+   631
+  ],
+  [
+   "Import these skills into this   project",
+   "PakM11AJAlE",
+   271
+  ],
+  [
+   "all of my changes are saved",
+   "PakM11AJAlE",
+   181
+  ]
+ ],
+ "recipe-05-the-audience-playbook.html": [
+  [
+   "with ChatGPT and generative AI, it is now super easy to have",
+   "8gqAd-sRyIQ",
+   61
+  ],
+  [
+   "people care most about the results you can demonstrate... Th",
+   "8gqAd-sRyIQ",
+   61
+  ],
+  [
+   "It's really, really simple. Just document your journey and y",
+   "8gqAd-sRyIQ",
+   90
+  ],
+  [
+   "my strategy mostly consists of saying no to a lot of things.",
+   "8gqAd-sRyIQ",
+   211
+  ],
+  [
+   "if you check the bio of all of my social media profiles, the",
+   "8gqAd-sRyIQ",
+   360
+  ],
+  [
+   "The only metric I actually look at every month is whether my",
+   "8gqAd-sRyIQ",
+   420
+  ],
+  [
+   "I focus on making high-quality original content on one to tw",
+   "8gqAd-sRyIQ",
+   301
+  ],
+  [
+   "I took one viral TikTok and just talked for three more minut",
+   "8gqAd-sRyIQ",
+   570
+  ],
+  [
+   "people love simple listicles where you have done the work of",
+   "8gqAd-sRyIQ",
+   481
+  ],
+  [
+   "comment this and I'll send you a playbook.",
+   "8gqAd-sRyIQ",
+   511
+  ],
+  [
+   "a lot of people find this format very cringey, but in my opi",
+   "8gqAd-sRyIQ",
+   511
+  ]
+ ],
+ "recipe-06-she-switched-away-from-claude.html": [
+  [
+   "It's like somebody used Claude Desktop and then made a list ",
+   "TES0N3m6jkM",
+   91
+  ],
+  [
+   "at least one very real important use case where Claude was f",
+   "TES0N3m6jkM",
+   91
+  ],
+  [
+   "I'm just speaking about my experience testing Codex for the ",
+   "TES0N3m6jkM",
+   3961
+  ],
+  [
+   "Codex by far has a superior in-app browser... within the cha",
+   "TES0N3m6jkM",
+   240
+  ],
+  [
+   "the in-app browser is really awesome for any automation wher",
+   "TES0N3m6jkM",
+   421
+  ],
+  [
+   "Claude has had computer use for a long time, but I personall",
+   "TES0N3m6jkM",
+   750
+  ],
+  [
+   "a scheduled task that runs at 10am and opens a browser, auto",
+   "TES0N3m6jkM",
+   931
+  ],
+  [
+   "I don't really follow AI news. I'm super behind on AI news. ",
+   "TES0N3m6jkM",
+   3990
+  ],
+  [
+   "it just didn't work... there is no way I could recommend it.",
+   "TES0N3m6jkM",
+   4622
+  ],
+  [
+   "even if I wait three months to try something, I'm still like",
+   "TES0N3m6jkM",
+   4590
+  ],
+  [
+   "I don't really recommend non-technical people to build in Cl",
+   "TES0N3m6jkM",
+   4320
+  ],
+  [
+   "It might rewrite the tests if they're failing",
+   "TES0N3m6jkM",
+   4530
+  ]
+ ],
+ "recipe-07-microsoft-copilot.html": [
+  [
+   "can your company see all of your chats?",
+   "rFtpXLlzzPg",
+   511
+  ],
+  [
+   "don't type 'my boss is a jerk, what should I say to him'",
+   "rFtpXLlzzPg",
+   570
+  ],
+  [
+   "don't type 'how much is my coworker making'",
+   "rFtpXLlzzPg",
+   570
+  ],
+  [
+   "We're used to going back and forth. It's like a partner... B",
+   "rFtpXLlzzPg",
+   60
+  ],
+  [
+   "every employee has access to an expert agent able to perform",
+   "rFtpXLlzzPg",
+   1710
+  ],
+  [
+   "the most underrated agent that there is",
+   "rFtpXLlzzPg",
+   2160
+  ],
+  [
+   "you could say over the weekend, take all the emails that I'v",
+   "rFtpXLlzzPg",
+   300
+  ],
+  [
+   "How many people have said 'I don't know how to write a promp",
+   "rFtpXLlzzPg",
+   150
+  ],
+  [
+   "Help me prepare for a one-on-one",
+   "rFtpXLlzzPg",
+   211
+  ],
+  [
+   "Instead of spending 30 minutes... I can prepare for a meetin",
+   "rFtpXLlzzPg",
+   211
+  ],
+  [
+   "Nobody wants to have to type anymore",
+   "rFtpXLlzzPg",
+   150
+  ]
+ ],
+ "recipe-08-her-whole-tool-stack.html": [
+  [
+   "the actual brain of my AI support agent running 24/7 lives i",
+   "cH0Pw3Dgpmc",
+   60
+  ],
+  [
+   "really startup friendly, super modern design",
+   "cH0Pw3Dgpmc",
+   30
+  ],
+  [
+   "really haven't changed it since I launched",
+   "cH0Pw3Dgpmc",
+   30
+  ],
+  [
+   "my primary coding tool... over a year, far longer than most ",
+   "cH0Pw3Dgpmc",
+   60
+  ],
+  [
+   "where I just dump different ideas and different memories",
+   "cH0Pw3Dgpmc",
+   90
+  ],
+  [
+   "It's free, you get native looking TikTok captions, it's easy",
+   "cH0Pw3Dgpmc",
+   120
+  ],
+  [
+   "Claude in Chrome is what actually creates my ManyChat DM aut",
+   "cH0Pw3Dgpmc",
+   150
+  ],
+  [
+   "you only have to pay once, it's not a recurring subscription",
+   "cH0Pw3Dgpmc",
+   180
+  ]
+ ],
+ "recipe-09-plan-mode-and-quality-gates.html": [
+  [
+   "it's checking what's in a directory... you're not going to b",
+   "fYX6hHC9FhQ",
+   480
+  ],
+  [
+   "It's more about your familiarity with it. Do you know what C",
+   "fYX6hHC9FhQ",
+   511
+  ],
+  [
+   "you will find that you will be able to cancel so many differ",
+   "fYX6hHC9FhQ",
+   211
+  ]
+ ],
+ "recipe-10-the-social-automation-family.html": []
+}

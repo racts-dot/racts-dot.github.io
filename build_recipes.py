@@ -8,6 +8,7 @@ edit away.
 Run:  python build_recipes.py
 """
 import io
+import json
 import os
 import re
 import html
@@ -493,10 +494,51 @@ P2_JS = P2_BEGIN + """<script src="https://www.youtube.com/iframe_api" async></s
 </script>""" + P2_END
 
 
+TS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recipes_src", "timestamps.json")
+TS_QUOTE = re.compile(r'(["\u201c])([^"\u201c\u201d<>]{20,}?)(["\u201d])')
+TS_ADDED = re.compile(r'<a class="ts" data-add="1"[^>]*></a>')
+# Recipe 10 names its four videos in a table and never linked them.
+TITLE_LINKS = {"recipe-10-the-social-automation-family.html": {
+    "From Google Drive to Social Media": "N4Q4iM05PPc",
+    "Automate Social Media (Blotato Beginner)": "o5GsAxEX-Bk",
+    "Viral Reels clone machine": "BdKqEkdvlgQ",
+    "Repurpose Instagram Reels with Human Approval": "YZn6MuUIW0A"}}
+
+
+def add_timestamps(page, name):
+    """Put a play-from-here pill after each quote whose time tools/match_timestamps.py found. Safe to run again."""
+    page = TS_ADDED.sub("", page)
+    for title, vid in TITLE_LINKS.get(name, {}).items():
+        page = page.replace('<td><strong>%s</strong></td>' % title,
+                            '<td><a href="https://www.youtube.com/watch?v=%s"><strong>%s</strong></a></td>' % (vid, title))
+    try:
+        rows = json.load(io.open(TS_FILE, encoding="utf-8")).get(name, [])
+    except (OSError, ValueError):
+        rows = []
+    if not rows:
+        return page
+    want = {q: (v, t) for q, v, t in rows}
+    pres = [(m.start(), m.end()) for m in re.finditer(r"<pre>.*?</pre>|<script.*?</script>|<style.*?</style>", page, re.S)]
+    cuts = []
+    for m in TS_QUOTE.finditer(page):
+        hit = want.get(m.group(2)[:60])
+        if not hit or any(a <= m.start() < b for a, b in pres):
+            continue
+        if page.rfind("<", 0, m.start()) > page.rfind(">", 0, m.start()):   # inside a tag's attributes
+            continue
+        v, t = hit
+        label = "%d:%02d:%02d" % (t // 3600, t // 60 % 60, t % 60) if t >= 3600 else "%d:%02d" % (t // 60, t % 60)
+        cuts.append((m.end(), '<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=%s&amp;t=%ds" data-l="%s" '
+                              'aria-label="Play from %s"></a>' % (v, t, label, label)))
+    for at, tag in reversed(cuts):
+        page = page[:at] + tag + page[at:]
+    return page
+
+
 def upgrade_player(page):
     """Swap the old one-video player for the reading-room style one. Safe to run again; refreshes the block."""
     page = page.replace(PLAYER_JS, "")
-    page = re.sub(re.escape(P2_BEGIN) + ".*?" + re.escape(P2_END), "", page, flags=re.S)
+    page = re.sub(re.escape(P2_BEGIN) + ".*?" + re.escape(P2_END) + r"\n*", "", page, flags=re.S)
     page = re.sub(re.escape(P2_CSS_BEGIN) + ".*?" + re.escape(P2_CSS_END), "", page, flags=re.S)
     m = VID.search(page)
     if m and 'class="player"' not in page:   # a page whose only videos are named in a table (recipe 10)
@@ -656,7 +698,7 @@ def illustrate_existing():
         m = VID.search(s)
         if m:
             pages[name] = m.group(1)
-        io.open(f, "w", encoding="utf-8", newline="\n").write(add_swipe(add_reader(upgrade_player(illustrate_page(s))), order))
+        io.open(f, "w", encoding="utf-8", newline="\n").write(add_swipe(add_reader(upgrade_player(add_timestamps(illustrate_page(s), name))), order))
     ip = os.path.join(OUT, "index.html")
     idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
     if 'id="hub"' not in idx:   # 15 Sep: the index is now the combined Recipes home, rebuilt below

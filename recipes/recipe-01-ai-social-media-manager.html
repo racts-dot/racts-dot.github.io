@@ -92,49 +92,49 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
 <hr>
 <h2>What this gets you</h2>
 <p>A <code>/social-media-post</code> command. You type a topic, it writes the post in <strong>your</strong> brand voice for several platforms, shows you a draft, and only posts once you approve.</p>
-<blockquote><em>"How to build an AI social media manager with Claude Code skills in 10 minutes. You don't need any technical background whatsoever."</em></blockquote>
+<blockquote><em>"How to build an AI social media manager with Claude Code skills in 10 minutes. You don't need any technical background whatsoever."<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=0s" data-l="0:00" aria-label="Play from 0:00"></a></em></blockquote>
 <h2>⚠ Read this before you start — two honest warnings</h2>
-<p>⛔ <strong>Blotato is HER OWN product.</strong> She built it. So this tutorial is partly a demo of her own app, and <strong>the API key is a paid feature</strong> — her words: <em>"Note that this is a paid feature uh that helps me reduce kind of low-quality content being posted."</em></p>
+<p>⛔ <strong>Blotato is HER OWN product.</strong> She built it. So this tutorial is partly a demo of her own app, and <strong>the API key is a paid feature</strong> — her words: <em>"Note that this is a paid feature uh that helps me reduce kind of low-quality content being posted."<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=272s" data-l="4:32" aria-label="Play from 4:32"></a></em></p>
 <p>⛔ <strong>The example she uses is a realtor</strong>, not a printables seller. Everything works the same, but every answer you give will be different from hers.</p>
 <p>⭐ <strong>The genuinely reusable part is Step 5, and it costs nothing.</strong></p>
 <h2>Before you start</h2>
-<div class="tablewrap"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>Visual Studio Code</td><td>free, <code>code.visualstudio.com</code></td></tr><tr><td>An Anthropic account</td><td>she is on <em>"the max 200 per month plan"</em></td></tr><tr><td>A Blotato account</td><td><strong>only if you want it to actually post.</strong> Paid for the API</td></tr></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th></th><th></th></tr></thead><tbody><tr><td>Visual Studio Code</td><td>free, <code>code.visualstudio.com</code></td></tr><tr><td>An Anthropic account</td><td>she is on <em>"the max 200 per month plan"<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=60s" data-l="1:00" aria-label="Play from 1:00"></a></em></td></tr><tr><td>A Blotato account</td><td><strong>only if you want it to actually post.</strong> Paid for the API</td></tr></tbody></table></div>
 <hr>
 <h1>THE STEPS</h1>
 <h2>1 · Install VS Code</h2>
 <p><code>code.visualstudio.com</code> — <em>"100% free. Download it."</em></p>
 <h2>2 · Install the Claude Code extension</h2>
-<p>Left sidebar → <strong>Extensions</strong> → search <strong>Claude</strong> → <em>"The first item on the list, which has over 4 million downloads."</em></p>
+<p>Left sidebar → <strong>Extensions</strong> → search <strong>Claude</strong> → <em>"The first item on the list, which has over 4 million downloads."<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=31s" data-l="0:31" aria-label="Play from 0:31"></a></em></p>
 <p><strong>You should see:</strong> an orange icon, top right.</p>
 <h2>3 · Sign in</h2>
 <p>Click the orange icon. First time, it walks you through authentication.</p>
 <h2>4 · Make a folder for the project</h2>
 <p>Hers is called <code>AI-Social-Media-Manager</code>. Any name. <strong>It just needs its own folder.</strong></p>
 <h2>5 · ⭐ Paste this prompt — her wording, unchanged</h2>
-<blockquote><em>"Create a new Claude skill, an AI social media manager that knows my brand voice and makes social media posts for these platforms. [your platforms here] We're going to use the blot API to handle publishing to social media and creating visuals such as infographic, carousels, slideshows, and videos. [link the API docs for posting] [link the API docs for creating visuals] We're going to maintain a separate file with all of our published posts and their URLs so we can always go back and reference them. And at the very end, ask me clarifying questions one at a time until you're 95% confident you can complete the task successfully."</em></blockquote>
+<blockquote><em>"Create a new Claude skill, an AI social media manager that knows my brand voice and makes social media posts for these platforms. [your platforms here] We're going to use the blot API to handle publishing to social media and creating visuals such as infographic, carousels, slideshows, and videos. [link the API docs for posting] [link the API docs for creating visuals] We're going to maintain a separate file with all of our published posts and their URLs so we can always go back and reference them. And at the very end, ask me clarifying questions one at a time until you're 95% confident you can complete the task successfully."<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=90s" data-l="1:30" aria-label="Play from 1:30"></a></em></blockquote>
 <h3>⭐⭐ The bit worth stealing, whatever you are building</h3>
-<p><strong>"ask me clarifying questions one at a time until you're 95% confident"</strong></p>
-<p>Her reason: <em>"If you don't say one at a time, it's going to give you that list of 12 questions all at once. And it's just a lot to sit down and do all at once."</em></p>
+<p><strong>"ask me clarifying questions one at a time until you're 95% confident"<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=120s" data-l="2:00" aria-label="Play from 2:00"></a></strong></p>
+<p>Her reason: <em>"If you don't say one at a time, it's going to give you that list of 12 questions all at once. And it's just a lot to sit down and do all at once."<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=480s" data-l="8:00" aria-label="Play from 8:00"></a></em></p>
 <p>⭐ <strong>This works on any prompt, in any tool, for free.</strong> It is the single most portable thing in the video — and it is the same 95% rule you already have in your own settings.</p>
 <h2>6 · Answer its questions</h2>
 <p>It asks about brand voice, tone, your audience, your catchphrases, your handle, your call-to-action.</p>
-<p>⚠ <strong>Push back if it asks for account IDs.</strong> Her words: <em>"if claude does ask you for account ids and page ids and stuff push back a little because it can actually fetch all of that information automatically."</em></p>
+<p>⚠ <strong>Push back if it asks for account IDs.</strong> Her words: <em>"if claude does ask you for account ids and page ids and stuff push back a little because it can actually fetch all of that information automatically."<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=240s" data-l="4:00" aria-label="Play from 4:00"></a></em></p>
 <p><strong>Answers she recommends:</strong></p>
-<div class="tablewrap"><table><thead><tr><th>Question</th><th>Her answer</th><th>Why</th></tr></thead><tbody><tr><td>Publish or draft?</td><td><strong>"draft first always"</strong></td><td><em>"it is important to maintain high quality content"</em></td></tr><tr><td>One post or one per platform?</td><td><em>"one unified post with platform specific tweaks"</em></td><td></td></tr><tr><td>Generate a visual every time?</td><td><strong>"ask me each time"</strong></td><td>sometimes you want your own image</td></tr><tr><td>Post log format?</td><td>markdown table</td><td><em>"nice and visual"</em></td></tr></tbody></table></div>
+<div class="tablewrap"><table><thead><tr><th>Question</th><th>Her answer</th><th>Why</th></tr></thead><tbody><tr><td>Publish or draft?</td><td><strong>"draft first always"</strong></td><td><em>"it is important to maintain high quality content"<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=330s" data-l="5:30" aria-label="Play from 5:30"></a></em></td></tr><tr><td>One post or one per platform?</td><td><em>"one unified post with platform specific tweaks"<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=362s" data-l="6:02" aria-label="Play from 6:02"></a></em></td><td></td></tr><tr><td>Generate a visual every time?</td><td><strong>"ask me each time"</strong></td><td>sometimes you want your own image</td></tr><tr><td>Post log format?</td><td>markdown table</td><td><em>"nice and visual"</em></td></tr></tbody></table></div>
 <h2>7 · The API key — do it the safe way</h2>
 <p>It will tell you to run <code>export</code>. <strong>Don't.</strong></p>
-<blockquote><em>"for safety reasons and because you don't want to do that every time... it's just better practice to create a [.env] file which is like an environment file locally that will store your API key"</em></blockquote>
+<blockquote><em>"for safety reasons and because you don't want to do that every time... it's just better practice to create a [.env] file which is like an environment file locally that will store your API key"<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=600s" data-l="10:00" aria-label="Play from 10:00"></a></em></blockquote>
 <p><strong>Just ask Claude: "create local .env file for API key"</strong> — then paste the key in and save.</p>
 <h2>8 · Test it</h2>
 <p>Type <code>/social-media-post</code> and a topic.</p>
-<p>⭐ <strong>Or just describe what you want</strong> — <em>"oftentimes Claude can infer from your prompt if it should use a skill or not."</em></p>
+<p>⭐ <strong>Or just describe what you want</strong> — <em>"oftentimes Claude can infer from your prompt if it should use a skill or not."<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=631s" data-l="10:31" aria-label="Play from 10:31"></a></em></p>
 <h2>9 · Fix the voice by talking to it</h2>
-<p>If the draft is too stiff: <strong>"update the drafts and update my brand voice ... to use a few emojis to sound a little more friendly."</strong></p>
-<blockquote><em>"it will be applied if you try to create other social media posts"</em></blockquote>
+<p>If the draft is too stiff: <strong>"update the drafts and update my brand voice ... to use a few emojis to sound a little more friendly."<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=690s" data-l="11:30" aria-label="Play from 11:30"></a></strong></p>
+<blockquote><em>"it will be applied if you try to create other social media posts"<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=690s" data-l="11:30" aria-label="Play from 11:30"></a></em></blockquote>
 <p><strong>It edits its own instructions permanently. You can also open the file and edit by hand.</strong></p>
 <hr>
 <h2>⭐ What a "skill" actually is, in her words</h2>
-<blockquote><em>"you can think of a cloud code skill as like a reusable piece of code and context. So instead of having to tell it every time like these are the guidelines for my brand... it's all encoded in this skill."</em></blockquote>
+<blockquote><em>"you can think of a cloud code skill as like a reusable piece of code and context. So instead of having to tell it every time like these are the guidelines for my brand... it's all encoded in this skill."<a class="ts" data-add="1" href="https://www.youtube.com/watch?v=XPl6IKDADkU&amp;t=540s" data-l="9:00" aria-label="Play from 9:00"></a></em></blockquote>
 <p><strong>The file it makes is <code>social-media-post.md</code> and it is plain text you can edit.</strong></p>
 <hr>
 <h2>What to try it on first</h2>
@@ -242,8 +242,6 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
 })();
 </script><!--read-aloud-->
 <script src="../swipe.js" data-pages="./ recipe-01-ai-social-media-manager.html recipe-02-seven-claude-commands.html recipe-03-cowork-what-you-dont-use.html recipe-04-the-grader-pattern.html recipe-05-the-audience-playbook.html recipe-06-she-switched-away-from-claude.html recipe-07-microsoft-copilot.html recipe-08-her-whole-tool-stack.html recipe-09-plan-mode-and-quality-gates.html recipe-10-the-social-automation-family.html recipe-11-loop-engineering.html recipe-12-live-search-data-in-claude-code.html recipe-13-claude-and-canva-templates.html recipe-14-the-tiktok-30-day-sprint.html" defer></script><!--swipe-->
-
-
 <!--player2--><script src="https://www.youtube.com/iframe_api" async></script>
 <script>
 (function(){
