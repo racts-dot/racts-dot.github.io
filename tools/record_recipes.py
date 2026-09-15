@@ -41,6 +41,8 @@ def synth(text, tok):
                 return base64.b64decode(json.load(r)["audioContent"])
         except urllib.error.HTTPError as e:
             msg = e.read().decode("utf-8", "replace")[:300]
+            if e.code == 401 and attempt < 4:   # 16 Sep: the gcloud token expires after an hour, mid-run
+                tok = token(); continue
             if e.code in (429, 500, 503) and attempt < 4:
                 time.sleep(5 * (attempt + 1)); continue
             sys.exit("HTTP %d: %s" % (e.code, msg))
