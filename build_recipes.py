@@ -405,6 +405,115 @@ def illustrate_index(index_html, pages):
     return index_html.replace("</body>", ILL_MARK + "\n</body>", 1)
 
 
+# ---------------- timestamps like the Creator Reading Room, 16 Sep 2026 ----------------
+# Her words: "Can you do the timestamp as well as the videos ... just as the creators of reading room."
+# Same pattern as the reading room: ONE YouTube player made once through YouTube's API, so a tap on a time
+# plays with sound inside that tap on a phone; every time on the page is a pill button; any video the page
+# names plays in that same player; while it plays it stays pinned at the top (Small / Big / close).
+# Labels of added timestamps are CSS (data-l), not text, so Read aloud and its recordings still match.
+P2_BEGIN, P2_END = "<!--player2-->", "<!--/player2-->"
+P2_CSS_BEGIN, P2_CSS_END = "/*player2*/", "/*/player2*/"
+P2_CSS = P2_CSS_BEGIN + """
+.player{position:relative}
+.player>button{position:absolute;inset:0;z-index:2}
+.player>button[hidden]{display:none}
+.player .yt,.player .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.player.on{position:sticky;top:0;z-index:30;box-shadow:0 10px 24px -12px rgba(0,0,0,.8)}
+.player.on.small{width:52%;margin-left:auto}
+.player.on{overflow:visible;margin-bottom:40px}
+.player .pbar{position:absolute;bottom:-32px;right:0;z-index:3;display:none;gap:6px}
+.player.on .pbar{display:flex}
+.player .pbar button{all:unset;width:auto;height:auto;cursor:pointer;background:rgba(0,0,0,.7);color:#fff;font-size:12px;padding:4px 9px;border-radius:999px}
+a.ts{display:inline-flex;align-items:center;gap:3px;margin:0 2px 0 6px;padding:1px 8px;border-radius:999px;border:1px solid var(--chip);
+  background:var(--card);font:500 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent);text-decoration:none;
+  vertical-align:1px;white-space:nowrap}
+a.ts::before{content:"\\25B6";font-size:9px}
+a.ts:empty::after{content:attr(data-l)}
+a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
+""" + P2_CSS_END
+P2_JS = P2_BEGIN + """<script src="https://www.youtube.com/iframe_api" async></script>
+<script>
+(function(){
+  var box = document.querySelector('.player'); if (!box) return;
+  var cover = box.querySelector('button'), host = document.createElement('div');
+  host.className = 'yt'; host.id = 'ytp'; box.appendChild(host);
+  var bar = document.createElement('div'); bar.className = 'pbar';
+  bar.innerHTML = '<button type="button" data-a="size">Small</button><button type="button" data-a="close">&#10005;</button>';
+  box.appendChild(bar);
+  var YTP = null, ready = false, loaded = box.dataset.id, pending = null;
+  var idOf = function(h){ var m = /[?&]v=([A-Za-z0-9_-]{11})/.exec(h); return m && m[1]; };
+  var tOf = function(h){ var m = /[?&]t=(\\d+)/.exec(h); return m ? +m[1] : 0; };
+  document.querySelectorAll('a[href*="youtube.com/watch"]').forEach(function(a){
+    if (tOf(a.getAttribute('href'))) { a.classList.add('ts'); if (!a.getAttribute('aria-label')) a.setAttribute('aria-label', 'Play from ' + (a.dataset.l || a.textContent)); }
+  });
+  function stopReader(){ var s = document.getElementById('rdStop'); if (s && !s.hidden) s.click(); }
+  function make(){
+    if (YTP || !window.YT || !YT.Player) return;
+    YTP = new YT.Player('ytp', { host: 'https://www.youtube-nocookie.com', videoId: loaded,
+      playerVars: { rel: 0, playsinline: 1 },
+      events: { onReady: function(){ ready = true; if (pending) { var p = pending; pending = null; go(p.id, p.t); } },
+                onStateChange: function(e){ if (e.data === 1) stopReader(); } } });
+  }
+  if (window.YT && YT.loaded) make();
+  var prev = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = function(){ if (prev) prev(); make(); };
+  function frame(id, t){   // the API never arrived: a plain embed, which may need one more tap on a phone
+    host.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0' +
+      (t ? '&start=' + t : '') + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    loaded = id;
+  }
+  function go(id, t){
+    var was = box.classList.contains('on');
+    cover.hidden = true; box.classList.add('on');
+    if (ready) {
+      if (loaded === id) { YTP.seekTo(t, true); YTP.playVideo(); }
+      else { YTP.loadVideoById({ videoId: id, startSeconds: t }); loaded = id; }
+    } else if (YTP) { pending = { id: id, t: t }; }
+    else frame(id, t);
+    if (!was) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.addEventListener('click', function(e){
+    if (e.target.closest('.player>button')) { e.preventDefault(); go(box.dataset.id, 0); return; }
+    var b = e.target.closest('.pbar button');
+    if (b) {
+      if (b.dataset.a === 'size') { box.classList.toggle('small'); b.textContent = box.classList.contains('small') ? 'Big' : 'Small'; }
+      else { try { YTP && YTP.pauseVideo(); } catch (x) {} if (!YTP) host.innerHTML = ''; box.classList.remove('on', 'small'); cover.hidden = false; }
+      return;
+    }
+    var a = e.target.closest('a[href*="youtube.com/watch"]'); if (!a) return;
+    var id = idOf(a.href); if (!id) return;
+    e.preventDefault();
+    document.querySelectorAll('a.ts.now').forEach(function(x){ x.classList.remove('now'); });
+    if (a.classList.contains('ts')) a.classList.add('now');
+    go(id, tOf(a.href));
+  });
+  var rp = document.getElementById('rdPlay');
+  if (rp) rp.addEventListener('click', function(){ try { YTP && YTP.pauseVideo(); } catch (x) {} });
+})();
+</script>""" + P2_END
+
+
+def upgrade_player(page):
+    """Swap the old one-video player for the reading-room style one. Safe to run again; refreshes the block."""
+    page = page.replace(PLAYER_JS, "")
+    page = re.sub(re.escape(P2_BEGIN) + ".*?" + re.escape(P2_END), "", page, flags=re.S)
+    page = re.sub(re.escape(P2_CSS_BEGIN) + ".*?" + re.escape(P2_CSS_END), "", page, flags=re.S)
+    m = VID.search(page)
+    if m and 'class="player"' not in page:   # a page whose only videos are named in a table (recipe 10)
+        h1 = page.find("</h1>")
+        if h1 != -1:
+            vid = m.group(1)
+            page = page[:h1 + 5] + (
+                '\n<div class="player" data-id="%s"><button type="button" data-id="%s" aria-label="Play the video">'
+                '<img src="%s" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span>'
+                '<span class="cap">Tap to play the first video this recipe comes from</span></button></div>\n'
+                % (vid, vid, thumb(vid))) + page[h1 + 5:]
+    if 'class="player"' not in page:
+        return page
+    page = page.replace("</style>", P2_CSS + "</style>", 1)
+    return page.replace("</body>", P2_JS + "\n</body>", 1)
+
+
 # ---------------- read aloud, 15 Sep 2026 ----------------
 # Her words: "I need a reading, like the speak out loud for the recipes." The phone's own voice reads
 # the page from the top, a paragraph at a time, highlighting where it is. Free: no recording, no API.
@@ -547,7 +656,7 @@ def illustrate_existing():
         m = VID.search(s)
         if m:
             pages[name] = m.group(1)
-        io.open(f, "w", encoding="utf-8", newline="\n").write(add_swipe(add_reader(illustrate_page(s)), order))
+        io.open(f, "w", encoding="utf-8", newline="\n").write(add_swipe(add_reader(upgrade_player(illustrate_page(s))), order))
     ip = os.path.join(OUT, "index.html")
     idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
     if 'id="hub"' not in idx:   # 15 Sep: the index is now the combined Recipes home, rebuilt below

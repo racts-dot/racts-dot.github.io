@@ -60,7 +60,24 @@ a.ts{white-space:nowrap}
 .readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
 .readbar .rs{font-size:12px;color:var(--muted)}
 .reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
-</style>
+/*player2*/
+.player{position:relative}
+.player>button{position:absolute;inset:0;z-index:2}
+.player>button[hidden]{display:none}
+.player .yt,.player .yt iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.player.on{position:sticky;top:0;z-index:30;box-shadow:0 10px 24px -12px rgba(0,0,0,.8)}
+.player.on.small{width:52%;margin-left:auto}
+.player.on{overflow:visible;margin-bottom:40px}
+.player .pbar{position:absolute;bottom:-32px;right:0;z-index:3;display:none;gap:6px}
+.player.on .pbar{display:flex}
+.player .pbar button{all:unset;width:auto;height:auto;cursor:pointer;background:rgba(0,0,0,.7);color:#fff;font-size:12px;padding:4px 9px;border-radius:999px}
+a.ts{display:inline-flex;align-items:center;gap:3px;margin:0 2px 0 6px;padding:1px 8px;border-radius:999px;border:1px solid var(--chip);
+  background:var(--card);font:500 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent);text-decoration:none;
+  vertical-align:1px;white-space:nowrap}
+a.ts::before{content:"\25B6";font-size:9px}
+a.ts:empty::after{content:attr(data-l)}
+a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
+/*/player2*/</style>
 </head>
 <body>
 <div class="wrap">
@@ -151,26 +168,7 @@ a.ts{white-space:nowrap}
 <p>  fight ⚠ <strong>it is a live stream, not an edited tutorial</strong></p>
 <div class="foot">Built 2026-09-13 from RECIPE_06_she_switched_away_from_claude.md. Edit the markdown, not this page.</div>
 </div>
-<script>
-(function(){
-  function play(box, id, start){
-    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0' +
-      (start ? '&start=' + start : '') + '" title="Video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
-  }
-  document.addEventListener('click', function(e){
-    var b = e.target.closest('.player button');
-    if (b) { play(b.parentNode, b.dataset.id, 0); return; }
-    var a = e.target.closest('a[href*="youtube.com/watch"]');
-    var box = document.querySelector('.player');
-    if (!a || !box) return;
-    var m = a.href.match(/[?&]v=([A-Za-z0-9_-]{11})/), t = a.href.match(/[?&]t=(\d+)/);
-    if (!m || m[1] !== box.dataset.id) return;
-    e.preventDefault();
-    play(box, m[1], t ? t[1] : 0);
-    box.scrollIntoView({behavior: 'smooth', block: 'start'});
-  });
-})();
-</script><!--illustrated-->
+<!--illustrated-->
 <script>
 (function(){
   /* Natural voice, her 15 Sep "Everything.": if tools/record_recipes.py made a recording for this page, and every
@@ -254,5 +252,67 @@ a.ts{white-space:nowrap}
 })();
 </script><!--read-aloud-->
 <script src="../swipe.js" data-pages="./ recipe-01-ai-social-media-manager.html recipe-02-seven-claude-commands.html recipe-03-cowork-what-you-dont-use.html recipe-04-the-grader-pattern.html recipe-05-the-audience-playbook.html recipe-06-she-switched-away-from-claude.html recipe-07-microsoft-copilot.html recipe-08-her-whole-tool-stack.html recipe-09-plan-mode-and-quality-gates.html recipe-10-the-social-automation-family.html recipe-11-loop-engineering.html recipe-12-live-search-data-in-claude-code.html recipe-13-claude-and-canva-templates.html recipe-14-the-tiktok-30-day-sprint.html" defer></script><!--swipe-->
+
+
+<!--player2--><script src="https://www.youtube.com/iframe_api" async></script>
+<script>
+(function(){
+  var box = document.querySelector('.player'); if (!box) return;
+  var cover = box.querySelector('button'), host = document.createElement('div');
+  host.className = 'yt'; host.id = 'ytp'; box.appendChild(host);
+  var bar = document.createElement('div'); bar.className = 'pbar';
+  bar.innerHTML = '<button type="button" data-a="size">Small</button><button type="button" data-a="close">&#10005;</button>';
+  box.appendChild(bar);
+  var YTP = null, ready = false, loaded = box.dataset.id, pending = null;
+  var idOf = function(h){ var m = /[?&]v=([A-Za-z0-9_-]{11})/.exec(h); return m && m[1]; };
+  var tOf = function(h){ var m = /[?&]t=(\d+)/.exec(h); return m ? +m[1] : 0; };
+  document.querySelectorAll('a[href*="youtube.com/watch"]').forEach(function(a){
+    if (tOf(a.getAttribute('href'))) { a.classList.add('ts'); if (!a.getAttribute('aria-label')) a.setAttribute('aria-label', 'Play from ' + (a.dataset.l || a.textContent)); }
+  });
+  function stopReader(){ var s = document.getElementById('rdStop'); if (s && !s.hidden) s.click(); }
+  function make(){
+    if (YTP || !window.YT || !YT.Player) return;
+    YTP = new YT.Player('ytp', { host: 'https://www.youtube-nocookie.com', videoId: loaded,
+      playerVars: { rel: 0, playsinline: 1 },
+      events: { onReady: function(){ ready = true; if (pending) { var p = pending; pending = null; go(p.id, p.t); } },
+                onStateChange: function(e){ if (e.data === 1) stopReader(); } } });
+  }
+  if (window.YT && YT.loaded) make();
+  var prev = window.onYouTubeIframeAPIReady;
+  window.onYouTubeIframeAPIReady = function(){ if (prev) prev(); make(); };
+  function frame(id, t){   // the API never arrived: a plain embed, which may need one more tap on a phone
+    host.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0' +
+      (t ? '&start=' + t : '') + '" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+    loaded = id;
+  }
+  function go(id, t){
+    var was = box.classList.contains('on');
+    cover.hidden = true; box.classList.add('on');
+    if (ready) {
+      if (loaded === id) { YTP.seekTo(t, true); YTP.playVideo(); }
+      else { YTP.loadVideoById({ videoId: id, startSeconds: t }); loaded = id; }
+    } else if (YTP) { pending = { id: id, t: t }; }
+    else frame(id, t);
+    if (!was) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.addEventListener('click', function(e){
+    if (e.target.closest('.player>button')) { e.preventDefault(); go(box.dataset.id, 0); return; }
+    var b = e.target.closest('.pbar button');
+    if (b) {
+      if (b.dataset.a === 'size') { box.classList.toggle('small'); b.textContent = box.classList.contains('small') ? 'Big' : 'Small'; }
+      else { try { YTP && YTP.pauseVideo(); } catch (x) {} if (!YTP) host.innerHTML = ''; box.classList.remove('on', 'small'); cover.hidden = false; }
+      return;
+    }
+    var a = e.target.closest('a[href*="youtube.com/watch"]'); if (!a) return;
+    var id = idOf(a.href); if (!id) return;
+    e.preventDefault();
+    document.querySelectorAll('a.ts.now').forEach(function(x){ x.classList.remove('now'); });
+    if (a.classList.contains('ts')) a.classList.add('now');
+    go(id, tOf(a.href));
+  });
+  var rp = document.getElementById('rdPlay');
+  if (rp) rp.addEventListener('click', function(){ try { YTP && YTP.pauseVideo(); } catch (x) {} });
+})();
+</script><!--/player2-->
 </body>
 </html>

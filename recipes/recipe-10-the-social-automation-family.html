@@ -138,26 +138,7 @@ a.ts{white-space:nowrap}
 <p><strong>RECIPE 01, 03, 04 and 09</strong> all cover the same product from other angles. ⭐ <strong>Five of the twelve you flagged are about one app. That is the single clearest finding of the whole set.</strong></p>
 <div class="foot">Built 2026-09-13 from RECIPE_10_the_social_automation_family.md. Edit the markdown, not this page.</div>
 </div>
-<script>
-(function(){
-  function play(box, id, start){
-    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0' +
-      (start ? '&start=' + start : '') + '" title="Video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
-  }
-  document.addEventListener('click', function(e){
-    var b = e.target.closest('.player button');
-    if (b) { play(b.parentNode, b.dataset.id, 0); return; }
-    var a = e.target.closest('a[href*="youtube.com/watch"]');
-    var box = document.querySelector('.player');
-    if (!a || !box) return;
-    var m = a.href.match(/[?&]v=([A-Za-z0-9_-]{11})/), t = a.href.match(/[?&]t=(\d+)/);
-    if (!m || m[1] !== box.dataset.id) return;
-    e.preventDefault();
-    play(box, m[1], t ? t[1] : 0);
-    box.scrollIntoView({behavior: 'smooth', block: 'start'});
-  });
-})();
-</script><!--illustrated-->
+<!--illustrated-->
 <script>
 (function(){
   /* Natural voice, her 15 Sep "Everything.": if tools/record_recipes.py made a recording for this page, and every
