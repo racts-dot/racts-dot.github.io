@@ -113,13 +113,25 @@ def add_notion(html, app):
     return html + tags
 
 
+def add_swipe(html, attrs, label):
+    """Her 15 Sep 2026: "everything swipe to left and right". The gesture lives in this site's swipe.js,
+    so the printables source (also deployed to Cloudflare, which has no swipe.js) stays untouched."""
+    head, found, tail = html.rpartition("</body>")
+    if not found:
+        sys.exit(f"STOP: {label}: no </body> - the source page changed, check it by hand")
+    return f'{head}<script src="../swipe.js" {attrs} defer></script>\n</body>{tail}'
+
+
 def main():
     subprocess.run(["git", "-C", str(PRINTABLES), "fetch", "-q", "origin"], check=True)
 
     print("cookbook/")
     for path in git_list("sabrina_cookbook"):
         name = path.split("/", 1)[1]
-        if name in {"index.html", "favicon.png", "icon-180.png", "icon-192.png", "icon-512.png", "og.png"}:
+        if name == "index.html":
+            write("cookbook/index.html",
+                  add_swipe(git_bytes(path).decode("utf-8"), 'data-select="#tool"', "cookbook swipe"))
+        elif name in {"favicon.png", "icon-180.png", "icon-192.png", "icon-512.png", "og.png"}:
             write(f"cookbook/{name}", git_bytes(path))
     manifest = git_bytes("sabrina_cookbook/manifest.webmanifest").decode("utf-8")
     write("cookbook/manifest.webmanifest",
@@ -128,7 +140,10 @@ def main():
     print("videos/")
     for path in git_list("apps/video_search_site/public"):
         name = path.rsplit("/", 1)[1]
-        if name != "_headers":  # Cloudflare-only file; GitHub Pages ignores it
+        if name == "index.html":
+            write("videos/index.html", add_swipe(git_bytes(path).decode("utf-8"),
+                                                 'data-chips="#chips .chip" data-input="#q"', "videos swipe"))
+        elif name != "_headers":  # Cloudflare-only file; GitHub Pages ignores it
             write(f"videos/{name}", git_bytes(path))
 
     print("hormozi/")

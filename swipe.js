@@ -1,0 +1,137 @@
+/* swipe.js - swipe left or right to move through a page that has no swipe of its own.
+ *
+ * Her words, 15 Sep 2026: "everything swipe to left and right has it been done?" She then picked all four
+ * that had none: the prompt cookbook + video search, the recipes, the AI handoff board, the eBay stock ledger.
+ *
+ * The script tag says what to move through. Swipe left = next, swipe right = back.
+ *   data-sections="section"                   scroll to the next or previous block
+ *   data-select="#cat"                        step the menu to its next or previous choice
+ *   data-chips="#chips .chip" data-input="#q" step through the quick-search words
+ *   data-pages="./ a.html b.html"             open the next or previous page in the list
+ * Same guard as the other apps on this site (todo, app): more than 70px sideways, under 50px up or down,
+ * under 0.7 s, and never when the finger starts on a field, a menu or anything that scrolls sideways.
+ */
+(function () {
+  "use strict";
+  var me = document.currentScript;
+  if (!me || window.__swipeJs) return;
+  window.__swipeJs = true;
+  var cfg = me.dataset;
+
+  var toast, hideT;
+  function say(msg) {
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.setAttribute("role", "status");
+      toast.style.cssText = "position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);" +
+        "z-index:2147483646;max-width:calc(100% - 32px);padding:9px 16px;border-radius:999px;background:rgba(28,28,30,.92);" +
+        "color:#fff;font:600 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;white-space:nowrap;overflow:hidden;" +
+        "text-overflow:ellipsis;pointer-events:none;opacity:0;transition:opacity .2s";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = msg;
+    toast.style.opacity = "1";
+    clearTimeout(hideT);
+    hideT = setTimeout(function () { toast.style.opacity = "0"; }, 1400);
+  }
+  function label(el) { return String(el.textContent || "").replace(/\s+/g, " ").trim(); }
+  function reveal(el) {   // bring the control back into view if she has scrolled past it
+    var r = el.getBoundingClientRect();
+    if (r.top < 0 || r.top > innerHeight) el.scrollIntoView({ block: "start", behavior: "smooth" });
+  }
+
+  /* ---------- what one swipe does, per mode ---------- */
+  var aimed = null, aimedAt = 0;   // where the last swipe sent her, while the smooth scroll is still moving
+  function sections(d) {
+    var list = [].slice.call(document.querySelectorAll(cfg.sections));
+    if (!list.length) return;
+    var cur = -1;
+    list.forEach(function (s, i) { if (s.getBoundingClientRect().top <= 90) cur = i; });
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) {   // at the bottom, short last sections never reach the top
+      list.forEach(function (s, i) { if (s.getBoundingClientRect().top < innerHeight - 60) cur = i; });
+    }
+    if (aimed !== null && Date.now() - aimedAt < 1200) cur = aimed;   // two quick swipes move two sections
+    var next = cur + d;
+    aimedAt = Date.now();
+    if (next < 0) {
+      aimed = -1;
+      if (scrollY > 5) scrollTo({ top: 0, behavior: "smooth" });
+      say("Top");
+      return;
+    }
+    if (next >= list.length) { aimed = list.length - 1; say("Last section"); return; }
+    aimed = next;
+    list[next].scrollIntoView({ block: "start", behavior: "smooth" });
+    var h = list[next].querySelector("h1,h2,h3");
+    say(h ? label(h) : "Section " + (next + 1) + " of " + list.length);
+  }
+
+  function select(d) {
+    var sel = document.querySelector(cfg.select);
+    if (!sel) return;
+    var opts = [].slice.call(sel.options).filter(function (o) { return !o.disabled; });
+    var cur = opts.indexOf(sel.options[sel.selectedIndex]);
+    var next = cur + d;
+    if (next < 0 || next >= opts.length) { say(d > 0 ? "Last one" : "First one"); return; }
+    sel.value = opts[next].value;
+    sel.dispatchEvent(new Event("input", { bubbles: true }));
+    sel.dispatchEvent(new Event("change", { bubbles: true }));
+    reveal(sel);
+    say(label(opts[next]) + "  ·  " + (next + 1) + " of " + opts.length);
+  }
+
+  function chips(d) {
+    var list = [].slice.call(document.querySelectorAll(cfg.chips));
+    var box = document.querySelector(cfg.input);
+    if (!list.length || !box) return;
+    var now = String(box.value || "").trim().toLowerCase();
+    var cur = list.findIndex(function (c) { return label(c).toLowerCase() === now; });
+    var next = cur === -1 ? (d > 0 ? 0 : list.length - 1) : cur + d;
+    if (next < 0 || next >= list.length) { say(d > 0 ? "Last word" : "First word"); return; }
+    box.value = label(list[next]);   // no focus, so the phone keyboard stays down
+    box.dispatchEvent(new Event("input", { bubbles: true }));
+    reveal(box);
+    say(label(list[next]) + "  ·  " + (next + 1) + " of " + list.length);
+  }
+
+  function pages(d) {
+    var list = cfg.pages.split(/\s+/).filter(Boolean);
+    var here = location.pathname.split("/").pop() || "./";
+    if (here === "index.html") here = "./";
+    var cur = list.indexOf(here);
+    if (cur === -1) return;
+    var next = cur + d;
+    if (next < 0 || next >= list.length) { say(d > 0 ? "Last page" : "First page"); return; }
+    say(d > 0 ? "Next →" : "← Back");
+    setTimeout(function () { location.href = list[next]; }, 120);
+  }
+
+  var act = cfg.sections ? sections : cfg.select ? select : cfg.chips ? chips : cfg.pages ? pages : null;
+  if (!act) return;
+
+  /* ---------- the gesture ---------- */
+  function skip(el) {
+    for (; el && el.nodeType === 1; el = el.parentElement) {
+      if (el.matches("input,textarea,select,button.sa-fab,.sa-panel,iframe") || el.isContentEditable) return true;
+      if (el.scrollWidth > el.clientWidth) {
+        var o = getComputedStyle(el).overflowX;
+        if (o === "auto" || o === "scroll") return true;
+      }
+    }
+    return false;
+  }
+  var x0 = null, y0 = 0, t0 = 0;
+  document.addEventListener("touchstart", function (e) {
+    x0 = null;
+    if (e.touches.length !== 1 || skip(e.target)) return;
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+  }, { passive: true });
+  document.addEventListener("touchend", function (e) {
+    if (x0 === null) return;
+    var t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
+    x0 = null;
+    if (Math.abs(dx) <= 70 || Math.abs(dy) >= 50 || Date.now() - t0 >= 700) return;
+    act(dx < 0 ? 1 : -1);
+  }, { passive: true });
+  document.addEventListener("touchcancel", function () { x0 = null; }, { passive: true });
+})();

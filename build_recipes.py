@@ -493,8 +493,22 @@ def add_reader(page):
     page = page[:end] + "\n" + READ_BAR + "\n" + page[end:]
     return page.replace("</body>", READ_JS + READ_MARK + "\n</body>", 1)
 
+# ---------------- swipe, 15 Sep 2026 ----------------
+# Her words: "everything swipe to left and right has it been done?" Swipe left on the list opens recipe 1,
+# left again the next recipe, right goes back. The gesture itself lives in the site's shared swipe.js.
+SWIPE_MARK = "<!--swipe-->"
+
+def add_swipe(page, order):
+    tag = '<script src="../swipe.js" data-pages="%s" defer></script>' % " ".join(order)
+    if SWIPE_MARK in page:
+        b = page.find(SWIPE_MARK)
+        a = page.rfind('<script src="../swipe.js"', 0, b)
+        return page[:a] + tag + page[b:] if a != -1 else page   # refresh the list if recipes were added
+    return page.replace("</body>", tag + SWIPE_MARK + "\n</body>", 1)
+
 def illustrate_existing():
     pages = {}
+    order = ["./"] + sorted(os.path.basename(f) for f in glob.glob(os.path.join(OUT, "recipe-*.html")))
     for f in sorted(glob.glob(os.path.join(OUT, "*.html"))):
         name = os.path.basename(f)
         if name == "index.html":
@@ -503,10 +517,10 @@ def illustrate_existing():
         m = VID.search(s)
         if m:
             pages[name] = m.group(1)
-        io.open(f, "w", encoding="utf-8", newline="\n").write(add_reader(illustrate_page(s)))
+        io.open(f, "w", encoding="utf-8", newline="\n").write(add_swipe(add_reader(illustrate_page(s)), order))
     ip = os.path.join(OUT, "index.html")
     idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
-    io.open(ip, "w", encoding="utf-8", newline="\n").write(illustrate_index(idx, pages))
+    io.open(ip, "w", encoding="utf-8", newline="\n").write(add_swipe(illustrate_index(idx, pages), order))
     print("illustrated %d pages (%d with a video) + index" % (len(pages) if pages else 0, len(pages)))
 
 
