@@ -213,6 +213,11 @@ details.src li{margin:2px 0}
 footer{margin:46px 0 70px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;color:var(--muted);max-width:78ch}
 footer b{color:var(--ink2)}
 @media (prefers-reduced-motion: reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* Aa text size (textsize.js), 16 Sep 2026: at the bigger sizes the Yes/No buttons go under the question
+   instead of being squeezed and cut off */
+html.ts-big .q{grid-template-columns:1fr}
+html.ts-big .yn{justify-self:start}
 </style>
 <script src="/textsize.js"></script>
 
