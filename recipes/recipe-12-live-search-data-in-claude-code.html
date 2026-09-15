@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1115">
+<title>Live search data in Claude Code</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--border:#2a2e38;--text:#e8e9ed;--muted:#8b8f9b;--accent:#6c8cff;--chip:#3c4050;--danger:#ff6b6b;--ok:#4ade80}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:max(20px,env(safe-area-inset-top)) 16px 80px;line-height:1.6}
+.wrap{max-width:720px;margin:0 auto}
+a{color:var(--accent)}
+.back{display:inline-block;color:var(--muted);text-decoration:none;font-size:13px;margin-bottom:18px}
+.back:hover{color:var(--text)}
+h1{font-size:24px;line-height:1.3;margin:0 0 18px}
+h2{font-size:19px;line-height:1.35;margin:32px 0 12px;padding-top:14px;border-top:1px solid var(--border)}
+h3{font-size:16px;margin:24px 0 8px;color:var(--accent)}
+p{margin:0 0 14px}
+strong{color:#fff}
+hr{border:none;border-top:1px solid var(--border);margin:28px 0}
+blockquote{margin:0 0 16px;padding:12px 16px;background:var(--card);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;color:var(--muted);font-style:italic}
+blockquote strong{color:var(--text)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;overflow-x:auto;margin:0 0 18px}
+pre code{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);white-space:pre;background:none;padding:0}
+code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--chip);padding:2px 6px;border-radius:6px;color:var(--text)}
+.tablewrap{overflow-x:auto;margin:0 0 18px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+tr:last-child td{border-bottom:none}
+ul,ol{margin:0 0 16px;padding-left:22px}
+li{margin-bottom:6px}
+.cards{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+.card{display:block;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text)}
+.card:hover{border-color:var(--accent)}
+.card .n{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.card .t{font-size:15px;font-weight:600;margin:3px 0 4px;line-height:1.35}
+.card .d{font-size:13px;color:var(--muted);line-height:1.45}
+.card.warn{border-color:#5a3a3a}
+.lede{color:var(--muted);font-size:14px;margin-bottom:22px}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+
+.player{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:14px;overflow:hidden;background:#000;margin:4px 0 20px;border:1px solid var(--border)}
+.player button{all:unset;cursor:pointer;display:block;width:100%;height:100%;position:relative}
+.player img{width:100%;height:100%;object-fit:cover;display:block}
+.player .play{position:absolute;inset:0;display:grid;place-items:center}
+.player .play span{width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:28px;color:#fff;padding-left:5px;box-sizing:border-box}
+.player .cap{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;font-size:13px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+.player iframe{width:100%;height:100%;border:0;display:block}
+.card{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:start}
+.card .thumb{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;display:block;grid-row:span 3}
+.card.nothumb{display:block}
+a.ts{white-space:nowrap}
+
+.readbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
+.readbar button,.readbar select{font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 14px;cursor:pointer}
+.readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
+.readbar .rs{font-size:12px;color:var(--muted)}
+.reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="./">← all recipes</a>
+<h1>RECIPE 12 — Live search data in Claude Code</h1>
+<div class="player" data-id="_DxP2qVulDM"><button type="button" data-id="_DxP2qVulDM" aria-label="Play the video"><img src="https://i.ytimg.com/vi/_DxP2qVulDM/hqdefault.jpg" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span><span class="cap">Tap to play the video this recipe comes from</span></button></div>
+<div class="readbar" role="group" aria-label="Read aloud"><button type="button" class="primary" id="rdPlay">&#9654; Read aloud</button><button type="button" id="rdStop" hidden>&#9632; Stop</button><select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.15">Brisk</option><option value="1.3">Fast</option></select><span class="rs" id="rdNow"></span></div>
+
+
+<p>From: <a href="https://www.youtube.com/watch?v=_DxP2qVulDM" target="_blank" rel="noopener">How to do Keyword Research in Claude Code (Goodbye Semrush)</a> · 24 Mar 2026 · 17:39 · <a href="https://www.youtube.com/watch?v=_DxP2qVulDM" target="_blank" rel="noopener">watch</a></p>
+<p>From: <a href="https://www.youtube.com/watch?v=vKBVCIU2fzo" target="_blank" rel="noopener">How I Built an AI SEO Agent to Rank #1 in 10 Minutes (Claude Code)</a> · 23 May 2026 · 20:40 · <a href="https://www.youtube.com/watch?v=vKBVCIU2fzo" target="_blank" rel="noopener">watch</a></p>
+<p><strong>Two creators plug the same paid data service, DataForSEO, into Claude Code so it can read real search numbers instead of guessing them. The idea is sound. The data is Google's, not Etsy's.</strong></p>
+<h2>⚠ Read this first</h2>
+<p>Ryan sells his keyword skill and skips the setup, saying it is in another video. Sandy's video is sponsored by DataForSEO, and the site she audits and fixes is her own. So neither video shows the whole build. The build below fills the gaps from DataForSEO's own setup page and Claude Code's own help text, both read on 16 Sep 2026. It needs neither the paid skill nor the missing video.</p>
+<h1>⭐⭐ THE ONE THING — don't ask a model for numbers it doesn't have</h1>
+<p>Ask Claude "what do people search for?" and it gives a confident answer from memory. Ryan's point is that the model is not reading live data.</p>
+<blockquote>"they're not up-to-date 24/7"</blockquote>
+<p>(<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=152s" target="_blank" rel="noopener">2:32</a>) Connect a data service, and the same question comes back with real columns. His came back with monthly search volume, keyword difficulty and cost per click (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=451s" target="_blank" rel="noopener">7:31</a>).</p>
+<pre><code>   ASK THE MODEL               ASK THE MODEL + DATA SERVICE
+   ─────────────               ────────────────────────────
+   "people search for X"       Claude calls DataForSEO
+   (from memory, undated)            │
+                               real volume, difficulty,
+                               cost per click, dated today</code></pre>
+<h2>Why this matters to you</h2>
+<p>Your rules say research comes before building, with a demand figure read this month and dated. This is a way to get that figure inside Claude Code, dated, without opening another tool.</p>
+<p>⛔ But be clear about what it does not touch. You already rank #2 on Etsy AU for "dementia caregiver binder", and you have zero sales. Your gap is what happens after someone sees a listing. Search data can't see that. This recipe is for choosing and wording the NEXT product, not for fixing the current one.</p>
+<h1>⚠ THE BIG CAVEAT — this is Google, not Etsy</h1>
+<p>Everything both videos pull is Google search (and AI chatbot answers). Your Etsy ranking was measured by searching Etsy itself, logged out. That is still the only way to know where you rank on Etsy.</p>
+<p>I searched DataForSEO's docs index page on 16 Sep 2026 for "etsy" and found nothing. It does list Google, Bing and Amazon.</p>
+<div class="tablewrap"><table><thead><tr><th>It CAN tell you</th><th>It CAN'T tell you</th></tr></thead><tbody><tr><td>How often a phrase is searched on Google, by country</td><td>How often it is searched on Etsy</td></tr><tr><td>Which wording people use: "caregiver binder" vs "care planner"</td><td>Where your listing ranks in Etsy search</td></tr><tr><td>Whether a phrase is growing or shrinking over 12 months</td><td>Whether an Etsy shopper clicks, favourites or buys</td></tr><tr><td>What pages Google shows for a phrase, which may include Etsy listings</td><td>Why your listings have zero sales</td></tr><tr><td>What ChatGPT or Gemini recommend when asked</td><td>Anything about Etsy ads or Etsy's own algorithm</td></tr></tbody></table></div>
+<p>⭐ Google volume is a fair proxy for "does this need exist, and what do people call it". It isn't a proxy for Etsy demand.</p>
+<h1>How each video builds it</h1>
+<h2>Ryan: a keyword skill</h2>
+<ol><li>Write a keyword research skill. He sells his, but says to write your own first (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=91s" target="_blank" rel="noopener">1:31</a>).</li><li>Connect DataForSEO or Ahrefs (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=212s" target="_blank" rel="noopener">3:32</a>).</li><li>Ask the skill for keywords on a root topic, then tell it which rows you dislike and which columns to add. That updates the skill as you go (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=510s" target="_blank" rel="noopener">8:30</a>).</li><li>Hand a chosen keyword to a writing skill (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=540s" target="_blank" rel="noopener">9:00</a>).</li></ol>
+<blockquote>"Use my keyword research skill to find me 15 relevant and intentful keyword ideas based on the root topic of Claude code marketing."</blockquote>
+<p>⚠ The gap: at step 2 he says "I have a full other video showing you how to set this up, so I'm not going to do that in this video." (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=330s" target="_blank" rel="noopener">5:30</a>) All you see is the idea: paste DataForSEO's documentation link into Claude Code and ask for help, then give it your API login.</p>
+<h2>Sandy: an "SEO agent" loop</h2>
+<pre><code>   audit the site ──► ask AI engines who they recommend
+        ▲                        │
+        │               search volumes, 12-month trend,
+        │               Google AI overview, competitors
+        │                        │
+   re-audit ◄──── Claude fixes the website</code></pre>
+<ol><li>Get an API login and password from DataForSEO. The password is emailed (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=360s" target="_blank" rel="noopener">6:00</a>).</li><li>Paste a setup command with them into Claude Code, then check it with a list command (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=420s" target="_blank" rel="noopener">7:00</a>). ⚠ The command is on screen, not in the captions. They only say to paste "this right here".</li><li>Give Claude a research prompt (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=510s" target="_blank" rel="noopener">8:30</a>). She reads out part of it: who AI engines recommend in her niche, search volumes and trends, a Google AI overview check, and competitor patterns. ⚠ The full prompt is a skill she gives by email or in her paid community.</li><li>Have Claude fix the site. She calls this the step most people skip (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=690s" target="_blank" rel="noopener">11:30</a>).</li><li>Re-run the audit. She went from F to D (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=1140s" target="_blank" rel="noopener">19:00</a>).</li></ol>
+<p>⚠ Steps 4 and 5 need a website whose code you control. An Etsy listing isn't one, so for you they stop at step 3. She also says AI engines take "about 14 to 21 days" to notice changes (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=722s" target="_blank" rel="noopener">12:02</a>). So her F-to-D score comes from her own audit tool, not from AI engines naming her.</p>
+<h1>The build, rewritten — no paid skill, no missing video</h1>
+<p>⛔ Signing up, accepting DataForSEO's terms and adding credit are yours to do. So is typing the password. Keep it out of the chat.</p>
+<p>The setup, from DataForSEO's own GitHub page (read 16 Sep 2026): they run a hosted server at <code>https://mcp.dataforseo.com/v3/mcp</code>, and it signs in with OAuth. That means a browser login instead of a pasted password. Claude Code's own <code>claude mcp add --help</code> shows the matching command:</p>
+<pre><code>claude mcp add --transport http dataforseo https://mcp.dataforseo.com/v3/mcp</code></pre>
+<p>Then type <code>/mcp</code> in Claude Code, pick dataforseo and choose authenticate. Ryan does exactly that for Ahrefs (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=781s" target="_blank" rel="noopener">13:01</a>). ⚠ I haven't run this on your machines. Check it by reading <code>/mcp</code> back before trusting it.</p>
+<p>The GitHub page also offers a local version that takes the login and password as settings. Sandy keeps hers in a <code>.env</code> file and changes the key often (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=602s" target="_blank" rel="noopener">10:02</a>).</p>
+<h1>Money — every price the videos give</h1>
+<div class="tablewrap"><table><thead><tr><th>Price</th><th>Who said it, and when</th></tr></thead><tbody><tr><td>"you start with $1, which I know does not seem like a lot, which it is not."</td><td>Ryan, Mar 2026 (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=301s" target="_blank" rel="noopener">5:01</a>)</td></tr><tr><td>"about maybe 5 to 10 cents per output"</td><td>Ryan, Mar 2026 (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=301s" target="_blank" rel="noopener">5:01</a>)</td></tr><tr><td>$5 trial credit through her link, "instead of $1"</td><td>Sandy, May 2026, sponsored (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=330s" target="_blank" rel="noopener">5:30</a>)</td></tr><tr><td>"It cost 3 cents, guys, for us to do this."</td><td>Sandy, May 2026, her whole research step (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=841s" target="_blank" rel="noopener">14:01</a>)</td></tr><tr><td>Ahrefs API on its lowest plan, "$129 a month"; it was enterprise-only at about $1,500</td><td>Ryan, Mar 2026 (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=630s" target="_blank" rel="noopener">10:30</a>)</td></tr><tr><td>SEO agencies at $5,000 to $20,000 a month</td><td>Sandy, May 2026 (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=780s" target="_blank" rel="noopener">13:00</a>)</td></tr></tbody></table></div>
+<p>⚠ Ryan's 5 to 10 cents a run sits right on your 10c ask line. So every run needs a stated price first. Sandy says spending comes off a prepaid deposit (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=661s" target="_blank" rel="noopener">11:01</a>), which should cap spending at the balance (not tested here). Topping it up is money, so it goes to you.</p>
+<p>⚠ Both creators run with bypass permissions (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=420s" target="_blank" rel="noopener">7:00</a>, <a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=1051s" target="_blank" rel="noopener">17:31</a>). With paid calls, that means no pause before spending. Ryan himself suggests plan mode the first time. See Recipe 09.</p>
+<h1>What to try — one step, tonight</h1>
+<p>Only if you are choosing the next product. It does nothing for the current zero-sales problem.</p>
+<pre><code>1. YOU: sign up at DataForSEO, then run the one
+   claude mcp add line above in your own terminal,
+   then /mcp → authenticate
+
+2. In plan mode, paste the prompt below
+
+3. Read the price it states. Under 10c: say go.
+   10c or more: stop.</code></pre>
+<p>The prompt:</p>
+<blockquote>Using only the DataForSEO MCP, get Google search volume in Australia, with a 12-month trend, for these 10 phrases: [your phrases]. Before any paid call, state the endpoint and estimated cost. After it, report the real cost from the API response. Label the result "Google, not Etsy", with today's date.</blockquote>
+<p>Then search the best two phrases on Etsy yourself, logged out, the way you measured your rankings. The Google number says the need exists. Only the Etsy search says who you'd be up against.</p>
+<h2>ALSO MENTIONED</h2>
+<ul><li>Ryan uses Ahrefs for backlink checks, his own and competitors' (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=962s" target="_blank" rel="noopener">16:02</a>). You need a paid Ahrefs account for any of it.</li><li>After changing data services, he had to update the skill to use the new one (<a href="https://www.youtube.com/watch?v=_DxP2qVulDM&amp;t=810s" target="_blank" rel="noopener">13:30</a>).</li><li>Sandy's reason for live data: chatbot answers are personalised to your past chats (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=271s" target="_blank" rel="noopener">4:31</a>).</li><li>⚠ Sandy says "Almost 77% of the people in the US" use AI instead of Google to search (<a href="https://www.youtube.com/watch?v=vKBVCIU2fzo&amp;t=122s" target="_blank" rel="noopener">2:02</a>). She gives no source.</li><li>⚠ Asking ChatGPT or Gemini through DataForSEO is a third-party route. It isn't your Vertex route for Gemini, so decide whether that's allowed before you use it.</li></ul>
+<h2>See also</h2>
+<ul><li>RECIPE 09 — plan mode, which both creators turned off here.</li><li>RECIPE 04 — the grader pattern, for checking what you write with these keywords.</li><li>RECIPE 08 — your tool stack, where a data service would sit.</li></ul>
+<div class="foot">Built 2026-09-16 from RECIPE_12_live_search_data_in_claude_code.md. Edit the markdown, not this page.</div>
+</div>
+<script>
+(function(){
+  function play(box, id, start){
+    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0' +
+      (start ? '&start=' + start : '') + '" title="Video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('.player button');
+    if (b) { play(b.parentNode, b.dataset.id, 0); return; }
+    var a = e.target.closest('a[href*="youtube.com/watch"]');
+    var box = document.querySelector('.player');
+    if (!a || !box) return;
+    var m = a.href.match(/[?&]v=([A-Za-z0-9_-]{11})/), t = a.href.match(/[?&]t=(\d+)/);
+    if (!m || m[1] !== box.dataset.id) return;
+    e.preventDefault();
+    play(box, m[1], t ? t[1] : 0);
+    box.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
+})();
+</script><!--illustrated-->
+<script>
+(function(){
+  /* Natural voice, her 15 Sep "Everything.": if tools/record_recipes.py made a recording for this page, and every
+     line still matches, Read aloud plays that recording (keeps going with the phone locked); otherwise the phone voice. */
+  var stem=(location.pathname.split('/').pop()||'').replace(/\.html$/,''), rec=null, audio=null;
+  fetch('a/'+stem+'.json').then(function(r){ return r.ok?r.json():null; }).then(function(j){
+    if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&b.textContent.indexOf('Read aloud')>-1) b.innerHTML='&#9654; Listen (natural voice)';
+  }).catch(function(){});
+  var hasSS=('speechSynthesis' in window);
+  var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
+  var parts=[], i=0, on=false, paused=false, voice=null;
+  function pickVoice(){
+    var vs=speechSynthesis.getVoices(); if(!vs.length) return null;
+    var good=/Siri|Natural|Premium|Enhanced|Karen|Lee|Catherine|Daniel|Serena/i;
+    var by=function(lang){ var l=vs.filter(function(v){return v.lang&&v.lang.replace('_','-').indexOf(lang)===0;}); return l.filter(function(v){return good.test(v.name);})[0]||l[0]; };
+    return by('en-AU')||by('en-GB')||by('en-US')||by('en')||vs[0];
+  }
+  function collect(){
+    var wrap=document.querySelector('.wrap'), out=[];
+    wrap.querySelectorAll('h1,h2,h3,p,li,blockquote,td').forEach(function(el){
+      if (el.closest('pre,.player,.readbar,.foot,.back,table td table')) return;
+      if (el.tagName==='P' && el.closest('li,blockquote,td')) return;
+      var t=(el.innerText||'').replace(/[\u2B50\u26A0\u26D4\u2705\u274C]/g,'').replace(/\s+/g,' ').trim();
+      if (t.length<2) return;
+      var bits=t.match(/[^.!?]+[.!?]*\s*/g)||[t], buf='';
+      bits.forEach(function(s){ if((buf+s).length>220 && buf){ out.push({el:el,text:buf}); buf=''; } buf+=s; });
+      if (buf.trim()) out.push({el:el,text:buf});
+    });
+    return out;
+  }
+  function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); el.scrollIntoView({behavior:'smooth',block:'center'}); } }
+  function step(){
+    if(!on||mode==='audio') return;
+    if(i>=parts.length){ finish(); return; }
+    var p=parts[i], u=new SpeechSynthesisUtterance(p.text);
+    voice=voice||pickVoice(); if(voice){ u.voice=voice; u.lang=voice.lang; }
+    u.rate=parseFloat(rate.value)||1;
+    u.onend=function(){ if(!on||paused) return; i++; step(); };
+    u.onerror=function(){ if(!on||paused) return; i++; step(); };
+    mark(p.el); now.textContent=Math.round(i/parts.length*100)+'%';
+    speechSynthesis.speak(u);
+  }
+  function matches(ps){ if(!rec||rec.parts.length!==ps.length) return false; for(var k=0;k<ps.length;k++){ if(rec.parts[k].t!==ps[k].text) return false; } return true; }
+  function label(){ return rec?'&#9654; Listen (natural voice)':'&#9654; Read aloud'; }
+  function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; now.textContent=''; }
+  function startAudio(){
+    if(!audio){
+      audio=new Audio('a/'+stem+'.mp3'); audio.preload='auto';
+      audio.addEventListener('timeupdate', function(){
+        var t=audio.currentTime, k=0; while(k+1<rec.parts.length && rec.parts[k+1].s<=t) k++;
+        if(k!==i || !document.querySelector('.reading')){ i=k; mark(parts[k]&&parts[k].el); }
+        now.textContent=Math.round(t/(rec.dur||audio.duration||1)*100)+'%';
+      });
+      audio.addEventListener('ended', finish);
+      if('mediaSession' in navigator){
+        var h=document.querySelector('h1');
+        navigator.mediaSession.metadata=new MediaMetadata({title:h?h.innerText:document.title, artist:'Recipes'});
+        navigator.mediaSession.setActionHandler('play', function(){ play.click(); });
+        navigator.mediaSession.setActionHandler('pause', function(){ play.click(); });
+        try{ navigator.mediaSession.setActionHandler('seekbackward', function(){ audio.currentTime=Math.max(0,audio.currentTime-15); });
+             navigator.mediaSession.setActionHandler('seekforward', function(){ audio.currentTime=audio.currentTime+15; }); }catch(e){}
+      }
+    }
+    audio.playbackRate=parseFloat(rate.value)||1;
+    return audio.play();
+  }
+  var mode='';
+  play.addEventListener('click', function(){
+    if(!on){
+      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\u23F8 Pause';
+      if(matches(parts)){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
+      mode='speech'; if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
+      speechSynthesis.cancel(); step(); return;
+    }
+    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654; Resume'; return; }
+    paused=false; play.textContent='\u23F8 Pause'; if(mode==='audio') audio.play(); else step();
+  });
+  stop.addEventListener('click', finish);
+  rate.addEventListener('change', function(){ if(mode==='audio'&&audio){ audio.playbackRate=parseFloat(rate.value)||1; return; } if(on&&!paused){ speechSynthesis.cancel(); step(); } });
+  if (hasSS && speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
+})();
+</script><!--read-aloud-->
+<script src="../swipe.js" data-pages="./ recipe-01-ai-social-media-manager.html recipe-02-seven-claude-commands.html recipe-03-cowork-what-you-dont-use.html recipe-04-the-grader-pattern.html recipe-05-the-audience-playbook.html recipe-06-she-switched-away-from-claude.html recipe-07-microsoft-copilot.html recipe-08-her-whole-tool-stack.html recipe-09-plan-mode-and-quality-gates.html recipe-10-the-social-automation-family.html recipe-11-loop-engineering.html recipe-12-live-search-data-in-claude-code.html recipe-13-claude-and-canva-templates.html recipe-14-the-tiktok-30-day-sprint.html" defer></script><!--swipe-->
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1115">
+<title>The TikTok sprint, and the search-gap tool inside it</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--border:#2a2e38;--text:#e8e9ed;--muted:#8b8f9b;--accent:#6c8cff;--chip:#3c4050;--danger:#ff6b6b;--ok:#4ade80}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:max(20px,env(safe-area-inset-top)) 16px 80px;line-height:1.6}
+.wrap{max-width:720px;margin:0 auto}
+a{color:var(--accent)}
+.back{display:inline-block;color:var(--muted);text-decoration:none;font-size:13px;margin-bottom:18px}
+.back:hover{color:var(--text)}
+h1{font-size:24px;line-height:1.3;margin:0 0 18px}
+h2{font-size:19px;line-height:1.35;margin:32px 0 12px;padding-top:14px;border-top:1px solid var(--border)}
+h3{font-size:16px;margin:24px 0 8px;color:var(--accent)}
+p{margin:0 0 14px}
+strong{color:#fff}
+hr{border:none;border-top:1px solid var(--border);margin:28px 0}
+blockquote{margin:0 0 16px;padding:12px 16px;background:var(--card);border-left:3px solid var(--accent);border-radius:0 10px 10px 0;color:var(--muted);font-style:italic}
+blockquote strong{color:var(--text)}
+pre{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;overflow-x:auto;margin:0 0 18px}
+pre code{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--muted);white-space:pre;background:none;padding:0}
+code{font:13px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--chip);padding:2px 6px;border-radius:6px;color:var(--text)}
+.tablewrap{overflow-x:auto;margin:0 0 18px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+tr:last-child td{border-bottom:none}
+ul,ol{margin:0 0 16px;padding-left:22px}
+li{margin-bottom:6px}
+.cards{display:flex;flex-direction:column;gap:10px;margin-bottom:26px}
+.card{display:block;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text)}
+.card:hover{border-color:var(--accent)}
+.card .n{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.card .t{font-size:15px;font-weight:600;margin:3px 0 4px;line-height:1.35}
+.card .d{font-size:13px;color:var(--muted);line-height:1.45}
+.card.warn{border-color:#5a3a3a}
+.lede{color:var(--muted);font-size:14px;margin-bottom:22px}
+.foot{margin-top:40px;padding-top:16px;border-top:1px solid var(--border);color:var(--muted);font-size:12px}
+
+.player{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:14px;overflow:hidden;background:#000;margin:4px 0 20px;border:1px solid var(--border)}
+.player button{all:unset;cursor:pointer;display:block;width:100%;height:100%;position:relative}
+.player img{width:100%;height:100%;object-fit:cover;display:block}
+.player .play{position:absolute;inset:0;display:grid;place-items:center}
+.player .play span{width:68px;height:68px;border-radius:50%;background:rgba(0,0,0,.62);display:grid;place-items:center;font-size:28px;color:#fff;padding-left:5px;box-sizing:border-box}
+.player .cap{position:absolute;left:0;right:0;bottom:0;padding:10px 12px;font-size:13px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.75))}
+.player iframe{width:100%;height:100%;border:0;display:block}
+.card{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:start}
+.card .thumb{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;display:block;grid-row:span 3}
+.card.nothumb{display:block}
+a.ts{white-space:nowrap}
+
+.readbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
+.readbar button,.readbar select{font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 14px;cursor:pointer}
+.readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
+.readbar .rs{font-size:12px;color:var(--muted)}
+.reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="./">← all recipes</a>
+<h1>RECIPE 14 — The TikTok sprint, and the search-gap tool inside it</h1>
+<div class="player" data-id="T-F_2Kga3Os"><button type="button" data-id="T-F_2Kga3Os" aria-label="Play the video"><img src="https://i.ytimg.com/vi/T-F_2Kga3Os/hqdefault.jpg" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span><span class="cap">Tap to play the video this recipe comes from</span></button></div>
+<div class="readbar" role="group" aria-label="Read aloud"><button type="button" class="primary" id="rdPlay">&#9654; Read aloud</button><button type="button" id="rdStop" hidden>&#9632; Stop</button><select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.15">Brisk</option><option value="1.3">Fast</option></select><span class="rs" id="rdNow"></span></div>
+
+
+<p>From: <a href="https://www.youtube.com/watch?v=T-F_2Kga3Os" target="_blank" rel="noopener">Blow Up on TikTok in 30 Days</a> · 27 Jan 2026 · 23:02 · <a href="https://www.youtube.com/watch?v=T-F_2Kga3Os" target="_blank" rel="noopener">watch</a></p>
+<p>From: <a href="https://www.youtube.com/watch?v=I3bOOiJirgk" target="_blank" rel="noopener">I Blew Up My TikTok Following As Fast As I Could!</a> · 8 Feb 2025 · 24:24 · <a href="https://www.youtube.com/watch?v=I3bOOiJirgk" target="_blank" rel="noopener">watch</a></p>
+<p><strong>Two Sabrina videos teach one plan: pick one topic, post 100 short videos fast, copy proven hooks, and aim at the searches TikTok says nobody is filling. The full sprint does not fit your week. The search-gap tool fits tonight, and you do not have to post anything to use it.</strong></p>
+<p>⭐ These sit under your strongest comment on her list (11 Sep): "one of the things that I want to have another look at".</p>
+<p>⚠ The newer video is from January 2026 and the older one from February 2025. TikTok moves its menus often. Every click path below is hers, as shown then, and may have moved.</p>
+<h1>⭐⭐ THE ONE THING — TikTok tells you what people search for and cannot find</h1>
+<p>Her name for it is Creator Search Insights. It shows what people type into TikTok search, with numbers, and a "content gap" tab for searches that have too few videos.</p>
+<blockquote>"Tik Tok is literally asking you to make content on those topics so it can serve it to the people searching for it" (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=870s" target="_blank" rel="noopener">14:30</a>)</blockquote>
+<p>Her path, February 2025 (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=900s" target="_blank" rel="noopener">15:00</a>):</p>
+<pre><code>TikTok app ─► Home ─► search bar (top right)
+            ─► type "creator search insights" ─► View
+            ─► Trending tab   (what millions search)
+            ─► Content gap    (searched, not enough videos)
+            ─► type your own keyword in its search bar
+            ─► bookmark the phrases you like</code></pre>
+<p>Then the rule that she says moved her from about 200 views to thousands: use the exact phrase everywhere. Title, description, hashtags, and said out loud (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=451s" target="_blank" rel="noopener">07:31</a>).</p>
+<p>Her check that it worked: open your own video and look at the search bar at the top.</p>
+<blockquote>"you don't want it to say find related Concept in the top search bar here" (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=420s" target="_blank" rel="noopener">07:00</a>)</blockquote>
+<p>She ran it on seven videos in two days. The captions read "23 9,000 views in the past 48 hours" (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=1113s" target="_blank" rel="noopener">18:33</a>). That is probably 239,000, but auto-captions garble numbers, so treat it as unverified. ⚠ It was also on an AI account that already had a large following.</p>
+<h2>Why this matters to you</h2>
+<p>Your listings can already be found. You rank #2 on Etsy AU for "dementia caregiver binder". What is unproven is what happens after someone sees a listing.</p>
+<pre><code>WHAT THE SPRINT FIXES         WHAT YOU HAVEN'T PROVEN
+─────────────────────         ───────────────────────
+nobody sees you               people see the listing
+        │                             │
+more videos, more views       ...and do not buy
+        │                             │
+exposure                      the words and the offer</code></pre>
+<p>⚠ So a TikTok sprint pushes on exposure, which is not your measured gap. Be honest about that before spending hours.</p>
+<p>⭐ But the search tool helps with the other side. It shows the exact words caregivers type, with numbers, for free. That is buyer language for titles and first lines, gathered before you build or rewrite anything.</p>
+<h1>The full sprint — what she actually asks for</h1>
+<div class="tablewrap"><table><thead><tr><th>Step</th><th>Her rule</th><th>Where</th></tr></thead><tbody><tr><td>One topic only</td><td>"If you want to experiment with other topics, do it on another account"</td><td><a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=182s" target="_blank" rel="noopener">03:02</a></td></tr><tr><td>Study hooks</td><td>Scroll viral videos in your niche and watch only the first 5–10 seconds</td><td><a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=660s" target="_blank" rel="noopener">11:00</a></td></tr><tr><td>Copy the hook</td><td>Same words, colour, position and size, with your own content</td><td><a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=931s" target="_blank" rel="noopener">15:31</a></td></tr><tr><td>Keep it short</td><td>Under 30 seconds, so flops do not burn you out</td><td><a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=1260s" target="_blank" rel="noopener">21:00</a></td></tr><tr><td>Hashtags</td><td>3–5 relevant ones, reused, ideally over 500,000 uses</td><td><a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=840s" target="_blank" rel="noopener">14:00</a></td></tr><tr><td>Reply fast</td><td>15–30 minutes answering every comment after posting</td><td><a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=991s" target="_blank" rel="noopener">16:31</a></td></tr><tr><td>Remake winners</td><td>Same format, new topic</td><td><a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=1111s" target="_blank" rel="noopener">18:31</a></td></tr><tr><td>Volume</td><td>100 videos in 30 days, "roughly 3 to four videos every single day"</td><td><a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=122s" target="_blank" rel="noopener">02:02</a></td></tr></tbody></table></div>
+<p>Her reason for the volume: "volume negates luck" (<a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=122s" target="_blank" rel="noopener">02:02</a>). The 2025 video adds "do not use automation" for the first 100 (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=212s" target="_blank" rel="noopener">03:32</a>).</p>
+<h2>⚠ The honest time sum</h2>
+<p>Her own figure: "usually doesn't take me more than 15, max 20 minutes per video" (<a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=1320s" target="_blank" rel="noopener">22:00</a>). That is her speed, as a creator with 680,000 followers.</p>
+<pre><code>100 videos × 15–20 min filming   = 25–33 hours
+100 posts  × 15–30 min replying  = 25–50 hours
+                                   ───────────
+in 30 days                       ≈ 50–83 hours
+                                 ≈ 1.7–2.8 hours a day</code></pre>
+<p>⛔ That does not fit a full-time job. She says so herself:</p>
+<blockquote>"if Tik Tok is not going to be your primary Channel then you don't need to do this" (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=480s" target="_blank" rel="noopener">08:00</a>)</blockquote>
+<h2>⚠ Where the two videos disagree, or overclaim</h2>
+<ul><li>Shadowban line. The 2026 video says fewer than 100 views on 10 videos in a row (<a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=1200s" target="_blank" rel="noopener">20:00</a>). The 2025 video says "10 videos in a row each video fewer than 50 views" (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=780s" target="_blank" rel="noopener">13:00</a>). Both agree that about 200 views means a healthy account.</li><li>"you will be successful guaranteed" (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=571s" target="_blank" rel="noopener">09:31</a>). Nobody can promise that.</li><li>"up to 30% of traffic comes from people searching on Tik Tok" (<a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=810s" target="_blank" rel="noopener">13:30</a>). That is her own viral videos only.</li><li>Her fix for one stuck video is to set it private, restart the app, then set it public again (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=841s" target="_blank" rel="noopener">14:01</a>). She shows no evidence it works.</li><li>She mentions rage bait and "visually jarring" props to get comments (<a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=1082s" target="_blank" rel="noopener">18:02</a>). ⛔ That would be wrong for caregivers of people with dementia.</li></ul>
+<h1>Money and permissions</h1>
+<p>Neither video gives a dollar price. The 2026 video's stance is:</p>
+<blockquote>"You don't need to pay for anything for this challenge." (<a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=1291s" target="_blank" rel="noopener">21:31</a>)</blockquote>
+<ul><li>Her hook GPT ("Viral hooks for short videos") runs on a free ChatGPT account (<a href="https://www.youtube.com/watch?v=T-F_2Kga3Os&amp;t=420s" target="_blank" rel="noopener">07:00</a>).</li><li>Her list of 1,000 hooks comes through her newsletter, so it costs you an email address (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=152s" target="_blank" rel="noopener">02:32</a>).</li><li>⚠ The script workflow in the 2025 video runs inside Blotato, her own product. It calls the Perplexity API (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=1230s" target="_blank" rel="noopener">20:30</a>). No price is stated here, so under your rule nothing gets run until someone prices it.</li></ul>
+<p>⛔ Your call, not mine:</p>
+<ul><li>Posting anything on TikTok is public.</li><li>Face on camera is optional. She says talking head or faceless "doesn't matter" (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=212s" target="_blank" rel="noopener">03:32</a>).</li><li>Anything that costs money.</li></ul>
+<p>⚠ If AI makes any image, voice or realistic footage in a video, use TikTok's AI-generated content label. Check TikTok's current rule before the first post, because it may have changed since these videos. Show the real PDF pages, never code-drawn stand-ins.</p>
+<h1>What to try — one step, tonight</h1>
+<p>No posting, no money, about 20 minutes on your phone.</p>
+<pre><code>1. Open TikTok, follow her path to Creator Search Insights.
+   (If the menu has moved, search the app for it.)
+
+2. In its search bar, type each of:
+     dementia caregiver
+     caregiver binder
+     aging parent
+
+3. For each one, screenshot the Trending and Content gap
+   lists, with the search numbers and today's date.
+
+4. Put the screenshots in one folder. Ask me tomorrow:
+   "Which exact phrases here are missing from my
+    listing titles and first lines?"</code></pre>
+<p>That gives you dated buyer language and costs nothing. Whether you ever post, it feeds straight into the part you have not proven: what someone reads after they find you.</p>
+<h2>If you later want to test posting — the smallest honest version</h2>
+<p>These numbers are my proposal, not hers. Posting is your decision.</p>
+<div class="tablewrap"><table><thead><tr><th>Part</th><th>Setting</th></tr></thead><tbody><tr><td>Size</td><td>12 videos in 14 days, one topic (caregiver binders)</td></tr><tr><td>Each video</td><td>Under 30 seconds, title = one exact content-gap phrase</td></tr><tr><td>Time</td><td>Budget 20 minutes to make, 15 to reply ≈ 7 hours total</td></tr><tr><td>Real success</td><td>Any Etsy visits or favourites you can trace to TikTok</td></tr><tr><td>Signal only</td><td>2 or more of 12 pass 1,000 views (her "1, 5,000" unlock level)</td></tr><tr><td>Stop rule</td><td>After 12: most under 200 views and no Etsy visits → stop</td></tr><tr><td>Continue rule</td><td>A video clearly beats the rest → remake that format for 12 more</td></tr></tbody></table></div>
+<p>⚠ Views are not sales. Only the Etsy line counts as a result.</p>
+<h2>ALSO MENTIONED</h2>
+<ul><li>Make a second account just to curate a For You feed of your niche, then scroll it for 30 minutes and note what stops you (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=91s" target="_blank" rel="noopener">01:31</a>)</li><li>Templates she says work: listicles, "stop doing this", tutorials, breaking news (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=300s" target="_blank" rel="noopener">05:00</a>)</li><li>Post at least three a day, one to two hours apart (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=510s" target="_blank" rel="noopener">08:30</a>)</li><li>iPhone front camera, edit in the TikTok app, no makeup (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=542s" target="_blank" rel="noopener">09:02</a>)</li><li>Her two regrets: not starting sooner, and not cross-posting to Instagram sooner (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=630s" target="_blank" rel="noopener">10:30</a>)</li><li>One link in bio to a free lead magnet and email list, not a link tree (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=750s" target="_blank" rel="noopener">12:30</a>)</li><li>TikTok's teleprompter effect for reading a script while filming (<a href="https://www.youtube.com/watch?v=I3bOOiJirgk&amp;t=1410s" target="_blank" rel="noopener">23:30</a>)</li><li>⚠ Both transcripts are auto-captions. They reach her sign-off, but neither ends on a full stop.</li></ul>
+<h2>See also</h2>
+<p>RECIPE 04 — hook frameworks and a word gate; its "three hooks, then pick" habit fits the posting test. RECIPE 05 — the audience playbook. RECIPE 01 and RECIPE 10 — the automated Blotato side, which this plan says to avoid for the first 100 videos.</p>
+<div class="foot">Built 2026-09-16 from RECIPE_14_the_tiktok_30_day_sprint.md. Edit the markdown, not this page.</div>
+</div>
+<script>
+(function(){
+  function play(box, id, start){
+    box.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0' +
+      (start ? '&start=' + start : '') + '" title="Video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>';
+  }
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('.player button');
+    if (b) { play(b.parentNode, b.dataset.id, 0); return; }
+    var a = e.target.closest('a[href*="youtube.com/watch"]');
+    var box = document.querySelector('.player');
+    if (!a || !box) return;
+    var m = a.href.match(/[?&]v=([A-Za-z0-9_-]{11})/), t = a.href.match(/[?&]t=(\d+)/);
+    if (!m || m[1] !== box.dataset.id) return;
+    e.preventDefault();
+    play(box, m[1], t ? t[1] : 0);
+    box.scrollIntoView({behavior: 'smooth', block: 'start'});
+  });
+})();
+</script><!--illustrated-->
+<script>
+(function(){
+  /* Natural voice, her 15 Sep "Everything.": if tools/record_recipes.py made a recording for this page, and every
+     line still matches, Read aloud plays that recording (keeps going with the phone locked); otherwise the phone voice. */
+  var stem=(location.pathname.split('/').pop()||'').replace(/\.html$/,''), rec=null, audio=null;
+  fetch('a/'+stem+'.json').then(function(r){ return r.ok?r.json():null; }).then(function(j){
+    if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&b.textContent.indexOf('Read aloud')>-1) b.innerHTML='&#9654; Listen (natural voice)';
+  }).catch(function(){});
+  var hasSS=('speechSynthesis' in window);
+  var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
+  var parts=[], i=0, on=false, paused=false, voice=null;
+  function pickVoice(){
+    var vs=speechSynthesis.getVoices(); if(!vs.length) return null;
+    var good=/Siri|Natural|Premium|Enhanced|Karen|Lee|Catherine|Daniel|Serena/i;
+    var by=function(lang){ var l=vs.filter(function(v){return v.lang&&v.lang.replace('_','-').indexOf(lang)===0;}); return l.filter(function(v){return good.test(v.name);})[0]||l[0]; };
+    return by('en-AU')||by('en-GB')||by('en-US')||by('en')||vs[0];
+  }
+  function collect(){
+    var wrap=document.querySelector('.wrap'), out=[];
+    wrap.querySelectorAll('h1,h2,h3,p,li,blockquote,td').forEach(function(el){
+      if (el.closest('pre,.player,.readbar,.foot,.back,table td table')) return;
+      if (el.tagName==='P' && el.closest('li,blockquote,td')) return;
+      var t=(el.innerText||'').replace(/[\u2B50\u26A0\u26D4\u2705\u274C]/g,'').replace(/\s+/g,' ').trim();
+      if (t.length<2) return;
+      var bits=t.match(/[^.!?]+[.!?]*\s*/g)||[t], buf='';
+      bits.forEach(function(s){ if((buf+s).length>220 && buf){ out.push({el:el,text:buf}); buf=''; } buf+=s; });
+      if (buf.trim()) out.push({el:el,text:buf});
+    });
+    return out;
+  }
+  function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); el.scrollIntoView({behavior:'smooth',block:'center'}); } }
+  function step(){
+    if(!on||mode==='audio') return;
+    if(i>=parts.length){ finish(); return; }
+    var p=parts[i], u=new SpeechSynthesisUtterance(p.text);
+    voice=voice||pickVoice(); if(voice){ u.voice=voice; u.lang=voice.lang; }
+    u.rate=parseFloat(rate.value)||1;
+    u.onend=function(){ if(!on||paused) return; i++; step(); };
+    u.onerror=function(){ if(!on||paused) return; i++; step(); };
+    mark(p.el); now.textContent=Math.round(i/parts.length*100)+'%';
+    speechSynthesis.speak(u);
+  }
+  function matches(ps){ if(!rec||rec.parts.length!==ps.length) return false; for(var k=0;k<ps.length;k++){ if(rec.parts[k].t!==ps[k].text) return false; } return true; }
+  function label(){ return rec?'&#9654; Listen (natural voice)':'&#9654; Read aloud'; }
+  function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; now.textContent=''; }
+  function startAudio(){
+    if(!audio){
+      audio=new Audio('a/'+stem+'.mp3'); audio.preload='auto';
+      audio.addEventListener('timeupdate', function(){
+        var t=audio.currentTime, k=0; while(k+1<rec.parts.length && rec.parts[k+1].s<=t) k++;
+        if(k!==i || !document.querySelector('.reading')){ i=k; mark(parts[k]&&parts[k].el); }
+        now.textContent=Math.round(t/(rec.dur||audio.duration||1)*100)+'%';
+      });
+      audio.addEventListener('ended', finish);
+      if('mediaSession' in navigator){
+        var h=document.querySelector('h1');
+        navigator.mediaSession.metadata=new MediaMetadata({title:h?h.innerText:document.title, artist:'Recipes'});
+        navigator.mediaSession.setActionHandler('play', function(){ play.click(); });
+        navigator.mediaSession.setActionHandler('pause', function(){ play.click(); });
+        try{ navigator.mediaSession.setActionHandler('seekbackward', function(){ audio.currentTime=Math.max(0,audio.currentTime-15); });
+             navigator.mediaSession.setActionHandler('seekforward', function(){ audio.currentTime=audio.currentTime+15; }); }catch(e){}
+      }
+    }
+    audio.playbackRate=parseFloat(rate.value)||1;
+    return audio.play();
+  }
+  var mode='';
+  play.addEventListener('click', function(){
+    if(!on){
+      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\u23F8 Pause';
+      if(matches(parts)){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
+      mode='speech'; if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
+      speechSynthesis.cancel(); step(); return;
+    }
+    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654; Resume'; return; }
+    paused=false; play.textContent='\u23F8 Pause'; if(mode==='audio') audio.play(); else step();
+  });
+  stop.addEventListener('click', finish);
+  rate.addEventListener('change', function(){ if(mode==='audio'&&audio){ audio.playbackRate=parseFloat(rate.value)||1; return; } if(on&&!paused){ speechSynthesis.cancel(); step(); } });
+  if (hasSS && speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
+})();
+</script><!--read-aloud-->
+<script src="../swipe.js" data-pages="./ recipe-01-ai-social-media-manager.html recipe-02-seven-claude-commands.html recipe-03-cowork-what-you-dont-use.html recipe-04-the-grader-pattern.html recipe-05-the-audience-playbook.html recipe-06-she-switched-away-from-claude.html recipe-07-microsoft-copilot.html recipe-08-her-whole-tool-stack.html recipe-09-plan-mode-and-quality-gates.html recipe-10-the-social-automation-family.html recipe-11-loop-engineering.html recipe-12-live-search-data-in-claude-code.html recipe-13-claude-and-canva-templates.html recipe-14-the-tiktok-30-day-sprint.html" defer></script><!--swipe-->
+</body>
+</html>

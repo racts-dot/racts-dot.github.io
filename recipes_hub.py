@@ -101,7 +101,9 @@ def recipe_pages():
         h1 = re.search(r"<h1[^>]*>(.*?)</h1>", s, re.S)
         vid = re.search(r"(?:youtube(?:-nocookie)?\.com/(?:embed/|watch\?v=)|youtu\.be/|i\.ytimg\.com/vi/)([A-Za-z0-9_-]{11})", s)
         num = re.match(r"recipe-(\d+)", name)
-        first_p = re.search(r"<p[^>]*>(.*?)</p>", s, re.S)
+        # skip the "From: <video>" provenance line, or a new recipe's card shows the source instead of the point
+        first_p = next((m for m in re.finditer(r"<p[^>]*>(.*?)</p>", s, re.S)
+                        if not re.match(r"^(\S+\s+){0,3}from:", re.sub(r"<[^>]+>", "", m.group(1)).strip(), re.I)), None)
         out.append({
             "src": "recipes", "label": ("Recipe " + str(int(num.group(1)))) if num else "Read",
             "title": re.sub(r"^RECIPE\s*\d+\s*[—-]\s*", "", txt(h1.group(1) if h1 else name, 140), flags=re.I),

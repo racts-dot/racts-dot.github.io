@@ -226,12 +226,42 @@ def blurb(md):
     return sub
 
 
+LOCAL_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recipes_src")
+
+
+def local_sources():
+    """16 Sep 2026: recipes 11+ were written on the Mac and their markdown lives in this repo, so both machines have it."""
+    return sorted(glob.glob(os.path.join(LOCAL_SRC, "RECIPE_*.md")))
+
+
+def render_page(p, today):
+    md = io.open(p, encoding="utf-8").read()
+    base = os.path.basename(p)
+    slug = re.sub(r"[^a-z0-9]+", "-", os.path.splitext(base)[0].lower()).strip("-")
+    page = (HEAD.format(title=html.escape(title_of(md, base)), css=CSS)
+            + '<a class="back" href="./">← all recipes</a>\n'
+            + render(md)
+            + TAIL.format(foot="Built %s from %s. Edit the markdown, not this page."
+                          % (today, html.escape(base))))
+    io.open(os.path.join(OUT, slug + ".html"), "w", encoding="utf-8", newline="\n").write(page)
+    return slug + ".html"
+
+
+def render_local():
+    """The Mac has only recipes_src: render those pages and leave the index to recipes_hub."""
+    today = datetime.date.today().isoformat()
+    for p in local_sources():
+        print("rendered", render_page(p, today))
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     today = datetime.date.today().isoformat()
 
     srcs = sorted(glob.glob(os.path.join(SRC, "RECIPE_*.md")))
-    risk = os.path.join(SRC, "READ_2026-09-13_the_git_risk_and_what_i_got_wrong.md")
+    have = {os.path.basename(p) for p in srcs}
+    srcs += [p for p in local_sources() if os.path.basename(p) not in have]
+    risk =os.path.join(SRC, "READ_2026-09-13_the_git_risk_and_what_i_got_wrong.md")
     if os.path.exists(risk):
         srcs.append(risk)
 
@@ -529,7 +559,10 @@ def illustrate_existing():
 
 if __name__ == "__main__":
     import sys as _sys
-    if "--illustrate-existing" in _sys.argv:
+    if "--local" in _sys.argv:
+        render_local()          # Mac: recipes_src only; the full main() would rewrite the index from 4 cards
+        illustrate_existing()
+    elif "--illustrate-existing" in _sys.argv:
         illustrate_existing()   # the Mac has no recipe markdown; this only adds pictures and the player
     else:
         main()
