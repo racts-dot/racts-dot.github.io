@@ -255,6 +255,16 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
 .two{display:grid;grid-template-columns:1fr 1fr;gap:9px;grid-column:1 / -1}
 @media(max-width:480px){.two{grid-template-columns:1fr}}
 
+.ren-edit{position:fixed;inset:0;z-index:80;background:rgba(10,20,30,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.ren-edit[hidden]{display:none}
+.re-card{background:var(--surface);color:var(--ink);border-radius:16px;padding:18px;width:100%;max-width:420px;max-height:90vh;overflow:auto;display:grid;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+.re-card h3{margin:0 0 2px;font-size:19px}
+.re-card label{display:grid;gap:4px;font-size:13px;color:var(--ink-soft,#555)}
+.re-card input[type=text],.re-card input[type=date],.re-card select,.re-card textarea{font:16px/1.35 inherit;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--ink)}
+.re-card .re-check{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--ink)}
+.re-row{display:flex;gap:8px;justify-content:flex-end}
+.re-row button{font:600 15px/1 inherit;padding:11px 16px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.re-row .re-go{background:var(--accent);color:var(--surface);border-color:var(--accent)}
 /* ---------- diary ---------- */
 .diary{margin-top:9px;border-top:1px solid var(--line-soft)}
 .ev{display:grid;grid-template-columns:74px 1fr;gap:2px 13px;padding:10px 0;
@@ -668,6 +678,11 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <p class="sec-note" style="margin-top:11px">Not counted here on purpose: Etsy listing fees,
         Etsy Plus, Higgsfield and the Claude subscription. Nobody has read a bill for those, so
         they are not figures.</p>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>Subscriptions, from what you typed</h2>
+        <p class="sec-note">Worked out from Renewals. Change a cost or tap Cancelled there and this moves.</p></div>
+      <div id="subs"></div>
     </div>
   </section>
 
@@ -1491,21 +1506,91 @@ function renderOutbox(){
     }).join("") : `<p class="none">Nothing owed to anybody.</p>`;
 }
 function renderRenewals(){
-  const soon = renewals.filter(r=>r.renews && daysSince(r.renews)>=-14).length;
+  rollRenewals();
+  const soon = renewals.filter(r=>!r.cancelled && r.renews && daysSince(r.renews)>=-14).length;
   $("#renCount").textContent = renewals.length
     ? (soon?soon+" inside a fortnight":"none due soon") : "";
   $("#renewals").innerHTML = renewals.length ? renewals.slice().sort((a,b)=>
     (a.renews||"9999").localeCompare(b.renews||"9999")).map(r=>{
-      const n = r.renews ? daysSince(r.renews) : null;
-      const when = n===null ? "No date — nobody has looked"
+      const n = r.cancelled ? null : r.renews ? daysSince(r.renews) : null;
+      const when = r.cancelled ? "Cancelled — no more charges" : n===null ? "No date — nobody has looked"
         : n>0 ? "Billed "+n+(n===1?" day":" days")+" ago"
         : n===0 ? "Bills today" : "In "+(-n)+(n===-1?" day":" days")+", on "+shortDate(r.renews);
       return cardHTML({ title:r.name, body:r.note||"",
-        sev: n===null?"watch" : n>=-3 ? "stop" : n>=-14 ? "watch" : "mine",
-        meta:[ pill(r.cost||"cost unknown", r.cost?"":"stale"),
-               pill(when, n===null?"stale":n>=-3?"stop":""),
+        sev: r.cancelled?"mine" : n===null?"watch" : n>=-3 ? "stop" : n>=-14 ? "watch" : "mine",
+        meta:[ pill(r.cost ? r.cost+(EVERY_WORD[r.every]||"") : "cost unknown", r.cost?"":"stale"),
+               pill(when, r.cancelled?"" : n===null?"stale":n>=-3?"stop":""),
+               xbtn("Details","editRen",r.id),
                xbtn("Remove","delRen",r.id) ]});
     }).join("") : `<p class="none">Nothing listed yet.</p>`;
+  renderSubs();
+}
+/* renewal details 16 Sep */
+const EVERY_WORD = { week:" a week", month:" a month", year:" a year" };
+function rollRenewals(){
+  let moved = false;
+  renewals.forEach(r=>{
+    if(r.cancelled || !r.renews || !EVERY_WORD[r.every]) return;
+    let guard = 0;
+    while(daysSince(r.renews) > 0 && guard++ < 600){
+      const d = new Date(r.renews+"T00:00:00");
+      if(r.every==="week") d.setDate(d.getDate()+7);
+      else if(r.every==="month") d.setMonth(d.getMonth()+1);
+      else d.setFullYear(d.getFullYear()+1);
+      r.renews = d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+      moved = true;
+    }
+  });
+  if(moved) saveRenew();
+}
+function costNumber(c){ const m = String(c||"").replace(/,/g,"").match(/(\d+(?:\.\d+)?)/); return m ? Number(m[1]) : null; }
+function renderSubs(){
+  const box = $("#subs"); if(!box) return;
+  const live = renewals.filter(r=>!r.cancelled);
+  let month = 0, counted = 0, noCost = 0, noEvery = 0, foreign = 0;
+  live.forEach(r=>{
+    const n = costNumber(r.cost);
+    if(n===null){ noCost++; return; }
+    if(!EVERY_WORD[r.every]){ noEvery++; return; }
+    if(/US|USD|€|£/i.test(r.cost)) foreign++;
+    month += r.every==="week" ? n*52/12 : r.every==="year" ? n/12 : n;
+    counted++;
+  });
+  const gaps = [noCost ? noCost+" with no cost" : "", noEvery ? noEvery+" with no \"how often\"" : ""].filter(Boolean).join(", ");
+  box.innerHTML = live.length
+    ? `<div class="money"><div class="m-cell"><p class="m-figure">A$${month.toFixed(2)}</p><p class="m-label">a month, ${counted} subscription${counted===1?"":"s"}</p></div>
+       <div class="m-cell"><p class="m-figure">A$${(month*12).toFixed(0)}</p><p class="m-label">a year at that rate</p></div></div>
+       <p class="sec-note" style="margin-top:9px">${gaps ? "Not counted yet: "+gaps+". Tap Details on Renewals to add them. " : ""}${foreign ? foreign+" priced in another currency are added as if Australian dollars. " : ""}${renewals.length-live.length ? (renewals.length-live.length)+" cancelled, not counted." : ""}</p>`
+    : `<p class="none">${renewals.length ? "Everything on Renewals is cancelled." : "Nothing on Renewals yet."}</p>`;
+}
+function openRenEditor(id){
+  const r = renewals.find(x=>x.id===id); if(!r) return;
+  let box = $("#renEdit");
+  if(!box){ box = document.createElement("div"); box.id = "renEdit"; box.className = "ren-edit"; document.body.appendChild(box); }
+  box.innerHTML = `<div class="re-card" role="dialog" aria-modal="true" aria-label="Details">
+    <h3>${esc(r.name)}</h3>
+    <label>What it costs<input id="reCost" type="text" value="${esc(r.cost||"")}" placeholder="e.g. $17.99"></label>
+    <label>How often<select id="reEvery"><option value="">Not sure</option><option value="month">Every month</option>
+      <option value="year">Every year</option><option value="week">Every week</option></select></label>
+    <label>Next bill<input id="reDate" type="date" value="${esc(r.renews||"")}"></label>
+    <label>Details<textarea id="reNote" rows="4" placeholder="Which card, what it is for, how to cancel">${esc(r.note||"")}</textarea></label>
+    <label class="re-check"><input id="reOff" type="checkbox" ${r.cancelled?"checked":""}> Cancelled — no more charges</label>
+    <div class="re-row"><button type="button" id="reClose">Close</button><button type="button" id="reSave" class="re-go">Save</button></div>
+  </div>`;
+  $("#reEvery").value = r.every || "";
+  box.hidden = false;
+  const close = ()=>{ box.hidden = true; box.innerHTML = ""; };
+  $("#reClose").onclick = close;
+  box.onclick = e=>{ if(e.target===box) close(); };
+  $("#reSave").onclick = ()=>{
+    r.cost = $("#reCost").value.trim(); r.every = $("#reEvery").value || null;
+    r.renews = $("#reDate").value || null; r.note = $("#reNote").value.trim();
+    r.cancelled = $("#reOff").checked; r.read = todayISO(); r.detailAt = new Date().toISOString();
+    close(); renderRenewals(); renderRunOrder(); saveRenew();
+    logIt("note", "Renewal details: "+r.name+(r.cancelled?" (cancelled)":""));
+    toast(r.cancelled ? "Saved as cancelled. It will not warn you again." : "Saved. Renewals and Money now use it.");
+  };
+  setTimeout(()=>{ const c=$("#reCost"); if(c) c.focus(); }, 30);
 }
 function renderStreaks(){
   const t=todayISO();
@@ -1660,7 +1745,7 @@ function renderSecretary(){
     stale===0 ? "Every reading is inside its own use-by."
       : stale+" of them are past the day they should have been read again.");
 
-  const noDate = renewals.filter(r=>!r.renews).length;
+  const noDate = renewals.filter(r=>!r.cancelled && !r.renews).length;
   add("Renewals", noDate===0?2:noDate<=2?1:0, noDate?noDate+" with no date":"all dated",
     noDate ? noDate+" have never had a bill opened, so nothing can warn you before they charge."
       : "Every one has a date, so the warning comes before the charge.");
@@ -1738,7 +1823,7 @@ function briefRows(){
   const M=mine.filter(m=>!m.done).length, MO=DESK?(DESK.money||[]).length:0;
   const R=rolling.filter(r=>daysSince(r.next)>=0).length;
   const O=outbox.filter(o=>!o.sent).length;
-  const RN=renewals.filter(r=>r.renews && daysSince(r.renews)>=-14).length;
+  const RN=renewals.filter(r=>!r.cancelled && r.renews && daysSince(r.renews)>=-14).length;
   const na=NEWS?daysSince(NEWS.date):null;
   const lessonOn = LESSON && LESSON.date===todayISO() && LESSON.title;
   return [["Diary", events===null?"reading":T?T:"clear"], ["Waiting", W], ["Your list", M],
@@ -2215,7 +2300,7 @@ function briefScript(){
     OO.forEach(o=>{ const w=daysSince(o.at.slice(0,10));
       L(o.who+". "+(OKIND[o.kind]||"")+"."+(w>=1?" Waiting "+w+(w===1?" day.":" days."):"")); }); }
 
-  const RN=renewals.filter(r=>r.renews && daysSince(r.renews)>=-14 && daysSince(r.renews)<=0);
+  const RN=renewals.filter(r=>!r.cancelled && r.renews && daysSince(r.renews)>=-14 && daysSince(r.renews)<=0);
   if(RN.length){ H("Renewing inside a fortnight.");
     RN.forEach(r=>{ const n=-daysSince(r.renews);
       L(r.name+". "+(r.cost||"cost unknown")+". "+(n===0?"Today.":"In "+n+(n===1?" day.":" days."))); }); }
@@ -2478,8 +2563,8 @@ function renderDiagrams(){
     "Each bar is that one against its own target." + (words ? " " + words + " more are sentences, not numbers - they are listed below." : "")) : "");
 
   /* RENEWALS - the next sixty days */
-  const rm = renewals.filter(r=>r.renews).map(r=>({label:r.name||"", days:daysSince(r.renews)*-1}));
-  const undated = renewals.length - renewals.filter(r=>r.renews).length;
+  const rm = renewals.filter(r=>!r.cancelled && r.renews).map(r=>({label:r.name||"", days:daysSince(r.renews)*-1}));
+  const undated = renewals.filter(r=>!r.cancelled && !r.renews).length;
   put("#diaRenew", renewals.length ? dia("What bills, and when", diaCalendar(rm),
     "Red means inside a week." + (undated ? " " + undated + " have no date on them yet." : "")) : "");
 
@@ -2977,6 +3062,7 @@ document.addEventListener("click", async e=>{
     if(o){ o.sent=!o.sent; renderOutbox(); renderRunOrder(); saveOutbox();
       logIt(o.sent?"did":"note",(o.sent?"Sent it to ":"Marked not sent after all: ")+o.who); } }
   else if(b.classList.contains("delOut")){ outbox=outbox.filter(x=>x.id!==id); renderOutbox(); renderRunOrder(); saveOutbox(); }
+  else if(b.classList.contains("editRen")){ openRenEditor(id); }
   else if(b.classList.contains("delRen")){ renewals=renewals.filter(x=>x.id!==id); renderRenewals(); renderRunOrder(); saveRenew(); }
   else if(b.classList.contains("doStreak")){ const s=streaks.find(x=>x.id===id);
     if(s){ const t=todayISO(); s.dates=s.dates||[];
