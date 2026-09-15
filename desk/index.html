@@ -3473,7 +3473,12 @@ $("#sayGo").addEventListener("click", ()=>{
    continuous thing rather than a jump. Vertical wins the first 10 pixels, so scrolling
    is never stolen. */
 (function(){
+  /* swipe on every page, 15 Sep */
   const NAV = PAGES.filter(p=>p.nav).map(p=>p.id);
+  const MORE = PAGES.filter(p=>!p.nav).map(p=>p.id);
+  const groupOf = id => NAV.indexOf(id) >= 0 ? NAV : MORE;
+  const sideways = el => { for(; el && el !== document.body; el = el.parentElement){
+    if(el.scrollWidth > el.clientWidth + 2){ const ox = getComputedStyle(el).overflowX; if(ox === "auto" || ox === "scroll") return true; } } return false; };
   const sect = id => document.getElementById("p-" + id);
   let x0=null, y0=null, lock=null, cur=null, nxt=null, W=0, dir=0, dx=0, target=null;
 
@@ -3486,8 +3491,8 @@ $("#sayGo").addEventListener("click", ()=>{
   addEventListener("touchstart", e=>{
     if(e.touches.length!==1) return;
     if(document.querySelector(".sheet.on")) return;
-    if(NAV.indexOf(page) < 0) return;
-    if(e.target.closest("audio,input,textarea,select,button,.p-bar")) return;
+    if(!document.getElementById("p-" + page)) return;
+    if(e.target.closest("audio,input,textarea,select,.p-bar") || sideways(e.target)) return;
     x0=e.touches[0].clientX; y0=e.touches[0].clientY; lock=null; dx=0; W=window.innerWidth;
   }, {passive:true});
 
@@ -3499,7 +3504,7 @@ $("#sayGo").addEventListener("click", ()=>{
       lock = Math.abs(X) > Math.abs(Y)*1.3 ? "x" : "y";
       if(lock === "y"){ x0=null; return; }
       dir = X < 0 ? 1 : -1;
-      const t = NAV[NAV.indexOf(page) + dir];
+      const G = groupOf(page), t = G[G.indexOf(page) + dir];
       if(!t){ x0=null; lock=null; return; }
       target = t;
       cur = sect(page); nxt = sect(t);
