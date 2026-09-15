@@ -3367,6 +3367,9 @@ async function collectToday(){
 
 $("#phraseGo").addEventListener("click", async ()=>{
   const v = $("#phraseBox").value.trim();
+  /* 15 Sep: in the Claude copy the phrase can never work - that copy is not allowed to fetch the delivery -
+     so it used to say "nothing opened with it" and she read it as the key being wrong. */
+  if(inArtifact){ $("#phraseBox").value = ""; toast("This Claude copy can't fetch the delivery, so no phrase works here. Use racts-dot.github.io/desk."); return; }
   if(v.length < 12){ toast("That phrase is too short to guard anything."); return; }
   LS.set("feedPhrase", v);
   $("#phraseBox").value = "";
