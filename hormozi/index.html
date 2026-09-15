@@ -203,7 +203,7 @@ footer b{color:var(--ink2)}
       <span class="player" id="recplayer" hidden><button class="btn ghost" id="recprev" aria-label="Previous recording">⏮</button><button class="btn ghost" id="recpause">Pause</button><button class="btn ghost" id="recnext" aria-label="Next recording">⏭</button><button class="btn ghost" id="recstop">Stop</button></span>
       <span class="player" id="player" hidden><button class="btn ghost" id="prev" aria-label="Previous recipe">⏮</button><button class="btn ghost" id="pause">Pause</button><button class="btn ghost" id="nextc" aria-label="Next recipe">⏭</button><button class="btn ghost" id="stop">Stop</button></span>
       <select id="voice" aria-label="Voice"></select>
-      <select id="rate" aria-label="Speed"><option value="0.9">0.9×</option><option value="1" selected>1×</option><option value="1.15">1.15×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option><option value="1.75">1.75×</option><option value="2">2×</option><option value="2.5">2.5×</option><option value="3">3×</option></select>
+      <select id="rate" aria-label="Speed"><option value="0.9">0.9×</option><option value="1">1×</option><option value="1.15">1.15×</option><option value="1.3">1.3×</option><option value="1.5" selected>1.5×</option><option value="1.75">1.75×</option><option value="2">2×</option><option value="2.5">2.5×</option><option value="3">3×</option></select>
     </div>
     <div class="nowplaying" id="now" aria-live="polite"></div>
   </div>
@@ -561,7 +561,46 @@ async function toNotion(c, btn){
   }
 }
 
+/* ---------- swipe left or right to move between stops ---------- */
+// Her ask, 15 Sep 2026: "everything swipe to left and right". Finger right-to-left goes to the
+// next stop, left-to-right to the previous one. Ignored on the map, menus and typing boxes,
+// and on mostly-vertical drags, so scrolling down the page never jumps.
+(function(){
+  const toast = document.createElement('div');
+  toast.setAttribute('aria-live', 'polite');
+  toast.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:60;padding:8px 14px;border-radius:999px;background:var(--ink);color:var(--board);font:600 14px/1.2 "Atkinson Hyperlegible",system-ui,sans-serif;box-shadow:var(--shadow);opacity:0;transition:opacity .2s;pointer-events:none';
+  document.body.appendChild(toast);
+  let tHide;
+  const say = msg => { toast.textContent = msg; toast.style.opacity = '1'; clearTimeout(tHide); tHide = setTimeout(()=>{ toast.style.opacity = '0'; }, 1400); };
+  let sx = 0, sy = 0, st = 0, on = false;
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length !== 1 || e.target.closest('.map, input, select, textarea, .tablewrap, details')){ on = false; return; }
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now(); on = true;
+  }, {passive: true});
+  document.addEventListener('touchend', e => {
+    if (!on) return; on = false;
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Date.now() - st > 700 || Math.abs(dx) < 70 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+    const secs = [...document.querySelectorAll('.topic')];
+    if (!secs.length) return;
+    let cur = 0;
+    secs.forEach((s, i) => { if (s.getBoundingClientRect().top <= 90) cur = i; });
+    const next = dx < 0 ? Math.min(secs.length - 1, cur + 1) : Math.max(0, cur - 1);
+    if (next === cur && secs[cur].getBoundingClientRect().top > -5){ say(dx < 0 ? 'Last stop' : 'First stop'); return; }
+    secs[next].scrollIntoView({behavior: 'smooth', block: 'start'});
+    const h = secs[next].querySelector('h2');
+    say(h ? h.textContent : 'Stop ' + (next + 1));
+  }, {passive: true});
+})();
+
 /* ---------- voice reader ---------- */
+/* speed: starts at 1.5x (her ask, 15 Sep 2026) and remembers what she picks */
+(function(){
+  const sel = document.getElementById('rate'); if (!sel) return;
+  try { const v = localStorage.getItem('hmr-rate'); if (v && [...sel.options].some(o => o.value === v)) sel.value = v; } catch(e){}
+  sel.addEventListener('change', () => { try { localStorage.setItem('hmr-rate', sel.value); } catch(e){} });
+})();
+
 const synth = window.speechSynthesis; let voices = []; let queue = []; let playing = false;
 function loadVoices(){
   if (!synth) return; voices = synth.getVoices().filter(v=>/^en/i.test(v.lang));
