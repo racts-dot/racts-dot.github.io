@@ -162,6 +162,9 @@ def main():
     html = git_bytes("doser_cookbook/index.html").decode("utf-8")
     write("workflows/index.html", add_notion(as_document(strip_shop(html, "workflows")), "workflows"))
 
+    import recipes_hub   # 15 Sep: the combined Recipes home, and its "All recipes" bar on these pages
+    recipes_hub.main()
+
 
 if __name__ == "__main__":
     main()

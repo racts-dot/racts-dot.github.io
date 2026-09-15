@@ -520,8 +520,11 @@ def illustrate_existing():
         io.open(f, "w", encoding="utf-8", newline="\n").write(add_swipe(add_reader(illustrate_page(s)), order))
     ip = os.path.join(OUT, "index.html")
     idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
-    io.open(ip, "w", encoding="utf-8", newline="\n").write(add_swipe(illustrate_index(idx, pages), order))
+    if 'id="hub"' not in idx:   # 15 Sep: the index is now the combined Recipes home, rebuilt below
+        io.open(ip, "w", encoding="utf-8", newline="\n").write(add_swipe(illustrate_index(idx, pages), order))
     print("illustrated %d pages (%d with a video) + index" % (len(pages) if pages else 0, len(pages)))
+    import recipes_hub   # one Recipes app for all four collections, her pick 15 Sep 2026
+    recipes_hub.main()
 
 
 if __name__ == "__main__":
