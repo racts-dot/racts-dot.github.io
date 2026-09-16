@@ -300,7 +300,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   tabs(); draw();
 })();
 </script>
-<script src="../notion-sync.js"></script>
+<script src="../notion-sync.js" data-quiet></script>
 <script>
 (function(){
   var go = document.getElementById("cgo"), box = document.getElementById("cq"), out = document.getElementById("cout");
@@ -330,7 +330,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   box.addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.metaKey || e.ctrlKey)) ask(); });
 })();
 </script>
-<script src="../speak.js" defer></script>
+<script src="../speak.js" data-icon-only defer></script>
 </body>
 </html>
 """
@@ -369,7 +369,7 @@ def main():
         p = SITE / folder / "index.html"
         if p.exists():
             s = p.read_text(encoding="utf-8")
-            t = add_bar(s, name)
+            t = add_bar(s, name).replace('<script src="../speak.js" defer>', '<script src="../speak.js" data-icon-only defer>')
             if t != s:
                 p.write_text(t, encoding="utf-8")
     print("coach catalogue:", coach_catalogue(), "recipes")

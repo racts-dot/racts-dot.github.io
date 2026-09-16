@@ -18,6 +18,8 @@
   "use strict";
   if (window.SpeakAloud || !("speechSynthesis" in window)) return;
   var SS = window.speechSynthesis;
+  /* her 16 Sep ask: on the recipe apps the bubble is the speaker icon only (script tag has data-icon-only) */
+  var ICON_ONLY = !!(document.currentScript && document.currentScript.hasAttribute("data-icon-only"));
   var K_VOICE = "speak.voice", K_RATE = "speak.rate";
   var store = {
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
@@ -216,7 +218,8 @@
     document.head.appendChild(css);
     fab = document.createElement("button");
     fab.type = "button"; fab.className = "sa-fab"; fab.setAttribute("aria-haspopup", "dialog");
-    fab.textContent = "\uD83D\uDD0A Read aloud";
+    fab.textContent = ICON_ONLY ? "\uD83D\uDD0A" : "\uD83D\uDD0A Read aloud";
+    fab.setAttribute("aria-label", "Read aloud"); fab.title = "Read aloud";
     panel = document.createElement("div");
     panel.className = "sa-panel"; panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", "Read aloud");
     panel.innerHTML =

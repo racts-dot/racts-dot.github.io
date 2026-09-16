@@ -27,6 +27,9 @@
 (function () {
   "use strict";
   if (window.NotionSync) return;
+  // 16 Sep 2026: pages that only read (recipes) load this with data-quiet: no password sheet pops up on its own,
+  // only the Connect chip, so opening a recipe never covers the page.
+  var QUIET = !!(document.currentScript && document.currentScript.hasAttribute("data-quiet"));
 
   var RELAY = "https://apps-notion-relay.apps-notion-relay.workers.dev";
   var PASS_KEY = "notionSync.pass";
@@ -38,7 +41,7 @@
   var TAB = Math.random().toString(36).slice(2);
   var flushing = false;
   var asking = null;
-  var declined = false; // "Later" was tapped: stop asking until the page is opened again
+  var declined = QUIET; // "Later" was tapped (or a quiet page): stop asking until the page is opened again
 
   try { localStorage.removeItem("notionSync.sent"); } catch (e) {} // old full-copy store
 
