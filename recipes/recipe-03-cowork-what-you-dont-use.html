@@ -74,6 +74,8 @@ a.ts{white-space:nowrap}
 .player.on.float{position:fixed;z-index:60;width:min(420px,calc(100vw - 16px));margin:0}
 .player.on.float.small{width:min(240px,60vw)}
 .player.dragging iframe{pointer-events:none}
+.player .rsz{display:none}
+.player.on .rsz{display:block;position:absolute;right:0;bottom:0;z-index:5;width:30px;height:30px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.85) 50%,rgba(255,255,255,.85) 58%,transparent 58%,transparent 68%,rgba(255,255,255,.85) 68%,rgba(255,255,255,.85) 76%,transparent 76%);border-radius:0 0 10px 0}
 .player .pbar button[data-drag]{cursor:grab;touch-action:none}
 a.ts{display:inline-flex;align-items:center;gap:3px;margin:0 2px 0 6px;padding:1px 8px;border-radius:999px;border:1px solid var(--chip);
   background:var(--card);font:500 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent);text-decoration:none;
@@ -272,6 +274,7 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
   var bar = document.createElement('div'); bar.className = 'pbar';
   bar.innerHTML = '<button type="button" data-drag="1" aria-label="Drag to move the video">&#10303; Move</button><button type="button" data-a="size">Small</button><button type="button" data-a="close">&#10005;</button>';
   box.appendChild(bar);
+  var rsz = document.createElement('div'); rsz.className = 'rsz'; rsz.title = 'Drag to resize'; rsz.setAttribute('aria-label', 'Resize the video'); box.appendChild(rsz);
   var YTP = null, ready = false, loaded = box.dataset.id, pending = null;
   function dragIt(el, handle, key){   // 16 Sep: "the videos should be movable" - same feel as the Read aloud bubble
     var sx, sy, ox, oy, moved = false, on = false, endedAt = 0;
@@ -295,7 +298,23 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
     handle.addEventListener('click', function(e){ if (moved && Date.now() - endedAt < 400) { e.stopPropagation(); e.preventDefault(); } moved = false; }, true);
     addEventListener('resize', function(){ if (el.style.left) { var r = el.getBoundingClientRect(); place(r.left, r.top); } });
   }
+  function sizeIt(el, grip, key, min){   // 17 Sep: "everything is resizable the boxes and movable" - drag the corner
+    var sx, w0, on = false;
+    el.restoreSize = function(){ try { var f = +localStorage.getItem(key); if (f) el.style.setProperty('width', Math.max(min, Math.min(f * innerWidth, innerWidth - 16)) + 'px', 'important'); } catch (e) {} };
+    grip.style.touchAction = 'none';
+    grip.addEventListener('pointerdown', function(e){ on = true; sx = e.clientX; w0 = el.getBoundingClientRect().width;
+      if (el.onDragStart) el.onDragStart(); el.classList.add('dragging'); try { grip.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); e.stopPropagation(); });
+    grip.addEventListener('pointermove', function(e){ if (!on) return;
+      var left = el.getBoundingClientRect().left;
+      var w = Math.max(min, Math.min(w0 + e.clientX - sx, innerWidth - left - 4));
+      el.style.setProperty('width', w + 'px', 'important'); e.preventDefault(); });
+    function end(){ if (!on) return; on = false; el.classList.remove('dragging');
+      try { localStorage.setItem(key, String(el.getBoundingClientRect().width / innerWidth)); } catch (e) {} }
+    grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
+    grip.addEventListener('click', function(e){ e.stopPropagation(); e.preventDefault(); }, true);
+  }
   dragIt(box, bar.querySelector('[data-drag]'), 'recipes.player.pos');
+  sizeIt(box, rsz, 'recipes.player.w', 200);
   box.onDragStart = function(){ if (!box.classList.contains('float')) { var r = box.getBoundingClientRect(); box.classList.add('float');
     box.style.setProperty('left', r.left + 'px', 'important'); box.style.setProperty('top', Math.max(0, r.top) + 'px', 'important'); } };
   var idOf = function(h){ var m = /[?&]v=([A-Za-z0-9_-]{11})/.exec(h); return m && m[1]; };
@@ -322,7 +341,7 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
   function go(id, t){
     var was = box.classList.contains('on');
     cover.hidden = true; box.classList.add('on');
-    if (!was) { try { if (localStorage.getItem('recipes.player.pos')) { box.classList.add('float'); box.restorePos(); } } catch (x) {} }
+    if (!was) { try { if (localStorage.getItem('recipes.player.pos') || localStorage.getItem('recipes.player.w')) { box.classList.add('float'); box.restoreSize(); box.restorePos(); } } catch (x) {} }
     if (ready) {
       if (loaded === id) { YTP.seekTo(t, true); YTP.playVideo(); }
       else { YTP.loadVideoById({ videoId: id, startSeconds: t }); loaded = id; }
@@ -335,7 +354,7 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
     var b = e.target.closest('.pbar button');
     if (b) {
       if (b.dataset.a === 'size') { box.classList.toggle('small'); b.textContent = box.classList.contains('small') ? 'Big' : 'Small'; }
-      else { try { YTP && YTP.pauseVideo(); } catch (x) {} if (!YTP) host.innerHTML = ''; box.classList.remove('on', 'small', 'float'); ['left','top','right','bottom'].forEach(function(k){ box.style.removeProperty(k); }); cover.hidden = false; }
+      else { try { YTP && YTP.pauseVideo(); } catch (x) {} if (!YTP) host.innerHTML = ''; box.classList.remove('on', 'small', 'float'); ['left','top','right','bottom','width'].forEach(function(k){ box.style.removeProperty(k); }); cover.hidden = false; }
       return;
     }
     var a = e.target.closest('a[href*="youtube.com/watch"]'); if (!a) return;

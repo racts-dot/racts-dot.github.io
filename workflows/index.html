@@ -248,7 +248,7 @@ html.ts-big .yn{justify-self:start}
 
 <footer class="wrap" id="foot"></footer>
 
-<!--videobox--><!--videobox2-->
+<!--videobox--><!--videobox3-->
 <style>
 .vbox{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:8px;min-width:0}
 .vbox .vhead{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);font-weight:600}
@@ -269,6 +269,7 @@ html.ts-big .yn{justify-self:start}
 #vdock .vdframe{position:relative;aspect-ratio:16/9}
 #vdock .vdframe>div,#vdock .vdframe iframe{position:absolute;inset:0;width:100%;height:100%}
 #vdock.dragging iframe{pointer-events:none}
+#vdock .rsz{position:absolute;right:0;bottom:0;z-index:5;width:30px;height:30px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 50%,rgba(255,255,255,.85) 50%,rgba(255,255,255,.85) 58%,transparent 58%,transparent 68%,rgba(255,255,255,.85) 68%,rgba(255,255,255,.85) 76%,transparent 76%);border-radius:0 0 10px 0}
 #vdock .grip{font-size:15px;letter-spacing:-2px;color:var(--muted)}
 </style>
 <script>
@@ -315,12 +316,28 @@ window.vbox = function(c){
     handle.addEventListener('click', function(e){ if (moved && Date.now() - endedAt < 400) { e.stopPropagation(); e.preventDefault(); } moved = false; }, true);
     addEventListener('resize', function(){ if (el.style.left) { var r = el.getBoundingClientRect(); place(r.left, r.top); } });
   }
+  function sizeIt(el, grip, key, min){   // 17 Sep: "everything is resizable the boxes and movable" - drag the corner
+    var sx, w0, on = false;
+    el.restoreSize = function(){ try { var f = +localStorage.getItem(key); if (f) el.style.setProperty('width', Math.max(min, Math.min(f * innerWidth, innerWidth - 16)) + 'px', 'important'); } catch (e) {} };
+    grip.style.touchAction = 'none';
+    grip.addEventListener('pointerdown', function(e){ on = true; sx = e.clientX; w0 = el.getBoundingClientRect().width;
+      if (el.onDragStart) el.onDragStart(); el.classList.add('dragging'); try { grip.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); e.stopPropagation(); });
+    grip.addEventListener('pointermove', function(e){ if (!on) return;
+      var left = el.getBoundingClientRect().left;
+      var w = Math.max(min, Math.min(w0 + e.clientX - sx, innerWidth - left - 4));
+      el.style.setProperty('width', w + 'px', 'important'); e.preventDefault(); });
+    function end(){ if (!on) return; on = false; el.classList.remove('dragging');
+      try { localStorage.setItem(key, String(el.getBoundingClientRect().width / innerWidth)); } catch (e) {} }
+    grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
+    grip.addEventListener('click', function(e){ e.stopPropagation(); e.preventDefault(); }, true);
+  }
 var dock, yt, ytReady = false, pending = null;
 function makeDock(){
   dock = document.createElement('div'); dock.id = 'vdock'; dock.hidden = true;
-  dock.innerHTML = '<div class="vdbar" title="Drag to move"><span class="grip" aria-hidden="true">⠿</span><span class="vdname"></span><button type="button" aria-label="Close video">✕</button></div><div class="vdframe"><div id="vdplayer"></div></div>';
+  dock.innerHTML = '<div class="vdbar" title="Drag to move"><span class="grip" aria-hidden="true">⠿</span><span class="vdname"></span><button type="button" aria-label="Close video">✕</button></div><div class="vdframe"><div id="vdplayer"></div><div class="rsz" title="Drag to resize" aria-label="Resize the video"></div></div>';
   document.body.appendChild(dock);
   dragIt(dock, dock.querySelector('.vdbar'), 'vdock.pos');
+  sizeIt(dock, dock.querySelector('.rsz'), 'vdock.w', 200);
   dock.querySelector('button').addEventListener('click', function(){ try { yt && yt.pauseVideo(); } catch(e){} dock.hidden = true; });
   var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
   var prev = window.onYouTubeIframeAPIReady;
@@ -341,7 +358,7 @@ document.addEventListener('click', function(e){
   var row = a.closest('.vrow'); if (row) title = row.querySelector('.vtitle').textContent;
   else if (card){ var cite = card.querySelector('.cite span'); title = cite ? cite.textContent : ''; }
   dock.querySelector('.vdname').textContent = (m[2] ? mm(m[2]) + ' · ' : '') + title;
-  var first = dock.hidden; dock.hidden = false; if (first) dock.restorePos();
+  var first = dock.hidden; dock.hidden = false; if (first) { dock.restoreSize(); dock.restorePos(); }
   try { speechSynthesis.pause(); } catch(err){}
   play(m[1], +(m[2]||0));
 }, true);
