@@ -366,7 +366,7 @@
   function build() {
     if (fab || !D.body) return;
     var hasSpeak = !!D.querySelector("script[src*='speak.js']") || !!window.SpeakAloud;
-    var bottom = cfgBottom !== null && cfgBottom !== "" && !isNaN(parseFloat(cfgBottom)) ? parseFloat(cfgBottom) : (hasSpeak ? 136 : 84);
+    var bottom = cfgBottom !== null && cfgBottom !== "" && !isNaN(parseFloat(cfgBottom)) ? parseFloat(cfgBottom) : (hasSpeak ? 140 : 84);
     var side = cfgSide;
     var css = D.createElement("style");
     css.setAttribute(OWN, "");

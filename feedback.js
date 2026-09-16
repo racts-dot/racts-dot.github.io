@@ -314,22 +314,23 @@
     }
     function avoid() {
       if (store.get(POS_KEY) || fab.hidden) return;
-      var others = [".ts-fab", ".sa-fab"].map(function (s) { return D.querySelector(s); })
-        .filter(function (el) { return el && !el.hidden && el.getClientRects().length; });
+      var aa = D.querySelector(".ts-fab"), sa = D.querySelector(".sa-fab");
+      var others = [aa, sa].filter(function (el) { return el && !el.hidden && el.getClientRects().length; });
       var rects = others.map(function (el) { return el.getBoundingClientRect(); });
-      var size = 44, vw = W.innerWidth, vh = W.innerHeight, spots = [];
-      rects.slice().sort(function (a, b) { return a.top - b.top; }).forEach(function (r) {
-        spots.push([r.left, r.top - size - 12], [r.left, r.bottom + 12]);
+      var size = 44, gap = 12, vw = W.innerWidth, vh = W.innerHeight, spots = [];
+      // first choice: a 12 px gap above the Aa bubble (or above Read aloud when there is no Aa), in the same column
+      var anchor = others[0] ? others[0].getBoundingClientRect() : null;
+      rects.slice().sort(function (a, b) { return a.top - b.top; }).forEach(function (r, i) {
+        if (i === 0) spots.push([r.left, r.top - size - gap]);
       });
+      if (anchor) spots.unshift([anchor.left, anchor.top - size - gap]);
       clearBox(fab);
       var d = fab.getBoundingClientRect();
-      spots.unshift([d.left, d.top]);
+      spots.push([d.left, d.top]);
+      rects.forEach(function (r) { spots.push([r.left, r.bottom + gap]); });
       for (var i = 0; i < spots.length; i++) {
         var x = Math.max(4, Math.min(vw - size - 4, spots[i][0])), y = Math.max(4, Math.min(vh - size - 4, spots[i][1]));
-        if (!hits({ left: x, top: y, right: x + size, bottom: y + size }, rects)) {
-          if (i > 0) setBox(fab, x, y);
-          return;
-        }
+        if (!hits({ left: x, top: y, right: x + size, bottom: y + size }, rects)) { setBox(fab, x, y); return; }
       }
     }
     avoid(); setTimeout(avoid, 400); setTimeout(avoid, 1700);
