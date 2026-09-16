@@ -2057,7 +2057,7 @@ function renderDataAge(){
   const got = LS.get("feedGot");
   const parts=[];
   const dd = d ? daysSince(d) : null;
-  parts.push("Desk data last updated " + (d ? shortDate(d)+(dd<=0?", today":dd===1?", 1 day ago":", "+dd+" days ago") : ": never on this phone"));
+  parts.push(d ? "Desk data last updated " + shortDate(d)+(dd<=0?", today":dd===1?", 1 day ago":", "+dd+" days ago") : "Desk data has never arrived on this phone");
   if(n) parts.push("paper "+shortDate(n));
   if(got) parts.push("delivery opened "+shortDate(got));
   el.textContent = parts.join(" · ");
