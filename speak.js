@@ -40,6 +40,9 @@
     "background:#fff;color:#1c1c1e;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3);padding:14px;" +
     "font:14px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;gap:10px}" +
     ".sa-panel[hidden]{display:none}" +
+    ".sa-grip{cursor:grab;user-select:none;-webkit-user-select:none;font:600 12px/1 inherit;opacity:.6;padding:0 0 8px;touch-action:none}" +
+    ".sa-rsz{position:absolute;right:0;bottom:0;width:28px;height:28px;cursor:nwse-resize;touch-action:none;border-radius:0 0 14px 0;" +
+    "background:linear-gradient(135deg,transparent 55%,rgba(128,128,128,.7) 55%,rgba(128,128,128,.7) 63%,transparent 63%,transparent 72%,rgba(128,128,128,.7) 72%,rgba(128,128,128,.7) 80%,transparent 80%)}" +
     ".sa-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}" +
     ".sa-panel button{font:600 14px/1 inherit;border:0;border-radius:10px;padding:11px 14px;background:#f2f2f7;color:#1c1c1e;cursor:pointer}" +
     ".sa-panel button.sa-main{background:#1c1c1e;color:#fff;flex:1}" +
@@ -183,7 +186,8 @@
   }
 
   /* ---------- drag the bubble anywhere (her 16 Sep ask), position kept per device ---------- */
-  function makeDraggable(el, key) {
+  function makeDraggable(el, key, handle) {
+    handle = handle || el;
     var sx = 0, sy = 0, ox = 0, oy = 0, moved = false, down = false, pid = null;
     function place(x, y) {
       var w = el.offsetWidth, h = el.offsetHeight;
@@ -196,25 +200,26 @@
       var v = store.get(key); if (!v) return;
       try { var p = JSON.parse(v); place(p[0] * window.innerWidth, p[1] * window.innerHeight); } catch (e) {}
     }
-    el.style.touchAction = "none";
-    el.addEventListener("pointerdown", function (e) {
-      if (e.button > 0) return;
+    handle.style.touchAction = "none";
+    handle.addEventListener("pointerdown", function (e) {
+      if (e.button > 0 || (handle !== el && e.target.closest("button,select,.sa-rsz"))) return;
       down = true; moved = false; pid = e.pointerId;
       var r = el.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
     });
-    el.addEventListener("pointermove", function (e) {
+    handle.addEventListener("pointermove", function (e) {
       if (!down || e.pointerId !== pid) return;
       var dx = e.clientX - sx, dy = e.clientY - sy;
       if (!moved && Math.abs(dx) + Math.abs(dy) < 8) return;
-      if (!moved) { moved = true; try { el.setPointerCapture(pid); } catch (x) {} }
+      if (!moved) { moved = true; try { handle.setPointerCapture(pid); } catch (x) {} }
       place(ox + dx, oy + dy); e.preventDefault();
     });
     function up() {
       if (!down) return; down = false;
       if (moved) { var r = el.getBoundingClientRect(); store.set(key, JSON.stringify([r.left / window.innerWidth, r.top / window.innerHeight])); }
     }
-    el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
-    el.addEventListener("click", function (e) { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
+    handle.addEventListener("pointerup", up); handle.addEventListener("pointercancel", up);
+    el.restorePos = restore;
+    handle.addEventListener("click", function (e) { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
     window.addEventListener("resize", restore);
     restore(); setTimeout(restore, 300);   /* not requestAnimationFrame: it never fires in a hidden tab */
   }
@@ -229,6 +234,7 @@
     panel = document.createElement("div");
     panel.className = "sa-panel"; panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", "Read aloud");
     panel.innerHTML =
+      '<div class="sa-grip" title="Drag to move">\u283F Read aloud</div><div class="sa-rsz" title="Drag to resize" aria-label="Resize"></div>' +
       '<div class="sa-row"><button type="button" class="sa-main">\u25B6 Read this page</button>' +
       '<button type="button" class="sa-stop" hidden>\u25A0 Stop</button><button type="button" class="sa-close" aria-label="Close">\u2715</button></div>' +
       '<div class="sa-bar"><i></i></div><div class="sa-now" aria-live="polite"></div>' +
@@ -238,12 +244,25 @@
       '<div class="sa-now">\u2605 = a higher-quality voice. On iPhone, more voices: Settings \u2192 Accessibility \u2192 Spoken Content \u2192 Voices \u2192 English.</div>';
     document.body.appendChild(fab); document.body.appendChild(panel);
     makeDraggable(fab, "speak.pos");
+    makeDraggable(panel, "speak.panel.pos", panel.querySelector(".sa-grip"));
+    (function (grip) {   /* 17 Sep: "everything is resizable the boxes and movable" - drag the corner */
+      var on = false, sx = 0, w0 = 0;
+      function setW(w) { panel.style.setProperty("max-width", "none", "important");
+        panel.style.setProperty("width", Math.max(260, Math.min(w, window.innerWidth - 8)) + "px", "important");
+        panel.style.setProperty("right", "auto", "important"); }
+      panel.restoreSize = function () { var f = +store.get("speak.panel.w"); if (f) setW(f * window.innerWidth); };
+      grip.addEventListener("pointerdown", function (e) { on = true; sx = e.clientX; var r = panel.getBoundingClientRect(); w0 = r.width;
+        panel.style.setProperty("left", r.left + "px", "important"); try { grip.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); e.stopPropagation(); });
+      grip.addEventListener("pointermove", function (e) { if (on) { setW(w0 + e.clientX - sx); e.preventDefault(); } });
+      function end() { if (!on) return; on = false; store.set("speak.panel.w", String(panel.getBoundingClientRect().width / window.innerWidth)); }
+      grip.addEventListener("pointerup", end); grip.addEventListener("pointercancel", end);
+    })(panel.querySelector(".sa-rsz"));
     mainBtn = panel.querySelector(".sa-main"); stopBtn = panel.querySelector(".sa-stop");
     rateSel = panel.querySelector(".sa-rate"); voiceSel = panel.querySelector(".sa-voice");
     nowEl = panel.querySelector(".sa-now"); barEl = panel.querySelector(".sa-bar i");
     rateSel.value = store.get(K_RATE) || "1";
     fillVoices();
-    fab.addEventListener("click", function () { panel.hidden = !panel.hidden; if (!panel.hidden) fillVoices(); });
+    fab.addEventListener("click", function () { panel.hidden = !panel.hidden; if (!panel.hidden) { fillVoices(); panel.restoreSize(); panel.restorePos(); } });
     panel.querySelector(".sa-close").addEventListener("click", function () { panel.hidden = true; });
     mainBtn.addEventListener("click", function () {
       if (!playing) { start(); return; }
