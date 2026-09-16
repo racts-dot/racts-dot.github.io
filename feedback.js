@@ -134,7 +134,8 @@
         return;
       }
       bump(item);
-      note("Notion didn't take it yet (" + (r.out.error || "error " + r.status) + "). Saved on this phone, will try again.", "bad");
+      if (r.status === 404) note("Saved on this phone. Sending to Notion isn't switched on yet - it will send by itself once it is.", "wait");
+      else note("Notion didn't take it yet (" + (r.out.error || "error " + r.status) + "). Saved on this phone, will try again.", "bad");
     }, function () {
       flushing = false;
       bump(item);

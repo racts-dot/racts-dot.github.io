@@ -61,7 +61,7 @@ HEAD = (
     '<meta name="robots" content="noindex,nofollow">\n'
     '<meta name="apple-mobile-web-app-capable" content="yes">\n'
     '<meta name="theme-color" content="#0f1115">\n'
-    '<title>{title}</title>\n<style>{css}</style>\n<script src="../textsize.js"></script>\n</head>\n<body>\n<div class="wrap">\n'
+    '<title>{title}</title>\n<style>{css}</style>\n<script src="../textsize.js"></script><script src="../feedback.js" defer></script>\n</head>\n<body>\n<div class="wrap">\n'
 )
 TAIL = '\n<div class="foot">{foot}</div>\n</div>\n</body>\n</html>\n'
 
@@ -809,6 +809,19 @@ def add_swipe(page, order):
 
 TEXTSIZE_TAG = '<script src="../textsize.js"></script>'
 
+FEEDBACK_TAG = '<script src="../feedback.js" defer></script>'
+
+def add_feedback(page):
+    """17 Sep 2026, her words: "add everything, every app, the mic button for me to give you the feedback".
+    The 🎙 bubble lives in the site's shared feedback.js; it goes right after the textsize.js tag. Idempotent."""
+    if "feedback.js" in page:
+        return page
+    i = page.find(TEXTSIZE_TAG)
+    if i == -1:
+        return page.replace("</body>", FEEDBACK_TAG + "\n</body>", 1)
+    j = i + len(TEXTSIZE_TAG)
+    return page[:j] + FEEDBACK_TAG + page[j:]
+
 def add_textsize(page):
     """16 Sep 2026, her words: "the option to have a bolder or ... bigger fonts". The Aa button lives in the
     site's shared textsize.js. It goes right after the page's last style block, so a saved size is in place
@@ -832,7 +845,7 @@ def illustrate_existing():
         m = VID.search(s)
         if m:
             pages[name] = m.group(1)
-        io.open(f, "w", encoding="utf-8", newline="\n").write(add_textsize(add_swipe(add_sources(add_reader(add_progress(upgrade_player(add_timestamps(illustrate_page(s), name)))), name), order)))
+        io.open(f, "w", encoding="utf-8", newline="\n").write(add_feedback(add_textsize(add_swipe(add_sources(add_reader(add_progress(upgrade_player(add_timestamps(illustrate_page(s), name)))), name), order))))
     ip = os.path.join(OUT, "index.html")
     idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
     if 'id="hub"' not in idx:   # 15 Sep: the index is now the combined Recipes home, rebuilt below

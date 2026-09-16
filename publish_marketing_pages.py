@@ -129,7 +129,9 @@ def use_site_textsize(html, label):
     Cloudflare); here they load the site's one shared copy instead, so there is only one file to keep level."""
     if 'src="textsize.js"' not in html and 'src="/textsize.js"' not in html:
         sys.exit(f"STOP: {label}: no textsize.js tag - the source page changed, check it by hand")
-    return html.replace('<script src="textsize.js"></script>', '<script src="/textsize.js"></script>')
+    html = html.replace('<script src="textsize.js"></script>', '<script src="/textsize.js"></script>')
+    # 17 Sep 2026: the 🎙 feedback bubble, same arrangement - the site's one feedback.js
+    return html.replace('<script src="feedback.js" defer></script>', '<script src="/feedback.js" defer></script>')
 
 
 def main():
@@ -155,7 +157,7 @@ def main():
         if name == "index.html":
             write("videos/index.html", add_swipe(use_site_textsize(git_bytes(path).decode("utf-8"), "videos"),
                                                  'data-chips="#chips .chip" data-input="#q"', "videos swipe"))
-        elif name not in {"_headers", "textsize.js"}:  # _headers is Cloudflare-only; textsize.js: the site's root copy
+        elif name not in {"_headers", "textsize.js", "feedback.js"}:  # _headers is Cloudflare-only; textsize.js: the site's root copy
             write(f"videos/{name}", git_bytes(path))
 
     print("hormozi/")
