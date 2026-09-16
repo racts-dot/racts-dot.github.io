@@ -20,6 +20,8 @@ import re
 import subprocess
 import sys
 
+import video_box
+
 SITE = pathlib.Path(__file__).resolve().parent
 PRINTABLES = pathlib.Path.home() / "printables"
 REF = "origin/main"
@@ -164,12 +166,14 @@ def main():
     html = replace_once(html, "Saved: <a href=\"${url}\" target=\"_blank\" rel=\"noopener\">open in Notion</a>",
                         "Sending to Notion: <a href=\"${url}\" target=\"_blank\" rel=\"noopener\">open the list</a>",
                         "hormozi saved message")
+    html = video_box.add_videos(html, "hormozi", PRINTABLES / "hormozi_cookbook" / "audio")  # 16 Sep: her "No video for the two creators"
     write("hormozi/index.html", add_notion(as_document(strip_shop(use_site_textsize(html, "hormozi"), "hormozi")), "hormozi"))
     for path in git_list("hormozi_cookbook/audio"):
         write("hormozi/audio/" + path.rsplit("/", 1)[1], git_bytes(path))
 
     print("workflows/")
     html = git_bytes("doser_cookbook/index.html").decode("utf-8")
+    html = video_box.add_videos(html, "workflows")
     write("workflows/index.html", add_notion(as_document(strip_shop(use_site_textsize(html, "workflows"), "workflows")), "workflows"))
 
     import recipes_hub   # 15 Sep: the combined Recipes home, and its "All recipes" bar on these pages
