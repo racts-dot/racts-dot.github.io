@@ -440,10 +440,15 @@
     function avoidSpeak() {
       if (store.get("textsize.pos") || fab.hidden) return;
       clearBox(fab);
-      var sa = D.querySelector(".sa-fab");
-      if (!sa || !sa.getClientRects().length) return;
-      var a = fab.getBoundingClientRect(), b = sa.getBoundingClientRect(), g = 8;
-      if (!(a.left < b.right + g && a.right > b.left - g && a.top < b.bottom + g && a.bottom > b.top - g)) return;
+      // the Read aloud bubble, and the feedback bubble once she has put it somewhere (feedback.js places itself around Aa otherwise)
+      var others = [D.querySelector(".sa-fab"), store.get("feedback.pos") ? D.querySelector(".fb-fab") : null];
+      var a = fab.getBoundingClientRect(), g = 8, b = null;
+      others.forEach(function (el) {
+        if (b || !el || el.hidden || !el.getClientRects().length) return;
+        var r = el.getBoundingClientRect();
+        if (a.left < r.right + g && a.right > r.left - g && a.top < r.bottom + g && a.bottom > r.top - g) b = r;
+      });
+      if (!b) return;
       var y = b.top - a.height - 10;
       if (y < 4) y = b.bottom + 10;
       setBox(fab, Math.max(4, Math.min(window.innerWidth - a.width - 4, b.left)), Math.max(4, Math.min(window.innerHeight - a.height - 4, y)));

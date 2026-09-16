@@ -32,6 +32,9 @@
     ".sa-fab{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483644;" +
     "display:flex;align-items:center;gap:6px;font:600 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;" +
     "padding:10px 14px;border-radius:999px;border:0;background:#1c1c1e;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer}" +
+    /* 17 Sep 2026, her words: the mic "should look like exactly what it is for the speaker, as well as AA floating" -
+       so the icon-only bubble is the same 44 px circle as the Aa (textsize.js) and 🎙 (feedback.js) bubbles */
+    ".sa-fab.sa-icon{width:44px;height:44px;box-sizing:border-box;padding:0;justify-content:center;font-size:18px}" +
     ".sa-fab:focus-visible,.sa-panel button:focus-visible,.sa-panel select:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
     ".sa-panel{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483645;max-width:420px;" +
     "background:#fff;color:#1c1c1e;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3);padding:14px;" +
@@ -220,7 +223,7 @@
   function build() {
     document.head.appendChild(css);
     fab = document.createElement("button");
-    fab.type = "button"; fab.className = "sa-fab"; fab.setAttribute("aria-haspopup", "dialog");
+    fab.type = "button"; fab.className = ICON_ONLY ? "sa-fab sa-icon" : "sa-fab"; fab.setAttribute("aria-haspopup", "dialog");
     fab.textContent = ICON_ONLY ? "\uD83D\uDD0A" : "\uD83D\uDD0A Read aloud";
     fab.setAttribute("aria-label", "Read aloud"); fab.title = "Read aloud";
     panel = document.createElement("div");
