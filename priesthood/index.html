@@ -117,6 +117,9 @@ footer ul{padding-left:1.25rem}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 @media (min-width:40rem){ul.tiles{grid-template-columns:1fr 1fr}.card{padding:1.25rem 1.5rem 1.75rem}}
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f7f4ec">
+<script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -460,5 +463,8 @@ settings();
 window.addEventListener("hashchange", route);
 route();
 </script>
+<script src="../speak.js" data-icon-only defer></script>
+<script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");</script>
+<!-- shell priesthood-v2: bump with sw.js CACHE -->
 </body>
 </html>
