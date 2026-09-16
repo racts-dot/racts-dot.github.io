@@ -18,6 +18,9 @@
   "use strict";
   if (window.SpeakAloud || !("speechSynthesis" in window)) return;
   var SS = window.speechSynthesis;
+  /* her 16 Sep ask: on the recipe apps the bubble is the speaker icon only (script tag has data-icon-only) */
+  // 16 Sep 2026, her second ask ("still have text for read aloud"): the icon only, on every app. data-with-label brings the words back.
+  var ICON_ONLY = !(document.currentScript && document.currentScript.hasAttribute("data-with-label"));
   var K_VOICE = "speak.voice", K_RATE = "speak.rate";
   var store = {
     get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
@@ -84,6 +87,8 @@
   var BLOCKS = "h1,h2,h3,h4,h5,h6,p,li,blockquote,figcaption,dt,dd,th,td,summary,caption,legend";
   function visible(el) {
     if (!el.getClientRects().length) return false;
+    var r = el.getBoundingClientRect();   // swiped aside: a card moved off the side of the screen is not read
+    if (r.right <= 0 || r.left >= innerWidth) return false;
     var st = getComputedStyle(el);
     return st.visibility !== "hidden" && st.display !== "none" && Number(st.opacity) !== 0;
   }
@@ -145,7 +150,7 @@
     if (!mainBtn) return;
     mainBtn.textContent = !playing ? "\u25B6 Read this page" : paused ? "\u25B6 Resume" : "\u23F8 Pause";
     stopBtn.hidden = !playing;
-    fab.textContent = playing && !paused ? "\u23F8 Reading\u2026" : "\uD83D\uDD0A Read aloud";
+    fab.textContent = playing && !paused ? (ICON_ONLY ? "\u23F8" : "\u23F8 Reading\u2026") : (ICON_ONLY ? "\uD83D\uDD0A" : "\uD83D\uDD0A Read aloud");
     barEl.style.width = parts.length ? Math.round(idx / parts.length * 100) + "%" : "0";
   }
   function step() {
@@ -216,7 +221,8 @@
     document.head.appendChild(css);
     fab = document.createElement("button");
     fab.type = "button"; fab.className = "sa-fab"; fab.setAttribute("aria-haspopup", "dialog");
-    fab.textContent = "\uD83D\uDD0A Read aloud";
+    fab.textContent = ICON_ONLY ? "\uD83D\uDD0A" : "\uD83D\uDD0A Read aloud";
+    fab.setAttribute("aria-label", "Read aloud"); fab.title = "Read aloud";
     panel = document.createElement("div");
     panel.className = "sa-panel"; panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", "Read aloud");
     panel.innerHTML =
