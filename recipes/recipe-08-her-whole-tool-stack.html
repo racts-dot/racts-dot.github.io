@@ -71,6 +71,10 @@ a.ts{white-space:nowrap}
 .player .pbar{position:absolute;bottom:-32px;right:0;z-index:3;display:none;gap:6px}
 .player.on .pbar{display:flex}
 .player .pbar button{all:unset;width:auto;height:auto;cursor:pointer;background:rgba(0,0,0,.7);color:#fff;font-size:12px;padding:4px 9px;border-radius:999px}
+.player.on.float{position:fixed;z-index:60;width:min(420px,calc(100vw - 16px));margin:0}
+.player.on.float.small{width:min(240px,60vw)}
+.player.dragging iframe{pointer-events:none}
+.player .pbar button[data-drag]{cursor:grab;touch-action:none}
 a.ts{display:inline-flex;align-items:center;gap:3px;margin:0 2px 0 6px;padding:1px 8px;border-radius:999px;border:1px solid var(--chip);
   background:var(--card);font:500 12px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--accent);text-decoration:none;
   vertical-align:1px;white-space:nowrap}
@@ -269,9 +273,34 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
   var cover = box.querySelector('button'), host = document.createElement('div');
   host.className = 'yt'; host.id = 'ytp'; box.appendChild(host);
   var bar = document.createElement('div'); bar.className = 'pbar';
-  bar.innerHTML = '<button type="button" data-a="size">Small</button><button type="button" data-a="close">&#10005;</button>';
+  bar.innerHTML = '<button type="button" data-drag="1" aria-label="Drag to move the video">&#10303; Move</button><button type="button" data-a="size">Small</button><button type="button" data-a="close">&#10005;</button>';
   box.appendChild(bar);
   var YTP = null, ready = false, loaded = box.dataset.id, pending = null;
+  function dragIt(el, handle, key){   // 16 Sep: "the videos should be movable" - same feel as the Read aloud bubble
+    var sx, sy, ox, oy, moved = false, on = false, endedAt = 0;
+    function clamp(x, y){ var r = el.getBoundingClientRect();
+      return [Math.max(0, Math.min(x, innerWidth - r.width)), Math.max(0, Math.min(y, innerHeight - Math.min(r.height, 60)))]; }
+    function place(x, y){ var c = clamp(x, y); el.style.setProperty('left', c[0] + 'px', 'important'); el.style.setProperty('top', c[1] + 'px', 'important');
+      el.style.setProperty('right', 'auto', 'important'); el.style.setProperty('bottom', 'auto', 'important'); }
+    el.restorePos = function(){ try { var p = JSON.parse(localStorage.getItem(key) || 'null'); if (p) place(p[0] * innerWidth, p[1] * innerHeight); } catch (e) {} };
+    handle.style.touchAction = 'none';
+    handle.addEventListener('pointerdown', function(e){ if (e.target.closest('button:not([data-drag])')) return;
+      on = true; moved = false; sx = e.clientX; sy = e.clientY; var r = el.getBoundingClientRect(); ox = r.left; oy = r.top;
+      try { handle.setPointerCapture(e.pointerId); } catch (x) {} });
+    handle.addEventListener('pointermove', function(e){ if (!on) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (!moved) { moved = true; el.classList.add('dragging'); if (el.onDragStart) el.onDragStart(); }
+      place(ox + dx, oy + dy); e.preventDefault(); });
+    function end(){ if (!on) return; on = false; endedAt = Date.now(); el.classList.remove('dragging');
+      if (moved) { var r = el.getBoundingClientRect(); try { localStorage.setItem(key, JSON.stringify([r.left / innerWidth, r.top / innerHeight])); } catch (e) {} } }
+    handle.addEventListener('pointerup', end); handle.addEventListener('pointercancel', end);
+    handle.addEventListener('click', function(e){ if (moved && Date.now() - endedAt < 400) { e.stopPropagation(); e.preventDefault(); } moved = false; }, true);
+    addEventListener('resize', function(){ if (el.style.left) { var r = el.getBoundingClientRect(); place(r.left, r.top); } });
+  }
+  dragIt(box, bar.querySelector('[data-drag]'), 'recipes.player.pos');
+  box.onDragStart = function(){ if (!box.classList.contains('float')) { var r = box.getBoundingClientRect(); box.classList.add('float');
+    box.style.setProperty('left', r.left + 'px', 'important'); box.style.setProperty('top', Math.max(0, r.top) + 'px', 'important'); } };
   var idOf = function(h){ var m = /[?&]v=([A-Za-z0-9_-]{11})/.exec(h); return m && m[1]; };
   var tOf = function(h){ var m = /[?&]t=(\d+)/.exec(h); return m ? +m[1] : 0; };
   document.querySelectorAll('a[href*="youtube.com/watch"]').forEach(function(a){
@@ -296,19 +325,20 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
   function go(id, t){
     var was = box.classList.contains('on');
     cover.hidden = true; box.classList.add('on');
+    if (!was) { try { if (localStorage.getItem('recipes.player.pos')) { box.classList.add('float'); box.restorePos(); } } catch (x) {} }
     if (ready) {
       if (loaded === id) { YTP.seekTo(t, true); YTP.playVideo(); }
       else { YTP.loadVideoById({ videoId: id, startSeconds: t }); loaded = id; }
     } else if (YTP) { pending = { id: id, t: t }; }
     else frame(id, t);
-    if (!was) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (!was && !box.classList.contains('float')) box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   document.addEventListener('click', function(e){
     if (e.target.closest('.player>button')) { e.preventDefault(); go(box.dataset.id, 0); return; }
     var b = e.target.closest('.pbar button');
     if (b) {
       if (b.dataset.a === 'size') { box.classList.toggle('small'); b.textContent = box.classList.contains('small') ? 'Big' : 'Small'; }
-      else { try { YTP && YTP.pauseVideo(); } catch (x) {} if (!YTP) host.innerHTML = ''; box.classList.remove('on', 'small'); cover.hidden = false; }
+      else { try { YTP && YTP.pauseVideo(); } catch (x) {} if (!YTP) host.innerHTML = ''; box.classList.remove('on', 'small', 'float'); ['left','top','right','bottom'].forEach(function(k){ box.style.removeProperty(k); }); cover.hidden = false; }
       return;
     }
     var a = e.target.closest('a[href*="youtube.com/watch"]'); if (!a) return;

@@ -13,7 +13,8 @@ import pathlib
 import re
 import subprocess
 
-MARK = "<!--videobox-->"
+MARK = "<!--videobox-->"   # bump the page check below if the box changes
+MARK2 = "<!--videobox2-->"
 META = pathlib.Path.home() / "yt-transcripts" / "metadata.csv"
 
 CSS = """<style>
@@ -29,12 +30,14 @@ CSS = """<style>
 .vbox a.vp:hover{border-color:var(--marker)}
 #vdock{position:fixed;z-index:70;top:8px;right:8px;width:min(420px,calc(100vw - 16px));background:var(--card);
   border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
-#vdock .vdbar{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;font-size:13px;color:var(--muted)}
+#vdock .vdbar{cursor:grab;user-select:none;-webkit-user-select:none;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;font-size:13px;color:var(--muted)}
 #vdock .vdname{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #vdock button{all:unset;cursor:pointer;padding:4px 10px;border-radius:8px;font-size:18px;line-height:1;color:var(--ink)}
 #vdock button:focus-visible{outline:2px solid var(--marker)}
 #vdock .vdframe{position:relative;aspect-ratio:16/9}
 #vdock .vdframe>div,#vdock .vdframe iframe{position:absolute;inset:0;width:100%;height:100%}
+#vdock.dragging iframe{pointer-events:none}
+#vdock .grip{font-size:15px;letter-spacing:-2px;color:var(--muted)}
 </style>"""
 
 JS = r"""<script>
@@ -59,11 +62,34 @@ window.vbox = function(c){
   }).join('');
   return '<div class="vbox"><div class="vhead"><span>🎧 '+listen+'</span><span>▶ Videos ('+c.src.length+')'+(total? ' · '+mm(total)+' total':'')+'</span></div>'+rows+'</div>';
 };
+  function dragIt(el, handle, key){   // 16 Sep: "the videos should be movable" - same feel as the Read aloud bubble
+    var sx, sy, ox, oy, moved = false, on = false, endedAt = 0;
+    function clamp(x, y){ var r = el.getBoundingClientRect();
+      return [Math.max(0, Math.min(x, innerWidth - r.width)), Math.max(0, Math.min(y, innerHeight - Math.min(r.height, 60)))]; }
+    function place(x, y){ var c = clamp(x, y); el.style.setProperty('left', c[0] + 'px', 'important'); el.style.setProperty('top', c[1] + 'px', 'important');
+      el.style.setProperty('right', 'auto', 'important'); el.style.setProperty('bottom', 'auto', 'important'); }
+    el.restorePos = function(){ try { var p = JSON.parse(localStorage.getItem(key) || 'null'); if (p) place(p[0] * innerWidth, p[1] * innerHeight); } catch (e) {} };
+    handle.style.touchAction = 'none';
+    handle.addEventListener('pointerdown', function(e){ if (e.target.closest('button:not([data-drag])')) return;
+      on = true; moved = false; sx = e.clientX; sy = e.clientY; var r = el.getBoundingClientRect(); ox = r.left; oy = r.top;
+      try { handle.setPointerCapture(e.pointerId); } catch (x) {} });
+    handle.addEventListener('pointermove', function(e){ if (!on) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (!moved) { moved = true; el.classList.add('dragging'); if (el.onDragStart) el.onDragStart(); }
+      place(ox + dx, oy + dy); e.preventDefault(); });
+    function end(){ if (!on) return; on = false; endedAt = Date.now(); el.classList.remove('dragging');
+      if (moved) { var r = el.getBoundingClientRect(); try { localStorage.setItem(key, JSON.stringify([r.left / innerWidth, r.top / innerHeight])); } catch (e) {} } }
+    handle.addEventListener('pointerup', end); handle.addEventListener('pointercancel', end);
+    handle.addEventListener('click', function(e){ if (moved && Date.now() - endedAt < 400) { e.stopPropagation(); e.preventDefault(); } moved = false; }, true);
+    addEventListener('resize', function(){ if (el.style.left) { var r = el.getBoundingClientRect(); place(r.left, r.top); } });
+  }
 var dock, yt, ytReady = false, pending = null;
 function makeDock(){
   dock = document.createElement('div'); dock.id = 'vdock'; dock.hidden = true;
-  dock.innerHTML = '<div class="vdbar"><span class="vdname"></span><button type="button" aria-label="Close video">✕</button></div><div class="vdframe"><div id="vdplayer"></div></div>';
+  dock.innerHTML = '<div class="vdbar" title="Drag to move"><span class="grip" aria-hidden="true">⠿</span><span class="vdname"></span><button type="button" aria-label="Close video">✕</button></div><div class="vdframe"><div id="vdplayer"></div></div>';
   document.body.appendChild(dock);
+  dragIt(dock, dock.querySelector('.vdbar'), 'vdock.pos');
   dock.querySelector('button').addEventListener('click', function(){ try { yt && yt.pauseVideo(); } catch(e){} dock.hidden = true; });
   var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
   var prev = window.onYouTubeIframeAPIReady;
@@ -84,7 +110,7 @@ document.addEventListener('click', function(e){
   var row = a.closest('.vrow'); if (row) title = row.querySelector('.vtitle').textContent;
   else if (card){ var cite = card.querySelector('.cite span'); title = cite ? cite.textContent : ''; }
   dock.querySelector('.vdname').textContent = (m[2] ? mm(m[2]) + ' · ' : '') + title;
-  dock.hidden = false;
+  var first = dock.hidden; dock.hidden = false; if (first) dock.restorePos();
   try { speechSynthesis.pause(); } catch(err){}
   play(m[1], +(m[2]||0));
 }, true);
@@ -133,8 +159,10 @@ def script_for(c):
 
 
 def add_videos(html, label, audio_dir=None):
-    if MARK in html:
+    if MARK2 in html:
         return html
+    if MARK in html:
+        raise SystemExit(label + ': page carries the old videos box - publish from the printables source, not an already-built page')
     m = re.search(r'<script id="data" type="application/json">(.*?)</script>', html, re.S)
     data = json.loads(m.group(1))
     ids = {v["id"] for t in data["topics"] for c in t["cards"] for v in c["src"]}
@@ -157,6 +185,6 @@ def add_videos(html, label, audio_dir=None):
     js = JS.replace("__WORDS__", json.dumps(words, separators=(",", ":"))).replace("__VDUR__", json.dumps(vdur, separators=(",", ":"))).replace("__RECDUR__", json.dumps(rec, separators=(",", ":")))
     # vbox() must exist before the page first calls render(), so it goes before the page's own script
     i = new.find("<script id=\"data\"")
-    new = new[:i] + MARK + "\n" + CSS + "\n" + js + "\n" + new[i:]
+    new = new[:i] + MARK + MARK2 + "\n" + CSS + "\n" + js + "\n" + new[i:]
     print(f"  {label}: videos box on {sum(len(t['cards']) for t in data['topics'])} cards, {len(vdur)} lengths, {len(rec)} recordings")
     return new
