@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0f1115">
-<title>Fill a Canva template from Claude without breaking it</title>
+<title>A hook that tells you when Claude is done</title>
 <style>
 :root{--bg:#0f1115;--card:#171a21;--border:#2a2e38;--text:#e8e9ed;--muted:#8b8f9b;--accent:#6c8cff;--chip:#3c4050;--danger:#ff6b6b;--ok:#4ade80}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -83,96 +83,76 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
 <body>
 <div class="wrap">
 <a class="back" href="./">← all recipes</a>
-<h1>RECIPE 13 — Fill a Canva template from Claude without breaking it</h1>
-<div class="player" data-id="MQjCyQBRZ_M"><button type="button" data-id="MQjCyQBRZ_M" aria-label="Play the video"><img src="https://i.ytimg.com/vi/MQjCyQBRZ_M/hqdefault.jpg" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span><span class="cap">Tap to play the video this recipe comes from</span></button></div>
+<h1>RECIPE 19 — A hook that tells you when Claude is done</h1>
+<div class="player" data-id="efaBaxDN_q8"><button type="button" data-id="efaBaxDN_q8" aria-label="Play the video"><img src="https://i.ytimg.com/vi/efaBaxDN_q8/hqdefault.jpg" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span><span class="cap">Tap to play the video this recipe comes from</span></button></div>
 <div class="readbar" role="group" aria-label="Read aloud"><button type="button" class="primary" id="rdPlay">&#9654; Read aloud</button><button type="button" id="rdStop" hidden>&#9632; Stop</button><select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.15">Brisk</option><option value="1.3">Fast</option></select><span class="rs" id="rdNow"></span></div>
 
 
-<p>From: <a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M" target="_blank" rel="noopener">Claude + Canva Is the Content Creation Combo I Wish I Found Sooner</a> · 24 May 2026 · 27:47 · <a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M" target="_blank" rel="noopener">watch</a></p>
-<p>From: <a href="https://www.youtube.com/watch?v=FwWZ1ivy5F4" target="_blank" rel="noopener">I Made 200 Social Posts in 10 Minutes With Claude + Canva</a> · 20 May 2026 · 14:49 · <a href="https://www.youtube.com/watch?v=FwWZ1ivy5F4" target="_blank" rel="noopener">watch</a></p>
-<p>From: <a href="https://www.youtube.com/watch?v=pYuqMeP7ilk" target="_blank" rel="noopener">The Beginner's Guide to Claude + Canva (Start Here)</a> · 3 Jun 2026 · 24:03 · a shorter re-edit of the first video, read in full, nothing new for this recipe</p>
-<p><strong>Connect Canva inside claude.ai, clone a template you already like, and make Claude count the words in every text box before it writes anything. The design survives because the copy is cut to fit it.</strong></p>
-<h2>⚠ Read this first</h2>
-<p>All three videos are by Sabrina Ramonov, and the posting half sells her own app, Blotato. You can skip that half. The making half is free on claude.ai with a free Canva account.</p>
-<p>⚠ The second title says 200 posts. On screen she makes one Instagram post from scratch and one seven-slide carousel. That is all.</p>
-<h1>⭐⭐ THE ONE THING — count the words before you replace them</h1>
-<p>She does not ask Claude to "make a flyer". She clones a Canva template, pastes its link, and reads out this prompt:</p>
-<blockquote>"Analyze the following Canva template, especially the number of words per section."</blockquote>
-<blockquote>"Then ask me questions to replace the text with my information, roughly following the number of words per section."</blockquote>
-<p>Her reason, at <a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=480s" target="_blank" rel="noopener">8:00</a>:</p>
-<blockquote>"if you were to replace this with like five sentence paragraph, it just wouldn't look good."</blockquote>
-<pre><code>   WHAT USUALLY HAPPENS          WHAT SHE DOES
-   ────────────────────          ─────────────
-   "put my info in this"         Claude reads the template
-        │                             │
-   long text pours in            counts words, box by box
-        │                             │
-   boxes overflow,               asks you for the facts
-   layout breaks                      │
-                                 writes to each box's count
-                                      │
-                                 you open it in Canva and look</code></pre>
-<p>A human designed the template, so the layout already works. Claude only has to respect it.</p>
+<p>From: <a href="https://www.youtube.com/watch?v=efaBaxDN_q8" target="_blank" rel="noopener">Claude Code Will 10X Your Productivity (ADVANCED COURSE)</a> · 16 Mar 2026 · 1:29:50 · <a href="https://www.youtube.com/watch?v=efaBaxDN_q8" target="_blank" rel="noopener">watch</a></p>
+<p><strong>Her Claude Code moos when it finishes. It is a hook: a desktop notification plus a sound, set up by typing one sentence. You already run many hooks, so the setup is not the hard part for you. The hard parts are getting it into the right file, and keeping it from pinging you when a chat is not really done.</strong></p>
+<h1>⭐⭐ THE ONE THING — one sentence sets it up</h1>
+<p>Her prompt (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=3990s" target="_blank" rel="noopener">1:06:30</a>):</p>
+<blockquote>"Set up a hook so my Mac sends me a desktop notification every time you finish a long task." (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=3990s" target="_blank" rel="noopener">1:06:30</a>)</blockquote>
+<p>It goes on: she wants a sound too, "so I don't need to watch the screen". Hers shows "Cloud Code finished" in the top right corner (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=3990s" target="_blank" rel="noopener">1:06:30</a>) and "plays a moo sound at 46% volume" (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=4020s" target="_blank" rel="noopener">1:07:00</a>).</p>
+<p>What a hook is, in her words:</p>
+<blockquote>"when something happens with Claude Code, you can trigger something else to happen." (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=991s" target="_blank" rel="noopener">16:31</a>)</blockquote>
+<p>And why it beats remembering:</p>
+<blockquote>"you don't have to remember to run them. Like they will just happen." (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=4020s" target="_blank" rel="noopener">1:07:00</a>)</blockquote>
+<pre><code>Claude finishes a turn
+        │
+        ▼
+the hook fires  ──►  notification: "Claude Code finished"
+                ──►  sound
+        │
+        ▼
+you come back only when pinged</code></pre>
 <h2>Why this matters to you</h2>
-<p>Your shop is found. You rank #2 on Etsy AU for "dementia caregiver binder", with 46 live listings and zero sales as of 12 Sep 2026. So the unproven part is what happens after someone sees a listing.</p>
-<p>Listing images are part of that. This recipe does not prove your images are the problem; nothing here measures that. It gives you a cheap way to make one alternative image from a template you chose, so you have something to test.</p>
-<p>⭐ It also fits your rule against code-drawn art. The design comes from a Canva template a person made. Claude only writes the words into it.</p>
-<h1>How it goes, step by step</h1>
-<h2>1. Connect Canva (once)</h2>
-<p>In claude.ai: your name, bottom left, then Settings, then Connectors. Browse connectors, search Canva, press +, and allow (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=60s" target="_blank" rel="noopener">1:00</a>). She says you do not need Cowork, Desktop or Claude Code for this.</p>
-<p>Then press Configure. Each Canva action is marked always allow or needs approval, and you can switch any of them (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=150s" target="_blank" rel="noopener">2:30</a>).</p>
-<p>⚠ Connecting grants Canva access to your account. That is your click, not mine.</p>
-<h2>2. Ask what the connector can do</h2>
-<p>Her "product tour" prompt, from the second video at <a href="https://www.youtube.com/watch?v=FwWZ1ivy5F4&amp;t=121s" target="_blank" rel="noopener">2:01</a>:</p>
-<blockquote>"List every Canva connector feature available. Output a bullet point list with a sample prompt for each feature and Canva plan required."</blockquote>
-<p>It returns a table of features, sample prompts, and free versus paid.</p>
-<h2>3. Clone a template, then fill it</h2>
-<p>In Canva: Home, Templates, search (flyer, carousel, infographic), pick one, press "Customize this template". That makes your own editable copy (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=450s" target="_blank" rel="noopener">7:30</a>). Paste its link into the prompt above.</p>
-<p>She shows three ways to feed it the facts:</p>
-<div class="tablewrap"><table><thead><tr><th>Way</th><th>What she typed</th><th>Where</th></tr></thead><tbody><tr><td>Claude interviews you</td><td>answered its questions for a hiring flyer</td><td><a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=541s" target="_blank" rel="noopener">9:01</a></td></tr><tr><td>A topic only</td><td>"nature heals founders" for a carousel</td><td><a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=690s" target="_blank" rel="noopener">11:30</a></td></tr><tr><td>Your website</td><td>"replace the text with information from my website"</td><td><a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=932s" target="_blank" rel="noopener">15:32</a></td></tr></tbody></table></div>
-<p>For the carousel she approves each slide's copy before Claude builds it.</p>
-<h2>4. Open it in Canva and look</h2>
-<p>Everything saves to your Canva account and stays in sync. Hand edits in Canva are fine (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=1021s" target="_blank" rel="noopener">17:01</a>).</p>
-<p>⚠ The fit is rough, not exact. In the second video one slide's text was "a little much" and overlapped, so she fixed it by hand (<a href="https://www.youtube.com/watch?v=FwWZ1ivy5F4&amp;t=450s" target="_blank" rel="noopener">7:30</a>). Claude had already flagged it:</p>
-<blockquote>"Claude actually said the subtitle positioning slightly overlaps with the text."</blockquote>
-<p>⭐ Read Claude's notes before you open the design. She did not, and it had caught the fault.</p>
-<h1>Swapping in your own photos</h1>
-<p>She uploads her photos into the chat and asks Claude to swap the backgrounds (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=750s" target="_blank" rel="noopener">12:30</a>). Two limits:</p>
-<ul><li>A landscape photo in a portrait slot failed: "It was not able to handle that horizontal photo that I was just testing out". Match the photo's shape to the slot.</li><li>Her method runs through Blotato: "If you haven't set up Blotato yet, this obviously won't work." Without it, she warns, Claude tries workarounds and may hit problems.</li></ul>
-<p>⚠ So the photo swap is the one part the video only shows working with the paid app. It shows no free way. Uploading photos into Canva yourself might work, but that is my guess and it is untested.</p>
-<p>⛔ If it is a product photo, the image must not change what the buyer gets. Swapping a background is one thing. Changing a page, a page count or a feature is misrepresentation.</p>
-<h1>The two error fixes, word for word</h1>
-<p>She says the two errors are related, and both fixes name Blotato.</p>
-<div class="tablewrap"><table><thead><tr><th>Error you see</th><th>What she types</th></tr></thead><tbody><tr><td>Canva export domain "not in my sandbox's network allow list" (<a href="https://www.youtube.com/watch?v=FwWZ1ivy5F4&amp;t=750s" target="_blank" rel="noopener">12:30</a>)</td><td>"export from Canva and then pass the Canva export domain URLs directly to Blotato to post" (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=1200s" target="_blank" rel="noopener">20:00</a>)</td></tr><tr><td>Claude stuck uploading your photos, or trying to start an HTTP server (<a href="https://www.youtube.com/watch?v=FwWZ1ivy5F4&amp;t=810s" target="_blank" rel="noopener">13:30</a>)</td><td>"use Blotato to upload my photos or videos so Canva can use them" (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=1231s" target="_blank" rel="noopener">20:31</a>)</td></tr></tbody></table></div>
-<p>She says the reason the second works is that Blotato "has a media library endpoint". Once it works, she tells Claude to remember the fix.</p>
-<p>⚠ Without Blotato, neither fix applies. For your use you do not need the first. Export the PNG or PDF from Canva by hand. Claude's own reply on screen offers PNG or PDF export (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=301s" target="_blank" rel="noopener">5:01</a>).</p>
-<h1>Money, and what needs your yes</h1>
-<div class="tablewrap"><table><thead><tr><th>Item</th><th>Price as stated</th><th>Date</th></tr></thead><tbody><tr><td>claude.ai with the Canva connector</td><td>no price given</td><td>24 May 2026</td></tr><tr><td>Canva</td><td>"Many features will still work with a free Canva account"</td><td>24 May 2026</td></tr><tr><td>Canva brand kit</td><td>paid: "Notice it has this crown icon, which means it requires a paid plan." No figure given</td><td>24 May 2026</td></tr><tr><td>Blotato posting</td><td>"It does require a paid plan of $29 per month"</td><td>24 May 2026</td></tr><tr><td>Blotato, second video</td><td>"the lowest plan of $29 per month", 20 social accounts, "as of today, May 2026"</td><td>20 May 2026</td></tr></tbody></table></div>
-<p>⚠ Blotato is her own app. Its "full refund, no questions asked" offer and its benefits have only her word behind them.</p>
-<p>⛔ Posting is public. In the demo, Claude posted to Facebook and Instagram "right now". When Instagram rejected the size, Claude and Canva worked around it on their own with a square crop (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=1291s" target="_blank" rel="noopener">21:31</a>). Her own verdict: "I probably shouldn't have posted this really long infographic to Instagram." Any post goes to you first.</p>
-<p>⚠ Not covered in any of the three videos: whether Canva's licence lets you use community templates in paid Etsy listing images. Check Canva's terms before a template goes on a listing.</p>
-<h1>What to try — one image, tonight</h1>
-<pre><code>   1. claude.ai → Settings → Connectors → add Canva
-      (free Canva account is enough)
+<p>You run many chats in parallel on two machines. Without a ping, you either keep checking every window or leave a chat waiting for you for an hour. A ping turns checking into waiting to be told.</p>
+<h1>⚠ What the video covers, and what it does not</h1>
+<p>The video covers <strong>done</strong>. Her hook fires "after Cloud Code completes" (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=3932s" target="_blank" rel="noopener">1:05:32</a>).</p>
+<p>It does not cover <strong>needs you</strong>: a chat stuck on a permission question. The only time she mentions that is on her phone, through remote control: "if Cloud Code gets stuck needing your permission, you'll see a request" (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=4981s" target="_blank" rel="noopener">1:23:01</a>).</p>
+<p>⚠ The rest of this section is not from the video. Claude Code has a separate hook event called Notification, for when it is waiting on you. "Done" is the Stop event. Ask for both by name.</p>
+<pre><code>EVENT          FIRES WHEN                      IN THE VIDEO?
+─────          ──────────                      ─────────────
+Stop           Claude finishes its turn        yes, the moo
+Notification   Claude is waiting on you        no</code></pre>
+<h1>How it fits the hooks you already have</h1>
+<p>Checked on this Mac, 16 Sep:</p>
+<div class="tablewrap"><table><thead><tr><th>What</th><th>Count</th></tr></thead><tbody><tr><td>Hook commands wired in ~/.claude/settings.json</td><td>37</td></tr><tr><td>Hook commands in the shared settings.template.json</td><td>39</td></tr><tr><td>Hooks on the Stop event, live</td><td>16</td></tr><tr><td>Hooks on the Notification event</td><td>0</td></tr></tbody></table></div>
+<p>So you have no ping of either kind today. Three warnings follow from those numbers.</p>
+<p>⛔ <strong>A hook that is not listed in settings.json never runs.</strong> Putting a script in ~/.claude/hooks does nothing by itself. The file only counts once settings.json names it. The template and the live file already differ by two today (both on SessionStart), so check the live file.</p>
+<p>⚠ <strong>Your settings.json is built from a shared template.</strong> If the new hook goes only into the live file, the next rebuild can wipe it, and Windows never gets it. It belongs in settings.template.json as well. The Mac command will not work on Windows, which needs its own.</p>
+<p>⚠ <strong>A Stop ping can lie.</strong> This is not from the video. Hooks on the same event run side by side. Some of your Stop hooks can block the stop and send Claude back to work. The ping may already have gone off by then. Test this before trusting the ping: run a chat that one of your gates will block, and see whether it pings.</p>
+<h1>The noise problem</h1>
+<p>Her hook fires every time Claude finishes, including in "my other Cloud Code" (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=3932s" target="_blank" rel="noopener">1:05:32</a>). With several chats going, every short reply in every chat would ping. Two cheap fixes:</p>
+<ol><li>Put the folder name in the notification text, so you know which chat it was.</li><li>Use a quiet sound for Stop and a louder one for Notification, since "needs you" is the one that costs you time.</li></ol>
+<h1>What to try — one step, tonight</h1>
+<p>This costs nothing and touches nothing public. It changes a settings file, so read the plan before approving it.</p>
+<pre><code>1. open a chat in plan mode (Recipe 09) and paste:
 
-   2. In Canva, pick ONE template in a listing-image
-      shape and press "Customize this template"
+   Add two hooks on this Mac.
+   Stop: a macOS notification "Claude done: &lt;folder&gt;"
+   and the Glass sound.
+   Notification: a notification "Claude needs you:
+   &lt;folder&gt;" and the Hero sound.
+   Add them to BOTH ~/.claude/settings.json and
+   ~/.claude/settings.template.json. Change no other
+   hook. Show me the diff before saving.
 
-   3. Paste her two-line word-count prompt with that link.
-      Give it the facts of ONE listing:
-      title, what's inside, page count
+2. approve only if the diff adds exactly two entries
+   and removes nothing
 
-   4. Read Claude's notes. Open it in Canva. Look.
+3. start a NEW chat (hooks load at start), type /hooks,
+   and check both are listed
 
-   5. Export a PNG by hand. Do not post anything.</code></pre>
-<p>Cost: nothing beyond the claude.ai plan you already use. No API call, no Blotato.</p>
-<p>⚠ Every number on the image must match the file the buyer downloads. Take the page count from the built PDF, not from memory.</p>
-<p>⚠ Whether it looks premium is a judgement. Look at it yourself, and do not let a cheap model sign it off.</p>
+4. ask it something that needs a permission, walk
+   away, and see if "needs you" arrives</code></pre>
+<p>⚠ The first macOS notification from a script may need you to allow notifications in System Settings. Glass and Hero are standard Mac sounds (both present in /System/Library/Sounds, checked 16 Sep).</p>
 <h2>ALSO MENTIONED</h2>
-<ul><li>Designs from scratch: Canva offers four options, you pick one and ask for changes in chat (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=271s" target="_blank" rel="noopener">4:31</a>)</li><li>A paid Canva brand kit (logo, colours, fonts) that Claude can use. She keeps several kits for several clients (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=1411s" target="_blank" rel="noopener">23:31</a>)</li><li>Blotato's calendar queue for scheduling batches of posts (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=1170s" target="_blank" rel="noopener">19:30</a>)</li><li>She adds Blotato as a custom connector at mcp.blotato.com/mcp (<a href="https://www.youtube.com/watch?v=MQjCyQBRZ_M&amp;t=1110s" target="_blank" rel="noopener">18:30</a>)</li><li>Of the connector's features: "We really only touched the surface" (<a href="https://www.youtube.com/watch?v=FwWZ1ivy5F4&amp;t=840s" target="_blank" rel="noopener">14:00</a>)</li><li>⚠ The captions mishear Blotato many ways ("Vota", "Bloop to", "blue potato"). Quotes here keep only lines where it came through correctly</li></ul>
+<ul><li>Her other hook is a quality gate that checks captions before posting: banned words, character limits, whether there is a video to post (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=3960s" target="_blank" rel="noopener">1:06:00</a>). Recipes 04 and 09 cover that idea.</li><li>When she typed her prompt, Claude answered that the hook already existed (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=3990s" target="_blank" rel="noopener">1:06:30</a>). So you never see a new hook built on camera. If you run the prompt fresh, she says it will ask what the notification and sound should be (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=4020s" target="_blank" rel="noopener">1:07:00</a>).</li><li>Control B sends a running task to the background (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=720s" target="_blank" rel="noopener">12:00</a>).</li><li>Remote control lets her approve permission requests from her phone (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=4981s" target="_blank" rel="noopener">1:23:01</a>).</li><li>/loop tasks run only while the laptop is on and the session is open, and "expire after 3 days" (<a href="https://www.youtube.com/watch?v=efaBaxDN_q8&amp;t=5072s" target="_blank" rel="noopener">1:24:32</a>). Recipe 02 covers /loop.</li></ul>
 <h2>See also</h2>
-<p>RECIPE 01 covers the Blotato posting half in full. RECIPE 04, the grader pattern, fits the copy Claude writes into the template: grade it against your banned words before you export. RECIPE 10 is the wider social automation family.</p>
-<div class="foot">Built 2026-09-16 from RECIPE_13_claude_and_canva_templates.md. Edit the markdown, not this page.</div>
+<p>RECIPE 02, seven Claude commands: /loop, /btw and /insights. RECIPE 09, plan mode and quality gates: review the hook's diff in plan mode. RECIPE 11, loop engineering: /goal also runs on the Stop hook. RECIPE 18 and RECIPE 20 come from the same video.</p>
+<div class="foot">Built 2026-09-16 from RECIPE_19_notification_hook.md. Edit the markdown, not this page.</div>
 </div>
 <!--illustrated-->
 <!--player2--><script src="https://www.youtube.com/iframe_api" async></script>
