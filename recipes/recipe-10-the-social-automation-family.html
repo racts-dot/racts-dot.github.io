@@ -77,7 +77,7 @@ a.ts{display:inline-flex;align-items:center;gap:3px;margin:0 2px 0 6px;padding:1
 a.ts::before{content:"\25B6";font-size:9px}
 a.ts:empty::after{content:attr(data-l)}
 a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
-/*/player2*/</style>
+/*/player2*/.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}</style>
 <script src="../textsize.js"></script>
 </head>
 <body>
@@ -86,7 +86,7 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
 <h1>RECIPE 10 — The social automation family: four videos, one build</h1>
 <div class="player" data-id="N4Q4iM05PPc"><button type="button" data-id="N4Q4iM05PPc" aria-label="Play the video"><img src="https://i.ytimg.com/vi/N4Q4iM05PPc/hqdefault.jpg" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span><span class="cap">Tap to play the first video this recipe comes from</span></button></div>
 
-<div class="readbar" role="group" aria-label="Read aloud"><button type="button" class="primary" id="rdPlay">&#9654; Read aloud</button><button type="button" id="rdStop" hidden>&#9632; Stop</button><select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.15">Brisk</option><option value="1.3">Fast</option></select><span class="rs" id="rdNow"></span></div>
+<div class="readbar" role="group" aria-label="Read aloud"><button type="button" class="primary icon" id="rdPlay" aria-label="Read aloud" title="Read aloud">&#128266;</button><button type="button" class="icon" id="rdStop" aria-label="Stop" title="Stop" hidden>&#9632;</button><select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.15">Brisk</option><option value="1.3">Fast</option></select><span class="rs" id="rdNow"></span></div>
 
 <p><strong>Four of the twelve you flagged teach the same thing. This is one page for all four, rather than four pages that repeat each other — your own rule, applied to itself:</strong></p>
 <blockquote><em>"most likely repetitive, so we can put it all together... referenced correctly"</em></blockquote>
@@ -165,7 +165,7 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
      line still matches, Read aloud plays that recording (keeps going with the phone locked); otherwise the phone voice. */
   var stem=(location.pathname.split('/').pop()||'').replace(/\.html$/,''), rec=null, audio=null;
   fetch('a/'+stem+'.json').then(function(r){ return r.ok?r.json():null; }).then(function(j){
-    if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&b.textContent.indexOf('Read aloud')>-1) b.innerHTML='&#9654; Listen (natural voice)';
+    if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&!b.dataset.busy){ b.setAttribute('aria-label','Listen (natural voice)'); b.title='Listen (natural voice)'; }
   }).catch(function(){});
   var hasSS=('speechSynthesis' in window);
   var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
@@ -202,7 +202,7 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
     speechSynthesis.speak(u);
   }
   function matches(ps){ if(!rec||rec.parts.length!==ps.length) return false; for(var k=0;k<ps.length;k++){ if(rec.parts[k].t!==ps[k].text) return false; } return true; }
-  function label(){ return rec?'&#9654; Listen (natural voice)':'&#9654; Read aloud'; }
+  function label(){ play.setAttribute('aria-label', rec?'Listen (natural voice)':'Read aloud'); delete play.dataset.busy; return '&#128266;'; }
   function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; now.textContent=''; }
   function startAudio(){
     if(!audio){
@@ -228,13 +228,13 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
   var mode='';
   play.addEventListener('click', function(){
     if(!on){
-      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\u23F8 Pause';
+      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1';
       if(matches(parts)){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
       mode='speech'; if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
       speechSynthesis.cancel(); step(); return;
     }
-    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654; Resume'; return; }
-    paused=false; play.textContent='\u23F8 Pause'; if(mode==='audio') audio.play(); else step();
+    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654;'; play.setAttribute('aria-label','Resume'); return; }
+    paused=false; play.textContent='\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1'; if(mode==='audio') audio.play(); else step();
   });
   stop.addEventListener('click', finish);
   rate.addEventListener('change', function(){ if(mode==='audio'&&audio){ audio.playbackRate=parseFloat(rate.value)||1; return; } if(on&&!paused){ speechSynthesis.cancel(); step(); } });

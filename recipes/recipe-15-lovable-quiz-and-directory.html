@@ -54,6 +54,12 @@ li{margin-bottom:6px}
 .card .thumb{width:112px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;display:block;grid-row:span 3}
 .card.nothumb{display:block}
 a.ts{white-space:nowrap}
+
+.readbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
+.readbar button,.readbar select{font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 14px;cursor:pointer}
+.readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
+.readbar .rs{font-size:12px;color:var(--muted)}
+.reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 /*player2*/
 .player{position:relative}
 .player>button{position:absolute;inset:0;z-index:2}
@@ -71,13 +77,7 @@ a.ts{display:inline-flex;align-items:center;gap:3px;margin:0 2px 0 6px;padding:1
 a.ts::before{content:"\25B6";font-size:9px}
 a.ts:empty::after{content:attr(data-l)}
 a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
-/*/player2*/
-.readbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
-.readbar button,.readbar select{font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 14px;cursor:pointer}
-.readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
-.readbar .rs{font-size:12px;color:var(--muted)}
-.reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
-</style>
+/*/player2*/.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}</style>
 <script src="../textsize.js"></script>
 </head>
 <body>
@@ -85,7 +85,7 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
 <a class="back" href="./">← all recipes</a>
 <h1>RECIPE 15 — Lovable: a lead-magnet quiz and a directory</h1>
 <div class="player" data-id="GJIDAOesz4U"><button type="button" data-id="GJIDAOesz4U" aria-label="Play the video"><img src="https://i.ytimg.com/vi/GJIDAOesz4U/hqdefault.jpg" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span><span class="cap">Tap to play the video this recipe comes from</span></button></div>
-<div class="readbar" role="group" aria-label="Read aloud"><button type="button" class="primary" id="rdPlay">&#9654; Read aloud</button><button type="button" id="rdStop" hidden>&#9632; Stop</button><select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.15">Brisk</option><option value="1.3">Fast</option></select><span class="rs" id="rdNow"></span></div>
+<div class="readbar" role="group" aria-label="Read aloud"><button type="button" class="primary icon" id="rdPlay" aria-label="Read aloud" title="Read aloud">&#128266;</button><button type="button" class="icon" id="rdStop" aria-label="Stop" title="Stop" hidden>&#9632;</button><select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.15">Brisk</option><option value="1.3">Fast</option></select><span class="rs" id="rdNow"></span></div>
 
 
 <p>From: <a href="https://www.youtube.com/watch?v=GJIDAOesz4U" target="_blank" rel="noopener">Create a high converting lead magnet (Lovable Cloud AI)</a> · 25 Oct 2025 · 16:37 · <a href="https://www.youtube.com/watch?v=GJIDAOesz4U" target="_blank" rel="noopener">watch</a></p>
@@ -179,6 +179,89 @@ turn off row-level security      add a policy named "read"
 <div class="foot">Built 2026-09-16 from RECIPE_15_lovable_quiz_and_directory.md. Edit the markdown, not this page.</div>
 </div>
 <!--illustrated-->
+<script>
+(function(){
+  /* Natural voice, her 15 Sep "Everything.": if tools/record_recipes.py made a recording for this page, and every
+     line still matches, Read aloud plays that recording (keeps going with the phone locked); otherwise the phone voice. */
+  var stem=(location.pathname.split('/').pop()||'').replace(/\.html$/,''), rec=null, audio=null;
+  fetch('a/'+stem+'.json').then(function(r){ return r.ok?r.json():null; }).then(function(j){
+    if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&!b.dataset.busy){ b.setAttribute('aria-label','Listen (natural voice)'); b.title='Listen (natural voice)'; }
+  }).catch(function(){});
+  var hasSS=('speechSynthesis' in window);
+  var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
+  var parts=[], i=0, on=false, paused=false, voice=null;
+  function pickVoice(){
+    var vs=speechSynthesis.getVoices(); if(!vs.length) return null;
+    var good=/Siri|Natural|Premium|Enhanced|Karen|Lee|Catherine|Daniel|Serena/i;
+    var by=function(lang){ var l=vs.filter(function(v){return v.lang&&v.lang.replace('_','-').indexOf(lang)===0;}); return l.filter(function(v){return good.test(v.name);})[0]||l[0]; };
+    return by('en-AU')||by('en-GB')||by('en-US')||by('en')||vs[0];
+  }
+  function collect(){
+    var wrap=document.querySelector('.wrap'), out=[];
+    wrap.querySelectorAll('h1,h2,h3,p,li,blockquote,td').forEach(function(el){
+      if (el.closest('pre,.player,.readbar,.foot,.back,table td table')) return;
+      if (el.tagName==='P' && el.closest('li,blockquote,td')) return;
+      var t=(el.innerText||'').replace(/[\u2B50\u26A0\u26D4\u2705\u274C]/g,'').replace(/\s+/g,' ').trim();
+      if (t.length<2) return;
+      var bits=t.match(/[^.!?]+[.!?]*\s*/g)||[t], buf='';
+      bits.forEach(function(s){ if((buf+s).length>220 && buf){ out.push({el:el,text:buf}); buf=''; } buf+=s; });
+      if (buf.trim()) out.push({el:el,text:buf});
+    });
+    return out;
+  }
+  function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); el.scrollIntoView({behavior:'smooth',block:'center'}); } }
+  function step(){
+    if(!on||mode==='audio') return;
+    if(i>=parts.length){ finish(); return; }
+    var p=parts[i], u=new SpeechSynthesisUtterance(p.text);
+    voice=voice||pickVoice(); if(voice){ u.voice=voice; u.lang=voice.lang; }
+    u.rate=parseFloat(rate.value)||1;
+    u.onend=function(){ if(!on||paused) return; i++; step(); };
+    u.onerror=function(){ if(!on||paused) return; i++; step(); };
+    mark(p.el); now.textContent=Math.round(i/parts.length*100)+'%';
+    speechSynthesis.speak(u);
+  }
+  function matches(ps){ if(!rec||rec.parts.length!==ps.length) return false; for(var k=0;k<ps.length;k++){ if(rec.parts[k].t!==ps[k].text) return false; } return true; }
+  function label(){ play.setAttribute('aria-label', rec?'Listen (natural voice)':'Read aloud'); delete play.dataset.busy; return '&#128266;'; }
+  function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; now.textContent=''; }
+  function startAudio(){
+    if(!audio){
+      audio=new Audio('a/'+stem+'.mp3'); audio.preload='auto';
+      audio.addEventListener('timeupdate', function(){
+        var t=audio.currentTime, k=0; while(k+1<rec.parts.length && rec.parts[k+1].s<=t) k++;
+        if(k!==i || !document.querySelector('.reading')){ i=k; mark(parts[k]&&parts[k].el); }
+        now.textContent=Math.round(t/(rec.dur||audio.duration||1)*100)+'%';
+      });
+      audio.addEventListener('ended', finish);
+      if('mediaSession' in navigator){
+        var h=document.querySelector('h1');
+        navigator.mediaSession.metadata=new MediaMetadata({title:h?h.innerText:document.title, artist:'Recipes'});
+        navigator.mediaSession.setActionHandler('play', function(){ play.click(); });
+        navigator.mediaSession.setActionHandler('pause', function(){ play.click(); });
+        try{ navigator.mediaSession.setActionHandler('seekbackward', function(){ audio.currentTime=Math.max(0,audio.currentTime-15); });
+             navigator.mediaSession.setActionHandler('seekforward', function(){ audio.currentTime=audio.currentTime+15; }); }catch(e){}
+      }
+    }
+    audio.playbackRate=parseFloat(rate.value)||1;
+    return audio.play();
+  }
+  var mode='';
+  play.addEventListener('click', function(){
+    if(!on){
+      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1';
+      if(matches(parts)){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
+      mode='speech'; if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
+      speechSynthesis.cancel(); step(); return;
+    }
+    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654;'; play.setAttribute('aria-label','Resume'); return; }
+    paused=false; play.textContent='\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1'; if(mode==='audio') audio.play(); else step();
+  });
+  stop.addEventListener('click', finish);
+  rate.addEventListener('change', function(){ if(mode==='audio'&&audio){ audio.playbackRate=parseFloat(rate.value)||1; return; } if(on&&!paused){ speechSynthesis.cancel(); step(); } });
+  if (hasSS && speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
+})();
+</script><!--read-aloud-->
+<script src="../swipe.js" data-pages="./ recipe-01-ai-social-media-manager.html recipe-02-seven-claude-commands.html recipe-03-cowork-what-you-dont-use.html recipe-04-the-grader-pattern.html recipe-05-the-audience-playbook.html recipe-06-she-switched-away-from-claude.html recipe-07-microsoft-copilot.html recipe-08-her-whole-tool-stack.html recipe-09-plan-mode-and-quality-gates.html recipe-10-the-social-automation-family.html recipe-11-loop-engineering.html recipe-12-live-search-data-in-claude-code.html recipe-13-claude-and-canva-templates.html recipe-14-the-tiktok-30-day-sprint.html recipe-15-lovable-quiz-and-directory.html recipe-16-websites-simple-to-advanced.html recipe-17-notebooklm-slide-decks.html recipe-18-fact-check-skill.html recipe-19-notification-hook.html recipe-20-claude-md-by-interview.html recipe-21-promo-videos-in-code.html recipe-22-ai-avatar-videos.html" defer></script><!--swipe-->
 <!--player2--><script src="https://www.youtube.com/iframe_api" async></script>
 <script>
 (function(){
@@ -239,88 +322,5 @@ turn off row-level security      add a policy named "read"
   if (rp) rp.addEventListener('click', function(){ try { YTP && YTP.pauseVideo(); } catch (x) {} });
 })();
 </script><!--/player2-->
-<script>
-(function(){
-  /* Natural voice, her 15 Sep "Everything.": if tools/record_recipes.py made a recording for this page, and every
-     line still matches, Read aloud plays that recording (keeps going with the phone locked); otherwise the phone voice. */
-  var stem=(location.pathname.split('/').pop()||'').replace(/\.html$/,''), rec=null, audio=null;
-  fetch('a/'+stem+'.json').then(function(r){ return r.ok?r.json():null; }).then(function(j){
-    if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&b.textContent.indexOf('Read aloud')>-1) b.innerHTML='&#9654; Listen (natural voice)';
-  }).catch(function(){});
-  var hasSS=('speechSynthesis' in window);
-  var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
-  var parts=[], i=0, on=false, paused=false, voice=null;
-  function pickVoice(){
-    var vs=speechSynthesis.getVoices(); if(!vs.length) return null;
-    var good=/Siri|Natural|Premium|Enhanced|Karen|Lee|Catherine|Daniel|Serena/i;
-    var by=function(lang){ var l=vs.filter(function(v){return v.lang&&v.lang.replace('_','-').indexOf(lang)===0;}); return l.filter(function(v){return good.test(v.name);})[0]||l[0]; };
-    return by('en-AU')||by('en-GB')||by('en-US')||by('en')||vs[0];
-  }
-  function collect(){
-    var wrap=document.querySelector('.wrap'), out=[];
-    wrap.querySelectorAll('h1,h2,h3,p,li,blockquote,td').forEach(function(el){
-      if (el.closest('pre,.player,.readbar,.foot,.back,table td table')) return;
-      if (el.tagName==='P' && el.closest('li,blockquote,td')) return;
-      var t=(el.innerText||'').replace(/[\u2B50\u26A0\u26D4\u2705\u274C]/g,'').replace(/\s+/g,' ').trim();
-      if (t.length<2) return;
-      var bits=t.match(/[^.!?]+[.!?]*\s*/g)||[t], buf='';
-      bits.forEach(function(s){ if((buf+s).length>220 && buf){ out.push({el:el,text:buf}); buf=''; } buf+=s; });
-      if (buf.trim()) out.push({el:el,text:buf});
-    });
-    return out;
-  }
-  function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); el.scrollIntoView({behavior:'smooth',block:'center'}); } }
-  function step(){
-    if(!on||mode==='audio') return;
-    if(i>=parts.length){ finish(); return; }
-    var p=parts[i], u=new SpeechSynthesisUtterance(p.text);
-    voice=voice||pickVoice(); if(voice){ u.voice=voice; u.lang=voice.lang; }
-    u.rate=parseFloat(rate.value)||1;
-    u.onend=function(){ if(!on||paused) return; i++; step(); };
-    u.onerror=function(){ if(!on||paused) return; i++; step(); };
-    mark(p.el); now.textContent=Math.round(i/parts.length*100)+'%';
-    speechSynthesis.speak(u);
-  }
-  function matches(ps){ if(!rec||rec.parts.length!==ps.length) return false; for(var k=0;k<ps.length;k++){ if(rec.parts[k].t!==ps[k].text) return false; } return true; }
-  function label(){ return rec?'&#9654; Listen (natural voice)':'&#9654; Read aloud'; }
-  function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; now.textContent=''; }
-  function startAudio(){
-    if(!audio){
-      audio=new Audio('a/'+stem+'.mp3'); audio.preload='auto';
-      audio.addEventListener('timeupdate', function(){
-        var t=audio.currentTime, k=0; while(k+1<rec.parts.length && rec.parts[k+1].s<=t) k++;
-        if(k!==i || !document.querySelector('.reading')){ i=k; mark(parts[k]&&parts[k].el); }
-        now.textContent=Math.round(t/(rec.dur||audio.duration||1)*100)+'%';
-      });
-      audio.addEventListener('ended', finish);
-      if('mediaSession' in navigator){
-        var h=document.querySelector('h1');
-        navigator.mediaSession.metadata=new MediaMetadata({title:h?h.innerText:document.title, artist:'Recipes'});
-        navigator.mediaSession.setActionHandler('play', function(){ play.click(); });
-        navigator.mediaSession.setActionHandler('pause', function(){ play.click(); });
-        try{ navigator.mediaSession.setActionHandler('seekbackward', function(){ audio.currentTime=Math.max(0,audio.currentTime-15); });
-             navigator.mediaSession.setActionHandler('seekforward', function(){ audio.currentTime=audio.currentTime+15; }); }catch(e){}
-      }
-    }
-    audio.playbackRate=parseFloat(rate.value)||1;
-    return audio.play();
-  }
-  var mode='';
-  play.addEventListener('click', function(){
-    if(!on){
-      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\u23F8 Pause';
-      if(matches(parts)){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
-      mode='speech'; if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
-      speechSynthesis.cancel(); step(); return;
-    }
-    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654; Resume'; return; }
-    paused=false; play.textContent='\u23F8 Pause'; if(mode==='audio') audio.play(); else step();
-  });
-  stop.addEventListener('click', finish);
-  rate.addEventListener('change', function(){ if(mode==='audio'&&audio){ audio.playbackRate=parseFloat(rate.value)||1; return; } if(on&&!paused){ speechSynthesis.cancel(); step(); } });
-  if (hasSS && speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
-})();
-</script><!--read-aloud-->
-<script src="../swipe.js" data-pages="./ recipe-01-ai-social-media-manager.html recipe-02-seven-claude-commands.html recipe-03-cowork-what-you-dont-use.html recipe-04-the-grader-pattern.html recipe-05-the-audience-playbook.html recipe-06-she-switched-away-from-claude.html recipe-07-microsoft-copilot.html recipe-08-her-whole-tool-stack.html recipe-09-plan-mode-and-quality-gates.html recipe-10-the-social-automation-family.html recipe-11-loop-engineering.html recipe-12-live-search-data-in-claude-code.html recipe-13-claude-and-canva-templates.html recipe-14-the-tiktok-30-day-sprint.html recipe-15-lovable-quiz-and-directory.html recipe-16-websites-simple-to-advanced.html recipe-17-notebooklm-slide-decks.html recipe-18-fact-check-skill.html recipe-19-notification-hook.html recipe-20-claude-md-by-interview.html recipe-21-promo-videos-in-code.html recipe-22-ai-avatar-videos.html" defer></script><!--swipe-->
 </body>
 </html>

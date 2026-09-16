@@ -566,11 +566,12 @@ READ_CSS = """
 .readbar button,.readbar select{font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 14px;cursor:pointer}
 .readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
 .readbar .rs{font-size:12px;color:var(--muted)}
+.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}
 .reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
 """
 READ_BAR = ('<div class="readbar" role="group" aria-label="Read aloud">'
-            '<button type="button" class="primary" id="rdPlay">&#9654; Read aloud</button>'
-            '<button type="button" id="rdStop" hidden>&#9632; Stop</button>'
+            '<button type="button" class="primary icon" id="rdPlay" aria-label="Read aloud" title="Read aloud">&#128266;</button>'
+            '<button type="button" class="icon" id="rdStop" aria-label="Stop" title="Stop" hidden>&#9632;</button>'
             '<select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option>'
             '<option value="1.15">Brisk</option><option value="1.3">Fast</option></select>'
             '<span class="rs" id="rdNow"></span></div>')
@@ -580,7 +581,7 @@ READ_JS = """<script>
      line still matches, Read aloud plays that recording (keeps going with the phone locked); otherwise the phone voice. */
   var stem=(location.pathname.split('/').pop()||'').replace(/\\.html$/,''), rec=null, audio=null;
   fetch('a/'+stem+'.json').then(function(r){ return r.ok?r.json():null; }).then(function(j){
-    if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&b.textContent.indexOf('Read aloud')>-1) b.innerHTML='&#9654; Listen (natural voice)';
+    if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&!b.dataset.busy){ b.setAttribute('aria-label','Listen (natural voice)'); b.title='Listen (natural voice)'; }
   }).catch(function(){});
   var hasSS=('speechSynthesis' in window);
   var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
@@ -617,7 +618,7 @@ READ_JS = """<script>
     speechSynthesis.speak(u);
   }
   function matches(ps){ if(!rec||rec.parts.length!==ps.length) return false; for(var k=0;k<ps.length;k++){ if(rec.parts[k].t!==ps[k].text) return false; } return true; }
-  function label(){ return rec?'&#9654; Listen (natural voice)':'&#9654; Read aloud'; }
+  function label(){ play.setAttribute('aria-label', rec?'Listen (natural voice)':'Read aloud'); delete play.dataset.busy; return '&#128266;'; }
   function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; now.textContent=''; }
   function startAudio(){
     if(!audio){
@@ -643,13 +644,13 @@ READ_JS = """<script>
   var mode='';
   play.addEventListener('click', function(){
     if(!on){
-      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\\u23F8 Pause';
+      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1';
       if(matches(parts)){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
       mode='speech'; if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
       speechSynthesis.cancel(); step(); return;
     }
-    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654; Resume'; return; }
-    paused=false; play.textContent='\\u23F8 Pause'; if(mode==='audio') audio.play(); else step();
+    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654;'; play.setAttribute('aria-label','Resume'); return; }
+    paused=false; play.textContent='\\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1'; if(mode==='audio') audio.play(); else step();
   });
   stop.addEventListener('click', finish);
   rate.addEventListener('change', function(){ if(mode==='audio'&&audio){ audio.playbackRate=parseFloat(rate.value)||1; return; } if(on&&!paused){ speechSynthesis.cancel(); step(); } });
@@ -659,6 +660,9 @@ READ_JS = """<script>
 
 def add_reader(page):
     if READ_MARK in page:
+        page = re.sub(r'<div class="readbar" role="group" aria-label="Read aloud">.*?</div>', READ_BAR.replace("\\", "\\\\"), page, count=1, flags=re.S)
+        if ".readbar button.icon{" not in page:   # 16 Sep: icon-only buttons need their own size
+            page = page.replace("</style>", ".readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}</style>", 1)
         b = page.find(READ_MARK)
         a = page.rfind("<script>\n(function(){", 0, b)   # the reader script sits right before the mark
         if a != -1 and b > a:   # replace an older reader script with the current one
