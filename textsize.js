@@ -276,6 +276,45 @@
     boldBtn.textContent = bold ? "Bold: on" : "Bold: off";
     fab.classList.toggle("ts-set", STEPS[stepIdx] !== 1 || bold);
   }
+  /* ---------- drag the bubble anywhere (her 16 Sep ask), position kept per device ----------
+     Same behaviour as makeDraggable in speak.js (website 8cc62dc), copied so pages without speak.js get it too. */
+  function makeDraggable(el, key) {
+    var sx = 0, sy = 0, ox = 0, oy = 0, moved = false, down = false, pid = null;
+    function place(x, y) {
+      var w = el.offsetWidth, h = el.offsetHeight;
+      x = Math.max(4, Math.min(window.innerWidth - w - 4, x));
+      y = Math.max(4, Math.min(window.innerHeight - h - 4, y));
+      el.style.setProperty("left", x + "px", "important"); el.style.setProperty("top", y + "px", "important");
+      el.style.setProperty("right", "auto", "important"); el.style.setProperty("bottom", "auto", "important");
+    }
+    function restore() {
+      var v = store.get(key); if (!v || !el.offsetWidth) return;       // hidden while the panel is open: nothing to measure
+      try { var p = JSON.parse(v); place(p[0] * window.innerWidth, p[1] * window.innerHeight); } catch (e) {}
+    }
+    el.style.touchAction = "none";
+    el.addEventListener("pointerdown", function (e) {
+      if (e.button > 0) return;
+      down = true; moved = false; pid = e.pointerId;
+      var r = el.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+    });
+    el.addEventListener("pointermove", function (e) {
+      if (!down || e.pointerId !== pid) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+      if (!moved) { moved = true; try { el.setPointerCapture(pid); } catch (x) {} }
+      place(ox + dx, oy + dy); e.preventDefault();
+    });
+    function up() {
+      if (!down) return; down = false;
+      if (moved) { var r = el.getBoundingClientRect(); store.set(key, JSON.stringify([r.left / window.innerWidth, r.top / window.innerHeight])); }
+    }
+    el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+    el.addEventListener("click", function (e) { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
+    window.addEventListener("resize", restore);
+    restore(); setTimeout(restore, 300);   /* not requestAnimationFrame: it never fires in a hidden tab */
+    return restore;
+  }
+
   function build() {
     if (fab || !D.body) return;
     var hasSpeak = !!D.querySelector("script[src*='speak.js']") || !!window.SpeakAloud;
@@ -328,8 +367,45 @@
     D.body.appendChild(fab); D.body.appendChild(panel);
     pct = panel.querySelector(".ts-pct"); minus = panel.querySelector(".ts-down"); plus = panel.querySelector(".ts-up");
     boldBtn = panel.querySelector(".ts-bold");
-    fab.addEventListener("click", function () { panel.hidden = false; fab.hidden = true; plus.focus({ preventScroll: true }); });
-    function close() { panel.hidden = true; fab.hidden = false; }
+    var restoreFab = makeDraggable(fab, "textsize.pos"), fabRect = null;
+    function setBox(el, x, y) {
+      el.style.setProperty("left", x + "px", "important"); el.style.setProperty("top", y + "px", "important");
+      el.style.setProperty("right", "auto", "important"); el.style.setProperty("bottom", "auto", "important");
+    }
+    function clearBox(el) { ["left", "top", "right", "bottom"].forEach(function (k) { el.style.removeProperty(k); }); }
+    /* the panel opens where the bubble is, and always fully on screen: upwards from the bubble, or downwards
+       when the bubble is near the top; right-aligned to the bubble when it sits near the right edge */
+    function placePanel() {
+      if (panel.hidden || !fabRect) return;
+      var vw = window.innerWidth, vh = window.innerHeight, w = panel.offsetWidth, h = panel.offsetHeight, m = 8;
+      var x = fabRect.left;
+      if (x + w > vw - m) x = fabRect.right - w;
+      x = Math.max(m, Math.min(vw - w - m, x));
+      var y = fabRect.bottom - h;
+      if (y < m) y = fabRect.top;
+      y = Math.max(m, Math.min(vh - h - m, y));
+      setBox(panel, x, y);
+    }
+    /* by default, keep clear of the Read aloud bubble (speak.js), which may be built after this one */
+    function avoidSpeak() {
+      if (store.get("textsize.pos") || fab.hidden) return;
+      clearBox(fab);
+      var sa = D.querySelector(".sa-fab");
+      if (!sa || !sa.getClientRects().length) return;
+      var a = fab.getBoundingClientRect(), b = sa.getBoundingClientRect(), g = 8;
+      if (!(a.left < b.right + g && a.right > b.left - g && a.top < b.bottom + g && a.bottom > b.top - g)) return;
+      var y = b.top - a.height - 10;
+      if (y < 4) y = b.bottom + 10;
+      setBox(fab, Math.max(4, Math.min(window.innerWidth - a.width - 4, b.left)), Math.max(4, Math.min(window.innerHeight - a.height - 4, y)));
+    }
+    avoidSpeak(); setTimeout(avoidSpeak, 300); setTimeout(avoidSpeak, 1500);
+    window.addEventListener("resize", function () { avoidSpeak(); placePanel(); });
+    fab.addEventListener("click", function () {
+      fabRect = fab.getBoundingClientRect();
+      panel.hidden = false; fab.hidden = true; placePanel();
+      plus.focus({ preventScroll: true });
+    });
+    function close() { panel.hidden = true; fab.hidden = false; restoreFab(); avoidSpeak(); }
     panel.querySelector(".ts-close").addEventListener("click", close);
     D.addEventListener("keydown", function (e) { if (e.key === "Escape" && !panel.hidden) close(); });
     minus.addEventListener("click", function () { if (stepIdx > 0) { stepIdx--; apply(true); } });
