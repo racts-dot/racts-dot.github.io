@@ -12,7 +12,10 @@
  *    same apps password as notion-sync.js. Offline, or before the password is in, it waits and says so, and it
  *    sends by itself when it can. It never fails silently and never drops her words.
  *
- *  - The open sheet moves (drag its top row) and resizes (drag the corner grip); both are kept on this device.
+ *  - The open sheet moves from any point you touch (buttons too: a short tap still presses them; only the
+ *    writing box and the corner grip do not drag) and resizes from the corner grip, like the Reading Room's
+ *    floating note (her 17 Sep: "draggable with any point that it touches ... do the same thing as the
+ *    reading room"). Both are kept on this device.
  *
  *   <script src="/feedback.js" defer></script>      optional: data-app="Name of the app"
  */
@@ -95,7 +98,12 @@
       var had = panel.classList.contains(sizedClass), oldH = panel.style.getPropertyValue("height");
       panel.style.setProperty("width", w + "px", "important");
       panel.style.removeProperty("height"); panel.classList.remove(sizedClass);
+      /* the writing box may shrink to two lines, so the sheet can be made small (Reading Room note: 110 px) */
+      var ta = panel.querySelector("textarea"), taMin = ta && ta.style.getPropertyValue("min-height"), taH = ta && ta.style.getPropertyValue("height");
+      if (ta) { ta.style.setProperty("min-height", "44px", "important"); ta.style.setProperty("height", "44px", "important"); }
       var h = panel.scrollHeight;
+      if (ta) { if (taMin) ta.style.setProperty("min-height", taMin); else ta.style.removeProperty("min-height");
+        if (taH) ta.style.setProperty("height", taH); else ta.style.removeProperty("height"); }
       if (oldH) panel.style.setProperty("height", oldH, "important");
       if (had) panel.classList.add(sizedClass);
       return h;
@@ -119,7 +127,7 @@
     function start(e, which) {
       moved = false;
       if (e.button > 0) return;
-      if (which === "move" && e.target.closest && e.target.closest("button,textarea,input")) return;
+      if (which === "move" && e.target.closest && e.target.closest("textarea,input,select,.fb-grip,.ts-grip")) return;
       down = true; mode = which; pid = e.pointerId; sx = e.clientX; sy = e.clientY; r0 = panel.getBoundingClientRect();
       if (which === "size") { try { grip.setPointerCapture(pid); } catch (x) {} e.preventDefault(); e.stopPropagation(); }
     }
@@ -127,7 +135,8 @@
       if (!down || e.pointerId !== pid) return;
       var dx = e.clientX - sx, dy = e.clientY - sy;
       if (!moved && Math.abs(dx) + Math.abs(dy) < 8) return;
-      if (!moved) { moved = true; if (mode === "move") try { handle.setPointerCapture(pid); } catch (x) {} }
+      if (!moved) { moved = true; if (mode === "move") try { handle.setPointerCapture(pid); } catch (x) {}
+        try { var ae = D.activeElement; if (ae && ae !== D.body && handle.contains(ae) && ae.blur && !/TEXTAREA|INPUT/.test(ae.tagName)) ae.blur(); } catch (x) {} }
       if (mode === "move") setPos(r0.left + dx, r0.top + dy);
       else { setSize(r0.width + dx, r0.height + dy, r0.left, r0.top); setPos(r0.left, r0.top); }
       e.preventDefault();
@@ -141,6 +150,9 @@
       else store.set(sizeKey, JSON.stringify([Math.round(r.width), Math.round(r.height)]));
     }
     handle.style.touchAction = "none"; grip.style.touchAction = "none";
+    /* iOS starts scrolling before pointer events can claim the finger; a drag that began outside the writing box
+       must never scroll the page instead */
+    handle.addEventListener("touchmove", function (e) { if (down && mode === "move" && !(e.target.closest && e.target.closest("textarea,input,select"))) e.preventDefault(); }, { passive: false });
     handle.addEventListener("pointerdown", function (e) { start(e, "move"); });
     grip.addEventListener("pointerdown", function (e) { start(e, "size"); });
     [handle, grip].forEach(function (el) {
@@ -292,7 +304,7 @@
     if (!micBtn) return;
     micBtn.classList.toggle("fb-on", listening);
     micBtn.setAttribute("aria-pressed", listening ? "true" : "false");
-    micBtn.innerHTML = listening ? '<span class="fb-big">⏹</span><span>Listening… tap to stop</span>' : '<span class="fb-big">🎙</span><span>Tap to speak</span>';
+    micBtn.innerHTML = listening ? '<span class="fb-big">⏹</span><span>Listening… tap to stop</span>' : '<span class="fb-big">🎙</span><span>Speak</span>';
   }
   function paintQueue() {
     if (!queueEl) return;
@@ -319,9 +331,9 @@
       "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:12px 12px 26px;display:grid;gap:8px;" +
       "font:400 14px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:left}" +
       ".fb-panel[hidden],.fb-panel [hidden]{display:none}" +
-      ".fb-panel .fb-head{cursor:move;-webkit-user-select:none;user-select:none}.fb-panel .fb-grab{color:#8e8e93;font-size:17px;letter-spacing:-2px;margin-right:6px}" +
+      ".fb-panel{cursor:move;-webkit-user-select:none;user-select:none}.fb-panel textarea{cursor:text;-webkit-user-select:text;user-select:text;touch-action:auto}.fb-panel .fb-grab{color:#8e8e93;font-size:17px;letter-spacing:-2px;margin-right:6px}" +
       ".fb-panel.fb-sized:not([hidden]){display:flex;flex-direction:column}.fb-panel.fb-sized>*{flex:0 0 auto}" +
-      ".fb-panel.fb-sized>textarea{flex:1 1 auto;max-height:none;resize:none}" +
+      ".fb-panel.fb-sized>textarea{flex:1 1 auto;max-height:none;min-height:44px;resize:none}" +
       ".fb-panel .fb-grip{position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize;border-radius:0 0 16px 0;background:linear-gradient(135deg,transparent 50%,#8e8e93 50%,#8e8e93 56%,transparent 56%,transparent 66%,#8e8e93 66%,#8e8e93 72%,transparent 72%)}" +
       ".fb-panel .fb-row{display:flex;gap:8px;align-items:center}" +
       ".fb-panel .fb-title{flex:1;font:600 14px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}" +
@@ -330,7 +342,7 @@
       "border:0;border-radius:10px;padding:0 12px;background:#f2f2f7;color:#1c1c1e;cursor:pointer;box-shadow:none}" +
       ".fb-panel button:disabled{opacity:.35;cursor:default}" +
       ".fb-panel button.fb-close{flex:0 0 44px;background:transparent;font-size:18px}" +
-      ".fb-panel button.fb-mic{min-height:64px;font-size:16px}.fb-panel .fb-big{font-size:26px;line-height:1}" +
+      ".fb-panel button.fb-mic{min-height:36px;font-size:14px;padding:0 10px;gap:6px}.fb-panel .fb-big{font-size:16px;line-height:1}" +
       ".fb-panel button.fb-mic.fb-on{background:#ff3b30;color:#fff}" +
       ".fb-panel button.fb-send{background:#1c1c1e;color:#fff}" +
       ".fb-panel textarea{display:block;width:100%;box-sizing:border-box;min-height:96px;max-height:40vh;resize:vertical;margin:0;" +
@@ -354,7 +366,7 @@
     panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", "Feedback");
     panel.setAttribute("data-speak-skip", ""); panel.setAttribute("data-ts-own", "");
     panel.innerHTML =
-      '<div class="fb-row fb-head" title="Drag to move"><span class="fb-title"><span class="fb-grab" aria-hidden="true">⠿</span>Feedback for this app</span>' +
+      '<div class="fb-row fb-head" title="Drag anywhere to move"><span class="fb-title"><span class="fb-grab" aria-hidden="true">⠿</span>Feedback for this app</span>' +
       '<button type="button" class="fb-close" aria-label="Close">✕</button></div>' +
       '<button type="button" class="fb-mic" aria-pressed="false"></button>' +
       '<textarea class="fb-box" rows="4" placeholder="What would you change here?" aria-label="Your feedback"></textarea>' +
@@ -372,7 +384,7 @@
     paintMic(); paintQueue();
 
     var restoreFab = makeDraggable(fab, POS_KEY), fabRect = null;
-    var restorePanel = movablePanel(panel, panel.querySelector(".fb-head"), panel.querySelector(".fb-grip"), "feedback.panelpos", "feedback.panelsize", "fb-sized", 260);
+    var restorePanel = movablePanel(panel, panel, panel.querySelector(".fb-grip"), "feedback.panelpos", "feedback.panelsize", "fb-sized", 200);
     function setBox(el, x, y) {
       el.style.setProperty("left", x + "px", "important"); el.style.setProperty("top", y + "px", "important");
       el.style.setProperty("right", "auto", "important"); el.style.setProperty("bottom", "auto", "important");

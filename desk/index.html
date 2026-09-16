@@ -338,7 +338,23 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
   border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 /* ---- just say it: one box, and it decides where each line belongs ---- */
 /* It used to float over the page and sat on top of a control. In the corner it covers nothing. */
-#sayFab{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+#sayFab{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;
+  width:auto!important;padding:0 11px!important;font-size:13px!important;font-weight:700;white-space:nowrap}
+/* build 23: how old the delivered facts are, on every page */
+.dataage{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.03em;color:var(--ink-faint);margin:7px 0 0}
+.dataage.old{color:var(--stop)}
+.dataage.old::before{content:"⚠ "}
+/* build 23: folds that start closed */
+details.fold{margin-top:10px;border:1px solid var(--line-soft);border-radius:2px;background:var(--glass-2)}
+details.fold > summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;padding:11px 14px;font-weight:700;font-size:15px}
+details.fold > summary::-webkit-details-marker{display:none}
+details.fold > summary::before{content:"›";color:var(--ink-faint);font-weight:400;display:inline-block;transition:transform .15s}
+details.fold[open] > summary::before{transform:rotate(90deg)}
+details.fold > summary .count{margin-left:auto}
+details.fold > :not(summary){margin-left:14px;margin-right:14px}
+details.fold[open]{padding-bottom:12px}
+.pj-bar{height:5px;background:var(--line-soft);border-radius:3px;overflow:hidden;margin-top:6px}
+.pj-bar span{display:block;height:100%;background:var(--accent)}
 .say-row{border-top:1px solid var(--line-soft);padding:10px 0}
 .say-row:first-child{border-top:0}
 .say-txt{margin:0 0 7px;font-size:14.5px;color:var(--ink)}
@@ -547,12 +563,13 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <h1 id="pageTitle">Rachie's Desk</h1>
       </div>
       <div class="corner">
-        <button id="sayFab" aria-label="Just say it" title="Just say it">&#127908;</button>
+        <button id="sayFab" aria-label="Add to the desk by talking or typing" title="Add to the desk">＋ Add</button>
         <button id="chatBtn" aria-label="Ask Claude" title="Ask Claude">✻</button>
         <button id="setBtn" aria-label="Settings" title="Settings">⚙</button>
       </div>
     </div>
     <p class="why" id="pageWhy">Loading…</p>
+    <p class="dataage" id="dataAge"></p>
     <button id="readPage" class="readbar">&#9654; Read this page aloud</button>
 
     <div class="brief" id="briefCard">
@@ -878,6 +895,42 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     </div>
   </section>
 
+  <!-- PROJECTS (build 23) -->
+  <section class="page" id="p-projects">
+    <div class="block">
+      <details class="fold" id="tgFold"><summary><span>Terminal goal</span><span class="count" id="tgSum"></span></summary>
+        <div id="tgText"></div>
+        <div class="adder"><textarea class="full" id="tgInput" rows="2" placeholder="The one thing all of this is for."></textarea>
+          <button type="button" class="ghost" id="tgEdit">Edit</button><button type="button" id="tgSave">Keep it</button></div>
+      </details>
+      <details class="fold"><summary><span>Goal achievement</span><span class="count" id="pjScoreSum"></span></summary>
+        <div id="pjScore"></div>
+      </details>
+      <details class="fold"><summary><span>Goals written under AI admin</span><span class="count" id="pjGoalsSum"></span></summary>
+        <div id="pjGoals"></div>
+      </details>
+      <div class="sec-head" style="margin-top:26px"><h2>Projects</h2>
+        <p class="sec-note">Every Status tile, grouped by stage. Tap a stage to open it.</p>
+        <span class="count" id="pjCount"></span></div>
+      <div id="pjList"></div>
+    </div>
+  </section>
+
+  <!-- ROLL OVER (build 23) -->
+  <section class="page" id="p-rollover">
+    <div class="block">
+      <div class="sec-head"><h2>Rolled over</h2>
+        <p class="sec-note">To-dos still open from an earlier day. Tick one and it is done everywhere.</p>
+        <span class="count" id="roCount"></span></div>
+      <div id="roList"></div>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>From Morning &amp; Evening</h2>
+        <p class="sec-note">Wins and night-before plans left open. Read from <a href="../reflect/">Morning &amp; Evening</a>; tick them there.</p></div>
+      <div id="roME"></div>
+    </div>
+  </section>
+
   <!-- LOG -->
   <section class="page" id="p-log">
     <div class="block">
@@ -1091,7 +1144,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-15 · build 22</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-17 · build 23</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -1145,6 +1198,8 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     <div class="sheet-head"><h2>Just say it</h2><button class="x" data-close>Close</button></div>
     <p class="sec-note" id="sayHow">Tap the microphone on your keyboard and talk. One thought
       per line. It works out where each one belongs; tap a name to change it.</p>
+    <p class="sec-note" style="margin-top:6px"><b>This puts things ON your desk.</b> The round 🎙 bubble
+      at the side is different: it sends feedback about the app itself to Claude.</p>
     <textarea class="full" id="sayBox" rows="4"
       placeholder="Renew the AFR on the 2nd. Reply to the buyer about the lamp. Walked this morning."></textarea>
     <div class="adder"><span></span><button id="sayGo">File them</button></div>
@@ -1194,6 +1249,9 @@ const PAGES = [
   {id:"status",  name:"Status",             why:"One tile per thing. Which stage it is at, and what is blocking it.", nav:1},
   {id:"money",   name:"Money",              why:"Only figures somebody actually read off a real account.", nav:1},
   {id:"paper",   name:"The Paper",          why:"The AFR, in plain words, with what it means for you.", nav:1},
+  {id:"projects",name:"Projects",           why:"Your terminal goal, how the goals are going, and every project by stage. Folded until you open it."},
+  {id:"rollover",name:"Roll over",          why:"Everything still open from an earlier day: your to-do, and Morning & Evening."},
+  {id:"ebay",    name:"eBay",               why:"Your e-commerce side: the listings list, and where the eBay connection stands."},
   {id:"cast",    name:"The cast",           why:"The five of them, and which part of this desk each one keeps."},
   {id:"listen",  name:"Listen",             why:"The whole morning in one go, hands free."},
   {id:"rolling", name:"Rolling",            why:"The ones that never finish. Ticked today, back on their own."},
@@ -1210,7 +1268,6 @@ const PAGES = [
   {id:"learn",   name:"Learning",           why:"What you want to understand or set up, each with an ELI5 and the videos behind it."},
   {id:"try",     name:"Want to try",        why:"Things you spotted in the Reading Room. Ask Claude to try one when you have time."},
   {id:"keep",    name:"Tips & notes",       why:"Tips, tricks and things you write down. Stamped, searchable, easy to come back to."},
-  {id:"ebay",    name:"eBay",               why:"Your e-commerce side: the listings list, and where the eBay connection stands."},
   {id:"admin",   name:"AI admin",           why:"Goals, plans and budget for the AI side. A few notes, kept out of your way."},
   {id:"timeline",name:"What you achieved",  why:"Since January, in order, each one with where it was recorded."},
   {id:"sources", name:"How sure",           why:"How far to trust each kind of source, and how things here were researched."},
@@ -1911,7 +1968,20 @@ function renderXL(k){
   box.innerHTML = items.length ? items.map(r=>xlCard(k,r)).join("") : `<p class="none">${empty}</p>`;
 }
 function renderME(){
-  const box=$("#meList"); if(!box) return;
+  const rows = meRows();
+  const box=$("#meList");
+  if(box){
+    $("#meCount").textContent = rows.length ? rows.filter(r=>!r.done).length+" open" : "";
+    box.innerHTML = meCards(rows);
+  }
+  try{ renderRollover(rows); }catch(e){}
+}
+const meCards = rows => rows.length ? rows.map(r=>cardHTML({ title:r.text, sev:"mine", done:r.done,
+      meta:[pill(r.kind,"cool"), r.back>0&&!r.done?pill("Rolled over "+r.back+(r.back===1?" day":" days"),"watch"):""] })).join("")
+    : `<p class="none">Nothing from Morning &amp; Evening on this phone yet. It only shows here on the home-screen Desk, on the same phone.</p>`;
+/* Read-only: Morning & Evening (../reflect/) keeps its entries in this same site's phone storage under
+   "morning-evening:mornings/<day>" and "morning-evening:reflections/<day>". Nothing here writes to them. */
+function meRows(){
   const read = k => { try{ return JSON.parse(localStorage.getItem("morning-evening:"+k)||"null"); }catch(e){ return null; } };
   const rows=[];
   for(let back=0; back<7; back++){
@@ -1921,11 +1991,85 @@ function renderME(){
     if(ev && ev.tomorrow && (back===0 || !ev.tomorrowDone))
       rows.push({text:ev.tomorrow, kind:"Planned the night before "+(back===0?"today":shortDate(day)), done:!!ev.tomorrowDone, back});
   }
-  $("#meCount").textContent = rows.length ? rows.filter(r=>!r.done).length+" open" : "";
-  box.innerHTML = rows.length ? rows.map(r=>cardHTML({ title:r.text, sev:"mine", done:r.done,
-      meta:[pill(r.kind,"cool"), r.back>0&&!r.done?pill("Rolled over "+r.back+(r.back===1?" day":" days"),"watch"):""] })).join("")
-    : `<p class="none">Nothing from Morning &amp; Evening on this phone yet. It only shows here on the home-screen Desk, on the same phone.</p>`;
+  return rows;
 }
+
+/* ---------------- build 23: Roll over and Projects (her 17 Sep phone notes) ----------------
+   "I will also need to list to roll over, and it will have to connect to the morning and the evening."
+   One list: every to-do still open from an earlier day, then what Morning & Evening left open. */
+function renderRollover(meList){
+  const box=$("#roList"); if(!box) return;
+  const t=todayISO();
+  const old = mine.filter(m=>!m.done && m.at && isoDay(m.at)<t)
+    .sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+  const me = (meList||meRows()).filter(r=>!r.done && r.back>0);
+  const meToday = (meList||meRows()).filter(r=>r.back===0);
+  $("#roCount").textContent = (old.length+me.length) ? (old.length+me.length)+" rolled over" : "";
+  box.innerHTML = old.length ? old.map(m=>{
+      const n=daysSince(isoDay(m.at));
+      return cardHTML({ title:m.text, sev:"watch", tick:1, done:false, attr:`data-mid="${esc(m.id)}"`,
+        meta:[ pill(m.cat||"Life","cool"), pill("Rolled over "+n+(n===1?" day":" days"),"watch"),
+               `<span class="stamp">Added ${esc(stampWords(m.at))}</span>` ]}); }).join("")
+    : `<p class="none">No to-do has rolled over. Everything added before today is ticked.</p>`;
+  $("#roME").innerHTML = (me.length ? meCards(me) : `<p class="none">Nothing left open from earlier mornings or evenings on this phone.</p>`)
+    + (meToday.length ? `<p class="sugg-h" style="margin-top:14px">Today, from Morning &amp; Evening</p>` + meCards(meToday) : "");
+}
+let terminalGoal = null;   /* {text, at} - typed here, kept on this phone like everything else */
+const saveTerminal = () => save("state/terminal", terminalGoal||{}, 1);
+function renderProjects(){
+  const tg=$("#tgText"); if(!tg) return;
+  const has = terminalGoal && terminalGoal.text;
+  tg.innerHTML = has ? `<p class="c-title" style="white-space:pre-wrap">${esc(terminalGoal.text)}</p>
+      <p class="stamp" style="margin:6px 0 0">Written ${esc(stampWords(terminalGoal.at))}</p>`
+    : `<p class="none" style="padding:6px 0">Not written here yet. Type it below, once.</p>`;
+  $("#tgSum").textContent = has ? terminalGoal.text.split("\n")[0].slice(0,70) : "not set";
+  /* goal achievement: the numbers she is moving (Scoreboard), each against its target */
+  const sc=$("#pjScore"); const reached = s => { const n=parseFloat(String(s.now).replace(/[^0-9.\-]/g,"")),
+      g=parseFloat(String(s.target).replace(/[^0-9.\-]/g,"")); return isFinite(n)&&isFinite(g)&&g ? Math.max(0,Math.min(100,Math.round(100*n/g))) : null; };
+  $("#pjScoreSum").textContent = score.length ? score.length+(score.length===1?" goal":" goals") : "none yet";
+  sc.innerHTML = score.length ? score.map(s=>{ const p=reached(s);
+      return `<div class="reading"><p class="r-label">${esc(s.name)}</p>
+        <p class="r-value">${esc(s.now||"?")}${s.target?` <span style="color:var(--ink-faint)">of ${esc(s.target)}</span>`:""}</p>
+        <div class="r-when">${p===null?pill("no % yet"):pill(p+"%", p>=100?"ok":p>=50?"cool":"watch")}
+          ${s.read?`<span class="r-date" style="margin-top:5px">${esc(shortDate(s.read))}</span>`:""}</div>
+        ${p===null?"":`<div class="pj-bar" style="grid-column:1 / -1"><span style="width:${p}%"></span></div>`}</div>`; }).join("")
+    : `<p class="none">No goal numbers yet. Add one on Scoreboard (More) with where it is now and where it should be.</p>`;
+  /* projects: the Status tiles, grouped by stage */
+  const order=["selling","listed","built","idea","paused","blocked","killed"];
+  $("#pjCount").textContent = status.length ? status.length+" projects" : "";
+  $("#pjList").innerHTML = status.length ? order.filter(k=>status.some(s=>s.stage===k)).map(k=>{
+      const list=status.filter(s=>s.stage===k), st=STAGE[k];
+      return `<details class="fold"><summary><span>${esc(st[0])}</span><span class="count">${list.length}</span></summary>
+        ${list.map(s=>cardHTML({title:s.name, sev:st[1]==="live"?"ask":st[1]==="hold"?"watch":st[1]==="dead"?"stop":"mine",
+          body:s.note||""})).join("")}</details>`; }).join("")
+    : `<p class="none">No projects on this phone yet. They come from the Status tiles.</p>`;
+  const goals = (xl.admin||[]).filter(r=>r.cat==="Goal");
+  $("#pjGoals").innerHTML = goals.length ? goals.map(r=>cardHTML({title:r.text, sev:"mine",
+      meta:[`<span class="stamp">${esc(stampWords(r.at))}</span>`]})).join("")
+    : `<p class="none">No goals written under AI admin.</p>`;
+  $("#pjGoalsSum").textContent = goals.length ? String(goals.length) : "none";
+}
+/* her 17 Sep: "Everything is day as fifteenth of September. When can this be updated?"
+   The dated parts of this desk come in the locked delivery. This says, on every page, how old they are. */
+function renderDataAge(){
+  const el=$("#dataAge"); if(!el) return;
+  const d = DESK && DESK.built ? DESK.built : null, n = NEWS && NEWS.date ? NEWS.date : null;
+  const got = LS.get("feedGot");
+  const parts=[];
+  const dd = d ? daysSince(d) : null;
+  parts.push("Desk data last updated " + (d ? shortDate(d)+(dd<=0?", today":dd===1?", 1 day ago":", "+dd+" days ago") : ": never on this phone"));
+  if(n) parts.push("paper "+shortDate(n));
+  if(got) parts.push("delivery opened "+shortDate(got));
+  el.textContent = parts.join(" · ");
+  const age = d ? daysSince(d) : 99;
+  el.classList.toggle("old", age>1);
+}
+document.addEventListener("click", e=>{
+  if(e.target.closest("#tgSave")){ const v=$("#tgInput").value.trim(); if(!v){ toast("Type it first."); return; }
+    terminalGoal={text:v, at:new Date().toISOString()}; saveTerminal(); $("#tgInput").value="";
+    renderProjects(); logIt("set","Terminal goal written: "+v); toast("Kept, with today's date."); }
+  if(e.target.closest("#tgEdit") && terminalGoal){ $("#tgInput").value=terminalGoal.text; $("#tgInput").focus(); }
+});
 function renderTimeline(){
   const box=$("#tlList"); if(!box) return;
   const it = TIMELINE.items||[];
@@ -2037,12 +2181,13 @@ function renderEbayTodos(){
     meta:[m.at?`<span class="stamp">Added ${esc(stampWords(m.at))}</span>`:""]})).join("")
     : `<p class="none">Nothing filed under E-commerce. Add one on Today and pick E-commerce.</p>`;
 }
-function renderExtra(){ ["learn","try","keep","admin"].forEach(renderXL); renderME(); renderTimeline(); renderEbayTodos(); }
+function renderExtra(){ ["learn","try","keep","admin"].forEach(renderXL); renderME(); renderTimeline(); renderEbayTodos(); renderProjects(); renderDataAge(); }
 async function loadExtra(){
   for(const k of ["learn","try","keep","admin"]){
     try{ const d=await load("state/"+(k==="try"?"trylist":k)); if(d && Array.isArray(d.items)) xl[k]=d.items; }catch(e){}
   }
   try{ const n=await load("state/tlnotes"); if(n && Array.isArray(n.items)) tlNotes=n.items; }catch(e){}
+  try{ const tg=await load("state/terminal"); if(tg && tg.text) terminalGoal=tg; }catch(e){}
   setTimeout(pullInbox, 1500);
   renderExtra();
 }
@@ -3362,6 +3507,7 @@ async function collectToday(){
   if(!old) LS.set("feedRev", doc.rev);
   LS.set("feedTook", Array.from(new Set(took.concat(Object.keys(sec).filter(k => FEED_KEYS[k])))));
   $("#feedWanted").classList.add("hide");
+  LS.set("feedGot", todayISO());
   logIt("set", "Today's delivery arrived — " + n + " sections, " + (doc.made || "undated"));
   return n > 0;
 }
@@ -3605,7 +3751,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-15 · build 22</span>";
+    + "BUILD 2026-09-17 · build 23</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
