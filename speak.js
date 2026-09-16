@@ -174,6 +174,43 @@
     idx = 0; paint();
   }
 
+  /* ---------- drag the bubble anywhere (her 16 Sep ask), position kept per device ---------- */
+  function makeDraggable(el, key) {
+    var sx = 0, sy = 0, ox = 0, oy = 0, moved = false, down = false, pid = null;
+    function place(x, y) {
+      var w = el.offsetWidth, h = el.offsetHeight;
+      x = Math.max(4, Math.min(window.innerWidth - w - 4, x));
+      y = Math.max(4, Math.min(window.innerHeight - h - 4, y));
+      el.style.setProperty("left", x + "px", "important"); el.style.setProperty("top", y + "px", "important");
+      el.style.setProperty("right", "auto", "important"); el.style.setProperty("bottom", "auto", "important");
+    }
+    function restore() {
+      var v = store.get(key); if (!v) return;
+      try { var p = JSON.parse(v); place(p[0] * window.innerWidth, p[1] * window.innerHeight); } catch (e) {}
+    }
+    el.style.touchAction = "none";
+    el.addEventListener("pointerdown", function (e) {
+      if (e.button > 0) return;
+      down = true; moved = false; pid = e.pointerId;
+      var r = el.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+    });
+    el.addEventListener("pointermove", function (e) {
+      if (!down || e.pointerId !== pid) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+      if (!moved) { moved = true; try { el.setPointerCapture(pid); } catch (x) {} }
+      place(ox + dx, oy + dy); e.preventDefault();
+    });
+    function up() {
+      if (!down) return; down = false;
+      if (moved) { var r = el.getBoundingClientRect(); store.set(key, JSON.stringify([r.left / window.innerWidth, r.top / window.innerHeight])); }
+    }
+    el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+    el.addEventListener("click", function (e) { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
+    window.addEventListener("resize", restore);
+    restore(); setTimeout(restore, 300);   /* not requestAnimationFrame: it never fires in a hidden tab */
+  }
+
   /* ---------- the button and panel ---------- */
   function build() {
     document.head.appendChild(css);
@@ -191,6 +228,7 @@
       '<div class="sa-row"><label style="flex:1">Voice <select class="sa-voice" style="width:100%"></select></label></div>' +
       '<div class="sa-now">\u2605 = a higher-quality voice. On iPhone, more voices: Settings \u2192 Accessibility \u2192 Spoken Content \u2192 Voices \u2192 English.</div>';
     document.body.appendChild(fab); document.body.appendChild(panel);
+    makeDraggable(fab, "speak.pos");
     mainBtn = panel.querySelector(".sa-main"); stopBtn = panel.querySelector(".sa-stop");
     rateSel = panel.querySelector(".sa-rate"); voiceSel = panel.querySelector(".sa-voice");
     nowEl = panel.querySelector(".sa-now"); barEl = panel.querySelector(".sa-bar i");
@@ -210,6 +248,6 @@
     paint();
   }
 
-  window.SpeakAloud = { start: function () { start(); }, stop: function () { finish(""); } };
+  window.SpeakAloud = { start: function () { start(); }, stop: function () { finish(""); }, draggable: makeDraggable };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build); else build();
 })();
