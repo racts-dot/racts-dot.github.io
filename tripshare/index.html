@@ -213,6 +213,42 @@
   .toast.show { opacity: 1; }
 
   .jump { display: flex; gap: 0.35rem; flex-wrap: wrap; margin: 0.6rem 0 0.2rem; }
+
+  /* ---------- the month calendar (17 Sep 2026) ----------
+     Her phone note, 16 Sep: "we had like the calendar and everything, where are they?"
+     One month grid per month the trip touches, Monday first. A day with plans is tinted
+     and shows its first plan; tapping a trip day jumps to that day below. */
+  .cal { margin: 0.9rem 0 0.4rem; }
+  .cal-month { background: var(--card); border: 1px solid var(--rule); border-radius: 0.6rem; padding: 0.55rem 0.45rem 0.5rem; margin: 0 0 0.6rem; }
+  .cal-title { font-family: var(--f-display); font-size: 1.02rem; font-weight: 600; margin: 0 0.2rem 0.35rem; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+  .cal-dow { font-size: 0.68rem; text-align: center; color: var(--ink-faint); padding-bottom: 0.15rem; }
+  .cal-day {
+    min-height: 3.3rem; min-width: 0; padding: 0.2rem 0.2rem 0.15rem; border-radius: 0.35rem;
+    border: 1px solid transparent; background: transparent; color: var(--ink-faint);
+    font: inherit; text-align: left; display: flex; flex-direction: column; gap: 0.05rem; overflow: hidden;
+  }
+  .cal-day.blank { visibility: hidden; }
+  button.cal-day { cursor: pointer; }
+  .cal-day.in { background: var(--paper-2); color: var(--ink); border-color: var(--rule); }
+  .cal-day.has { background: var(--accent-wash); border-color: var(--accent); }
+  .cal-day.unsure { border-color: var(--warn); border-style: dashed; }
+  .cal-day.today .cal-n { background: var(--accent); color: #fff; border-radius: 999px; padding: 0 0.3rem; }
+  .cal-n { font-size: 0.78rem; font-weight: 600; line-height: 1.3; align-self: flex-start; font-variant-numeric: tabular-nums; }
+  .cal-t {
+    font-size: 0.64rem; line-height: 1.2; color: var(--ink-soft);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+    /* Korean breaks between words, not inside one (서울 체류, not 서울 체 / 류). */
+    word-break: keep-all; overflow-wrap: anywhere;
+  }
+  .cal-more { font-size: 0.6rem; color: var(--accent-ink); }
+  .cal-key { font-size: 0.78rem; color: var(--ink-faint); margin: 0.1rem 0.2rem 0; }
+  .cal-key span { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 0.2rem; vertical-align: -0.1rem; margin: 0 0.25rem 0 0.5rem; }
+  .cal-key span:first-child { margin-left: 0; }
+  .cal-key .k-has { background: var(--accent-wash); border: 1px solid var(--accent); }
+  .cal-key .k-unsure { border: 1px dashed var(--warn); }
+  .daybar.flash { background: var(--accent-wash); transition: background 0.6s ease; }
+  .card.fromnotion { border-left: 3px solid var(--accent); }
   .jump button { font-size: 0.8rem; padding: 0.25rem 0.5rem; }
 
   @media print {
@@ -461,6 +497,133 @@
   }
   function touch(t) { t.u = todayISO(); save(DB); }
 
+  /* ---------- the trip plan from her Notion (17 Sep 2026) ----------
+     Her phone note, 16 Sep: "implement the things that we have in my Notion, the trip plan here."
+     Copied by hand, read-only, from two Notion pages under PERSONAL / Travel:
+       "2026년 10-11월 여행 일정 (인천 → 전주 → 부산 → 유럽 → 귀국)" (15 Aug) and its
+       "🗓️ 여행 캘린더 (2026.10.3 – 11.1)" database (16 rows, read 17 Sep 2026).
+     THIS PAGE IS PUBLIC. Only places at city level, dates and the plan's own wording are here.
+     Nothing else from Notion is copied: no links into her workspace, no bookings, no people.
+     The three rows Notion ticks 확인 필요 (no booking evidence yet) keep that label, word for word
+     in meaning, so a planned date never reads as a confirmed one. Nothing is fetched live:
+     if the Notion plan changes, this copy has to be updated by hand. */
+  var NOTION_READ = "2026-09-17";
+  var NOTION_TRIP = normTrip({
+    i: "notionkoreaeurope2026",
+    t: "Korea & Europe, Oct–Nov 2026",
+    d: "인천 → 서울 → 전주 → 부산 → 유럽 → 서울",
+    s: "2026-10-03", e: "2026-11-01",
+    n: "공휴일: 10/3(토) 개천절, 10/9(금) 한글날 — 금요일 연휴라 전주 이동 인파가 몰릴 수 있음. 11월 1일(일)이 최종 출국일.",
+    x: [
+      { i: "nt0301", d: "2026-10-03", k: "flight", t: "인천공항 도착", l: "영종도", n: "개천절" },
+      { i: "nt0401", d: "2026-10-04", k: "stay", t: "숙박 및 휴식", l: "영종도" },
+      { i: "nt0501", d: "2026-10-05", k: "transport", t: "서울로 이동", l: "영종도 → 서울" },
+      { i: "nt0601", d: "2026-10-06", k: "note", t: "서울 체류", l: "서울" },
+      { i: "nt0701", d: "2026-10-07", k: "note", t: "서울 체류", l: "서울" },
+      { i: "nt0801", d: "2026-10-08", k: "transport", t: "전주행 출발", l: "서울 → 전주" },
+      { i: "nt0901", d: "2026-10-09", k: "note", t: "전주 도착", l: "전주", n: "한글날 — 금요일 연휴라 이동 인파가 몰릴 수 있음" },
+      { i: "nt1001", d: "2026-10-10", k: "note", t: "전주 체류", l: "전주" },
+      { i: "nt1101", d: "2026-10-11", k: "transport", t: "전주 출발 및 이동", l: "전주 → 이동" },
+      { i: "nt1201", d: "2026-10-12", k: "note", t: "부산 도착", l: "부산" },
+      { i: "nt1301", d: "2026-10-13", k: "note", t: "부산 체류", l: "부산" },
+      { i: "nt1401", d: "2026-10-14", k: "transport", t: "부산 출발", l: "부산 → 이동" },
+      { i: "nt1501", d: "2026-10-15", k: "flight", t: "유럽 여행 출발", l: "유럽행",
+        n: "확인 필요 — 출발일이 기록마다 다름 (10/12 와 10/15). 여기서는 더 최신인 8/15 일정표의 10/15. 예약 증빙 없음." },
+      { i: "nt1502", d: "2026-10-15", k: "note", t: "유럽 체류 시작 (약 11일, 10/15 ~ 10/25)", l: "유럽",
+        n: "확인 필요 — 10/26(월) 귀국이 맞다면 유럽 체류는 12일." },
+      { i: "nt1601", d: "2026-10-16", k: "note", t: "유럽 체류", l: "유럽" },
+      { i: "nt1701", d: "2026-10-17", k: "note", t: "유럽 체류", l: "유럽" },
+      { i: "nt1801", d: "2026-10-18", k: "note", t: "유럽 체류", l: "유럽" },
+      { i: "nt1901", d: "2026-10-19", k: "note", t: "유럽 체류", l: "유럽" },
+      { i: "nt2001", d: "2026-10-20", k: "note", t: "유럽 체류", l: "유럽" },
+      { i: "nt2101", d: "2026-10-21", k: "note", t: "유럽 체류", l: "유럽" },
+      { i: "nt2201", d: "2026-10-22", k: "note", t: "유럽 체류", l: "유럽" },
+      { i: "nt2301", d: "2026-10-23", k: "note", t: "유럽 체류", l: "유럽" },
+      { i: "nt2401", d: "2026-10-24", k: "note", t: "유럽 체류", l: "유럽" },
+      { i: "nt2501", d: "2026-10-25", k: "flight", t: "서울 도착 (예정)", l: "서울",
+        n: "확인 필요 — 유럽 일정 11일 기준으로 계산된 날짜. 예약 증빙 없음." },
+      { i: "nt0111", d: "2026-11-01", k: "flight", t: "최종 출국", l: "서울 → 해외" }
+    ]
+  }, null, true);
+  function unsure(a) { return /^확인 필요/.test(a.n || ""); }
+
+  /* One month grid per month the trip touches. onPick(iso) is called for a trip day. */
+  function calendarBlock(t, onPick) {
+    var wrap = document.createElement("div"); wrap.className = "cal noprint";
+    var days = dayspan(t.s, t.e);
+    if (!days.length) return wrap;
+    var inTrip = {}; days.forEach(function (iso) { inTrip[iso] = 1; });
+    var today = todayISO(), anyUnsure = false, anyHas = false;
+    var y = +t.s.slice(0, 4), m = +t.s.slice(5, 7) - 1;
+    var endKey = t.e.slice(0, 7), guard = 0;
+    while (guard++ < 14) {
+      var key = y + "-" + pad(m + 1);
+      var box = document.createElement("div"); box.className = "cal-month";
+      box.innerHTML = '<div class="cal-title">' + MONTHS[m] + " " + y + '</div>';
+      var grid = document.createElement("div"); grid.className = "cal-grid";
+      ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].forEach(function (w) {
+        var h = document.createElement("div"); h.className = "cal-dow"; h.textContent = w; grid.appendChild(h);
+      });
+      var first = new Date(y, m, 1), lead = (first.getDay() + 6) % 7;
+      var dim = new Date(y, m + 1, 0).getDate();
+      /* Whole weeks with no trip day in them are left out, so a trip ending on the 1st
+         does not bring five empty rows of the month with it. */
+      var slots = [];
+      for (var b = 0; b < lead; b++) slots.push(0);
+      for (var dd = 1; dd <= dim; dd++) slots.push(dd);
+      while (slots.length % 7) slots.push(0);
+      for (var wk = 0; wk < slots.length; wk += 7) {
+        var week = slots.slice(wk, wk + 7);
+        if (!week.some(function (n) { return n && inTrip[key + "-" + pad(n)]; })) continue;
+        week.forEach(function (n) {
+          if (!n) { var bl = document.createElement("div"); bl.className = "cal-day blank"; grid.appendChild(bl); return; }
+          dayCell(key + "-" + pad(n), n);
+        });
+      }
+      function dayCell(iso, dnum) {
+          var list = inTrip[iso] ? itemsFor(t, iso) : [];
+          var cell = document.createElement(inTrip[iso] ? "button" : "div");
+          var cls = "cal-day";
+          if (inTrip[iso]) cls += " in";
+          if (list.length) { cls += " has"; anyHas = true; }
+          if (list.some(unsure)) { cls += " unsure"; anyUnsure = true; }
+          if (iso === today) cls += " today";
+          cell.className = cls;
+          var html = '<span class="cal-n">' + dnum + '</span>';
+          if (list.length) {
+            html += '<span class="cal-t">' + esc(list[0].t) + '</span>';
+            if (list.length > 1) html += '<span class="cal-more">+' + (list.length - 1) + '</span>';
+          }
+          cell.innerHTML = html;
+          if (inTrip[iso]) {
+            cell.type = "button";
+            cell.setAttribute("aria-label", fmtLong(iso) + ": " +
+              (list.length ? list.map(function (a) { return a.t; }).join(", ") : "nothing planned"));
+            cell.onclick = function () { onPick(iso); };
+          }
+          grid.appendChild(cell);
+      }
+      box.appendChild(grid); wrap.appendChild(box);
+      if (key === endKey) break;
+      m++; if (m > 11) { m = 0; y++; }
+    }
+    if (anyHas || anyUnsure) {
+      var k = document.createElement("div"); k.className = "cal-key";
+      k.innerHTML = (anyHas ? '<span class="k-has"></span>planned' : "") +
+        (anyUnsure ? '<span class="k-unsure"></span>확인 필요 (not confirmed by a booking yet)' : "") +
+        " &middot; tap a day to jump to it";
+      wrap.appendChild(k);
+    }
+    return wrap;
+  }
+  function jumpToDay(iso) {
+    var target = el("day-" + iso);
+    if (!target) return;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    target.classList.add("flash");
+    setTimeout(function () { target.classList.remove("flash"); }, 900);
+  }
+
   /* ---------- share encoding (UTF-8 safe base64url) ---------- */
   function b64e(str) {
     var bytes = new TextEncoder().encode(str), bin = "";
@@ -608,6 +771,7 @@
     else if (view.name === "edit") { sub.textContent = "editing"; renderEdit(app, top); }
     else if (view.name === "read") { sub.textContent = "reading view"; renderRead(app, top, tripById(view.id), false); }
     else if (view.name === "shared") { sub.textContent = "shared with you"; renderRead(app, top, view.shared, true); }
+    else if (view.name === "plan") { sub.textContent = "trip plan from Notion"; renderRead(app, top, NOTION_TRIP, true); }
     else if (view.name === "share") { sub.textContent = "share"; renderShare(app, top); }
     else if (view.name === "broken") { sub.textContent = ""; renderBroken(app, top); }
     window.scrollTo(0, 0);
@@ -650,10 +814,23 @@
     btn(top, "Backup", "quiet", downloadBackup);
     btn(top, "Restore", "quiet", importBackup);
 
+    /* The trip plan from Notion sits first, always, whatever is saved on this device. */
+    var nc = document.createElement("div"); nc.className = "card fromnotion";
+    nc.innerHTML =
+      '<h3>' + esc(NOTION_TRIP.t) + '</h3>' +
+      '<div class="meta">' + esc(NOTION_TRIP.d) + '</div>' +
+      '<div class="meta">' + esc(fmtRange(NOTION_TRIP.s, NOTION_TRIP.e)) + ' &middot; from your Notion trip plan, read ' +
+        esc(fmtDate(NOTION_READ)) + ' &middot; read-only</div>';
+    var ncr = document.createElement("div"); ncr.className = "row"; ncr.style.marginTop = "0.6rem";
+    btn(ncr, "Open calendar and plan", "primary", function () { go("plan"); });
+    nc.appendChild(ncr); app.appendChild(nc);
+
     if (!DB.trips.length) {
-      app.innerHTML = '<div class="empty"><p><strong>No trips yet.</strong></p>' +
+      var em = document.createElement("div"); em.className = "empty";
+      em.innerHTML = '<p><strong>No trips of your own yet.</strong></p>' +
         '<p>Create a trip, add your plans, then send a view-only itinerary ' +
-        'to the people travelling with you.</p></div>';
+        'to the people travelling with you.</p>';
+      app.appendChild(em);
       return;
     }
 
@@ -1088,8 +1265,10 @@
         daysWrap.innerHTML = '<div class="empty">Set a start and end date to build the days.</div>';
         return;
       }
+      daysWrap.appendChild(calendarBlock(t, jumpToDay));
       days.forEach(function (iso, ix) {
         var bar = document.createElement("div"); bar.className = "daybar";
+        bar.id = "day-" + iso;
         bar.innerHTML = '<span class="dnum">Day ' + (ix + 1) + '</span>' +
                         '<span class="ddate">' + esc(fmtLong(iso)) + '</span>';
         var sp = document.createElement("span"); sp.className = "spacer"; bar.appendChild(sp);
@@ -1237,10 +1416,12 @@
          written straight over it. Same rule, this door too. */
       btn(top, "Print", "quiet", function () { window.print(); });
     } else if (isShared) {
+      if (view.name === "plan") btn(top, "All trips", "quiet", function () { go("list"); });
       btn(top, "Save an editable copy", "primary", function () {
         if (LOAD_BROKEN) return;
         var copy = JSON.parse(JSON.stringify(t));
         copy.i = uid(); copy.c = copy.u = todayISO();
+        if (view.name === "plan") copy.t = (t.t + " (my copy)").slice(0, 80);
         copy.x.forEach(function (a) { a.i = uid(); });
         DB.trips.unshift(copy);
         if (save(DB)) {
@@ -1271,7 +1452,13 @@
       (t.n ? '<p>' + esc(t.n) + '</p>' : "");
     app.appendChild(head);
 
-    if (isShared) {
+    if (isShared && view.name === "plan") {
+      var nb = document.createElement("div"); nb.className = "banner read noprint";
+      nb.innerHTML = "<strong>Your trip plan from Notion, read " + esc(fmtDate(NOTION_READ)) + ".</strong> " +
+        "It is read-only here and does not update by itself. Save an editable copy to change it on this device.";
+      app.appendChild(nb);
+    }
+    if (isShared && view.name !== "plan") {
       var b = document.createElement("div"); b.className = "banner read noprint";
       b.innerHTML = view.previewing
         ? "<strong>This is exactly what they will see.</strong> They cannot change it, " +
@@ -1300,6 +1487,19 @@
       var no = document.createElement("div"); no.className = "empty";
       no.textContent = "This trip has no dates.";
       app.appendChild(no); return;
+    }
+
+    app.appendChild(calendarBlock(t, jumpToDay));
+
+    /* The Notion calendar's own "확인 필요만" view, as a list under the calendar. */
+    var todo = t.x.filter(unsure);
+    if (view.name === "plan" && todo.length) {
+      var tb = document.createElement("div"); tb.className = "banner noprint";
+      tb.innerHTML = "<strong>확인 필요: " + todo.length + " not confirmed by a booking yet</strong>" +
+        "<ul style=\"margin:0.35rem 0 0;padding-left:1.1rem\">" + todo.map(function (a) {
+          return "<li>" + esc(fmtDate(a.d)) + " " + esc(a.t) + " — " + esc(a.n.replace(/^확인 필요 — /, "")) + "</li>";
+        }).join("") + "</ul>";
+      app.appendChild(tb);
     }
 
     var jump = document.createElement("div"); jump.className = "jump noprint";
