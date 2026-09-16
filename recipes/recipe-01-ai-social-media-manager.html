@@ -219,7 +219,7 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
     });
     return out;
   }
-  function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); el.scrollIntoView({behavior:'smooth',block:'center'}); } }
+  function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); }   /* her 16 Sep: the page no longer scrolls along; the line is only highlighted */ }
   function step(){
     if(!on||mode==='audio') return;
     if(i>=parts.length){ finish(); return; }
