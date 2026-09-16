@@ -12,6 +12,8 @@
  *    same apps password as notion-sync.js. Offline, or before the password is in, it waits and says so, and it
  *    sends by itself when it can. It never fails silently and never drops her words.
  *
+ *  - The open sheet moves (drag its top row) and resizes (drag the corner grip); both are kept on this device.
+ *
  *   <script src="/feedback.js" defer></script>      optional: data-app="Name of the app"
  */
 (function () {
@@ -73,6 +75,79 @@
     el.addEventListener("click", function (e) { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
     W.addEventListener("resize", restore);
     restore(); setTimeout(restore, 300);   /* not requestAnimationFrame: it never fires in a hidden tab */
+    return restore;
+  }
+
+  /* ---------- the open panel moves and resizes too (her 17 Sep: "make sure that everything is resizable the boxes and movable") ----------
+     Drag its top row to move it; drag the corner grip to resize it. Same feel as the video players (website 4c844fd):
+     nothing moves until the finger has gone 8 px, it always stays fully on screen, and where it sits and its size are
+     kept on this device. It never gets smaller than its own contents. The same function is in textsize.js. */
+  function movablePanel(panel, handle, grip, posKey, sizeKey, sizedClass, minW) {
+    var M = 8, down = false, moved = false, mode = "", pid = null, sx = 0, sy = 0, r0 = null;
+    function setPos(x, y) {
+      var w = panel.offsetWidth, h = panel.offsetHeight;
+      x = Math.max(M, Math.min(W.innerWidth - w - M, x));
+      y = Math.max(M, Math.min(W.innerHeight - h - M, y));
+      panel.style.setProperty("left", x + "px", "important"); panel.style.setProperty("top", y + "px", "important");
+      panel.style.setProperty("right", "auto", "important"); panel.style.setProperty("bottom", "auto", "important");
+    }
+    function natural(w) {                                  // the height its contents need at this width
+      var had = panel.classList.contains(sizedClass), oldH = panel.style.getPropertyValue("height");
+      panel.style.setProperty("width", w + "px", "important");
+      panel.style.removeProperty("height"); panel.classList.remove(sizedClass);
+      var h = panel.scrollHeight;
+      if (oldH) panel.style.setProperty("height", oldH, "important");
+      if (had) panel.classList.add(sizedClass);
+      return h;
+    }
+    function setSize(w, h, left, top) {
+      var maxW = W.innerWidth - (left == null ? 2 * M : left + M), maxH = W.innerHeight - (top == null ? 2 * M : top + M);
+      w = Math.max(Math.min(minW, maxW), Math.min(maxW, w));
+      var need = natural(w);
+      h = Math.max(Math.min(need, maxH), Math.min(maxH, h));
+      panel.style.setProperty("width", w + "px", "important"); panel.style.setProperty("height", h + "px", "important");
+      panel.classList.add(sizedClass);
+    }
+    function saved(key) { try { var v = JSON.parse(store.get(key) || "null"); return v && v.length === 2 ? v : null; } catch (e) { return null; } }
+    function restore() {                                   // on opening and when the screen turns; true when she has put it somewhere
+      if (panel.hidden) return false;
+      var s = saved(sizeKey), p = saved(posKey);
+      if (s) setSize(s[0], s[1]);
+      if (p) { setPos(p[0] * W.innerWidth, p[1] * W.innerHeight); return true; }
+      return false;
+    }
+    function start(e, which) {
+      moved = false;
+      if (e.button > 0) return;
+      if (which === "move" && e.target.closest && e.target.closest("button,textarea,input")) return;
+      down = true; mode = which; pid = e.pointerId; sx = e.clientX; sy = e.clientY; r0 = panel.getBoundingClientRect();
+      if (which === "size") { try { grip.setPointerCapture(pid); } catch (x) {} e.preventDefault(); e.stopPropagation(); }
+    }
+    function move(e) {
+      if (!down || e.pointerId !== pid) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+      if (!moved) { moved = true; if (mode === "move") try { handle.setPointerCapture(pid); } catch (x) {} }
+      if (mode === "move") setPos(r0.left + dx, r0.top + dy);
+      else { setSize(r0.width + dx, r0.height + dy, r0.left, r0.top); setPos(r0.left, r0.top); }
+      e.preventDefault();
+    }
+    function end(e) {
+      if (!down || e.pointerId !== pid) return;
+      down = false;
+      if (!moved) return;
+      var r = panel.getBoundingClientRect();
+      if (mode === "move") store.set(posKey, JSON.stringify([r.left / W.innerWidth, r.top / W.innerHeight]));
+      else store.set(sizeKey, JSON.stringify([Math.round(r.width), Math.round(r.height)]));
+    }
+    handle.style.touchAction = "none"; grip.style.touchAction = "none";
+    handle.addEventListener("pointerdown", function (e) { start(e, "move"); });
+    grip.addEventListener("pointerdown", function (e) { start(e, "size"); });
+    [handle, grip].forEach(function (el) {
+      el.addEventListener("pointermove", move);
+      el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
+      el.addEventListener("click", function (e) { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
+    });
     return restore;
   }
 
@@ -241,9 +316,13 @@
       ".fb-fab:focus-visible,.fb-panel button:focus-visible,.fb-panel textarea:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
       ".fb-panel{position:fixed;left:12px;bottom:calc(192px + env(safe-area-inset-bottom));z-index:2147483647;" +
       "width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 16px);overflow:auto;box-sizing:border-box;background:#fff;color:#1c1c1e;border-radius:16px;" +
-      "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:12px;display:grid;gap:8px;" +
+      "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:12px 12px 26px;display:grid;gap:8px;" +
       "font:400 14px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:left}" +
       ".fb-panel[hidden],.fb-panel [hidden]{display:none}" +
+      ".fb-panel .fb-head{cursor:move;-webkit-user-select:none;user-select:none}.fb-panel .fb-grab{color:#8e8e93;font-size:17px;letter-spacing:-2px;margin-right:6px}" +
+      ".fb-panel.fb-sized:not([hidden]){display:flex;flex-direction:column}.fb-panel.fb-sized>*{flex:0 0 auto}" +
+      ".fb-panel.fb-sized>textarea{flex:1 1 auto;max-height:none;resize:none}" +
+      ".fb-panel .fb-grip{position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize;border-radius:0 0 16px 0;background:linear-gradient(135deg,transparent 50%,#8e8e93 50%,#8e8e93 56%,transparent 56%,transparent 66%,#8e8e93 66%,#8e8e93 72%,transparent 72%)}" +
       ".fb-panel .fb-row{display:flex;gap:8px;align-items:center}" +
       ".fb-panel .fb-title{flex:1;font:600 14px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}" +
       ".fb-panel button{flex:1;min-height:44px;min-width:44px;box-sizing:border-box;margin:0;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;-webkit-appearance:none;appearance:none;" +
@@ -275,14 +354,15 @@
     panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", "Feedback");
     panel.setAttribute("data-speak-skip", ""); panel.setAttribute("data-ts-own", "");
     panel.innerHTML =
-      '<div class="fb-row"><span class="fb-title">Feedback for this app</span>' +
+      '<div class="fb-row fb-head" title="Drag to move"><span class="fb-title"><span class="fb-grab" aria-hidden="true">⠿</span>Feedback for this app</span>' +
       '<button type="button" class="fb-close" aria-label="Close">✕</button></div>' +
       '<button type="button" class="fb-mic" aria-pressed="false"></button>' +
       '<textarea class="fb-box" rows="4" placeholder="What would you change here?" aria-label="Your feedback"></textarea>' +
       '<div class="fb-hint" hidden></div>' +
       '<div class="fb-row"><button type="button" class="fb-send">Send</button></div>' +
       '<div class="fb-status" role="status" aria-live="polite"></div>' +
-      '<div class="fb-row"><span class="fb-queue" hidden style="flex:1"></span><button type="button" class="fb-connect" hidden style="flex:0 0 auto">Connect</button></div>';
+      '<div class="fb-row"><span class="fb-queue" hidden style="flex:1"></span><button type="button" class="fb-connect" hidden style="flex:0 0 auto">Connect</button></div>' +
+      '<div class="fb-grip" title="Drag to resize" aria-hidden="true"></div>';
     D.body.appendChild(fab); D.body.appendChild(panel);
     box = panel.querySelector(".fb-box"); micBtn = panel.querySelector(".fb-mic"); sendBtn = panel.querySelector(".fb-send");
     hint = panel.querySelector(".fb-hint"); statusEl = panel.querySelector(".fb-status");
@@ -292,6 +372,7 @@
     paintMic(); paintQueue();
 
     var restoreFab = makeDraggable(fab, POS_KEY), fabRect = null;
+    var restorePanel = movablePanel(panel, panel.querySelector(".fb-head"), panel.querySelector(".fb-grip"), "feedback.panelpos", "feedback.panelsize", "fb-sized", 260);
     function setBox(el, x, y) {
       el.style.setProperty("left", x + "px", "important"); el.style.setProperty("top", y + "px", "important");
       el.style.setProperty("right", "auto", "important"); el.style.setProperty("bottom", "auto", "important");
@@ -334,13 +415,13 @@
       }
     }
     avoid(); setTimeout(avoid, 400); setTimeout(avoid, 1700);
-    W.addEventListener("resize", function () { avoid(); placePanel(); });
+    W.addEventListener("resize", function () { avoid(); if (!restorePanel()) placePanel(); });
 
     fab.addEventListener("click", function () {
       fabRect = fab.getBoundingClientRect();
       panel.hidden = false; fab.hidden = true;
       statusEl.textContent = lastNote && queue().length ? lastNote : "";
-      paintQueue(); placePanel();
+      paintQueue(); if (!restorePanel()) placePanel();
       if (!SR) try { box.focus({ preventScroll: true }); } catch (e) {}
       flush();
     });

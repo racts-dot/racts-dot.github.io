@@ -17,6 +17,7 @@
  * choice is in place before the first paint:
  *   <script src="/textsize.js"></script>
  * Optional attributes on that tag: data-bottom="140" (px from the bottom edge) and data-side="right".
+ * The open panel moves (drag its top row) and resizes (drag the corner grip); both are kept on this device.
  * Free: nothing is sent anywhere.
  */
 (function () {
@@ -315,6 +316,79 @@
     return restore;
   }
 
+  /* ---------- the open panel moves and resizes too (her 17 Sep: "make sure that everything is resizable the boxes and movable") ----------
+     Drag its top row to move it; drag the corner grip to resize it. Same feel as the video players (website 4c844fd):
+     nothing moves until the finger has gone 8 px, it always stays fully on screen, and where it sits and its size are
+     kept on this device. It never gets smaller than its own contents. The same function is in feedback.js. */
+  function movablePanel(panel, handle, grip, posKey, sizeKey, sizedClass, minW) {
+    var M = 8, down = false, moved = false, mode = "", pid = null, sx = 0, sy = 0, r0 = null;
+    function setPos(x, y) {
+      var w = panel.offsetWidth, h = panel.offsetHeight;
+      x = Math.max(M, Math.min(window.innerWidth - w - M, x));
+      y = Math.max(M, Math.min(window.innerHeight - h - M, y));
+      panel.style.setProperty("left", x + "px", "important"); panel.style.setProperty("top", y + "px", "important");
+      panel.style.setProperty("right", "auto", "important"); panel.style.setProperty("bottom", "auto", "important");
+    }
+    function natural(w) {                                  // the height its contents need at this width
+      var had = panel.classList.contains(sizedClass), oldH = panel.style.getPropertyValue("height");
+      panel.style.setProperty("width", w + "px", "important");
+      panel.style.removeProperty("height"); panel.classList.remove(sizedClass);
+      var h = panel.scrollHeight;
+      if (oldH) panel.style.setProperty("height", oldH, "important");
+      if (had) panel.classList.add(sizedClass);
+      return h;
+    }
+    function setSize(w, h, left, top) {
+      var maxW = window.innerWidth - (left == null ? 2 * M : left + M), maxH = window.innerHeight - (top == null ? 2 * M : top + M);
+      w = Math.max(Math.min(minW, maxW), Math.min(maxW, w));
+      var need = natural(w);
+      h = Math.max(Math.min(need, maxH), Math.min(maxH, h));
+      panel.style.setProperty("width", w + "px", "important"); panel.style.setProperty("height", h + "px", "important");
+      panel.classList.add(sizedClass);
+    }
+    function saved(key) { try { var v = JSON.parse(store.get(key) || "null"); return v && v.length === 2 ? v : null; } catch (e) { return null; } }
+    function restore() {                                   // on opening and when the screen turns; true when she has put it somewhere
+      if (panel.hidden) return false;
+      var s = saved(sizeKey), p = saved(posKey);
+      if (s) setSize(s[0], s[1]);
+      if (p) { setPos(p[0] * window.innerWidth, p[1] * window.innerHeight); return true; }
+      return false;
+    }
+    function start(e, which) {
+      moved = false;
+      if (e.button > 0) return;
+      if (which === "move" && e.target.closest && e.target.closest("button,textarea,input")) return;
+      down = true; mode = which; pid = e.pointerId; sx = e.clientX; sy = e.clientY; r0 = panel.getBoundingClientRect();
+      if (which === "size") { try { grip.setPointerCapture(pid); } catch (x) {} e.preventDefault(); e.stopPropagation(); }
+    }
+    function move(e) {
+      if (!down || e.pointerId !== pid) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+      if (!moved) { moved = true; if (mode === "move") try { handle.setPointerCapture(pid); } catch (x) {} }
+      if (mode === "move") setPos(r0.left + dx, r0.top + dy);
+      else { setSize(r0.width + dx, r0.height + dy, r0.left, r0.top); setPos(r0.left, r0.top); }
+      e.preventDefault();
+    }
+    function end(e) {
+      if (!down || e.pointerId !== pid) return;
+      down = false;
+      if (!moved) return;
+      var r = panel.getBoundingClientRect();
+      if (mode === "move") store.set(posKey, JSON.stringify([r.left / window.innerWidth, r.top / window.innerHeight]));
+      else store.set(sizeKey, JSON.stringify([Math.round(r.width), Math.round(r.height)]));
+    }
+    handle.style.touchAction = "none"; grip.style.touchAction = "none";
+    handle.addEventListener("pointerdown", function (e) { start(e, "move"); });
+    grip.addEventListener("pointerdown", function (e) { start(e, "size"); });
+    [handle, grip].forEach(function (el) {
+      el.addEventListener("pointermove", move);
+      el.addEventListener("pointerup", end); el.addEventListener("pointercancel", end);
+      el.addEventListener("click", function (e) { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
+    });
+    return restore;
+  }
+
   /* ---------- Refresh (her 16 Sep: "Its got no refresh functionality") ----------
      An app saved to the Home Screen has no reload button. This loads the newest version:
        1. the page's service worker (only Daily Chapter has one) re-checks for an update, and a waiting worker is told to take over;
@@ -380,9 +454,12 @@
       ".ts-fab:focus-visible,.ts-panel button:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
       ".ts-panel{position:fixed;" + side + ":12px;bottom:calc(" + bottom + "px + env(safe-area-inset-bottom));z-index:2147483646;" +
       "width:min(300px,calc(100vw - 24px));box-sizing:border-box;background:#fff;color:#1c1c1e;border-radius:16px;" +
-      "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:12px;display:grid;gap:8px;" +
+      "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:12px 12px 26px;display:grid;gap:8px;" +
       "font:400 14px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:left}" +
       ".ts-panel[hidden]{display:none}" +
+      ".ts-panel .ts-head{cursor:move;-webkit-user-select:none;user-select:none}.ts-panel .ts-grab{color:#8e8e93;font-size:17px;letter-spacing:-2px;margin-right:6px}" +
+      ".ts-panel.ts-sized{grid-template-rows:auto 1fr 1fr 1fr}.ts-panel.ts-sized .ts-row+.ts-row{align-items:stretch}" +
+      ".ts-panel .ts-grip{position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize;border-radius:0 0 16px 0;background:linear-gradient(135deg,transparent 50%,#8e8e93 50%,#8e8e93 56%,transparent 56%,transparent 66%,#8e8e93 66%,#8e8e93 72%,transparent 72%)}" +
       ".ts-panel .ts-row{display:flex;gap:8px;align-items:center}" +
       ".ts-panel .ts-title{flex:1;font:600 14px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}" +
       ".ts-panel .ts-pct{font:600 14px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-width:48px;text-align:center;font-variant-numeric:tabular-nums}" +
@@ -407,17 +484,19 @@
     panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", "Text size");
     panel.setAttribute("data-speak-skip", ""); panel.setAttribute(OWN, "");
     panel.innerHTML =
-      '<div class="ts-row"><span class="ts-title">Text size</span><span class="ts-pct" aria-live="polite"></span>' +
+      '<div class="ts-row ts-head" title="Drag to move"><span class="ts-title"><span class="ts-grab" aria-hidden="true">⠿</span>Text size</span><span class="ts-pct" aria-live="polite"></span>' +
       '<button type="button" class="ts-close" aria-label="Close">✕</button></div>' +
       '<div class="ts-row"><button type="button" class="ts-a ts-down" aria-label="Smaller text">A−</button>' +
       '<button type="button" class="ts-a ts-up" aria-label="Bigger text">A+</button></div>' +
       '<div class="ts-row"><button type="button" class="ts-bold" aria-pressed="false">Bold: off</button>' +
       '<button type="button" class="ts-reset">Reset</button></div>' +
-      '<div class="ts-row"><button type="button" class="ts-refresh" aria-label="Refresh: load the newest version of this app">\u21BB Refresh app</button></div>';
+      '<div class="ts-row"><button type="button" class="ts-refresh" aria-label="Refresh: load the newest version of this app">\u21BB Refresh app</button></div>' +
+      '<div class="ts-grip" title="Drag to resize" aria-hidden="true"></div>';
     D.body.appendChild(fab); D.body.appendChild(panel);
     pct = panel.querySelector(".ts-pct"); minus = panel.querySelector(".ts-down"); plus = panel.querySelector(".ts-up");
     boldBtn = panel.querySelector(".ts-bold");
     var restoreFab = makeDraggable(fab, "textsize.pos"), fabRect = null;
+    var restorePanel = movablePanel(panel, panel.querySelector(".ts-head"), panel.querySelector(".ts-grip"), "textsize.panelpos", "textsize.panelsize", "ts-sized", 240);
     function setBox(el, x, y) {
       el.style.setProperty("left", x + "px", "important"); el.style.setProperty("top", y + "px", "important");
       el.style.setProperty("right", "auto", "important"); el.style.setProperty("bottom", "auto", "important");
@@ -454,10 +533,10 @@
       setBox(fab, Math.max(4, Math.min(window.innerWidth - a.width - 4, b.left)), Math.max(4, Math.min(window.innerHeight - a.height - 4, y)));
     }
     avoidSpeak(); setTimeout(avoidSpeak, 300); setTimeout(avoidSpeak, 1500);
-    window.addEventListener("resize", function () { avoidSpeak(); placePanel(); });
+    window.addEventListener("resize", function () { avoidSpeak(); if (!restorePanel()) placePanel(); });
     fab.addEventListener("click", function () {
       fabRect = fab.getBoundingClientRect();
-      panel.hidden = false; fab.hidden = true; placePanel();
+      panel.hidden = false; fab.hidden = true; if (!restorePanel()) placePanel();
       plus.focus({ preventScroll: true });
     });
     function close() { panel.hidden = true; fab.hidden = false; restoreFab(); avoidSpeak(); }
