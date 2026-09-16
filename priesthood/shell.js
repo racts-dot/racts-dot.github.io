@@ -73,6 +73,7 @@
   document.addEventListener("touchstart", function (e) {
     armed = false;
     if (e.touches.length !== 1) return;
+    if (window.visualViewport && window.visualViewport.scale > 1.01) return;   // pinch-zoomed: a pan, not a swipe
     var t = e.touches[0], tg = e.target;
     if (document.querySelector("dialog[open]")) return;
     if (t.clientX < 28 || t.clientX > window.innerWidth - 28) return;
@@ -83,6 +84,7 @@
   document.addEventListener("touchend", function (e) {
     if (!armed) return;
     armed = false;
+    if (window.visualViewport && window.visualViewport.scale > 1.01) return;
     var t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
     if (Date.now() - st > 800 || Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.5) return;
     var sel = window.getSelection && window.getSelection();
