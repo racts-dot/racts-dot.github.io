@@ -147,7 +147,10 @@ def topic_cards(folder, src, label):
             title = txt(c.get("title"), 120)
             out.append({"src": src, "label": txt(t.get("name"), 40) or label, "title": title,
                         "desc": txt(c.get("gets"), 150), "href": f"../{folder}/#find=" + title,
-                        "thumb": "", "listen": False})
+                        # 17 Sep, her "no thumbnail ... no video": the card's first source video, like the recipe cards
+                        "thumb": (f"https://i.ytimg.com/vi/{c['src'][0]['id']}/mqdefault.jpg" if c.get("src") and c["src"][0].get("id") else ""),
+                        "listen": False,
+                        "meta": ("\u25B6 %d video%s" % (len(c["src"]), "" if len(c["src"]) == 1 else "s")) if c.get("src") else ""})
     return out
 
 
@@ -204,6 +207,8 @@ h1{font:600 clamp(32px,8vw,46px)/1.05 var(--serif);margin:0 0 6px;letter-spacing
   text-decoration:none;color:inherit;transition:transform .12s ease}
 .card:active{transform:scale(.99)}
 .card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--chip)}
+.card .th{position:relative}
+.card .th::after{content:"\\25B6";position:absolute;left:10px;bottom:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:grid;place-items:center;font-size:14px;padding-left:2px;box-sizing:border-box}
 .card .in{padding:12px 14px 14px;display:grid;gap:6px}
 .chip{justify-self:start;font:700 11px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:var(--chip)}
 .s-recipes .chip{color:var(--recipes)} .s-hormozi .chip{color:var(--hormozi)} .s-doser .chip{color:var(--doser)} .s-prompts .chip{color:var(--prompts)}
@@ -271,7 +276,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     document.getElementById("count").textContent = rows.length + (rows.length === 1 ? " recipe" : " recipes") + (term ? " match “" + term + "”" : "");
     document.getElementById("grid").innerHTML = rows.length ? rows.map(function(x){
       return '<a class="card s-' + x.src + '" href="' + esc(x.href) + '">' +
-        (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="" loading="lazy">' : "") +
+        (x.thumb ? '<div class="th"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></div>' : "") +
         '<div class="in"><span class="chip">' + esc(NAME[x.src]) + (x.label && x.src !== "prompts" ? " · " + esc(x.label) : "") + '</span>' +
         '<div class="t">' + mark(x.title, term) + '</div>' +
         (x.desc ? '<div class="d">' + mark(x.desc, term) + '</div>' : "") +
