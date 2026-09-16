@@ -340,5 +340,65 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
   if (rp) rp.addEventListener('click', function(){ try { YTP && YTP.pauseVideo(); } catch (x) {} });
 })();
 </script><!--/player2-->
+<!--checklist--><style>
+.ck{margin:14px 0 22px;padding:14px 14px 10px;border:1px solid var(--chip,#ddd);border-radius:14px;background:var(--card,#fff)}
+.ck .ckh{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;font-weight:700}
+.ck .ckn{font-weight:500;font-size:13px;opacity:.75}
+.ck label{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;align-items:start;padding:9px 0;border-top:1px solid var(--chip,#eee);cursor:pointer}
+.ck input{width:22px;height:22px;margin:2px 0 0;accent-color:var(--accent,#2b6)}
+.ck .cks{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.45}
+.ck label.done .cks{text-decoration:line-through;opacity:.55}
+.ck button{all:unset;cursor:pointer;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid var(--chip,#ccc)}
+</style>
+<script>
+(function(){   // 16-17 Sep 2026, her "Can I also have the checklist for the recipes?": the try-it steps as tick boxes
+  var key = 'recipe.ticks.' + location.pathname.split('/').pop();
+  function fromSection(re){   // the steps under a heading: numbered lines in its code box, else its list
+    var head = [].slice.call(document.querySelectorAll('h1,h2')).filter(function(h){ return re.test(h.textContent.trim()); })[0];
+    var out = [], at = head, n = head && head.nextElementSibling;
+    for (; n && !/^H[12]$/.test(n.tagName); n = n.nextElementSibling) {
+      if (n.tagName === 'PRE') {
+        var cur = null;
+        n.textContent.split('\n').forEach(function(line){
+          var m = /^\s*(\d+)[.)]\s+(.*)$/.exec(line);
+          if (m) { cur = { t: m[2] }; out.push(cur); }
+          else if (cur && line.trim()) cur.t += '\n' + line.trim();
+        });
+        at = n;
+      } else if (!out.length && /^(OL|UL)$/.test(n.tagName)) {
+        [].forEach.call(n.children, function(li){ out.push({ t: li.textContent.trim() }); }); at = n;
+      }
+    }
+    return { steps: out, last: at };
+  }
+  var r = fromSection(/^what to try/i), steps = r.steps, last = r.last;
+  if (!steps.length) {   // recipes 01-10 predate the "What to try" block: numbered step headings, else "worth taking"
+    var nums = [].slice.call(document.querySelectorAll('h1,h2,h3')).filter(function(h){ return /^\d+\s*·/.test(h.textContent.trim()); });
+    if (nums.length >= 2) {
+      nums.forEach(function(h){ steps.push({ t: h.textContent.trim().replace(/^\d+\s*·\s*/, '') }); });
+      last = nums[0].previousElementSibling || nums[0];
+    } else { r = fromSection(/worth taking/i); steps = r.steps; last = r.last; }
+  }
+  if (!steps.length) return;
+  var saved = {}; try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  var box = document.createElement('div'); box.className = 'ck'; box.setAttribute('data-speak-skip', '');
+  box.innerHTML = '<div class="ckh"><span>&#9745; Checklist <span class="ckn"></span></span><button type="button">Start again</button></div>';
+  steps.forEach(function(st, i){
+    var l = document.createElement('label');
+    l.innerHTML = '<input type="checkbox"><span class="cks"></span>';
+    l.querySelector('.cks').textContent = st.t;
+    var cb = l.querySelector('input'); cb.checked = !!saved[i]; l.classList.toggle('done', cb.checked);
+    cb.addEventListener('change', function(){ saved[i] = cb.checked; l.classList.toggle('done', cb.checked);
+      try { localStorage.setItem(key, JSON.stringify(saved)); } catch (e) {} count(); });
+    box.appendChild(l);
+  });
+  function count(){ var d = steps.filter(function(_, i){ return saved[i]; }).length;
+    box.querySelector('.ckn').textContent = d + ' of ' + steps.length + ' done'; }
+  box.querySelector('button').addEventListener('click', function(){ saved = {}; try { localStorage.removeItem(key); } catch (e) {}
+    [].forEach.call(box.querySelectorAll('label'), function(l){ l.querySelector('input').checked = false; l.classList.remove('done'); }); count(); });
+  count();
+  last.parentNode.insertBefore(box, last.nextSibling);
+})();
+</script><!--/checklist-->
 </body>
 </html>
