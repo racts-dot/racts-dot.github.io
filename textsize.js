@@ -315,6 +315,54 @@
     return restore;
   }
 
+  /* ---------- Refresh (her 16 Sep: "Its got no refresh functionality") ----------
+     An app saved to the Home Screen has no reload button. This loads the newest version:
+       1. the page's service worker (only Daily Chapter has one) re-checks for an update, and a waiting worker is told to take over;
+       2. if a service worker controls this page, the Cache Storage copies on this site are deleted (offline copies of the
+          app's files and of fetched chapters - never her entries);
+       3. the page and its own scripts and style sheets are fetched again past the browser cache;
+       4. the page reloads.
+     It never touches localStorage, sessionStorage, IndexedDB or cookies, so saved entries, settings and Notion queues stay. */
+  function refreshApp() {
+    var reloaded = false;
+    function reload() { if (reloaded) return; reloaded = true; location.reload(); }
+    setTimeout(reload, 8000);                                          // never leave her waiting on a slow network
+    function settle(p, ms) {
+      return new Promise(function (res) { var t = setTimeout(res, ms); Promise.resolve(p).then(function () { clearTimeout(t); res(); }, function () { clearTimeout(t); res(); }); });
+    }
+    function fresh(url) {
+      try { return fetch(url, { cache: "reload", credentials: "same-origin" }).then(function (r) { return r.arrayBuffer(); }); } catch (e) { return Promise.resolve(); }
+    }
+    var sw = ("serviceWorker" in navigator) ? navigator.serviceWorker : null;
+    var step1 = !sw ? Promise.resolve() : sw.getRegistration().then(function (reg) {
+      if (!reg) return;
+      var w = reg.active || reg.waiting || reg.installing;
+      return settle(w ? fresh(w.scriptURL) : null, 3000).then(function () {
+        return settle(reg.update(), 4000);
+      }).then(function () {
+        var next = reg.waiting || reg.installing;
+        if (next) try { next.postMessage({ type: "SKIP_WAITING" }); } catch (e) {}
+        return settle(new Promise(function (res) {
+          if (!next) return res();
+          if (next.state === "activated") return res();
+          next.addEventListener("statechange", function () { if (next.state === "activated" || next.state === "redundant") res(); });
+        }), 3000);
+      });
+    });
+    settle(step1, 6000).then(function () {
+      if (!(sw && sw.controller) || !window.caches) return;
+      return settle(caches.keys().then(function (keys) { return Promise.all(keys.map(function (k) { return caches.delete(k); })); }), 2000);
+    }).then(function () {
+      var urls = [location.href.split("#")[0]], seen = {};
+      Array.prototype.forEach.call(D.querySelectorAll("script[src],link[rel~=stylesheet][href],link[rel=manifest][href]"), function (el) {
+        var u = el.src || el.href;
+        try { if (new URL(u, location.href).origin === location.origin) urls.push(u); } catch (e) {}
+      });
+      urls = urls.filter(function (u) { if (seen[u]) return false; seen[u] = true; return true; });
+      return settle(Promise.all(urls.map(fresh)), 5000);
+    }).then(reload, reload);
+  }
+
   function build() {
     if (fab || !D.body) return;
     var hasSpeak = !!D.querySelector("script[src*='speak.js']") || !!window.SpeakAloud;
@@ -345,6 +393,7 @@
       ".ts-panel button.ts-close{flex:0 0 44px;background:transparent;font-size:18px}" +
       ".ts-panel button.ts-a{font-size:16px}.ts-panel button.ts-a.ts-up{font-size:22px}" +
       ".ts-panel button[aria-pressed=true]{background:#1c1c1e;color:#fff;font-weight:800}" +
+      ".ts-panel .ts-refresh{flex:1;min-height:48px;font-size:16px}" +
       "@media (prefers-color-scheme: dark){.ts-panel{background:#1c1c1e;color:#f2f2f7}.ts-panel button{background:#2c2c2e;color:#f2f2f7}" +
       ".ts-panel button.ts-close{background:transparent}.ts-panel button[aria-pressed=true]{background:#f2f2f7;color:#1c1c1e}}";
     (D.head || H).appendChild(css);
@@ -363,7 +412,8 @@
       '<div class="ts-row"><button type="button" class="ts-a ts-down" aria-label="Smaller text">A−</button>' +
       '<button type="button" class="ts-a ts-up" aria-label="Bigger text">A+</button></div>' +
       '<div class="ts-row"><button type="button" class="ts-bold" aria-pressed="false">Bold: off</button>' +
-      '<button type="button" class="ts-reset">Reset</button></div>';
+      '<button type="button" class="ts-reset">Reset</button></div>' +
+      '<div class="ts-row"><button type="button" class="ts-refresh" aria-label="Refresh: load the newest version of this app">\u21BB Refresh app</button></div>';
     D.body.appendChild(fab); D.body.appendChild(panel);
     pct = panel.querySelector(".ts-pct"); minus = panel.querySelector(".ts-down"); plus = panel.querySelector(".ts-up");
     boldBtn = panel.querySelector(".ts-bold");
@@ -412,6 +462,8 @@
     plus.addEventListener("click", function () { if (stepIdx < STEPS.length - 1) { stepIdx++; apply(true); } });
     boldBtn.addEventListener("click", function () { bold = !bold; apply(true); });
     panel.querySelector(".ts-reset").addEventListener("click", function () { stepIdx = 1; bold = false; apply(true); });
+    var refreshBtn = panel.querySelector(".ts-refresh");
+    refreshBtn.addEventListener("click", function () { refreshBtn.disabled = true; refreshBtn.textContent = "\u21BB Refreshing\u2026"; refreshApp(); });
     paint();
   }
 
