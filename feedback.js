@@ -106,7 +106,7 @@
     return fetch(RELAY + "/feedback", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Pass": p },
-      body: JSON.stringify(item),
+      body: JSON.stringify({ id: item.id, text: item.text, app: item.app, url: item.url, title: item.title, when: item.when, device: item.device, textSize: item.textSize }),
       signal: ctrl ? ctrl.signal : undefined
     }).then(function (r) {
       return r.json().catch(function () { return {}; }).then(function (out) { clearTimeout(timer); return { status: r.status, ok: r.ok, out: out || {} }; });
@@ -239,8 +239,8 @@
       ".fb-fab[hidden]{display:none}" +
       ".fb-fab.fb-set::after{content:'';position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ff9f0a}" +
       ".fb-fab:focus-visible,.fb-panel button:focus-visible,.fb-panel textarea:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
-      ".fb-panel{position:fixed;left:12px;bottom:calc(192px + env(safe-area-inset-bottom));z-index:2147483646;" +
-      "width:min(320px,calc(100vw - 24px));box-sizing:border-box;background:#fff;color:#1c1c1e;border-radius:16px;" +
+      ".fb-panel{position:fixed;left:12px;bottom:calc(192px + env(safe-area-inset-bottom));z-index:2147483647;" +
+      "width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 16px);overflow:auto;box-sizing:border-box;background:#fff;color:#1c1c1e;border-radius:16px;" +
       "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:12px;display:grid;gap:8px;" +
       "font:400 14px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:left}" +
       ".fb-panel[hidden],.fb-panel [hidden]{display:none}" +
