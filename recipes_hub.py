@@ -84,6 +84,28 @@ def txt(s, n=160):
     return s if len(s) <= n else s[: n - 1].rsplit(" ", 1)[0] + "…"
 
 
+def recipe_meta(name, page):
+    """Listening time and source videos for a recipe card (her 16 Sep ask)."""
+    parts = []
+    try:
+        dur = json.load(open(SITE / "recipes" / "a" / (name[:-5] + ".json"), encoding="utf-8")).get("dur")
+        if dur:
+            parts.append("\U0001F3A7 %d min listen" % max(1, round(dur / 60)))
+    except (OSError, ValueError):
+        pass
+    try:
+        videos = json.load(open(SITE / "recipes_src" / "videos.json", encoding="utf-8"))
+    except (OSError, ValueError):
+        videos = {}
+    body = re.sub(r"<script.*?</script>", " ", page, flags=re.S)
+    ids = [v for v in dict.fromkeys(re.findall(r"youtube\.com/watch\?v=([A-Za-z0-9_-]{11})", body)) if v in videos]
+    if ids:
+        t = sum(videos[v].get("dur") or 0 for v in ids)
+        clock = ("%d:%02d:%02d" % (t // 3600, t // 60 % 60, t % 60)) if t >= 3600 else ("%d:%02d" % (t // 60, t % 60))
+        parts.append("\u25B6 %d video%s, %s" % (len(ids), "" if len(ids) == 1 else "s", clock))
+    return " \u00B7 ".join(parts)
+
+
 def recipe_pages():
     idx = open(SITE / "recipes" / "index.html", encoding="utf-8").read() if (SITE / "recipes" / "index.html").exists() else ""
     blurbs = {m.group(1): txt(m.group(2)) for m in re.finditer(r'<a class="card" href="([^"]+\.html)">.*?<div class="d">(.*?)</div>', idx, re.S)}
@@ -110,6 +132,7 @@ def recipe_pages():
             "desc": blurbs.get(name) or txt(first_p.group(1) if first_p else "", 150),
             "href": name, "thumb": f"https://i.ytimg.com/vi/{vid.group(1)}/hqdefault.jpg" if vid else "",
             "listen": os.path.exists(SITE / "recipes" / "a" / (name[:-5] + ".mp3")),
+            "meta": recipe_meta(name, s),
         })
     return out
 
@@ -249,7 +272,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
         '<div class="in"><span class="chip">' + esc(NAME[x.src]) + (x.label && x.src !== "prompts" ? " · " + esc(x.label) : "") + '</span>' +
         '<div class="t">' + mark(x.title, term) + '</div>' +
         (x.desc ? '<div class="d">' + mark(x.desc, term) + '</div>' : "") +
-        (x.listen ? '<div class="l">🎙 Natural voice</div>' : "") + '</div></a>';
+        (x.meta ? '<div class="l">' + esc(x.meta) + '</div>' : (x.listen ? '<div class="l">🎙 Natural voice</div>' : "")) + '</div></a>';
     }).join("") : '<p class="empty">Nothing matches. Try fewer words.</p>';
   }
   document.getElementById("tabs").addEventListener("click", function(e){

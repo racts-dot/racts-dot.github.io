@@ -574,6 +574,53 @@ def add_progress(page):
     return page if at == -1 else page[:at] + PROG + "\n" + page[at:]
 
 
+SRC_BEGIN, SRC_END = "<!--sources-->", "<!--/sources-->"
+VIDEOS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "recipes_src", "videos.json")
+
+
+def clock(sec):
+    sec = int(round(sec or 0))
+    return "%d:%02d:%02d" % (sec // 3600, sec // 60 % 60, sec % 60) if sec >= 3600 else "%d:%02d" % (sec // 60, sec % 60)
+
+
+def add_sources(page, name):
+    """16 Sep 2026, her words: "why has it not been linked all those videos in the recipes i have and the time it
+    takes for it to play out". Under the Read aloud bar: how long the recording is, and every source video with its
+    length. Each video link plays in the page's own player. No <p>/<li>, so the recordings still match."""
+    page = re.sub(re.escape(SRC_BEGIN) + ".*?" + re.escape(SRC_END) + r"\n*", "", page, flags=re.S)
+    try:
+        videos = json.load(io.open(VIDEOS_FILE, encoding="utf-8"))
+    except (OSError, ValueError):
+        videos = {}
+    body = re.sub(r"<script.*?</script>", " ", page, flags=re.S)
+    ids = [v for v in dict.fromkeys(re.findall(r"youtube\.com/watch\?v=([A-Za-z0-9_-]{11})", body)) if v in videos]
+    listen = ""
+    try:
+        dur = json.load(io.open(os.path.join(OUT, "a", name[:-5] + ".json"), encoding="utf-8")).get("dur")
+        if dur:
+            listen = '<div class="srow"><span class="sk">&#127911; Listen</span><span>%d min</span></div>' % max(1, round(dur / 60))
+    except (OSError, ValueError):
+        pass
+    if not ids and not listen:
+        return page
+    total = sum(videos[v].get("dur") or 0 for v in ids)
+    rows = "".join('<a class="svid" href="https://www.youtube.com/watch?v=%s"><span class="st">&#9654; %s</span><span class="sd">%s</span></a>'
+                   % (v, html.escape(videos[v]["title"]), clock(videos[v].get("dur"))) for v in ids)
+    block = (SRC_BEGIN + '<style>.sources{margin:0 0 18px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--card);display:grid;grid-template-columns:minmax(0,1fr);gap:6px;font-size:14px}.sources>*{min-width:0}'
+             '.sources .srow{display:flex;justify-content:space-between;gap:10px;color:var(--muted)}.sources .sk{font-weight:600;color:var(--text)}'
+             '.sources .svid{display:flex;justify-content:space-between;gap:10px;text-decoration:none;color:var(--accent)}'
+             '.sources .st{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sources .sd{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}</style>'
+             '<div class="sources" aria-label="Listening time and source videos">' + listen +
+             ('<div class="srow"><span class="sk">Videos (%d)</span><span>%s total</span></div>' % (len(ids), clock(total)) if ids else "") +
+             rows + '</div>' + SRC_END)
+    at = page.find('<div class="readbar"')
+    if at != -1:
+        end = page.find("</div>", at) + len("</div>")
+    else:
+        end = page.find("</h1>") + 5
+    return page[:end] + "\n" + block + page[end:]
+
+
 def upgrade_player(page):
     """Swap the old one-video player for the reading-room style one. Safe to run again; refreshes the block."""
     page = page.replace(PLAYER_JS, "")
@@ -755,7 +802,7 @@ def illustrate_existing():
         m = VID.search(s)
         if m:
             pages[name] = m.group(1)
-        io.open(f, "w", encoding="utf-8", newline="\n").write(add_textsize(add_swipe(add_reader(add_progress(upgrade_player(add_timestamps(illustrate_page(s), name)))), order)))
+        io.open(f, "w", encoding="utf-8", newline="\n").write(add_textsize(add_swipe(add_sources(add_reader(add_progress(upgrade_player(add_timestamps(illustrate_page(s), name)))), name), order)))
     ip = os.path.join(OUT, "index.html")
     idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
     if 'id="hub"' not in idx:   # 15 Sep: the index is now the combined Recipes home, rebuilt below
