@@ -186,6 +186,17 @@ h1{font:600 clamp(32px,8vw,46px)/1.05 var(--serif);margin:0 0 6px;letter-spacing
 .card .l{font-size:12px;color:var(--ink2)}
 .empty{color:var(--ink2);padding:24px 4px}
 mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
+.coach{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 16px;display:grid;gap:8px}
+.coach label{font:700 13px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.coach .cq{display:flex;gap:8px;align-items:stretch}
+.coach textarea{flex:1;min-width:0;font:16px/1.4 var(--sans);padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);resize:vertical}
+.coach button{font:700 15px/1 var(--sans);padding:0 16px;border-radius:10px;border:0;background:var(--accent);color:#fff;cursor:pointer}
+.coach button[disabled]{opacity:.5}
+.coach .cnote{font-size:12px;color:var(--ink2);margin:0}
+.coach h3{font:700 14px/1.2 var(--sans);margin:12px 0 4px}
+.coach ul{margin:0;padding-left:20px}.coach li{margin:4px 0;font-size:15px}
+.coach .ev{color:var(--ink2);font-size:13px}
+.coach .tom{background:var(--chip);border-radius:10px;padding:10px 12px;font-size:15px}
 </style>
 <script src="../textsize.js"></script>
 </head>
@@ -199,6 +210,13 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   <input id="q" type="search" placeholder="Search every recipe and prompt" autocomplete="off" aria-label="Search every recipe and prompt">
   <div class="tabs" role="group" aria-label="Collections" id="tabs"></div>
 </div>
+<section class="coach" aria-label="Ask the coach">
+  <label for="cq">Ask the coach</label>
+  <div class="cq"><textarea id="cq" rows="2" placeholder="e.g. What do I need to go through to learn Claude Code for my shop?"></textarea>
+  <button type="button" id="cgo">Ask</button></div>
+  <p class="cnote">Reads your "I've done this" ticks and your Morning &amp; Evening notes from the last 30 days. About 1&ndash;2c a question, capped at US$1 a day.</p>
+  <div id="cout" aria-live="polite"></div>
+</section>
 <p class="count" id="count" aria-live="polite"></p>
 <div class="grid" id="grid"></div>
 </div>
@@ -259,10 +277,64 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   tabs(); draw();
 })();
 </script>
+<script src="../notion-sync.js"></script>
+<script>
+(function(){
+  var go = document.getElementById("cgo"), box = document.getElementById("cq"), out = document.getElementById("cout");
+  function esc(s){ return String(s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function link(name, recipes){
+    var r = (recipes||[]).filter(function(x){ return name && (name.indexOf(x.id) > -1 || name.toLowerCase().indexOf(x.title.toLowerCase()) > -1 || new RegExp("\\b" + x.n + "\\b").test(name)); })[0];
+    return r ? '<a href="' + r.id + '.html">Recipe ' + r.n + ' \u2014 ' + esc(r.title) + '</a>' : esc(name);
+  }
+  function ask(){
+    var q = box.value.trim(); if(!q) { box.focus(); return; }
+    if(!window.NotionSync){ out.textContent = "The coach could not load. Refresh the page."; return; }
+    go.disabled = true; out.innerHTML = '<p class="cnote">Thinking\u2026</p>';
+    window.NotionSync.post("/coach", {question: q}).then(function(r){
+      go.disabled = false;
+      var o = r.out || {};
+      if(!r.ok || !o.plan){ out.innerHTML = '<p class="cnote">' + esc(o.error || ("Could not reach the coach (" + r.status + ").")) + '</p>'; return; }
+      var p = o.plan, h = '<p>' + esc(p.answer) + '</p>';
+      if((p.already||[]).length) h += '<h3>\u2713 Already doing</h3><ul>' + p.already.map(function(a){ return '<li>' + esc(a.what) + ' <span class="ev">' + esc(a.evidence) + '</span></li>'; }).join("") + '</ul>';
+      if((p.not_yet||[]).length) h += '<h3>Not doing yet</h3><ul>' + p.not_yet.map(function(a){ return '<li>' + esc(a.what) + (a.recipe ? ' \u2014 ' + link(a.recipe, o.recipes) : '') + '</li>'; }).join("") + '</ul>';
+      if((p.path||[]).length) h += '<h3>Go through, in this order</h3><ol>' + p.path.map(function(a){ return '<li>' + link(a.recipe, o.recipes) + ' <span class="ev">' + esc(a.why) + '</span></li>'; }).join("") + '</ol>';
+      if(p.tomorrow) h += '<h3>Next day</h3><div class="tom">' + esc(p.tomorrow) + '</div>';
+      h += '<p class="cnote">This question cost about US$' + (o.cost||0).toFixed(3) + '. Today so far: US$' + (o.spentToday||0).toFixed(2) + ' of $1.</p>';
+      out.innerHTML = h;
+    }).catch(function(e){ go.disabled = false; out.innerHTML = '<p class="cnote">' + esc(e.message === "no password" ? "The apps password is needed to ask the coach." : "Could not reach the coach. Check your connection.") + '</p>'; });
+  }
+  go.addEventListener("click", ask);
+  box.addEventListener("keydown", function(e){ if(e.key === "Enter" && (e.metaKey || e.ctrlKey)) ask(); });
+})();
+</script>
 <script src="../speak.js" defer></script>
 </body>
 </html>
 """
+
+
+def coach_catalogue():
+    """16 Sep 2026: what the recipe coach (apps-notion-relay /coach) reads - one short entry per recipe."""
+    def plain(h):
+        return H.unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", h))).strip()
+    out = []
+    for f in sorted(glob.glob(str(SITE / "recipes" / "recipe-*.html"))):
+        name = os.path.basename(f)
+        s = open(f, encoding="utf-8").read()
+        body = re.sub(r"<script.*?</script>|<style.*?</style>|<pre>.*?</pre>", " ", s, flags=re.S)
+        h1 = re.search(r"<h1[^>]*>(.*?)</h1>", body, re.S)
+        paras = [plain(m.group(1)) for m in re.finditer(r"<p[^>]*>(.*?)</p>", body, re.S)]
+        summary = next((x for x in paras if not re.match(r"^(\S+\s+){0,3}from:", x, re.I) and len(x) > 40), "")
+        def section(word):
+            m = re.search(r"<h[12][^>]*>[^<]*%s.*?</h[12]>(.*?)(?=<h[12][ >])" % word, body, re.S | re.I)
+            return plain(m.group(1))[:600] if m else ""
+        n = re.match(r"recipe-(\d+)", name)
+        out.append({"id": name[:-5], "n": int(n.group(1)), "title": re.sub(r"^RECIPE\s*\d+\s*[\u2014-]\s*", "", plain(h1.group(1) if h1 else name)),
+                    "url": "https://racts-dot.github.io/recipes/" + name, "summary": summary[:400],
+                    "one_thing": section("THE ONE THING"), "try_tonight": section("What to try"),
+                    "sections": [plain(m.group(1))[:80] for m in re.finditer(r"<h[123][^>]*>(.*?)</h[123]>", body, re.S)][1:14]})
+    (SITE / "recipes" / "coach.json").write_text(json.dumps({"recipes": out}, ensure_ascii=False), encoding="utf-8")
+    return len(out)
 
 
 def main():
@@ -277,6 +349,7 @@ def main():
             t = add_bar(s, name)
             if t != s:
                 p.write_text(t, encoding="utf-8")
+    print("coach catalogue:", coach_catalogue(), "recipes")
     counts = {}
     for x in items:
         counts[x["src"]] = counts.get(x["src"], 0) + 1

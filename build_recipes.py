@@ -535,6 +535,45 @@ def add_timestamps(page, name):
     return page
 
 
+PROG_BEGIN, PROG_END = "<!--progress-->", "<!--/progress-->"
+PROG = PROG_BEGIN + """<style>
+.done{margin:32px 0 0;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--card);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.done span{flex:1 1 100%;font-size:14px;color:var(--muted)}
+.done button{font:600 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}
+.done button.on{background:var(--accent);border-color:var(--accent);color:#0f1115}
+</style>
+<div class="done" id="doneBox"><span>Have you tried this recipe? The coach on the Recipes home uses this.</span>
+<button type="button" data-s="started">Started</button><button type="button" data-s="done">&#10003; I've done it</button></div>
+<script src="../notion-sync.js"></script>
+<script>
+(function(){
+  var box = document.getElementById("doneBox"); if(!box) return;
+  var id = (location.pathname.split("/").pop() || "").replace(/\\.html$/, ""), K = "recipeDone." + id;
+  var h1 = document.querySelector("h1"), title = h1 ? h1.textContent.trim() : id;
+  function get(){ try { return localStorage.getItem(K) || ""; } catch(e){ return ""; } }
+  function paint(){ var st = get(); box.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.dataset.s === st); b.setAttribute("aria-pressed", b.dataset.s === st); }); }
+  box.addEventListener("click", function(e){
+    var b = e.target.closest("button"); if(!b) return;
+    var st = get() === b.dataset.s ? "" : b.dataset.s;
+    try { if(st) localStorage.setItem(K, st); else localStorage.removeItem(K); } catch(x){}
+    paint();
+    if(window.NotionSync){
+      if(st) window.NotionSync.save("recipeprogress", id, {title: title, detail: st, when: new Date().toISOString(), data: {state: st}});
+      else window.NotionSync.remove("recipeprogress", id);
+    }
+  });
+  paint();
+})();
+</script>""" + PROG_END
+
+
+def add_progress(page):
+    """16 Sep 2026: "I've done this" ticks, which the recipe coach reads. Safe to run again."""
+    page = re.sub(re.escape(PROG_BEGIN) + ".*?" + re.escape(PROG_END) + r"\n*", "", page, flags=re.S)
+    at = page.find('<div class="foot">')
+    return page if at == -1 else page[:at] + PROG + "\n" + page[at:]
+
+
 def upgrade_player(page):
     """Swap the old one-video player for the reading-room style one. Safe to run again; refreshes the block."""
     page = page.replace(PLAYER_JS, "")
@@ -716,7 +755,7 @@ def illustrate_existing():
         m = VID.search(s)
         if m:
             pages[name] = m.group(1)
-        io.open(f, "w", encoding="utf-8", newline="\n").write(add_textsize(add_swipe(add_reader(upgrade_player(add_timestamps(illustrate_page(s), name))), order)))
+        io.open(f, "w", encoding="utf-8", newline="\n").write(add_textsize(add_swipe(add_reader(add_progress(upgrade_player(add_timestamps(illustrate_page(s), name)))), order)))
     ip = os.path.join(OUT, "index.html")
     idx = io.open(ip, encoding="utf-8").read()   # read BEFORE opening for write, or the file is emptied
     if 'id="hub"' not in idx:   # 15 Sep: the index is now the combined Recipes home, rebuilt below

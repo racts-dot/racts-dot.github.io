@@ -60,7 +60,7 @@ a.ts{white-space:nowrap}
 .readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
 .readbar .rs{font-size:12px;color:var(--muted)}
 .reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
-/*player2*/
+.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}/*player2*/
 .player{position:relative}
 .player>button{position:absolute;inset:0;z-index:2}
 .player>button[hidden]{display:none}
@@ -77,7 +77,7 @@ a.ts{display:inline-flex;align-items:center;gap:3px;margin:0 2px 0 6px;padding:1
 a.ts::before{content:"\25B6";font-size:9px}
 a.ts:empty::after{content:attr(data-l)}
 a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
-/*/player2*/.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}</style>
+/*/player2*/</style>
 <script src="../textsize.js"></script>
 </head>
 <body>
@@ -181,6 +181,35 @@ router ──► Instagram · Facebook · LinkedIn · Twitter · TikTok · Threa
 <ul><li>About 35% of her weekly TikTok views come from search, so she writes captions as a paragraph, three viewer questions, then hashtags (<a href="https://www.youtube.com/watch?v=to1Y42qY6jc&amp;t=241s" target="_blank" rel="noopener">4:01</a>).</li><li>On TikTok she sets a bad video to private rather than deleting it: "I generally don't recommend deleting videos in Tik Tok" (<a href="https://www.youtube.com/watch?v=to1Y42qY6jc&amp;t=1381s" target="_blank" rel="noopener">23:01</a>).</li><li>An empty video URL usually means the wait was too short or the 10 free HeyGen API credits ran out (<a href="https://www.youtube.com/watch?v=XMNrTbeMLC0&amp;t=240s" target="_blank" rel="noopener">4:00</a>).</li><li>⚠ The transcripts spell HeyGen as "Hunen", "hijen", "haen" and more, and Blotato as "blow" and "bot.com". Quotes are left as captioned.</li></ul>
 <h2>See also</h2>
 <p>RECIPE 01, the AI social media manager: the same Blotato posting half, without the avatar. RECIPE 10, the social automation family. RECIPE 14, the TikTok sprint. RECIPE 21, promo videos in code. RECIPE 11, loop engineering: why a daily timer needs a checker.</p>
+<!--progress--><style>
+.done{margin:32px 0 0;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--card);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.done span{flex:1 1 100%;font-size:14px;color:var(--muted)}
+.done button{font:600 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}
+.done button.on{background:var(--accent);border-color:var(--accent);color:#0f1115}
+</style>
+<div class="done" id="doneBox"><span>Have you tried this recipe? The coach on the Recipes home uses this.</span>
+<button type="button" data-s="started">Started</button><button type="button" data-s="done">&#10003; I've done it</button></div>
+<script src="../notion-sync.js"></script>
+<script>
+(function(){
+  var box = document.getElementById("doneBox"); if(!box) return;
+  var id = (location.pathname.split("/").pop() || "").replace(/\.html$/, ""), K = "recipeDone." + id;
+  var h1 = document.querySelector("h1"), title = h1 ? h1.textContent.trim() : id;
+  function get(){ try { return localStorage.getItem(K) || ""; } catch(e){ return ""; } }
+  function paint(){ var st = get(); box.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.dataset.s === st); b.setAttribute("aria-pressed", b.dataset.s === st); }); }
+  box.addEventListener("click", function(e){
+    var b = e.target.closest("button"); if(!b) return;
+    var st = get() === b.dataset.s ? "" : b.dataset.s;
+    try { if(st) localStorage.setItem(K, st); else localStorage.removeItem(K); } catch(x){}
+    paint();
+    if(window.NotionSync){
+      if(st) window.NotionSync.save("recipeprogress", id, {title: title, detail: st, when: new Date().toISOString(), data: {state: st}});
+      else window.NotionSync.remove("recipeprogress", id);
+    }
+  });
+  paint();
+})();
+</script><!--/progress-->
 <div class="foot">Built 2026-09-16 from RECIPE_22_ai_avatar_videos.md. Edit the markdown, not this page.</div>
 </div>
 <!--illustrated-->

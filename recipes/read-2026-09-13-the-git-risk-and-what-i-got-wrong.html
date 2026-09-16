@@ -114,6 +114,35 @@ a.ts{white-space:nowrap}
 <hr>
 <h2>The lesson worth keeping</h2>
 <p><strong>When you find recoverable work in a dangling commit, recover it immediately. Do not write a plan about it first.</strong> I wrote the plan. The garbage collector ran. I had to write both recipes again from the transcripts.</p>
+<!--progress--><style>
+.done{margin:32px 0 0;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--card);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.done span{flex:1 1 100%;font-size:14px;color:var(--muted)}
+.done button{font:600 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}
+.done button.on{background:var(--accent);border-color:var(--accent);color:#0f1115}
+</style>
+<div class="done" id="doneBox"><span>Have you tried this recipe? The coach on the Recipes home uses this.</span>
+<button type="button" data-s="started">Started</button><button type="button" data-s="done">&#10003; I've done it</button></div>
+<script src="../notion-sync.js"></script>
+<script>
+(function(){
+  var box = document.getElementById("doneBox"); if(!box) return;
+  var id = (location.pathname.split("/").pop() || "").replace(/\.html$/, ""), K = "recipeDone." + id;
+  var h1 = document.querySelector("h1"), title = h1 ? h1.textContent.trim() : id;
+  function get(){ try { return localStorage.getItem(K) || ""; } catch(e){ return ""; } }
+  function paint(){ var st = get(); box.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.dataset.s === st); b.setAttribute("aria-pressed", b.dataset.s === st); }); }
+  box.addEventListener("click", function(e){
+    var b = e.target.closest("button"); if(!b) return;
+    var st = get() === b.dataset.s ? "" : b.dataset.s;
+    try { if(st) localStorage.setItem(K, st); else localStorage.removeItem(K); } catch(x){}
+    paint();
+    if(window.NotionSync){
+      if(st) window.NotionSync.save("recipeprogress", id, {title: title, detail: st, when: new Date().toISOString(), data: {state: st}});
+      else window.NotionSync.remove("recipeprogress", id);
+    }
+  });
+  paint();
+})();
+</script><!--/progress-->
 <div class="foot">Built 2026-09-13 from READ_2026-09-13_the_git_risk_and_what_i_got_wrong.md. Edit the markdown, not this page.</div>
 </div>
 <!--illustrated-->

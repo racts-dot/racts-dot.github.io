@@ -322,6 +322,18 @@
       return send("/list?app=" + encodeURIComponent(app), null, pass).then(function (r) { return r.out; });
     },
     pending: function () { return queue().length; },
+    // 16 Sep 2026: a direct call that is not a Notion copy (the recipe coach). Asks for the password once if needed.
+    post: function (path, payload) {
+      var pass = store(PASS_KEY);
+      var go = function (p) {
+        if (!p) return Promise.reject(new Error("no password"));
+        return send(path, payload, p).then(function (r) {
+          if (r.status === 401) { store(PASS_KEY, null); paintConnect(); }
+          return r;
+        });
+      };
+      return pass ? go(pass) : askPassword().then(go);
+    },
     flush: flush,
     connected: function () { return !!store(PASS_KEY); },
     // 15 Sep 2026: a button she can always press, instead of waiting for the sheet to appear.

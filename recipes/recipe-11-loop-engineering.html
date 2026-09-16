@@ -60,7 +60,7 @@ a.ts{white-space:nowrap}
 .readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
 .readbar .rs{font-size:12px;color:var(--muted)}
 .reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
-/*player2*/
+.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}/*player2*/
 .player{position:relative}
 .player>button{position:absolute;inset:0;z-index:2}
 .player>button[hidden]{display:none}
@@ -77,7 +77,7 @@ a.ts{display:inline-flex;align-items:center;gap:3px;margin:0 2px 0 6px;padding:1
 a.ts::before{content:"\25B6";font-size:9px}
 a.ts:empty::after{content:attr(data-l)}
 a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
-/*/player2*/.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}</style>
+/*/player2*/</style>
 <script src="../textsize.js"></script>
 </head>
 <body>
@@ -174,6 +174,35 @@ post a summary to Slack           post the audit to Slack
 <ul><li>Her <a href="https://www.youtube.com/watch?v=uLaDjhTkJKM&amp;t=362s" target="_blank" rel="noopener">six parts</a> of a loop: automations, worktrees, skills, connectors, subagents (maker and checker), and memory, which for her is usually the GitHub repo.</li><li>Her formula: AI leverage depends on "my skill and my clarity" (<a href="https://www.youtube.com/watch?v=uLaDjhTkJKM&amp;t=3450s" target="_blank" rel="noopener">57:30</a>): defining done, and spotting a bad check.</li><li>On overnight runs: "stop after x number of turns and produce a summary of what you've done" (<a href="https://www.youtube.com/watch?v=uLaDjhTkJKM&amp;t=5401s" target="_blank" rel="noopener">1:30:01</a>).</li><li>On permissions: "I do not recommend like allowing it to dangerously skip permissions" (<a href="https://www.youtube.com/watch?v=Hg1Y7mp9aYo&amp;t=3660s" target="_blank" rel="noopener">1:01:00</a>). She reads each prompt, often picks "don't ask me again", and approves from her phone by remote control.</li><li>On Cowork: "I think co-work doesn't have the /goal command yet" (<a href="https://www.youtube.com/watch?v=uLaDjhTkJKM&amp;t=3840s" target="_blank" rel="noopener">1:04:00</a>). It does have schedules.</li><li>Her marketing goal used a post-grader skill from her own Blotato pack, and looped until every post scored above 8 out of 10. ⚠ It is her product's grader, marking copy for her product's rubric.</li><li>Every other price she states. 10 Jul: "$1,000 per month for ManyChat", "$29 if you subscribe to my app", "This video cost $2,000 in editing", Voice In at "$30", "probably like 40,000 a month on ads", and a trip-planning goal capped "under $800 per person". 19 Jun: an n8n support bot for "$1 a month", Beehiiv at "400 a month", and "I put 10K in the Tik Tok title" of a free training.</li></ul>
 <h2>See also</h2>
 <p>RECIPE 04, the grader pattern: a loop is a grader that also decides the next step. RECIPE 09, plan mode and quality gates: argue the finish line in plan mode first. RECIPE 03, Cowork: schedules without /goal.</p>
+<!--progress--><style>
+.done{margin:32px 0 0;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--card);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.done span{flex:1 1 100%;font-size:14px;color:var(--muted)}
+.done button{font:600 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}
+.done button.on{background:var(--accent);border-color:var(--accent);color:#0f1115}
+</style>
+<div class="done" id="doneBox"><span>Have you tried this recipe? The coach on the Recipes home uses this.</span>
+<button type="button" data-s="started">Started</button><button type="button" data-s="done">&#10003; I've done it</button></div>
+<script src="../notion-sync.js"></script>
+<script>
+(function(){
+  var box = document.getElementById("doneBox"); if(!box) return;
+  var id = (location.pathname.split("/").pop() || "").replace(/\.html$/, ""), K = "recipeDone." + id;
+  var h1 = document.querySelector("h1"), title = h1 ? h1.textContent.trim() : id;
+  function get(){ try { return localStorage.getItem(K) || ""; } catch(e){ return ""; } }
+  function paint(){ var st = get(); box.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.dataset.s === st); b.setAttribute("aria-pressed", b.dataset.s === st); }); }
+  box.addEventListener("click", function(e){
+    var b = e.target.closest("button"); if(!b) return;
+    var st = get() === b.dataset.s ? "" : b.dataset.s;
+    try { if(st) localStorage.setItem(K, st); else localStorage.removeItem(K); } catch(x){}
+    paint();
+    if(window.NotionSync){
+      if(st) window.NotionSync.save("recipeprogress", id, {title: title, detail: st, when: new Date().toISOString(), data: {state: st}});
+      else window.NotionSync.remove("recipeprogress", id);
+    }
+  });
+  paint();
+})();
+</script><!--/progress-->
 <div class="foot">Built 2026-09-16 from RECIPE_11_loop_engineering.md. Edit the markdown, not this page.</div>
 </div>
 <!--illustrated-->
