@@ -250,7 +250,8 @@
         if (r.status === 401) {
           store(PASS_KEY, null);
           finish();
-          askPassword("That password didn't work. Try again.").then(function (p) { if (p) flush(); });
+          if (QUIET) { status("Notion · password needed - tap Connect", "wait", true); paintConnect(); }
+          else askPassword("That password didn't work. Try again.").then(function (p) { if (p) flush(); });
           return;
         }
         var k = keyOf(item.body.app, item.body.id);
