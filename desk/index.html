@@ -353,6 +353,17 @@ details.fold[open] > summary::before{transform:rotate(90deg)}
 details.fold > summary .count{margin-left:auto}
 details.fold > :not(summary){margin-left:14px;margin-right:14px}
 details.fold[open]{padding-bottom:12px}
+.ag-adder{grid-template-columns:auto 1fr auto}
+@media(max-width:480px){.ag-adder{grid-template-columns:1fr auto}.ag-adder #agTime{grid-column:1 / -1}}
+.sc-tools{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.sc-wrap{background:#fffdf7;border:1px solid var(--line);border-radius:4px;overflow:hidden;
+  background-image:linear-gradient(rgba(27,73,101,.08) 1px,transparent 1px);background-size:100% 28px}
+#scratch{display:block;width:100%;height:380px;touch-action:none;cursor:crosshair}
+.ledgers{display:grid;gap:9px;margin-top:10px}
+.ledger-card{display:grid;gap:3px;text-decoration:none;color:var(--ink);background:var(--glass);border:1px solid var(--line-soft);
+  border-left:4px solid var(--accent);border-radius:2px;padding:12px 14px;box-shadow:var(--shadow)}
+.ledger-card b{font-size:15.5px}.ledger-card b::after{content:" ›";color:var(--ink-faint);font-weight:400}
+.ledger-card span{font-size:13.5px;color:var(--ink-soft)}
 .pj-bar{height:5px;background:var(--line-soft);border-radius:3px;overflow:hidden;margin-top:6px}
 .pj-bar span{display:block;height:100%;background:var(--accent)}
 .say-row{border-top:1px solid var(--line-soft);padding:10px 0}
@@ -636,6 +647,33 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <p class="hint">A date is optional. Ticked lines show when they were done, then go to The log the next day.</p>
       </div>
     </div>
+    <div class="block" id="agendaBlock">
+      <div class="sec-head"><h2>Agenda</h2>
+        <p class="sec-note">What you are up to, hour by hour. Your calendar shows here too when it is connected.</p>
+        <span class="count" id="agCount"></span></div>
+      <div class="catbar" id="agDays" role="group" aria-label="Which day">
+        <button type="button" class="catchip on" data-agday="0" aria-pressed="true">Today</button>
+        <button type="button" class="catchip" data-agday="1" aria-pressed="false">Tomorrow</button></div>
+      <div id="agList"></div>
+      <div class="adder ag-adder">
+        <input id="agTime" type="time" aria-label="Time, optional">
+        <input id="agText" type="text" placeholder="School run. Photograph three trolleys.">
+        <button id="agGo" type="button">Add</button>
+        <p class="hint">A time is optional. Lines without one sit at the top.</p>
+      </div>
+    </div>
+    <div class="block" id="scratchBlock">
+      <details class="fold" id="scFold" open><summary><span>Scratch paper</span><span class="count" id="scSaved"></span></summary>
+        <p class="sec-note" style="margin:2px 0 8px">Draw your day with a finger. It stays on this phone until you clear it.</p>
+        <div class="sc-tools" role="group" aria-label="Pen">
+          <button type="button" class="catchip on" data-pen="ink" aria-pressed="true">Pen</button>
+          <button type="button" class="catchip" data-pen="accent" aria-pressed="false">Blue</button>
+          <button type="button" class="catchip" data-pen="erase" aria-pressed="false">Rubber</button>
+          <button type="button" class="catchip" id="scUndo">Undo</button>
+          <button type="button" class="catchip" id="scClear">Clear</button></div>
+        <div class="sc-wrap"><canvas id="scratch" aria-label="Scratch paper, draw with your finger"></canvas></div>
+      </details>
+    </div>
     <div class="block" id="meBlock">
       <div class="sec-head"><h2>From Morning &amp; Evening</h2>
         <p class="sec-note">Your win for today and what you planned last night. Tick them in <a href="../reflect/">Morning &amp; Evening</a>.</p>
@@ -689,6 +727,14 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   <!-- 4 MONEY -->
   <section class="page" id="p-money">
     <div id="diaMoney"></div>
+    <div class="block" id="ledgerLinks">
+      <div class="sec-head"><h2>Ledgers</h2>
+        <p class="sec-note">The sale and stock ledgers, one tap away.</p></div>
+      <div class="ledgers">
+        <a class="ledger-card" href="../ledger/"><b>June Resale Ledger</b><span>The 111 resale items by batch: cost, where each sold, and for how much.</span></a>
+        <a class="ledger-card" href="../ledger-9f4c2e/"><b>Easy Life Stock Ledger</b><span>The stock take: what is on hand and what is tied up in it.</span></a>
+      </div>
+    </div>
     <div class="block">
       <div class="sec-head"><h2>What is running</h2>
         <p class="sec-note">Only what somebody actually read off an account.</p></div>
@@ -891,6 +937,18 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <div class="adder"><span></span><button id="pickFile">Add a file</button></div>
         <input id="fileInput" type="file" multiple hidden>
         <ul class="notes-list" id="files"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- LEDGERS (build 24) -->
+  <section class="page" id="p-ledgers">
+    <div class="block">
+      <div class="sec-head"><h2>Your ledgers</h2>
+        <p class="sec-note">Both live on this site. Tap one to open it.</p></div>
+      <div class="ledgers">
+        <a class="ledger-card" href="../ledger/"><b>June Resale Ledger</b><span>The 111 resale items by batch: cost, where each sold, and for how much.</span></a>
+        <a class="ledger-card" href="../ledger-9f4c2e/"><b>Easy Life Stock Ledger</b><span>The stock take: what is on hand and what is tied up in it.</span></a>
       </div>
     </div>
   </section>
@@ -1144,7 +1202,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-17 · build 23</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-17 · build 24</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -1250,6 +1308,7 @@ const PAGES = [
   {id:"money",   name:"Money",              why:"Only figures somebody actually read off a real account.", nav:1},
   {id:"paper",   name:"The Paper",          why:"The AFR, in plain words, with what it means for you.", nav:1},
   {id:"projects",name:"Projects",           why:"Your terminal goal, how the goals are going, and every project by stage. Folded until you open it."},
+  {id:"ledgers", name:"Ledgers",            why:"The June Resale Ledger and the Easy Life Stock Ledger, one tap each."},
   {id:"rollover",name:"Roll over",          why:"Everything still open from an earlier day: your to-do, and Morning & Evening."},
   {id:"ebay",    name:"eBay",               why:"Your e-commerce side: the listings list, and where the eBay connection stands."},
   {id:"cast",    name:"The cast",           why:"The five of them, and which part of this desk each one keeps."},
@@ -2049,6 +2108,90 @@ function renderProjects(){
     : `<p class="none">No goals written under AI admin.</p>`;
   $("#pjGoalsSum").textContent = goals.length ? String(goals.length) : "none";
 }
+/* ---------------- build 24: agenda and scratch paper (her 17 Sep phone notes) ----------------
+   "What I'm up to for the day, for the agenda." / "a scratch paper here so I can kind of like draw what my day
+   is going to be like." Both are kept on this phone; the drawing never goes to Notion. */
+let agenda = [], agDay = 0;
+const saveAgenda = () => save("state/agenda", {items:agenda.slice(-400)}, 1);
+function renderAgenda(){
+  const box=$("#agList"); if(!box) return;
+  const day = plusDays(todayISO(), agDay);
+  const own = agenda.filter(a=>a.day===day).map(a=>Object.assign({src:"me"}, a));
+  const hhmm = iso => { const d=new Date(iso); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
+  const cal = !events ? [] : events.filter(e=>e.status!=="cancelled" && evDayISO(e)===day)
+    .map(e=>({src:"cal", text:e.summary||"Untitled", time: evStart(e).length>10 ? hhmm(evStart(e)) : ""}));
+  const rows = own.concat(cal).sort((a,b)=>String(a.time||"").localeCompare(String(b.time||"")));
+  const open = own.filter(a=>!a.done).length;
+  $("#agCount").textContent = rows.length ? open+" open"+(cal.length?" · "+cal.length+" from calendar":"") : "";
+  box.innerHTML = rows.length ? rows.map(a=> a.src==="cal"
+      ? cardHTML({title:(a.time?a.time+"  ":"")+a.text, sev:"ask", meta:[pill("Calendar","cool")]})
+      : cardHTML({title:(a.time?a.time+"  ":"")+a.text, sev:"mine", tick:1, done:a.done, attr:`data-agid="${esc(a.id)}"`,
+          meta:[a.time?"":pill("Any time"), xbtn("Remove","delAgenda",a.id)]})).join("")
+    : `<p class="none">Nothing on the agenda for ${agDay?"tomorrow":"today"} yet. Add the first line below.</p>`;
+}
+document.addEventListener("click", e=>{
+  const d=e.target.closest("[data-agday]"); if(d){ agDay=+d.dataset.agday;
+    $$("[data-agday]").forEach(b=>{ const on=b===d; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
+    renderAgenda(); return; }
+  if(e.target.closest("#agGo")){ const t=$("#agText").value.trim(); if(!t){ toast("Type what it is first."); return; }
+    const r={id:uid("a"), day:plusDays(todayISO(), agDay), time:$("#agTime").value||"", text:t, done:false, at:new Date().toISOString()};
+    agenda.push(r); saveAgenda(); renderAgenda(); $("#agText").value=""; $("#agTime").value="";
+    logIt("new","On the agenda"+(agDay?" for tomorrow":"")+": "+(r.time?r.time+" ":"")+t); return; }
+  const x=e.target.closest(".xbtn.delAgenda"); if(x){ const o=agenda.find(a=>a.id===x.dataset.id);
+    agenda=agenda.filter(a=>a.id!==x.dataset.id); saveAgenda(); renderAgenda(); if(o) logIt("gone","Off the agenda: "+o.text); }
+});
+document.addEventListener("change", e=>{
+  const t=e.target; if(!t.classList||!t.classList.contains("tick")) return;
+  const c=t.closest(".card"); if(!c||!c.dataset.agid) return;
+  const a=agenda.find(x=>x.id===c.dataset.agid); if(!a) return;
+  a.done=t.checked; a.doneAt=t.checked?new Date().toISOString():null; saveAgenda(); renderAgenda();
+  logIt(t.checked?"did":"note",(t.checked?"Did: ":"Put back: ")+a.text);
+});
+document.addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target && e.target.id==="agText"){ e.preventDefault(); $("#agGo").click(); } });
+
+/* Scratch paper. Strokes are kept as points, so Undo works and it redraws sharp at any width. Saved on this
+   phone only (desk.state/scratch). Page swiping and pull-to-reload ignore touches that start on the canvas. */
+const Scratch = (function(){
+  const KEY="state/scratch", PAPER="#fffdf7"; let strokes=[], pen="ink", cur=null, cv=null, ctx=null, done=false;
+  const inkOf = p => p==="accent" ? "#1b4965" : p==="erase" ? PAPER : "#141a20";
+  function size(){ if(!cv) return; const r=cv.getBoundingClientRect(); if(!r.width) return;
+    const dpr=Math.min(window.devicePixelRatio||1, 2);
+    cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); draw(); }
+  function line(st){ if(!st.pts.length) return; const W=cv.getBoundingClientRect().width||1;
+    ctx.strokeStyle=inkOf(st.pen); ctx.lineWidth = st.pen==="erase" ? 22 : 2.6; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.beginPath();
+    st.pts.forEach((p,i)=>{ const x=p[0]*W, y=p[1]; if(i) ctx.lineTo(x,y); else ctx.moveTo(x,y); });
+    if(st.pts.length===1) ctx.lineTo(st.pts[0][0]*W+0.1, st.pts[0][1]);
+    ctx.stroke(); }
+  function draw(){ if(!ctx) return; const r=cv.getBoundingClientRect(); ctx.clearRect(0,0,r.width,r.height); strokes.forEach(line); }
+  function stamp(){ const d=LS.get(KEY), el=$("#scSaved"); if(el) el.textContent = strokes.length ? "saved "+stampWords(d&&d.at) : "blank"; }
+  function persist(){ if(!LS.set(KEY, {strokes:strokes.slice(-800), at:new Date().toISOString()})) toast("This phone would not keep the drawing - its storage is full."); stamp(); }
+  function pos(e){ const r=cv.getBoundingClientRect(); return [(e.clientX-r.left)/(r.width||1), e.clientY-r.top]; }
+  function init(){
+    if(done) return; cv=$("#scratch"); if(!cv) return; done=true; ctx=cv.getContext("2d");
+    const d=LS.get(KEY); if(d && Array.isArray(d.strokes)) strokes=d.strokes;
+    cv.addEventListener("pointerdown", e=>{ if(e.button>0) return; e.preventDefault(); try{ cv.setPointerCapture(e.pointerId); }catch(x){}
+      cur={pen, pts:[pos(e)]}; strokes.push(cur); line(cur); });
+    cv.addEventListener("pointermove", e=>{ if(!cur) return; e.preventDefault(); cur.pts.push(pos(e));
+      line({pen:cur.pen, pts:cur.pts.slice(-2)}); });
+    const end=()=>{ if(!cur) return; cur.pts=cur.pts.map(p=>[Math.round(p[0]*1000)/1000, Math.round(p[1]*10)/10]); cur=null; persist(); };
+    cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
+    cv.addEventListener("touchstart", e=>e.preventDefault(), {passive:false});
+    cv.addEventListener("touchmove", e=>e.preventDefault(), {passive:false});
+    document.addEventListener("click", e=>{
+      const b=e.target.closest("[data-pen]"); if(b){ pen=b.dataset.pen;
+        $$("[data-pen]").forEach(x=>{ const on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-pressed",on); }); return; }
+      if(e.target.closest("#scUndo")){ if(!strokes.length) return; strokes.pop(); draw(); persist(); return; }
+      if(e.target.closest("#scClear")){ if(!strokes.length) return; if(!confirm("Clear the scratch paper? This cannot be undone.")) return;
+        strokes=[]; draw(); persist(); }
+    });
+    const f=$("#scFold"); if(f){ if(LS.get("scFoldShut")) f.open=false; f.addEventListener("toggle", ()=>{ LS.set("scFoldShut", !f.open); if(f.open) size(); }); }
+    addEventListener("resize", size); size(); setTimeout(size, 300); stamp();
+    /* the Today page may be hidden when this runs; draw once it is shown */
+    document.addEventListener("click", e=>{ if(e.target.closest('[data-go="today"]')) setTimeout(size, 60); });
+  }
+  return {init, size};
+})();
+
 /* her 17 Sep: "Everything is day as fifteenth of September. When can this be updated?"
    The dated parts of this desk come in the locked delivery. This says, on every page, how old they are. */
 function renderDataAge(){
@@ -2181,13 +2324,15 @@ function renderEbayTodos(){
     meta:[m.at?`<span class="stamp">Added ${esc(stampWords(m.at))}</span>`:""]})).join("")
     : `<p class="none">Nothing filed under E-commerce. Add one on Today and pick E-commerce.</p>`;
 }
-function renderExtra(){ ["learn","try","keep","admin"].forEach(renderXL); renderME(); renderTimeline(); renderEbayTodos(); renderProjects(); renderDataAge(); }
+function renderExtra(){ ["learn","try","keep","admin"].forEach(renderXL); renderME(); renderTimeline(); renderEbayTodos(); renderProjects(); renderDataAge(); renderAgenda(); }
 async function loadExtra(){
   for(const k of ["learn","try","keep","admin"]){
     try{ const d=await load("state/"+(k==="try"?"trylist":k)); if(d && Array.isArray(d.items)) xl[k]=d.items; }catch(e){}
   }
   try{ const n=await load("state/tlnotes"); if(n && Array.isArray(n.items)) tlNotes=n.items; }catch(e){}
   try{ const tg=await load("state/terminal"); if(tg && tg.text) terminalGoal=tg; }catch(e){}
+  try{ const ag=await load("state/agenda"); if(ag && Array.isArray(ag.items)) agenda=ag.items; }catch(e){}
+  try{ Scratch.init(); }catch(e){}
   setTimeout(pullInbox, 1500);
   renderExtra();
 }
@@ -2285,6 +2430,7 @@ function go(id){
     : new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
   $("#briefCard").classList.toggle("hide", !(id==="ideas"||id==="today"||id==="listen"));
   closeSheets(); window.scrollTo(0,0); paintPlaying();
+  if(id==="today") setTimeout(()=>{ try{ Scratch.size(); }catch(e){} }, 30);
 }
 function closeSheets(){ $$(".sheet").forEach(s=>s.classList.remove("on")); }
 function openSheet(id){ closeSheets(); $("#"+id).classList.add("on"); }
@@ -3407,7 +3553,7 @@ async function takeLink(){
   const atTop = () => (window.scrollY||document.documentElement.scrollTop||0) <= 0;
 
   addEventListener("touchstart", e=>{
-    if(e.touches.length!==1 || !atTop()) { y0=null; return; }
+    if(e.touches.length!==1 || !atTop() || (e.target.closest && e.target.closest("canvas"))) { y0=null; return; }
     /* Not while something is playing or a sheet is open - a stray swipe must never
        throw away a brief she is in the middle of. */
     if(playing || document.querySelector(".sheet.on")) { y0=null; return; }
@@ -3639,7 +3785,7 @@ $("#sayGo").addEventListener("click", ()=>{
     if(e.touches.length!==1) return;
     if(document.querySelector(".sheet.on")) return;
     if(!document.getElementById("p-" + page)) return;
-    if(e.target.closest("audio,input,textarea,select,.p-bar") || sideways(e.target)) return;
+    if(e.target.closest("audio,input,textarea,select,.p-bar,canvas") || sideways(e.target)) return;
     x0=e.touches[0].clientX; y0=e.touches[0].clientY; lock=null; dx=0; W=window.innerWidth;
   }, {passive:true});
 
@@ -3751,7 +3897,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-17 · build 23</span>";
+    + "BUILD 2026-09-17 · build 24</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
@@ -3796,6 +3942,7 @@ if("serviceWorker" in navigator){
     "state/trylist":  ["Want to try",function(r){ return r.text; }, function(r){ return (r.done?"Tried":"Not yet")+(r.link?" · "+r.link:""); }, "at"],
     "state/keep":     ["Tip",       function(r){ return String(r.text||"").slice(0,80); }, function(r){ return (r.cat||"")+" · "+(r.text||""); }, "at"],
     "state/admin":    ["AI admin",  function(r){ return r.text; }, function(r){ return r.cat||""; }, "at"],
+    "state/agenda":   ["Agenda",    function(r){ return (r.time?r.time+" ":"")+r.text; }, function(r){ return r.day+" · "+(r.done?"Done":"Open"); }, "at"],
     "state/tlnotes":  ["Achievement note", function(r){ return r.title; }, function(r){ return r.text; }, "at"]
   };
   function records(doc, data){

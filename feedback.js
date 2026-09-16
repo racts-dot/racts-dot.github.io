@@ -111,8 +111,9 @@
     function setSize(w, h, left, top) {
       var maxW = W.innerWidth - (left == null ? 2 * M : left + M), maxH = W.innerHeight - (top == null ? 2 * M : top + M);
       w = Math.max(Math.min(minW, maxW), Math.min(maxW, w));
-      var need = natural(w);
-      h = Math.max(Math.min(need, maxH), Math.min(maxH, h));
+      /* her 17 Sep (Sales Tracker): "cannot be resized to the smaller version as much. It just stays big."
+         It may now go smaller than its contents (down to 110 px); what does not fit scrolls inside it. */
+      h = Math.max(Math.min(110, maxH), Math.min(maxH, h));
       panel.style.setProperty("width", w + "px", "important"); panel.style.setProperty("height", h + "px", "important");
       panel.classList.add(sizedClass);
     }
@@ -328,13 +329,13 @@
       ".fb-fab:focus-visible,.fb-panel button:focus-visible,.fb-panel textarea:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
       ".fb-panel{position:fixed;left:12px;bottom:calc(192px + env(safe-area-inset-bottom));z-index:2147483647;" +
       "width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 16px);overflow:auto;box-sizing:border-box;background:#fff;color:#1c1c1e;border-radius:16px;" +
-      "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:12px 12px 26px;display:grid;gap:8px;" +
+      "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:10px 10px 16px;display:grid;gap:8px;" +
       "font:400 14px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:left}" +
       ".fb-panel[hidden],.fb-panel [hidden]{display:none}" +
       ".fb-panel{cursor:move;-webkit-user-select:none;user-select:none}.fb-panel textarea{cursor:text;-webkit-user-select:text;user-select:text;touch-action:auto}.fb-panel .fb-grab{color:#8e8e93;font-size:17px;letter-spacing:-2px;margin-right:6px}" +
       ".fb-panel.fb-sized:not([hidden]){display:flex;flex-direction:column}.fb-panel.fb-sized>*{flex:0 0 auto}" +
       ".fb-panel.fb-sized>textarea{flex:1 1 auto;max-height:none;min-height:44px;resize:none}" +
-      ".fb-panel .fb-grip{position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize;border-radius:0 0 16px 0;background:linear-gradient(135deg,transparent 50%,#8e8e93 50%,#8e8e93 56%,transparent 56%,transparent 66%,#8e8e93 66%,#8e8e93 72%,transparent 72%)}" +
+      ".fb-panel .fb-grip{position:absolute;right:0;bottom:0;width:22px;height:22px;cursor:nwse-resize;border-radius:0 0 16px 0;background:linear-gradient(135deg,transparent 50%,#8e8e93 50%,#8e8e93 56%,transparent 56%,transparent 66%,#8e8e93 66%,#8e8e93 72%,transparent 72%)}" +
       ".fb-panel .fb-row{display:flex;gap:8px;align-items:center}" +
       ".fb-panel .fb-title{flex:1;font:600 14px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}" +
       ".fb-panel button{flex:1;min-height:44px;min-width:44px;box-sizing:border-box;margin:0;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;-webkit-appearance:none;appearance:none;" +
@@ -349,7 +350,7 @@
       "font:400 16px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0;text-transform:none;" +
       "padding:10px 12px;border-radius:10px;border:1px solid #d1d1d6;background:#fff;color:#1c1c1e;box-shadow:none}" +
       ".fb-panel .fb-hint,.fb-panel .fb-queue{font:400 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#636366}" +
-      ".fb-panel .fb-status{font:600 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:1.35em}" +
+      ".fb-panel .fb-status{font:600 13px/1.35 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:1.35em}.fb-panel .fb-status:empty{min-height:0;margin-top:-8px}" +
       ".fb-panel .fb-ok{color:#1d6b43}.fb-panel .fb-wait{color:#7a5200}.fb-panel .fb-bad{color:#9b1c1c}" +
       "@media (prefers-color-scheme: dark){.fb-panel{background:#1c1c1e;color:#f2f2f7}.fb-panel button{background:#2c2c2e;color:#f2f2f7}" +
       ".fb-panel button.fb-close{background:transparent}.fb-panel button.fb-send{background:#f2f2f7;color:#1c1c1e}" +
@@ -384,7 +385,7 @@
     paintMic(); paintQueue();
 
     var restoreFab = makeDraggable(fab, POS_KEY), fabRect = null;
-    var restorePanel = movablePanel(panel, panel, panel.querySelector(".fb-grip"), "feedback.panelpos", "feedback.panelsize", "fb-sized", 200);
+    var restorePanel = movablePanel(panel, panel, panel.querySelector(".fb-grip"), "feedback.panelpos", "feedback.panelsize", "fb-sized", 180);
     function setBox(el, x, y) {
       el.style.setProperty("left", x + "px", "important"); el.style.setProperty("top", y + "px", "important");
       el.style.setProperty("right", "auto", "important"); el.style.setProperty("bottom", "auto", "important");

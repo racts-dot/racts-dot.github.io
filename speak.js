@@ -37,7 +37,7 @@
     ".sa-fab.sa-icon{width:44px;height:44px;box-sizing:border-box;padding:0;justify-content:center;font-size:18px}" +
     ".sa-fab:focus-visible,.sa-panel button:focus-visible,.sa-panel select:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
     ".sa-panel{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483645;max-width:420px;" +
-    "background:#fff;color:#1c1c1e;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3);padding:14px;" +
+    "background:#fff;color:#1c1c1e;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3);padding:10px 10px 16px;overflow:auto;box-sizing:border-box;" +
     "font:14px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;gap:10px}" +
     ".sa-panel[hidden]{display:none}" +
     ".sa-grip{cursor:grab;user-select:none;-webkit-user-select:none;font:600 12px/1 inherit;opacity:.6;padding:0 0 8px;touch-action:none}" +
@@ -246,15 +246,23 @@
     makeDraggable(fab, "speak.pos");
     makeDraggable(panel, "speak.panel.pos", panel.querySelector(".sa-grip"));
     (function (grip) {   /* 17 Sep: "everything is resizable the boxes and movable" - drag the corner */
-      var on = false, sx = 0, w0 = 0;
+      /* her 17 Sep (Sales Tracker): "cannot be resized to the smaller version as much. It just stays big."
+         Width AND height now, down to 180 x 110; what does not fit scrolls inside the panel. */
+      var on = false, sx = 0, sy = 0, w0 = 0, h0 = 0;
       function setW(w) { panel.style.setProperty("max-width", "none", "important");
-        panel.style.setProperty("width", Math.max(260, Math.min(w, window.innerWidth - 8)) + "px", "important");
+        panel.style.setProperty("width", Math.max(180, Math.min(w, window.innerWidth - 8)) + "px", "important");
         panel.style.setProperty("right", "auto", "important"); }
-      panel.restoreSize = function () { var f = +store.get("speak.panel.w"); if (f) setW(f * window.innerWidth); };
-      grip.addEventListener("pointerdown", function (e) { on = true; sx = e.clientX; var r = panel.getBoundingClientRect(); w0 = r.width;
-        panel.style.setProperty("left", r.left + "px", "important"); try { grip.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); e.stopPropagation(); });
-      grip.addEventListener("pointermove", function (e) { if (on) { setW(w0 + e.clientX - sx); e.preventDefault(); } });
-      function end() { if (!on) return; on = false; store.set("speak.panel.w", String(panel.getBoundingClientRect().width / window.innerWidth)); }
+      function setH(h) { var t = panel.getBoundingClientRect().top;
+        panel.style.setProperty("height", Math.max(110, Math.min(h, window.innerHeight - Math.max(t, 0) - 4)) + "px", "important");
+        panel.style.setProperty("bottom", "auto", "important"); panel.style.setProperty("top", Math.max(t, 4) + "px", "important"); }
+      panel.restoreSize = function () { var f = +store.get("speak.panel.w"); if (f) setW(f * window.innerWidth);
+        var g = +store.get("speak.panel.h"); if (g) setH(g * window.innerHeight); };
+      grip.addEventListener("pointerdown", function (e) { on = true; sx = e.clientX; sy = e.clientY; var r = panel.getBoundingClientRect(); w0 = r.width; h0 = r.height;
+        panel.style.setProperty("left", r.left + "px", "important"); panel.style.setProperty("top", r.top + "px", "important");
+        panel.style.setProperty("bottom", "auto", "important"); try { grip.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); e.stopPropagation(); });
+      grip.addEventListener("pointermove", function (e) { if (on) { setW(w0 + e.clientX - sx); setH(h0 + e.clientY - sy); e.preventDefault(); } });
+      function end() { if (!on) return; on = false; var r = panel.getBoundingClientRect();
+        store.set("speak.panel.w", String(r.width / window.innerWidth)); store.set("speak.panel.h", String(r.height / window.innerHeight)); }
       grip.addEventListener("pointerup", end); grip.addEventListener("pointercancel", end);
     })(panel.querySelector(".sa-rsz"));
     mainBtn = panel.querySelector(".sa-main"); stopBtn = panel.querySelector(".sa-stop");

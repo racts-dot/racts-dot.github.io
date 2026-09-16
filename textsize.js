@@ -341,8 +341,9 @@
     function setSize(w, h, left, top) {
       var maxW = window.innerWidth - (left == null ? 2 * M : left + M), maxH = window.innerHeight - (top == null ? 2 * M : top + M);
       w = Math.max(Math.min(minW, maxW), Math.min(maxW, w));
-      var need = natural(w);
-      h = Math.max(Math.min(need, maxH), Math.min(maxH, h));
+      /* her 17 Sep (Sales Tracker): "cannot be resized to the smaller version as much. It just stays big."
+         It may now go smaller than its contents (down to 110 px); what does not fit scrolls inside it. */
+      h = Math.max(Math.min(110, maxH), Math.min(maxH, h));
       panel.style.setProperty("width", w + "px", "important"); panel.style.setProperty("height", h + "px", "important");
       panel.classList.add(sizedClass);
     }
@@ -454,11 +455,11 @@
       ".ts-fab:focus-visible,.ts-panel button:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
       ".ts-panel{position:fixed;" + side + ":12px;bottom:calc(" + bottom + "px + env(safe-area-inset-bottom));z-index:2147483646;" +
       "width:min(300px,calc(100vw - 24px));box-sizing:border-box;background:#fff;color:#1c1c1e;border-radius:16px;" +
-      "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:12px 12px 26px;display:grid;gap:8px;" +
+      "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:10px 10px 18px;display:grid;gap:8px;" +
       "font:400 14px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:left}" +
       ".ts-panel[hidden]{display:none}" +
       ".ts-panel .ts-head{cursor:move;-webkit-user-select:none;user-select:none}.ts-panel .ts-grab{color:#8e8e93;font-size:17px;letter-spacing:-2px;margin-right:6px}" +
-      ".ts-panel.ts-sized{grid-template-rows:auto 1fr 1fr 1fr}.ts-panel.ts-sized .ts-row+.ts-row{align-items:stretch}" +
+      ".ts-panel.ts-sized{grid-template-rows:auto 1fr 1fr 1fr;overflow:auto}.ts-panel.ts-sized .ts-row+.ts-row{align-items:stretch}" +
       ".ts-panel .ts-grip{position:absolute;right:0;bottom:0;width:26px;height:26px;cursor:nwse-resize;border-radius:0 0 16px 0;background:linear-gradient(135deg,transparent 50%,#8e8e93 50%,#8e8e93 56%,transparent 56%,transparent 66%,#8e8e93 66%,#8e8e93 72%,transparent 72%)}" +
       ".ts-panel .ts-row{display:flex;gap:8px;align-items:center}" +
       ".ts-panel .ts-title{flex:1;font:600 14px/1.2 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}" +
@@ -496,7 +497,7 @@
     pct = panel.querySelector(".ts-pct"); minus = panel.querySelector(".ts-down"); plus = panel.querySelector(".ts-up");
     boldBtn = panel.querySelector(".ts-bold");
     var restoreFab = makeDraggable(fab, "textsize.pos"), fabRect = null;
-    var restorePanel = movablePanel(panel, panel.querySelector(".ts-head"), panel.querySelector(".ts-grip"), "textsize.panelpos", "textsize.panelsize", "ts-sized", 240);
+    var restorePanel = movablePanel(panel, panel.querySelector(".ts-head"), panel.querySelector(".ts-grip"), "textsize.panelpos", "textsize.panelsize", "ts-sized", 180);
     function setBox(el, x, y) {
       el.style.setProperty("left", x + "px", "important"); el.style.setProperty("top", y + "px", "important");
       el.style.setProperty("right", "auto", "important"); el.style.setProperty("bottom", "auto", "important");
