@@ -3,7 +3,7 @@
    Chapter text: network first, falling back to whatever was cached.
    Bump CACHE when index.html changes, or phones keep serving the old one. */
 const CACHE = "daily-chapter-v42";
-const SHELL = ["./", "./index.html", "./kings.html", "./manifest.webmanifest", "./icon.svg", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png"];
+const SHELL = ["./", "./index.html", "./kings.html", "./manifest.webmanifest", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (event) {
   event.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
