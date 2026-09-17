@@ -1,13 +1,11 @@
 {
-  "name": "Daily Chapter",
-  "short_name": "Daily Chapter",
-  "description": "One Bible chapter a day, and a place to write what you learnt.",
-  "start_url": "./index.html",
+  "name": "Morning and Evening",
+  "short_name": "Morning",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#f7f3ec",
-  "theme_color": "#f7f3ec",
+  "background_color": "#241F1A",
+  "theme_color": "#241F1A",
   "icons": [
     {
       "src": "icon-192.png",
