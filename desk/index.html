@@ -561,6 +561,14 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   color:var(--surface);padding:10px 16px;border-radius:3px;font-size:14px;z-index:50;
   box-shadow:var(--shadow);max-width:88vw;text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* 17 Sep 2026 - the embedded June Resale Ledger on Desk's Ledgers page. */
+.ledger-embed{border:1px solid var(--line,#e3e3de);border-radius:12px;overflow:hidden;margin:0 0 12px}
+.ledger-embed-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 13px;border-bottom:1px solid var(--line,#e3e3de);font-size:15px}
+.ledger-embed-head a{font-size:13px;white-space:nowrap;text-decoration:none}
+.ledger-frame{display:block;width:100%;height:70vh;min-height:420px;border:0;background:transparent}
+@media (max-width:520px){.ledger-frame{height:78vh}}
 </style>
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 
@@ -945,9 +953,26 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   <section class="page" id="p-ledgers">
     <div class="block">
       <div class="sec-head"><h2>Your ledgers</h2>
-        <p class="sec-note">Both live on this site. Tap one to open it.</p></div>
+        <p class="sec-note">The resale ledger is open below. The stock take is one tap away.</p></div>
+      <!-- 17 Sep 2026: the June Resale Ledger now OPENS HERE instead of being a
+           link you tap away to. Her words: "in the desk, I want you to just put
+           the resale ledger". The Easy Life Stock card stays a link below it.
+           It is an iframe of ../ledger/ served as it is - that file is NOT
+           edited and still opens on its own URL unchanged. loading=lazy, so it
+           costs nothing until this page is opened.
+           Done on the LEDGERS page only. Desk carries this same block twice -
+           also on the Money page at line ~733 - and embedding on both would
+           load the 111-item ledger twice in one document. The Money page keeps
+           its two link cards. -->
+      <div class="ledger-embed">
+        <div class="ledger-embed-head">
+          <b>June Resale Ledger</b>
+          <a href="../ledger/" target="_blank" rel="noopener">Open on its own &#8599;</a>
+        </div>
+        <iframe class="ledger-frame" src="../ledger/" loading="lazy"
+                title="June Resale Ledger"></iframe>
+      </div>
       <div class="ledgers">
-        <a class="ledger-card" href="../ledger/"><b>June Resale Ledger</b><span>The 111 resale items by batch: cost, where each sold, and for how much.</span></a>
         <a class="ledger-card" href="../ledger-9f4c2e/"><b>Easy Life Stock Ledger</b><span>The stock take: what is on hand and what is tied up in it.</span></a>
       </div>
     </div>
