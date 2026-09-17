@@ -18,7 +18,14 @@
 <link rel="icon" href="icon-192.png">
 <style>:root{color-scheme:light dark}html,body{margin:0;padding:0}
 body{padding-bottom:env(safe-area-inset-bottom)}
-nav.tabs{padding-bottom:env(safe-area-inset-bottom)!important}</style>
+nav.tabs{padding-bottom:env(safe-area-inset-bottom)!important}.period{display:flex;align-items:center;gap:.4rem;margin:0 0 .5rem;font-size:.95rem}
+.period-btn{background:none;border:0;padding:.15rem .1rem;font:inherit;font-weight:600;
+  color:inherit;cursor:pointer;border-bottom:1px dotted currentColor;opacity:.75}
+.period-btn:hover,.period-btn:focus-visible{opacity:1}
+.period-dot{opacity:.45}
+.period-note{margin:.1rem 0 .6rem;font-size:.9rem;line-height:1.45;opacity:.85}
+.period-note.empty{opacity:.6;font-style:italic}
+</style>
 </head>
 <body>
 <title>Rachie's Desk</title>
@@ -712,6 +719,17 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <div class="diary" id="diary"></div>
     </div>
     <div class="block">
+      <!-- Her comment on the Desk artifact, 17 Sep 2026: "add that this this month is
+           September. So like if you just like click onto September, then it will have what
+           September is about. 2026 what 2026 is about." The words come from desk/period.json,
+           which SHE fills in - an empty entry says so plainly instead of showing a sentence
+           no human wrote. -->
+      <p class="period" id="periodStrip">
+        <button type="button" class="period-btn" id="periodMonth"></button>
+        <span class="period-dot">·</span>
+        <button type="button" class="period-btn" id="periodYear"></button>
+      </p>
+      <p class="period-note" id="periodNote" hidden></p>
       <div class="sec-head"><h2>Waiting on you</h2>
         <p class="sec-note">Nobody else can do these.</p>
         <span class="count" id="waitCount"></span></div>
@@ -4071,6 +4089,45 @@ if("serviceWorker" in navigator){
       if (v) window.deskNotion(doc, v);
     });
   });
+})();
+</script>
+<script>
+/* The month and year strip above "Waiting on you". Words come from desk/period.json,
+   which Rachel writes. Never invented here: an empty entry says it is not written yet. */
+(function () {
+  var MONTHS = ["January","February","March","April","May","June","July","August",
+                "September","October","November","December"];
+  var mBtn = document.getElementById("periodMonth");
+  var yBtn = document.getElementById("periodYear");
+  var note = document.getElementById("periodNote");
+  if (!mBtn || !yBtn || !note) return;
+  var now = new Date();
+  var mKey = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
+  var yKey = String(now.getFullYear());
+  mBtn.textContent = MONTHS[now.getMonth()];
+  yBtn.textContent = yKey;
+  var data = {months: {}, years: {}};
+  var shown = null;
+  function show(which) {
+    if (shown === which) { note.hidden = true; shown = null; return; }
+    shown = which;
+    var txt = which === "month" ? (data.months || {})[mKey] : (data.years || {})[yKey];
+    var label = which === "month" ? MONTHS[now.getMonth()] : yKey;
+    if (txt && String(txt).trim()) {
+      note.textContent = String(txt);
+      note.classList.remove("empty");
+    } else {
+      note.textContent = "Nothing written about " + label + " yet. Add it to desk/period.json.";
+      note.classList.add("empty");
+    }
+    note.hidden = false;
+  }
+  mBtn.addEventListener("click", function () { show("month"); });
+  yBtn.addEventListener("click", function () { show("year"); });
+  fetch("period.json", {cache: "no-store"})
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (j) { if (j) data = j; if (shown) { var w = shown; shown = null; show(w); } })
+    .catch(function () { /* offline or sealed preview: the buttons still work and say so */ });
 })();
 </script>
 </body></html>
