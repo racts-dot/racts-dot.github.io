@@ -284,6 +284,25 @@
     paint();
   }
 
-  window.SpeakAloud = { start: function () { start(); }, stop: function () { finish(""); }, draggable: makeDraggable };
+  // ⛔ STOP TALKING WHEN THE APP IS CLOSED OR BACKGROUNDED.
+  // Her feedback, 16 Sep 2026, Rachie's Desk: "So the voice gets out of it when
+  // I quit. So it has been fixed but hasn't." It had been fixed on the Desk page
+  // ONLY, inline, and the Desk is one of eight apps that load this shared file -
+  // measured 18 Sep 2026: the live speak.js had no pagehide, no beforeunload, no
+  // visibilitychange and no cancel of any kind, so every other app kept speaking.
+  //
+  // pagehide is the one that matters and the one the Desk's inline fix missed: on
+  // iOS, closing or swiping away an installed web app fires pagehide, and does not
+  // reliably fire beforeunload. visibilitychange covers backgrounding, and
+  // beforeunload covers a desktop tab close. All three, because no single event
+  // fires on every platform.
+  function hush() { try { SS.cancel(); } catch (e) {} }
+  window.addEventListener("pagehide", hush);
+  window.addEventListener("beforeunload", hush);
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") hush();
+  });
+
+  window.SpeakAloud = { start: function () { start(); }, stop: function () { finish(""); }, draggable: makeDraggable, hush: hush };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build); else build();
 })();
