@@ -97,6 +97,10 @@ h1{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:clamp(28px,7
   width:40px;height:40px;min-height:0;padding:0;border-radius:3px;font-size:16px;cursor:pointer;
   display:grid;place-items:center}
 .corner button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.corner button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.fresh{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-faint);margin:8px 0 0}
+.fresh.stale{color:var(--accent)}
 
 button{font-family:"Public Sans",sans-serif;font-size:15px;font-weight:700;color:var(--surface);
   background:var(--ink);border:1px solid var(--ink);border-radius:2px;padding:11px 17px;
@@ -547,13 +551,14 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <h1 id="pageTitle">Rachie's Desk</h1>
       </div>
       <div class="corner">
+        <button id="readPage" aria-label="Read this page aloud" title="Read this page aloud">&#9654;</button>
         <button id="sayFab" aria-label="Just say it" title="Just say it">&#127908;</button>
         <button id="chatBtn" aria-label="Ask Claude" title="Ask Claude">✻</button>
         <button id="setBtn" aria-label="Settings" title="Settings">⚙</button>
       </div>
     </div>
     <p class="why" id="pageWhy">Loading…</p>
-    <button id="readPage" class="readbar">&#9654; Read this page aloud</button>
+    <p class="fresh" id="freshTop"></p>
 
     <div class="brief" id="briefCard">
       <p class="brief-h">The morning brief</p>
@@ -967,6 +972,11 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     </div>
   </section>
   <section class="page" id="p-admin">
+    <div class="block">
+      <div class="sec-head"><h2>Where we're up to</h2>
+        <p class="sec-note">Every job and what happens next, rebuilt from the handover notes every 20 minutes by the Mac. Nothing here is typed by you, and nothing you type is sent here.</p></div>
+      <div id="progressLive"><p class="none">Reading where things are up to…</p></div>
+    </div>
     <div class="block">
       <div class="sec-head"><h2>AI admin</h2>
         <p class="sec-note">Goals, plans and budget for the AI side. Short notes, dated.</p>
@@ -1411,6 +1421,14 @@ function renderWaiting(){
     title:j.title, body:j.body, sev:j.sev,
     meta:[pill(j.tag), pill(agoWords(j.read))] })).join("");
   const age=DESK.built?daysSince(DESK.built):null;
+  const ft=$("#freshTop");
+  if(ft){
+    if(age===null){ ft.textContent="Not updated yet"; ft.classList.add("stale"); }
+    else if(age<=0){ ft.textContent="Updated today"; ft.classList.remove("stale"); }
+    else if(age===1){ ft.textContent="Updated yesterday"; ft.classList.remove("stale"); }
+    else { ft.textContent="Updated "+age+" days ago \u00b7 "+shortDate(DESK.built)+" \u00b7 out of date";
+           ft.classList.add("stale"); }
+  }
   $("#asOf").textContent = age===null ? "" : age<=0
     ? "Read on or before "+shortDate(DESK.built)+", and written up today."
     : "Last rebuilt "+age+(age===1?" day":" days")+" ago, on "+shortDate(DESK.built)+".";
@@ -2003,6 +2021,31 @@ document.addEventListener("click", e=>{
   xl.try.push({id:uid("x"), rr:r.id, text:(r.detail||r.title||"").slice(0,300), link:d.url||"", at:new Date().toISOString(), done:false, cat:d.creator||""});
   saveXL("try"); renderXL("try"); loadReadingRoom(); logIt("new","Want to try, from the Reading Room: "+(r.detail||r.title)); toast("On your Want to try list.");
 });
+/* ---------------- where we're up to ----------------
+   Her ask, 17 Sep 2026: "every 20 minutes to send where the tasks are or push it to the
+   desk app ... so i know where we are up to", and going through the register by hand is
+   the painful thing this replaces.
+
+   This file is PLAIN, not locked, exactly like ebay.json beside it - her ruling, "I need
+   it public". So it must never carry anything the delivery carries: no money figures, no
+   phrases, no anything she typed. It is built by secretary/build_progress.py, which copies
+   entry headings and NEXT ACTION lines out of the register and nothing else. */
+async function loadProgress(){
+  const box = $("#progressLive"); if(!box) return;
+  let d;
+  try{ const r = await fetch("progress.json?" + Date.now(), {cache:"no-store"}); if(!r.ok) throw 0; d = await r.json(); }
+  catch(e){ box.innerHTML = '<p class="none">Nothing collected yet. This shows on the home-screen Desk (racts-dot.github.io/desk).</p>'; return; }
+  const items = (d && d.items) || [];
+  if(!items.length){ box.innerHTML = '<p class="none">Nothing to report.</p>'; return; }
+  box.innerHTML = items.map(it => `<div class="keepcard">
+      <b>${esc(it.name || "")}</b>
+      <p>${esc(it.note || "")}</p>
+      <p class="stamp">${esc(it.when || "")}</p></div>`).join("")
+    + `<p class="stamp">Built ${esc(d.made || "at an unknown time")}</p>`;
+}
+document.addEventListener("click", e=>{ if(e.target.closest('[data-go="admin"]')) setTimeout(loadProgress, 60); });
+loadProgress();
+
 let EBAY = null;
 async function loadEbay(){
   const head=$("#ebayLive"); if(!head) return;
@@ -2378,7 +2421,8 @@ function paintPlaying(){
 }
 function restoreReadBar(){
   const b = $("#readPage"); if(!b) return;
-  b.classList.remove("on"); b.innerHTML = "&#9654; Read this page aloud";
+  b.classList.remove("on"); b.innerHTML = "&#9654;";
+  b.setAttribute("aria-label","Read this page aloud"); b.title="Read this page aloud";
 }
 function stopSpeaking(){
   restoreReadBar();
@@ -2720,7 +2764,8 @@ $("#readPage").addEventListener("click", ()=>{
   if(playing){ stopSpeaking(); return; }
   say(pageScript(page), false);
   $("#readPage").classList.add("on");
-  $("#readPage").innerHTML = "&#9632; Stop reading";
+  $("#readPage").innerHTML = "&#9632;";
+  $("#readPage").setAttribute("aria-label","Stop reading"); $("#readPage").title="Stop reading";
 });
 
 /* ---------------- ask Claude ---------------- */
