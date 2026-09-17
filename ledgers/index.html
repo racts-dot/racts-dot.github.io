@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang=en>
+<head>
+<meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name=robots content="noindex,nofollow">
+<title>Ledgers</title>
+<!--
+  ONE PAGE, THREE LEDGERS. Built 17 September 2026.
+
+  WHY IT IS BUILT THIS WAY, AND DO NOT "TIDY" IT INTO ONE FILE.
+  Each tab is an <iframe> pointing at the original app, untouched:
+
+      ../ledger/          June Resale Ledger    111 items, frozen snapshot
+      ../app.html         Sales Tracker         1.76 MB, LIVE Google Sheets link
+      ../ledger-9f4c2e/   Easy Life Stock       edits saved in the browser
+
+  Nothing is merged and nothing is copied. That was her choice on 17 Sep 2026
+  when the alternative (one merged item list) was put to her, because 34 items
+  appear in BOTH the Resale Ledger and the Sales Tracker and a merge can be
+  wrong in a way that is hard to undo.
+
+  Three things this buys, and they are the whole reason for the iframes:
+   1. app.html is never edited. The repo's CLAUDE.md records that a single bad
+      edit to it killed every tab, filter and button on 24 Aug 2026, and that
+      plain search-and-replace on it is unreliable because attribute values
+      contain ">" characters.
+   2. The Sales Tracker keeps its Apps Script connection to Google Sheets and
+      its Mark Sold button, because it is the same file being served.
+   3. Easy Life Stock keeps whatever you already saved in it. Its edits live in
+      localStorage, and localStorage is per-origin - this page is the same
+      origin, so the same saved data is there.
+
+  The 1.76 MB tracker is NOT loaded until you tap its tab. Opening this page
+  costs almost nothing.
+-->
+<style>
+  :root{
+    --bg:#f7f7f5; --panel:#fff; --ink:#1a1a18; --dim:#6b6b66;
+    --line:#e3e3de; --accent:#2f6f4f; --accent-soft:#e8f1ec;
+    --bar:64px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#141614; --panel:#1c1f1c; --ink:#ecece8; --dim:#9a9a94;
+      --line:#2c302c; --accent:#7fc4a0; --accent-soft:#223028;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    display:flex; flex-direction:column;
+    -webkit-text-size-adjust:100%;
+  }
+  header{
+    flex:0 0 auto; background:var(--panel);
+    border-bottom:1px solid var(--line);
+    padding:env(safe-area-inset-top) 0 0 0;
+  }
+  .tabs{
+    display:flex; gap:0; height:var(--bar);
+    max-width:900px; margin:0 auto;
+  }
+  .tabs button{
+    flex:1 1 0; min-width:0;
+    background:none; border:0; border-bottom:3px solid transparent;
+    color:var(--dim); font:inherit; font-weight:600;
+    padding:0 6px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2px; line-height:1.2;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .tabs button .sub{ font-weight:400; font-size:12px; opacity:.75 }
+  .tabs button[aria-selected=true]{
+    color:var(--accent); border-bottom-color:var(--accent);
+    background:var(--accent-soft);
+  }
+  .tabs button:focus-visible{ outline:2px solid var(--accent); outline-offset:-3px }
+  main{ flex:1 1 auto; position:relative; min-height:0 }
+  iframe{
+    position:absolute; inset:0; width:100%; height:100%;
+    border:0; background:var(--bg);
+  }
+  iframe[hidden]{ display:none }
+  .waiting{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    color:var(--dim); font-size:15px;
+  }
+  @media (max-width:420px){
+    .tabs button{ font-size:14px }
+    .tabs button .sub{ font-size:11px }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class=tabs role=tablist aria-label="Ledgers">
+    <button role=tab id=tab-resale  aria-selected=false aria-controls=f-resale>Resale<span class=sub>111 items</span></button>
+    <button role=tab id=tab-tracker aria-selected=false aria-controls=f-tracker>Tracker<span class=sub>live sheet</span></button>
+    <button role=tab id=tab-stock   aria-selected=false aria-controls=f-stock>Life Stock<span class=sub>+ notepad</span></button>
+  </div>
+</header>
+
+<main>
+  <div class=waiting id=waiting>Opening…</div>
+  <iframe id=f-resale  title="June Resale Ledger"   hidden loading=lazy></iframe>
+  <iframe id=f-tracker title="Sales Tracker"        hidden loading=lazy></iframe>
+  <iframe id=f-stock   title="Easy Life Stock Ledger" hidden loading=lazy></iframe>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  // The three originals. Relative, so this works on the live site and from a
+  // local file alike. Nothing here rewrites or copies them.
+  var TABS = [
+    { key:"resale",  src:"../ledger/" },
+    { key:"tracker", src:"../app.html" },
+    { key:"stock",   src:"../ledger-9f4c2e/" }
+  ];
+
+  var waiting = document.getElementById("waiting");
+
+  function el(id){ return document.getElementById(id); }
+
+  function show(key){
+    var found = false;
+    TABS.forEach(function(t){
+      var frame = el("f-" + t.key), btn = el("tab-" + t.key);
+      var on = (t.key === key);
+      if (on) found = true;
+      // Load on first view only. The tracker is 1.76 MB; opening this page
+      // must not pay for it until she actually asks for it.
+      if (on && !frame.getAttribute("src")) frame.setAttribute("src", t.src);
+      frame.hidden = !on;
+      btn.setAttribute("aria-selected", on ? "true" : "false");
+      btn.tabIndex = on ? 0 : -1;
+    });
+    if (!found) return;
+    if (waiting) { waiting.remove(); waiting = null; }
+    // Remember where she was. Wrapped: Safari private mode throws on write.
+    try { localStorage.setItem("ledgers.tab", key); } catch (e) {}
+    if (location.hash !== "#" + key) {
+      try { history.replaceState(null, "", "#" + key); } catch (e) {}
+    }
+  }
+
+  // The inner apps pin a floating "Aa" and "Read aloud" pill to the bottom of
+  // their own viewport. That collides with their filter buttons on any window
+  // shorter than about 780px - MEASURED 17 Sep 2026: /ledger/ on its own is
+  // clear at 800px and has "Everything" covered at 736px. This shell's 64px tab
+  // bar makes an 800px phone behave like a 736px one, so it surfaces a fault
+  // that was already there.
+  //
+  // The fix is presentation only and lives entirely in THIS file: give the
+  // inner page enough bottom padding that its content can always scroll clear
+  // of its own pills. Nothing in the three apps is edited, and the padding
+  // disappears the moment you open them directly. Same-origin, so this is
+  // allowed; wrapped anyway, because a failure here must never blank a tab.
+  function padClear(frame){
+    try {
+      var d = frame.contentDocument;
+      if (!d || !d.body || d.getElementById("ledgers-pad")) return;
+      var st = d.createElement("style");
+      st.id = "ledgers-pad";
+      // speak.js and textsize.js both pin their pill at
+      // bottom:calc(84px + safe-area). 84px up from the bottom is exactly
+      // where the filter rows sit once this shell's tab bar has taken 64px off
+      // the height. Drop them to the floor, where nothing else lives, and keep
+      // the safe-area inset so they clear the iPhone home bar.
+      // Moving them DOWN was not enough: at the floor they still clipped the
+      // left edge of "Everything" and "Sold only". Measured by testing five
+      // points across each button instead of only its centre - the centre test
+      // said clear while the screenshot plainly showed a collision, which is
+      // the checker being narrower than the eye.
+      // So put them where there is genuinely nothing: pinned top-right, just
+      // under this shell's tab bar. Nothing in the three apps starts there.
+      st.textContent =
+        ".sa-fab,.ts-fab{top:10px !important;bottom:auto !important;" +
+        "left:auto !important;right:12px !important}" +
+        ".ts-fab{right:64px !important}" +
+        "body{padding-top:58px !important}";
+      (d.head || d.documentElement).appendChild(st);
+    } catch (e) { /* different origin, or not loaded yet - leave it alone */ }
+  }
+
+  TABS.forEach(function(t){
+    var frame = el("f-" + t.key);
+    frame.addEventListener("load", function(){ padClear(frame); });
+    el("tab-" + t.key).addEventListener("click", function(){ show(t.key); });
+  });
+
+  // Left/right arrows move between tabs, which is how a tablist should behave.
+  document.querySelector(".tabs").addEventListener("keydown", function(e){
+    var i = TABS.findIndex(function(t){
+      return el("tab-" + t.key).getAttribute("aria-selected") === "true";
+    });
+    if (i < 0) return;
+    var next = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : -1;
+    if (next < 0 || next >= TABS.length) return;
+    e.preventDefault();
+    show(TABS[next].key);
+    el("tab-" + TABS[next].key).focus();
+  });
+
+  function valid(k){ return TABS.some(function(t){ return t.key === k; }); }
+
+  // Order: the link she followed, then where she was last, then the Resale
+  // ledger - the small one, so a cold open is never the 1.76 MB file.
+  var start = (location.hash || "").replace("#","");
+  if (!valid(start)) {
+    try { start = localStorage.getItem("ledgers.tab") || ""; } catch (e) { start = ""; }
+  }
+  if (!valid(start)) start = "resale";
+  show(start);
+
+  window.addEventListener("hashchange", function(){
+    var k = (location.hash || "").replace("#","");
+    if (valid(k)) show(k);
+  });
+})();
+</script>
+<!--
+  textsize.js and speak.js are DELIBERATELY NOT loaded here.
+  All three inner apps already load their own copies, and both draw a floating
+  button. Loading them in the shell too put a second "Aa" and a second "Read
+  aloud" pill on top of the iframe, covering the Items / Everything filter
+  buttons of whichever ledger was open. Caught in a browser screenshot at phone
+  width, 17 Sep 2026 - the buttons looked fine in the markup and were unusable
+  on screen.
+-->
+</body>
+</html>
