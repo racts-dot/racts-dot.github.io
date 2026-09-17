@@ -3506,6 +3506,17 @@ $("#nowStop").addEventListener("click", ()=>{ const el=$("#recAudio");
    in the background" / "I cant play at the background". The recorded voice keeps playing when she
    leaves the app or locks the phone; the lock-screen controls come from mediaSession above. The
    robot voice cannot: the phone itself stops it in the background. */
+/* But QUITTING must stop it. Her feedback 16 Sep 2026, 21:47: "So the voice gets out of it when I
+   quit. So it has been fixed but hasn't." Measured on the live Desk 18 Sep: 11 speechSynthesis
+   calls, and no pagehide or beforeunload of any kind, so nothing ever cancelled on the way out.
+   The split that keeps BOTH of her instructions:
+     beforeunload            the page is going away (desktop close or navigate). Unambiguous.
+     pagehide, !e.persisted  the page is being DISCARDED, not put in the back/forward cache.
+                             Backgrounding an installed iOS web app fires pagehide with
+                             persisted === true, so the brief is left playing exactly as she
+                             asked on 15 Sep. Only a real quit reaches stopSpeaking(). */
+window.addEventListener("beforeunload", function(){ try { stopSpeaking(); } catch(e){} });
+window.addEventListener("pagehide", function(e){ if(!e.persisted){ try { stopSpeaking(); } catch(x){} } });
 document.getElementById("briefMore").addEventListener("click", ()=>{ const c=document.getElementById("briefCard");
   c.classList.toggle("open"); const o=c.classList.contains("open");
   document.getElementById("briefMore").setAttribute("aria-expanded", o);
