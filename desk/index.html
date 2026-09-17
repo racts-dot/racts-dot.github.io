@@ -3632,16 +3632,20 @@ async function collectToday(){
   const unseen = (doc.has || []).filter(k => FEED_KEYS[k] && !took.includes(k) && LS.get(FEED_KEYS[k]) === null);
   if(old && !unseen.length) return false;   /* nothing new; do not ask for anything */
 
+  /* 17 Sep 2026, her words: "it needs to be updated to public so I have access, I approve what it takes".
+     A delivery with its sections in the open needs no phrase; a locked one still asks for it. */
+  let body;
+  if(doc.sections){ body = doc; }
+  else {
   const phrase = LS.get("feedPhrase");
   if(!phrase){ $("#feedWanted").classList.remove("hide"); return false; }
-
-  let body;
   try{ body = await openFeed(doc, phrase); }
   catch(e){
     /* a wrong phrase must never wipe a good desk */
     toast("Today's delivery would not open with your phrase.");
     $("#feedWanted").classList.remove("hide");
     return false;
+  }
   }
   const sec = body && body.sections; if(!sec) return false;
   let n = 0;
