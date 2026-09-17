@@ -569,6 +569,22 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 .ledger-embed-head a{font-size:13px;white-space:nowrap;text-decoration:none}
 .ledger-frame{display:block;width:100%;height:70vh;min-height:420px;border:0;background:transparent}
 @media (max-width:520px){.ledger-frame{height:78vh}}
+
+/* 17 Sep 2026 - all three ledgers as tabs inside Desk's Ledgers page. */
+.lg3{border:1px solid var(--line,#e3e3de);border-radius:12px;overflow:hidden;margin-top:10px}
+.lg3-tabs{display:flex}
+.lg3-tabs button{flex:1 1 0;min-width:0;background:none;border:0;
+  border-bottom:3px solid transparent;font:inherit;font-weight:600;font-size:14px;
+  padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;
+  gap:1px;line-height:1.2;color:inherit;opacity:.6;-webkit-tap-highlight-color:transparent}
+.lg3-tabs button span{font-weight:400;font-size:11px}
+.lg3-tabs button[aria-selected=true]{opacity:1;border-bottom-color:currentColor}
+.lg3-open{padding:7px 12px;border-bottom:1px solid var(--line,#e3e3de);text-align:right}
+.lg3-open a{font-size:13px;text-decoration:none;white-space:nowrap}
+.lg3-body{position:relative}
+.lg3-frame{display:block;width:100%;height:72vh;min-height:430px;border:0;background:transparent}
+.lg3-frame[hidden]{display:none}
+@media (max-width:360px){.lg3-tabs button span{display:none}}
 </style>
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 
@@ -953,28 +969,59 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   <section class="page" id="p-ledgers">
     <div class="block">
       <div class="sec-head"><h2>Your ledgers</h2>
-        <p class="sec-note">The resale ledger is open below. The stock take is one tap away.</p></div>
-      <!-- 17 Sep 2026: the June Resale Ledger now OPENS HERE instead of being a
-           link you tap away to. Her words: "in the desk, I want you to just put
-           the resale ledger". The Easy Life Stock card stays a link below it.
-           It is an iframe of ../ledger/ served as it is - that file is NOT
-           edited and still opens on its own URL unchanged. loading=lazy, so it
-           costs nothing until this page is opened.
-           Done on the LEDGERS page only. Desk carries this same block twice -
-           also on the Money page at line ~733 - and embedding on both would
-           load the 111-item ledger twice in one document. The Money page keeps
-           its two link cards. -->
-      <div class="ledger-embed">
-        <div class="ledger-embed-head">
-          <b>June Resale Ledger</b>
-          <a href="../ledger/" target="_blank" rel="noopener">Open on its own &#8599;</a>
+        <p class="sec-note">All three, here. Tap one.</p></div>
+
+      <!-- 17 Sep 2026, her correction: "the desk is the head command center...
+           the desk should have the all three, not the ledger have the desk."
+           So all three ledgers live HERE, inside Desk, and Desk is never a tab
+           inside them. The Desk tab that had been added to /ledgers/ was
+           removed the same day.
+
+           Each is an iframe of the original app served as it is. None of the
+           three files is edited and each still opens on its own URL unchanged.
+           Only the tab you tap is loaded - the Sales Tracker alone is 1.76 MB,
+           so loading all three at once would make this page unusable. -->
+      <div class="lg3">
+        <div class="lg3-tabs" role="tablist" aria-label="Ledgers">
+          <button role="tab" id="lg3-t-resale"  aria-selected="true"  aria-controls="lg3-f-resale">Resale<span>111 items</span></button>
+          <button role="tab" id="lg3-t-tracker" aria-selected="false" aria-controls="lg3-f-tracker">Tracker<span>live sheet</span></button>
+          <button role="tab" id="lg3-t-stock"   aria-selected="false" aria-controls="lg3-f-stock">Life Stock<span>+ notepad</span></button>
         </div>
-        <iframe class="ledger-frame" src="../ledger/" loading="lazy"
-                title="June Resale Ledger"></iframe>
+        <div class="lg3-open"><a id="lg3-out" href="../ledger/" target="_blank" rel="noopener">Open this one on its own &#8599;</a></div>
+        <div class="lg3-body">
+          <iframe id="lg3-f-resale"  class="lg3-frame" title="June Resale Ledger"      src="../ledger/"></iframe>
+          <iframe id="lg3-f-tracker" class="lg3-frame" title="Sales Tracker"           hidden></iframe>
+          <iframe id="lg3-f-stock"   class="lg3-frame" title="Easy Life Stock Ledger"  hidden></iframe>
+        </div>
       </div>
-      <div class="ledgers">
-        <a class="ledger-card" href="../ledger-9f4c2e/"><b>Easy Life Stock Ledger</b><span>The stock take: what is on hand and what is tied up in it.</span></a>
-      </div>
+
+      <script>
+      (function(){
+        var T = [
+          { k:"resale",  src:"../ledger/" },
+          { k:"tracker", src:"../app.html" },
+          { k:"stock",   src:"../ledger-9f4c2e/" }
+        ];
+        function g(id){ return document.getElementById(id); }
+        function show(k){
+          T.forEach(function(t){
+            var f = g("lg3-f-"+t.k), b = g("lg3-t-"+t.k), on = (t.k===k);
+            if (on && !f.getAttribute("src")) f.setAttribute("src", t.src);
+            f.hidden = !on;
+            b.setAttribute("aria-selected", on ? "true" : "false");
+            if (on) g("lg3-out").setAttribute("href", t.src);
+          });
+          try { localStorage.setItem("desk.ledger.tab", k); } catch(e){}
+        }
+        T.forEach(function(t){
+          g("lg3-t-"+t.k).addEventListener("click", function(){ show(t.k); });
+        });
+        var start = "resale";
+        try { var v = localStorage.getItem("desk.ledger.tab");
+              if (T.some(function(t){return t.k===v;})) start = v; } catch(e){}
+        show(start);
+      })();
+      </script>
     </div>
   </section>
 
@@ -1333,7 +1380,7 @@ const PAGES = [
   {id:"money",   name:"Money",              why:"Only figures somebody actually read off a real account.", nav:1},
   {id:"paper",   name:"The Paper",          why:"The AFR, in plain words, with what it means for you.", nav:1},
   {id:"projects",name:"Projects",           why:"Your terminal goal, how the goals are going, and every project by stage. Folded until you open it."},
-  {id:"ledgers", name:"Ledgers",            why:"The June Resale Ledger and the Easy Life Stock Ledger, one tap each."},
+  {id:"ledgers", name:"Ledgers",            why:"All three ledgers in one place: June Resale, the Sales Tracker and Easy Life Stock."},
   {id:"rollover",name:"Roll over",          why:"Everything still open from an earlier day: your to-do, and Morning & Evening."},
   {id:"ebay",    name:"eBay",               why:"Your e-commerce side: the listings list, and where the eBay connection stands."},
   {id:"cast",    name:"The cast",           why:"The five of them, and which part of this desk each one keeps."},

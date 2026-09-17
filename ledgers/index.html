@@ -107,7 +107,6 @@
     <button role=tab id=tab-resale  aria-selected=false aria-controls=f-resale>Resale<span class=sub>111 items</span></button>
     <button role=tab id=tab-tracker aria-selected=false aria-controls=f-tracker>Tracker<span class=sub>live sheet</span></button>
     <button role=tab id=tab-stock   aria-selected=false aria-controls=f-stock>Life Stock<span class=sub>+ notepad</span></button>
-    <button role=tab id=tab-desk    aria-selected=false aria-controls=f-desk>Desk<span class=sub>259 on eBay</span></button>
   </div>
 </header>
 
@@ -116,7 +115,6 @@
   <iframe id=f-resale  title="June Resale Ledger"   hidden loading=lazy></iframe>
   <iframe id=f-tracker title="Sales Tracker"        hidden loading=lazy></iframe>
   <iframe id=f-stock   title="Easy Life Stock Ledger" hidden loading=lazy></iframe>
-  <iframe id=f-desk    title="Rachie's Desk"          hidden loading=lazy></iframe>
 </main>
 
 <script>
@@ -128,13 +126,12 @@
   var TABS = [
     { key:"resale",  src:"../ledger/" },
     { key:"tracker", src:"../app.html" },
-    { key:"stock",   src:"../ledger-9f4c2e/" },
-    // Added 17 Sep 2026. Rachie's Desk is the fourth e-commerce app and the only
-    // one holding LIVE eBay figures - desk/ebay.json, read 17 Sep 00:50: 259
-    // listings, $64,832 asking, 5 sold, 29 watchers. The three ledgers between
-    // them only know about 3 eBay items, so leaving it out left the biggest
-    // number off the page.
-    { key:"desk",    src:"../desk/" }
+    { key:"stock",   src:"../ledger-9f4c2e/" }
+    // NO DESK TAB. It was added on 17 Sep 2026 and taken out the same day on her
+    // correction: "why would you have my desk in there... the desk is the head
+    // command center... the desk should have the all three, not the ledger have
+    // the desk." Desk is the top of the tree, so it contains the ledgers and
+    // never the other way round. Do not add it back.
   ];
 
   var waiting = document.getElementById("waiting");
