@@ -245,6 +245,10 @@
   .cal-key { font-size: 0.78rem; color: var(--ink-faint); margin: 0.1rem 0.2rem 0; }
   .cal-key span { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 0.2rem; vertical-align: -0.1rem; margin: 0 0.25rem 0 0.5rem; }
   .cal-key span:first-child { margin-left: 0; }
+  .cal-ico { display:block; font-size: 0.85em; line-height: 1.1; letter-spacing: 0.06em; opacity: 0.85; }
+  .cal-legend { display:flex; flex-wrap:wrap; gap:0.35rem 0.9rem; margin-top:0.4rem; }
+  .cal-legend span { white-space:nowrap; }
+  .cal-legend b { font-weight:400; opacity:0.85; }
   .cal-key .k-has { background: var(--accent-wash); border: 1px solid var(--accent); }
   .cal-key .k-unsure { border: 1px dashed var(--warn); }
   .daybar.flash { background: var(--accent-wash); transition: background 0.6s ease; }
@@ -295,6 +299,28 @@
     ["flight", "Flight"], ["stay", "Accommodation"], ["transport", "Transport"],
     ["activity", "Activity"], ["food", "Food"], ["note", "Note"]
   ];
+
+  /* Her phone note, 17 Sep: "Some icons for the calendar so we know the period we
+     are at specific state or so". One mark per kind, so a glance at the month says
+     which days are flying days, which are stays, which are meals out. Text glyphs,
+     not images: they print, they scale with her text-size setting, and they need no
+     files. Every cell that shows one also carries the kind in its aria-label, so the
+     icon never becomes the only way to know what a day holds. */
+  var KIND_ICON = {
+    flight: "\u2708", stay: "\u2302", transport: "\u21C4",
+    activity: "\u2691", food: "\u25C9", note: "\u25AB"
+  };
+  function kindIcon(k) { return KIND_ICON[k] || KIND_ICON.note; }
+  function dayIcons(list) {
+    var seen = {}, out = [];
+    for (var i = 0; i < list.length; i++) {
+      var k = list[i].k || "note";
+      if (seen[k]) continue;
+      seen[k] = 1; out.push(kindIcon(k));
+      if (out.length === 3) break;          /* three is all a day cell can hold */
+    }
+    return out.join("");
+  }
 
   /* ---------- the planner (optional) ----------
      url: "" means OFF, and off is the shipped default. While it is empty the
@@ -591,6 +617,7 @@
           cell.className = cls;
           var html = '<span class="cal-n">' + dnum + '</span>';
           if (list.length) {
+            html += '<span class="cal-ico" aria-hidden="true">' + dayIcons(list) + '</span>';
             html += '<span class="cal-t">' + esc(list[0].t) + '</span>';
             if (list.length > 1) html += '<span class="cal-more">+' + (list.length - 1) + '</span>';
           }
@@ -611,7 +638,10 @@
       var k = document.createElement("div"); k.className = "cal-key";
       k.innerHTML = (anyHas ? '<span class="k-has"></span>planned' : "") +
         (anyUnsure ? '<span class="k-unsure"></span>확인 필요 (not confirmed by a booking yet)' : "") +
-        " &middot; tap a day to jump to it";
+        " &middot; tap a day to jump to it" +
+        '<div class="cal-legend">' + KINDS.map(function (kk) {
+          return '<span><b>' + kindIcon(kk[0]) + '</b> ' + esc(kk[1]) + '</span>';
+        }).join("") + '</div>';
       wrap.appendChild(k);
     }
     return wrap;
@@ -1316,6 +1346,19 @@
     var links = "";
     if (safeUrl(a.w)) links += '<a href="' + esc(a.w) + '" target="_blank" rel="noopener noreferrer">Open link</a>';
     if (safeUrl(a.m)) links += '<a href="' + esc(a.m) + '" target="_blank" rel="noopener noreferrer">Open map</a>';
+    /* Her phone note, 17 Sep: "Map as well". Until now a map only appeared if she had
+       pasted a map URL by hand, so an item with "Where" filled in and no link had no
+       map at all. This builds the search from the words already typed. It is a SEARCH,
+       not a pin: it can land on the wrong Cafe Seoul, so it never replaces a map link
+       she pasted herself - that one still wins and this one is not shown beside it. */
+    else if (a.l) links += '<a href="https://www.google.com/maps/search/?api=1&query=' +
+      encodeURIComponent(a.l + (a.t ? " " + a.t : "")) +
+      '" target="_blank" rel="noopener noreferrer">Find on map</a>';
+    /* Her phone note, 17 Sep: "Put this in - Video search (출처 찾기)". Her own video
+       library, asked what this place looks like. */
+    if (a.l || a.t) links += '<a href="https://racts-dot.github.io/videos/#find=' +
+      encodeURIComponent(a.l || a.t) +
+      '" target="_blank" rel="noopener noreferrer">Find videos</a>';
     row.innerHTML =
       '<div class="when">' + esc(when || "—") + '</div>' +
       '<div class="body">' +
