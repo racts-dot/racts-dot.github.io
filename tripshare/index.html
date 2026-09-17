@@ -99,6 +99,54 @@
     font-family: var(--f-body); font-size: 16px; line-height: 1.5;
     -webkit-text-size-adjust: 100%;
   }
+
+  /* ---------- the moving background (18 Sep 2026) ----------
+     Her notes, in order: "premium quality animated app background", then
+     "it should be moving so I probably want it a little bit prettier", then
+     "Have it as slide". So: six pictures, each drifting slowly, crossfading
+     one into the next. No video and no video model - Seedance was the expensive
+     option and she said to use OpenAI instead, so these are six stills and the
+     motion is done here, which costs nothing to run and nothing to change.
+
+     ⛔ IT MUST NEVER COST HER THE WORDS. The itinerary is the product; the
+     picture is behind it. Hence the scrim over the top, the paper-coloured
+     cards left opaque, and prefers-reduced-motion stopping all of it. If a
+     picture ever wins against the text, the picture is wrong, not the text. */
+  #bgshow { position: fixed; inset: 0; z-index: -2; overflow: hidden; background: var(--paper); }
+  #bgshow i {
+    position: absolute; inset: -6%;
+    background-size: cover; background-position: center;
+    opacity: 0; will-change: opacity, transform;
+    animation: bgfade 96s linear infinite, bgdrift 48s ease-in-out infinite alternate;
+  }
+  /* Six slides, sixteen seconds each: one full turn takes a minute and a half,
+     so it never feels like a carousel demanding to be watched. */
+  #bgshow i:nth-child(1) { animation-delay: 0s,    0s; }
+  #bgshow i:nth-child(2) { animation-delay: 16s,  -8s; }
+  #bgshow i:nth-child(3) { animation-delay: 32s, -16s; }
+  #bgshow i:nth-child(4) { animation-delay: 48s, -24s; }
+  #bgshow i:nth-child(5) { animation-delay: 64s, -32s; }
+  #bgshow i:nth-child(6) { animation-delay: 80s, -40s; }
+  @keyframes bgfade {
+    0%   { opacity: 0; }
+    3%   { opacity: 1; }
+    16%  { opacity: 1; }
+    19%  { opacity: 0; }
+    100% { opacity: 0; }
+  }
+  @keyframes bgdrift {
+    from { transform: scale(1.00) translate3d(-1.5%, -1%, 0); }
+    to   { transform: scale(1.08) translate3d(1.5%, 1%, 0); }
+  }
+  /* The scrim: paper colour at low opacity so every theme keeps its own
+     contrast instead of one hard-coded wash that only suits the light one. */
+  #bgscrim { position: fixed; inset: 0; z-index: -1; pointer-events: none;
+             background: var(--paper); opacity: 0.78; }
+  @media (prefers-reduced-motion: reduce) {
+    #bgshow i { animation: none; }
+    #bgshow i:nth-child(1) { opacity: 1; }
+  }
+  @media print { #bgshow, #bgscrim { display: none; } }
   .wrap { max-width: 46rem; margin: 0 auto; padding: 1rem 1rem 5rem; }
 
   h1, h2, h3 { font-family: var(--f-display); font-weight: 600; line-height: 1.2; margin: 0; }
@@ -265,6 +313,8 @@
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 </head>
 <body>
+<div id="bgshow" aria-hidden="true"><i style="background-image:url(bg/korea-blossom.jpg)"></i><i style="background-image:url(bg/korea-hanok.jpg)"></i><i style="background-image:url(bg/europe-rooftops.jpg)"></i><i style="background-image:url(bg/europe-alps.jpg)"></i><i style="background-image:url(bg/sky-clouds.jpg)"></i><i style="background-image:url(bg/sky-aurora.jpg)"></i></div>
+<div id="bgscrim" aria-hidden="true"></div>
 <div class="wrap">
   <div class="topbar noprint">
     <span class="mark">TripShare</span>
