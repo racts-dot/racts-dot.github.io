@@ -95,6 +95,25 @@ textarea.taller{min-height:260px}
 .passage .verses p:hover{background:rgba(122,92,46,.07);border-radius:6px}
 .passage .vsel{text-decoration:underline;text-decoration-color:var(--accent);
   text-decoration-thickness:2px;text-underline-offset:4px}
+/* Her feedback 17 Sep 2026: "I will need the highlight versions highlighters as well
+   and the notes probably." Four colours, kept per chapter, and a note she can hang on
+   a verse. Painted with rgba so one set of colours reads on both the light and dark
+   backgrounds instead of needing two palettes. */
+.vh-y{background:rgba(245,196,0,.34);border-radius:4px}
+.vh-g{background:rgba(64,180,110,.30);border-radius:4px}
+.vh-b{background:rgba(70,150,235,.28);border-radius:4px}
+.vh-p{background:rgba(190,110,230,.28);border-radius:4px}
+.vnote{font-size:11px;font-weight:700;color:var(--accent);vertical-align:super;
+  margin-left:3px;cursor:pointer;user-select:none}
+.hlbar{position:fixed;left:50%;transform:translateX(-50%);bottom:64px;z-index:19;
+  display:none;gap:8px;align-items:center;padding:8px 12px;border-radius:22px;
+  background:var(--card);border:1px solid var(--line);box-shadow:0 8px 28px rgba(0,0,0,.26)}
+.hlbar.on{display:flex}
+.hlbar .sw{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);cursor:pointer;padding:0}
+.hlbar .sw.y{background:rgba(245,196,0,.9)} .hlbar .sw.g{background:rgba(64,180,110,.85)}
+.hlbar .sw.b{background:rgba(70,150,235,.85)} .hlbar .sw.p{background:rgba(190,110,230,.85)}
+.hlbar button.txt{font:inherit;font-size:14px;font-weight:600;background:transparent;
+  color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:5px 11px;cursor:pointer}
 .passage .vn-on{background:var(--accent);color:var(--accent-ink);border-radius:5px;
   padding:1px 4px;vertical-align:baseline;font-size:13px}
 .passage .sc,.passage .subhead-sc,.passage .tn-sc{font-variant:small-caps}
@@ -860,6 +879,24 @@ let chosen = [];
 let lastQuote = "";
 let chosenDoneByHand = false;
 
+/* Highlights and per-verse notes. Separate from `chosen`, which belongs to ONE day's
+   entry - a highlight belongs to the chapter and is still there next year. Shape:
+   { "John 3": { "16": { c:"y", n:"note text" } } } */
+let markRef = "";
+function allMarks(){ return jget("verseMarks", {}); }
+function marksHere(){ return (allMarks()[markRef] || {}); }
+function setMark(verse, patch){
+  const all = allMarks();
+  const here = all[markRef] || (all[markRef] = {});
+  const one = here[String(verse)] || {};
+  Object.keys(patch).forEach(function(k){
+    if (patch[k] === null || patch[k] === "") delete one[k]; else one[k] = patch[k];
+  });
+  if (Object.keys(one).length) here[String(verse)] = one; else delete here[String(verse)];
+  if (!Object.keys(here).length) delete all[markRef];
+  jset("verseMarks", all);
+}
+
 /* Underline every chosen verse. Verses are not elements - a prose paragraph
    holds several, and one line of a psalm can span several paragraphs - so the
    text nodes are wrapped one at a time, which leaves the layout untouched. */
@@ -897,6 +934,68 @@ function applySelection(scope, picks){
     node.parentNode.insertBefore(span, node);
     span.appendChild(node);
   });
+
+  paintMarks(scope);
+}
+
+/* Highlights and note pips. Runs in its own pass AFTER the selection wrap, because a
+   highlight outlives the day and the selection does not - folding them together would
+   wipe a year-old highlight every time she taps a verse. */
+function paintMarks(scope){
+  Array.prototype.forEach.call(scope.querySelectorAll(".vhl"), function(el){
+    const parent = el.parentNode;
+    while (el.firstChild) parent.insertBefore(el.firstChild, el);
+    parent.removeChild(el);
+  });
+  Array.prototype.forEach.call(scope.querySelectorAll(".vnote"), function(el){ el.remove(); });
+
+  const here = marksHere();
+  if (!Object.keys(here).length) return;
+
+  const walker = document.createTreeWalker(scope, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, null);
+  const jobs = [];
+  let current = null, lastNode = null, lastVerse = null;
+  while (walker.nextNode()){
+    const node = walker.currentNode;
+    if (node.nodeType === 1){
+      if (node.classList && node.classList.contains("vn")) current = node.textContent.trim();
+      continue;
+    }
+    if (current === null || !here[current]) continue;
+    if (!node.nodeValue.trim()) continue;
+    if (node.parentNode.closest(".tn, .a-tn, .vn, .vnote")) continue;
+    jobs.push([node, current]);
+    lastNode = node; lastVerse = current;
+  }
+  const tails = {};
+  jobs.forEach(function(job){ tails[job[1]] = job[0]; });
+
+  jobs.forEach(function(job){
+    const node = job[0], verse = job[1], mark = here[verse];
+    if (!mark.c) return;
+    const span = document.createElement("span");
+    span.className = "vhl vh-" + mark.c;
+    node.parentNode.insertBefore(span, node);
+    span.appendChild(node);
+  });
+
+  Object.keys(tails).forEach(function(verse){
+    const mark = here[verse];
+    if (!mark.n) return;
+    const node = tails[verse];
+    const pip = document.createElement("span");
+    pip.className = "vnote"; pip.textContent = "✎";
+    pip.title = mark.n;
+    pip.addEventListener("click", function(ev){
+      ev.stopPropagation();
+      const next = window.prompt("Note on verse " + verse, mark.n || "");
+      if (next === null) return;
+      setMark(verse, { n: next.trim() || null });
+      paintMarks(document.querySelector("#passage .verses"));
+    });
+    const host = node.parentNode;
+    host.insertBefore(pip, node.nextSibling);
+  });
 }
 
 /* Chosen verses, in order, with runs joined up: 5, 6, 7 becomes "5-7". */
@@ -931,10 +1030,64 @@ function writeQuote(quote){
   field.dispatchEvent(new Event("input"));
 }
 
+/* The colour bar. It appears only while verses are tapped, so it is never in the way,
+   and it acts on exactly those verses - the same ones already underlined, so there is
+   no second selection to learn. */
+function highlightBar(scope){
+  let bar = document.getElementById("hlbar");
+  if (bar) return bar;
+  bar = document.createElement("div");
+  bar.id = "hlbar"; bar.className = "hlbar";
+  bar.setAttribute("role", "toolbar");
+  bar.setAttribute("aria-label", "Highlight the tapped verses");
+  [["y","Yellow"],["g","Green"],["b","Blue"],["p","Purple"]].forEach(function(c){
+    const b = document.createElement("button");
+    b.className = "sw " + c[0]; b.type = "button";
+    b.title = c[1]; b.setAttribute("aria-label", c[1]);
+    b.addEventListener("click", function(){
+      chosen.forEach(function(n){ setMark(n, { c: c[0] }); });
+      paintMarks(scope);
+      toast(chosen.length === 1 ? "Verse highlighted" : chosen.length + " verses highlighted", null, null);
+    });
+    bar.appendChild(b);
+  });
+  const note = document.createElement("button");
+  note.className = "txt"; note.type = "button"; note.textContent = "Note";
+  note.addEventListener("click", function(){
+    if (!chosen.length) return;
+    const first = chosen.slice().sort(function(a,b){ return a-b; })[0];
+    const was = (marksHere()[String(first)] || {}).n || "";
+    const next = window.prompt("Note on verse " + first, was);
+    if (next === null) return;
+    setMark(first, { n: next.trim() || null });
+    paintMarks(scope);
+    toast(next.trim() ? "Note saved" : "Note removed", null, null);
+  });
+  bar.appendChild(note);
+
+  const clear = document.createElement("button");
+  clear.className = "txt"; clear.type = "button"; clear.textContent = "Clear";
+  clear.addEventListener("click", function(){
+    chosen.forEach(function(n){ setMark(n, { c: null, n: null }); });
+    paintMarks(scope);
+    toast("Highlight cleared", null, null);
+  });
+  bar.appendChild(clear);
+
+  document.body.appendChild(bar);
+  return bar;
+}
+
+function showBar(scope){
+  highlightBar(scope).classList.toggle("on", chosen.length > 0);
+}
+
 function wireVerseTaps(scope, ref){
   const marks = Array.prototype.slice.call(scope.querySelectorAll(".vn"));
   if (!marks.length) return;
+  markRef = prettyRef(ref);
   applySelection(scope, chosen);
+  showBar(scope);
 
   scope.addEventListener("click", function(ev){
     let i = verseAtPoint(scope, marks, ev);
@@ -947,6 +1100,7 @@ function wireVerseTaps(scope, ref){
     if (at === -1) chosen.push(number); else chosen.splice(at, 1);
 
     applySelection(scope, chosen);
+    showBar(scope);
     writeQuote(buildQuote(scope, marks, chosen, ref));
 
     /* Deliberately no scrolling. Jumping to the box loses your place in the
