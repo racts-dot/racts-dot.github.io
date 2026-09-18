@@ -164,8 +164,14 @@ footer{margin-top:6px;font-size:11px;line-height:1.5;color:var(--soft);
 .memo.float{left:auto;top:auto;right:12px;bottom:96px;width:min(300px,calc(100vw - 24px));
   max-height:44vh;border-radius:14px;border:1px solid var(--line);
   box-shadow:0 10px 34px rgba(0,0,0,.28)}
-.memo.float .memo-head{cursor:grab;touch-action:none}
-.memo.float .memo-head.dragging{cursor:grabbing}
+/* Her feedback 17 Sep: the whole card is the handle, not just the title bar - so
+   touch-action:none has to sit on the CARD, or a touch drag scrolls the page instead
+   of moving it. The places a drag means something else get touch-action back. */
+.memo.float{cursor:grab;touch-action:none}
+.memo.float textarea,.memo.float button,.memo.float a,
+.memo.float input,.memo.float select{touch-action:auto;cursor:auto}
+.memo.float button,.memo.float a{cursor:pointer}
+.memo.float .memo-head.dragging,.memo.float.dragging{cursor:grabbing}
 .memo.float textarea{min-height:14vh;font-size:16px}
 .memo-head .pin{font-size:14px;font-weight:600;padding:5px 10px;background:transparent;
   border:1px solid var(--line);color:var(--soft)}
@@ -2403,20 +2409,28 @@ document.getElementById("memoClose").addEventListener("click", function(){ memoO
   btn.addEventListener("click", function(){ setFloating(!panel.classList.contains("float")); });
 
   let dx = 0, dy = 0, dragging = false;
-  head.addEventListener("pointerdown", function(e){
-    if (!panel.classList.contains("float") || e.target.closest("button")) return;
+  /* Her feedback 17 Sep 2026, 04:08: "That includes that all the floating things should be
+     movable, no matter where you're dragging." And 16 Sep: "it doesn't drag if you touch the
+     bottom of a part and there's too much of a bezel." The drag used to be bound to .memo-head
+     only, so the header strip was the sole handle and everything below it was dead.
+     Now the WHOLE panel is the handle. The only places a drag does not start are the ones
+     where a drag means something else: a button, a link, and the note's own text box, where
+     she needs to select and edit. */
+  const NOT_A_HANDLE = "button, a, input, select, textarea, [contenteditable]";
+  panel.addEventListener("pointerdown", function(e){
+    if (!panel.classList.contains("float") || e.target.closest(NOT_A_HANDLE)) return;
     dragging = true;
     head.classList.add("dragging");
-    head.setPointerCapture(e.pointerId);
+    panel.setPointerCapture(e.pointerId);
     const box = panel.getBoundingClientRect();
     dx = e.clientX - box.left; dy = e.clientY - box.top;
   });
-  head.addEventListener("pointermove", function(e){
+  panel.addEventListener("pointermove", function(e){
     if (!dragging) return;
     place(e.clientX - dx, e.clientY - dy);
   });
   ["pointerup", "pointercancel"].forEach(function(ev){
-    head.addEventListener(ev, function(){ dragging = false; head.classList.remove("dragging"); });
+    panel.addEventListener(ev, function(){ dragging = false; head.classList.remove("dragging"); });
   });
 
   window.addEventListener("resize", function(){

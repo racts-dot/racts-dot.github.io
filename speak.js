@@ -202,7 +202,13 @@
     }
     handle.style.touchAction = "none";
     handle.addEventListener("pointerdown", function (e) {
-      if (e.button > 0 || (handle !== el && e.target.closest("button,select,.sa-rsz"))) return;
+      /* Her feedback 17 Sep 2026: "all the floating things should be movable, no matter where
+         you're dragging." The panel used to drag only by its grip. Now the whole card is the
+         handle, so the guard has to skip the controls INSIDE it - while still letting the fab
+         itself be dragged, since the fab IS a button. */
+      if (e.button > 0) return;
+      var hit = e.target.closest("button,select,input,textarea,a,.sa-rsz");
+      if (hit && hit !== el) return;
       down = true; moved = false; pid = e.pointerId;
       var r = el.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
     });
@@ -244,7 +250,7 @@
       '<div class="sa-now">\u2605 = a higher-quality voice. On iPhone, more voices: Settings \u2192 Accessibility \u2192 Spoken Content \u2192 Voices \u2192 English.</div>';
     document.body.appendChild(fab); document.body.appendChild(panel);
     makeDraggable(fab, "speak.pos");
-    makeDraggable(panel, "speak.panel.pos", panel.querySelector(".sa-grip"));
+    makeDraggable(panel, "speak.panel.pos");   /* whole card, not just .sa-grip - her 17 Sep feedback */
     (function (grip) {   /* 17 Sep: "everything is resizable the boxes and movable" - drag the corner */
       /* her 17 Sep (Sales Tracker): "cannot be resized to the smaller version as much. It just stays big."
          Width AND height now, down to 180 x 110; what does not fit scrolls inside the panel. */
