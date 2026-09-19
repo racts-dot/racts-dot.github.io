@@ -85,6 +85,10 @@
   .ev time{font-family:var(--num);font-size:13px;color:var(--faint);padding-top:2px}
   .ev .body{min-width:0}
   .ev .t{font-size:15px;line-height:1.42;word-wrap:break-word}
+  /* Commits and register notes are evidence that work happened; they are NOT product
+     completions and never move a count. They read quieter so they cannot pass for one. */
+  .ev[data-kind=commit] .t, .ev[data-kind=register] .t{font-size:14px;color:var(--muted)}
+  .ev[data-kind=commit] time, .ev[data-kind=register] time{opacity:.65}
   .ev .d{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.4}
   .ev .src{display:inline-block;font-size:11px;color:var(--faint);border:1px solid var(--line);
            border-radius:7px;padding:1px 6px;margin-top:6px}
@@ -129,9 +133,12 @@
 
 <section class="score">
   <div class="big"><b id="doneToday">–</b><span>of <span id="target">30</span> today</span></div>
-  <div class="big-label">products that went live today, read back off the public page</div>
+  <div class="big-label">products <b>first seen live</b> today — a queue row saying LIVE, with the
+    public page read back. The table carries no clock, so this is when it was first seen, not proof
+    of the hour it happened.</div>
   <div class="bar"><i id="bar"></i></div>
   <div class="pace" id="pace"></div>
+  <div class="pace" id="coverage"></div>
 </section>
 
 <div class="tiles">
@@ -201,6 +208,21 @@
         (p.on_for_target ? " — on for " + target + "." : " — short of " + target + ".");
     }
 
+    // Source COVERAGE, which is a different thing from source freshness: a feed can be
+    // a minute old and still be reading a table that holds 12 products against a target
+    // of 30. (GPT 5.6 Sol, 19 Sep 2026.)
+    var cov = d.coverage || {}, cv = $("coverage"), lines = [];
+    if(cov.tracked != null && !cov.can_account_for_target)
+      lines.push("The table it reads holds <b>" + cov.tracked + " products</b>, not " + target +
+        " — so this page cannot show a path to " + target + ", only what those " + cov.tracked + " did.");
+    if((c.published_not_read_back || 0) + (c.live_total || 0) > 0)
+      lines.push("On Etsy altogether: <b>" + ((c.published_not_read_back||0) + (c.live_total||0)) +
+        "</b> — " + (c.live_total||0) + " read back, " + (c.published_not_read_back||0) + " not checked since Publish.");
+    if(d.baseline)
+      lines.push("<b>This is the first build since the record was reset</b>, so every row below reads as newly seen and nothing here counts as today's work.");
+    cv.innerHTML = lines.join("<br>");
+    cv.style.display = lines.length ? "" : "none";
+
     var lanes = d.lanes || [], lw = $("lanes");
     lw.innerHTML = lanes.length ? lanes.map(function(L){
       return '<div class="lane"><span class="tag">' + esc(L.lane) + '</span><div class="what">' +
@@ -219,7 +241,8 @@
         '" data-stage="' + esc(e.stage||"") + '"><time>' + esc(clock(e.at)) + '</time><div class="body">' +
         '<div class="t"><span class="pip"></span>' + esc(e.title) + '</div>' +
         (e.detail ? '<div class="d">' + esc(e.detail) + '</div>' : "") +
-        '<span class="src">' + esc(e.source) + (e.kind==="queue-move"||e.kind==="queue-new" ? " · first seen" : "") +
+        '<span class="src">' + esc(e.source) +
+        (e.kind==="queue-move"||e.kind==="queue-new" ? " · first seen" : " · activity, not a count") +
         '</span></div></li>');
     }
     $("feed").innerHTML = out.length ? out.join("") :
