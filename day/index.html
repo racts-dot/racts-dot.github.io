@@ -113,6 +113,10 @@
 
   footer{margin:30px 0 0;padding-top:16px;border-top:1px solid var(--line);color:var(--faint);
          font-size:12px;line-height:1.6;word-break:break-word}
+  /* Not decoration and not hidden from assistive tech: /pull.js clicks #refresh if the
+     page has one, which is how a shared pull gesture triggers THIS page's in-place
+     re-fetch instead of a full reload. Off-screen, still focusable, still clickable. */
+  #refresh{position:absolute;left:-9999px;width:1px;height:1px;border:0;padding:0;background:none}
   .empty{color:var(--muted);font-size:14px;line-height:1.5;background:var(--surface);
          border:1px solid var(--line);border-radius:16px;padding:14px}
 </style>
@@ -121,6 +125,8 @@
 <script src="/pull.js" defer></script>
 </head>
 <body>
+<button id="refresh" aria-label="Refresh now"></button>
+
 <header>
   <div class="top">
     <h1>The Day</h1>
@@ -287,6 +293,10 @@
     window.scrollTo({top:0, behavior:"smooth"}); pending = 0; this.classList.remove("show"); });
   window.addEventListener("scroll", function(){
     if(window.scrollY < 260){ pending = 0; $("jump").classList.remove("show"); } });
+
+  // The shared /pull.js clicks this when she drags down; it re-fetches the feed where
+  // it stands. One pill (the kit's), no reload, no second implementation in this file.
+  $("refresh").addEventListener("click", function(){ pull(); });
 
   pull();
   setInterval(pull, POLL);
