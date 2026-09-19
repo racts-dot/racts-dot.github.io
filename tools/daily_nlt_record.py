@@ -104,19 +104,30 @@ while True:
             sys.exit(f"STOP: next chapter would pass US${CAP:.0f} (spent US${spent['chars'] * RATE:.2f})")
         with tempfile.TemporaryDirectory() as tmp:
             tmp = pathlib.Path(tmp); files = []; marks = []; t = 0.0
-            try:
-                for i, sec in enumerate(ch["sections"]):
-                    marks.append({"title": sec["title"], "s": round(t, 2)})
-                    spoken = (sec["title"] + ". " if sec["title"] else "") + sec["text"]
-                    for j, p in enumerate(pieces(spoken)):
-                        a = tmp / f"{i:03d}_{j:02d}.mp3"
-                        a.write_bytes(synth(p.strip(), tok))
-                        spent["chars"] += len(p)
-                        t += duration(a); files.append(a)
-            except SynthRefused as e:
+            # Google judges sentence length with ITS OWN splitter - it does not end a sentence
+            # on a period between digits, so a genealogy list arrives as one long sentence
+            # however short we cut ours. On a refusal, send smaller pieces and try again.
+            refused = None
+            for limit in (4000, 800, 300):
+                files = []; marks = []; t = 0.0; refused = None
+                try:
+                    for i, sec in enumerate(ch["sections"]):
+                        marks.append({"title": sec["title"], "s": round(t, 2)})
+                        spoken = (sec["title"] + ". " if sec["title"] else "") + sec["text"]
+                        for j, p in enumerate(pieces(spoken, limit)):
+                            a = tmp / f"{limit}_{i:03d}_{j:02d}.mp3"
+                            a.write_bytes(synth(p.strip(), tok))
+                            spent["chars"] += len(p)
+                            t += duration(a); files.append(a)
+                    break
+                except SynthRefused as e:
+                    refused = e
+                    SPENT.write_text(json.dumps(spent))
+                    print(f"{ch['ref']}: refused at {limit}-byte pieces, trying smaller", flush=True)
+            if refused is not None:
                 SPENT.write_text(json.dumps(spent))
-                print(f"SKIPPED {ch['ref']}: {e}", flush=True)
-                (OUT / (f.stem + ".refused")).write_text(str(e))
+                print(f"SKIPPED {ch['ref']}: {refused}", flush=True)
+                (OUT / (f.stem + ".refused")).write_text(str(refused))
                 continue
             SPENT.write_text(json.dumps(spent))
             lst = tmp / "list.txt"
