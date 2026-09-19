@@ -1,0 +1,10 @@
+{
+  "name": "Start — Rachel's own page",
+  "short_name": "Start",
+  "start_url": "/start/",
+  "scope": "/start/",
+  "display": "standalone",
+  "background_color": "#0B0E13",
+  "theme_color": "#0B0E13",
+  "description": "The clock, one focus line, a scratch pad that is the same on every device, and everything she works in."
+}

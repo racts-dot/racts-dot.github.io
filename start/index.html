@@ -7,6 +7,14 @@
 <title>Start</title>
 <meta name="description" content="Rachel's own start page: the clock, every place she works, and what the day has done so far, streamed.">
 <meta name="theme-color" content="#0B0E13">
+<!-- So the phone can keep it on the Home Screen and open it full screen, with no address
+     bar, exactly like her other apps. NO icons yet: an icon is drawn at source on Vertex
+     (US$0.12 through spend_gate) and she picks it, so it is not invented here. Until then
+     iOS uses a snapshot of the page, which is why this is only half the job. -->
+<link rel="manifest" href="/start/manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Start">
 <!-- WHY THIS PAGE EXISTS. Her ask, 19 Sep 2026: "i need a webpage that i start the chrome and
      have like i do now. i have momentum the extension but I would want my own webpage like the
      ones linking all the things I am on. streaming the tasks status."
