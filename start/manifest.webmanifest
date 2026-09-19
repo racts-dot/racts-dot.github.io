@@ -1,0 +1,28 @@
+{
+  "name": "Start \u2014 Rachel's own page",
+  "short_name": "Start",
+  "start_url": "/start/",
+  "scope": "/start/",
+  "display": "standalone",
+  "background_color": "#0B0E13",
+  "theme_color": "#0B0E13",
+  "description": "The clock, one focus line, a scratch pad that is the same on every device, and everything she works in.",
+  "icons": [
+    {
+      "src": "/start/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/start/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/start/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -142,11 +142,42 @@
      contrast instead of one hard-coded wash that only suits the light one. */
   #bgscrim { position: fixed; inset: 0; z-index: -1; pointer-events: none;
              background: var(--paper); opacity: 0.78; }
+  /* 19 Sep 2026, her note: "And it is not moving the background." The six photos were loading
+     (all 200 image/jpeg, checked live) and the animation was correct - but iPhones with
+     Settings > Accessibility > Motion > Reduce Motion switched on matched the rule below, which
+     turned the whole thing off and left one still photo. She was looking at a working feature that
+     her phone had disabled. Reduce Motion is about MOVEMENT, not about a picture changing, so the
+     drift and zoom stay off and the slow cross-fade comes back. */
   @media (prefers-reduced-motion: reduce) {
-    #bgshow i { animation: none; }
-    #bgshow i:nth-child(1) { opacity: 1; }
+    #bgshow i { animation: bgfade 96s linear infinite; }
   }
-  @media print { #bgshow, #bgscrim { display: none; } }
+  :root {
+    --k-flight: #1f6feb; --k-stay: #8250df; --k-transport: #0f766e;
+    --k-activity: #b8860b; --k-food: #c2410c; --k-note: #6b7280;
+  }
+  .cal-ico .ki-flight, .k-flight .kind { color: var(--k-flight); }
+  .cal-ico .ki-stay, .k-stay .kind { color: var(--k-stay); }
+  .cal-ico .ki-transport, .k-transport .kind { color: var(--k-transport); }
+  .cal-ico .ki-activity, .k-activity .kind { color: var(--k-activity); }
+  .cal-ico .ki-food, .k-food .kind { color: var(--k-food); }
+  .cal-ico .ki-note, .k-note .kind { color: var(--k-note); }
+  .item.k-flight { border-left: 3px solid var(--k-flight); }
+  .item.k-stay { border-left: 3px solid var(--k-stay); }
+  .item.k-transport { border-left: 3px solid var(--k-transport); }
+  .item.k-activity { border-left: 3px solid var(--k-activity); }
+  .item.k-food { border-left: 3px solid var(--k-food); }
+  .item.k-note { border-left: 3px solid var(--k-note); }
+  .item[class*="k-"] { padding-left: .55rem; }
+  .navlink { display: block; padding: .5rem .7rem; font-size: .85rem; text-align: center;
+              border-top: 1px solid var(--line, #d9cebd); }
+  .when .dur { display: block; font-size: .7rem; opacity: .85; }
+  .when.d-short { border-left: 3px solid #2e7d32; padding-left: .4rem; }
+  .when.d-mid   { border-left: 3px solid #ef6c00; padding-left: .4rem; }
+  .when.d-long  { border-left: 3px solid #6a1b9a; padding-left: .4rem; }
+  .mapbtn { margin-top: .4rem; }
+  .mapwrap { margin-top: .5rem; border: 1px solid var(--line, #d9cebd); border-radius: .6rem; overflow: hidden; }
+  .mapwrap iframe { display: block; width: 100%; height: 15rem; border: 0; }
+  @media print { #bgshow, #bgscrim, .mapbtn, .mapwrap { display: none; } }
   .wrap { max-width: 46rem; margin: 0 auto; padding: 1rem 1rem 5rem; }
 
   h1, h2, h3 { font-family: var(--f-display); font-weight: 600; line-height: 1.2; margin: 0; }
@@ -310,7 +341,8 @@
     .card, .item { break-inside: avoid; }
   }
 </style>
-<script src="../textsize.js"></script><script src="../feedback.js" defer></script>
+<script src="../textsize.js"></script><script src="../feedback.js" defer></script><script src="../notion-sync.js"></script><script src="../marks.js" defer></script>
+<script src="../pull.js" defer></script><script src="../hearsel.js" defer></script>
 </head>
 <body>
 <div id="bgshow" aria-hidden="true"><i style="background-image:url(bg/korea-blossom.jpg)"></i><i style="background-image:url(bg/korea-hanok.jpg)"></i><i style="background-image:url(bg/europe-rooftops.jpg)"></i><i style="background-image:url(bg/europe-alps.jpg)"></i><i style="background-image:url(bg/sky-clouds.jpg)"></i><i style="background-image:url(bg/sky-aurora.jpg)"></i></div>
@@ -366,7 +398,7 @@
     for (var i = 0; i < list.length; i++) {
       var k = list[i].k || "note";
       if (seen[k]) continue;
-      seen[k] = 1; out.push(kindIcon(k));
+      seen[k] = 1; out.push('<span class="ki-' + k + '">' + kindIcon(k) + '</span>');
       if (out.length === 3) break;          /* three is all a day cell can hold */
     }
     return out.join("");
@@ -447,6 +479,20 @@
   function kindLabel(k) {
     for (var i = 0; i < KINDS.length; i++) if (KINDS[i][0] === k) return KINDS[i][1];
     return "Note";
+  }
+  /* Minutes between two "HH:MM" strings, or null when either is missing. An end before the start
+     is read as crossing midnight, which is what a late dinner or a night flight actually is. */
+  function spanMins(s, e) {
+    var m1 = /^(\d{1,2}):(\d{2})$/.exec(s || ""), m2 = /^(\d{1,2}):(\d{2})$/.exec(e || "");
+    if (!m1 || !m2) return null;
+    var a = (+m1[1]) * 60 + (+m1[2]), b = (+m2[1]) * 60 + (+m2[2]);
+    var d = b - a; if (d < 0) d += 24 * 60;
+    return d;
+  }
+  function fmtSpan(m) {
+    if (m < 60) return m + " min";
+    var h = Math.floor(m / 60), r = m % 60;
+    return h + "h" + (r ? " " + r + "m" : "");
   }
   function safeUrl(u) {
     if (!u) return "";
@@ -1391,8 +1437,10 @@
   }
 
   function itemRow(t, a, redraw, editable) {
-    var row = document.createElement("div"); row.className = "item";
+    var row = document.createElement("div"); row.className = "item k-" + (a.k || "note");
     var when = fmtTime(a.s) + (a.e ? "–" + fmtTime(a.e) : "");
+    var mins = spanMins(a.s, a.e);
+    var band = mins === null ? "" : (mins <= 60 ? "d-short" : mins <= 180 ? "d-mid" : "d-long");
     var links = "";
     if (safeUrl(a.w)) links += '<a href="' + esc(a.w) + '" target="_blank" rel="noopener noreferrer">Open link</a>';
     if (safeUrl(a.m)) links += '<a href="' + esc(a.m) + '" target="_blank" rel="noopener noreferrer">Open map</a>';
@@ -1410,13 +1458,45 @@
       encodeURIComponent(a.l || a.t) +
       '" target="_blank" rel="noopener noreferrer">Find videos</a>';
     row.innerHTML =
-      '<div class="when">' + esc(when || "—") + '</div>' +
+      '<div class="when' + (band ? " " + band : "") + '"' +
+        (mins === null ? "" : ' title="' + esc(fmtSpan(mins)) + '"') + '>' +
+        esc(when || "—") + (mins === null ? "" : '<span class="dur">' + esc(fmtSpan(mins)) + '</span>') +
+      '</div>' +
       '<div class="body">' +
         '<div class="ttl">' + esc(a.t || "Untitled") + '<span class="kind">' + esc(kindLabel(a.k)) + '</span></div>' +
         (a.l ? '<div class="where">' + esc(a.l) + '</div>' : "") +
         (a.n ? '<div class="note">' + esc(a.n) + '</div>' : "") +
         (links ? '<div class="links">' + links + '</div>' : "") +
       '</div>';
+    var mq = safeUrl(a.m) ? null : (a.l || a.t || "");
+    if (mq) {
+      var mb = document.createElement("button");
+      mb.type = "button"; mb.className = "quiet noprint mapbtn"; mb.textContent = "Map";
+      mb.setAttribute("aria-expanded", "false");
+      var mwrap = document.createElement("div");
+      mwrap.className = "mapwrap"; mwrap.hidden = true;
+      mb.onclick = function () {
+        var open = mwrap.hidden;
+        mwrap.hidden = !open;
+        mb.setAttribute("aria-expanded", String(open));
+        mb.textContent = open ? "Hide map" : "Map";
+        if (open && !mwrap.firstChild) {
+          var f = document.createElement("iframe");
+          f.loading = "lazy"; f.referrerPolicy = "no-referrer-when-downgrade";
+          f.title = "Map of " + (a.l || a.t || "this stop");
+          f.src = "https://www.google.com/maps?q=" + encodeURIComponent(a.l || a.t) + "&output=embed";
+          mwrap.appendChild(f);
+          var nv = document.createElement("a");
+          nv.className = "navlink";
+          nv.href = "https://map.naver.com/p/search/" + encodeURIComponent(a.l || a.t);
+          nv.target = "_blank"; nv.rel = "noopener noreferrer";
+          nv.textContent = "Open in Naver 네이버 지도";
+          mwrap.appendChild(nv);
+        }
+      };
+      row.querySelector(".body").appendChild(mb);
+      row.querySelector(".body").appendChild(mwrap);
+    }
     if (editable) {
       var acts = document.createElement("div"); acts.className = "row noprint";
       acts.style.flex = "0 0 auto"; acts.style.alignItems = "flex-start";
@@ -1881,7 +1961,11 @@
   function step(d){
     var bars = [].slice.call(document.querySelectorAll("#app .daybar"));
     var jump = document.querySelectorAll("#app .jump button");
-    if (!bars.length || jump.length !== bars.length) return;   // only the reading view has both
+    if (!bars.length || jump.length !== bars.length) {
+      // Not the reading view. On the list, a swipe left opens the newest trip.
+      if (d === 1) press("Read");
+      return;
+    }
     var cur = -1;
     bars.forEach(function(b, i){ if (b.getBoundingClientRect().top <= 60) cur = i; });
     // At the bottom the last days cannot scroll to the top, so remember the day last jumped to.
@@ -1891,9 +1975,22 @@
       if (top > 60 && top < innerHeight) cur = last;
     }
     var n = cur + d;
-    if (n < 0 || n >= bars.length) return;
+    // 19 Sep 2026, her note: "There are no swipe and I ask you to put that um one into the list."
+    // Swipe only ever moved between DAYS, so on the list - the first screen she sees - nothing
+    // happened and the feature read as missing. Past the first day, a swipe right now goes back to
+    // the list, which is where a swipe back from the top of a trip should land.
+    if (n < 0) { press("All trips"); return; }
+    if (n >= bars.length) return;
     last = n;
     jump[n].click();
+  }
+  // Click one of the app's own buttons by the words on it, so a swipe never does anything the
+  // button itself would not do. Silent when that button is not on screen.
+  function press(label){
+    var b = [].slice.call(document.querySelectorAll("#app button, #topActions button"))
+              .filter(function(x){ return x.textContent.trim() === label; })[0];
+    if (b) { b.click(); return true; }
+    return false;
   }
   document.addEventListener("touchstart", function(e){
     x0 = null;

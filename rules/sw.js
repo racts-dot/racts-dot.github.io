@@ -11,7 +11,7 @@
 
    Added 19 Sep 2026 on her word, "even though it is not app, I want app."
 */
-const CACHE = "rule-shelf-v1";
+const CACHE = "rule-shelf-v3";
 const SHELL = [
   "./",
   "./index.html",

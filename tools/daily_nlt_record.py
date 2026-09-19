@@ -17,8 +17,12 @@ URL = "https://texttospeech.googleapis.com/v1/text:synthesize"
 PROJECT = "gen-lang-client-0626840434"
 VOICE = "en-AU-Chirp3-HD-Aoede"
 RATE = 30.0 / 1_000_000
-CAP = 130.0
+CAP = 155.0   # [HUMAN 2026-09-19] raised from 130 on her pick "Raise it to US$155" - 130 stopped at ~1027 of 1189
 OUT.mkdir(parents=True, exist_ok=True)
+
+
+class SynthRefused(Exception):
+    """Google refused this piece. Skip the chapter, keep the run alive."""
 
 
 def token():
@@ -40,7 +44,9 @@ def synth(text, tok):
                 tok[0] = token(); continue
             if e.code in (429, 500, 503) and attempt < 5:
                 time.sleep(10 * (attempt + 1)); continue
-            sys.exit("HTTP %d: %s" % (e.code, msg))
+            # 19 Sep 2026: a 400 used to sys.exit and stop everything. One bad chapter
+            # now fails loudly and is skipped; the rest of the Bible still records.
+            raise SynthRefused("HTTP %d: %s" % (e.code, msg))
         except (urllib.error.URLError, ConnectionError, TimeoutError) as e:
             if attempt < 5:
                 time.sleep(10 * (attempt + 1)); continue
@@ -51,12 +57,13 @@ def sentences(text):
     """Google refuses one very long sentence (Exodus 35's lists), so a long one is cut at ; : or , into shorter ones."""
     out = []
     for s in __import__("re").findall(r"[^.!?]+[.!?”’\"]*\s*", text) or [text]:
-        while len(s) > 250:
-            cut = max(s.rfind(ch, 0, 250) for ch in ";:,")
+        while len(s) > 200:
+            cut = max(s.rfind(ch, 0, 200) for ch in ";:,")
             if cut < 60:
-                cut = s.rfind(" ", 0, 250)
+                cut = s.rfind(" ", 0, 200)
             if cut < 60:
-                break
+                cut = 200          # 19 Sep 2026: was `break`, which handed Google the whole
+                                   # long sentence and got HTTP 400, killing the entire run.
             out.append(s[:cut].rstrip(" ,;:") + ". ")
             s = s[cut + 1:].lstrip()
         out.append(s)
@@ -97,14 +104,31 @@ while True:
             sys.exit(f"STOP: next chapter would pass US${CAP:.0f} (spent US${spent['chars'] * RATE:.2f})")
         with tempfile.TemporaryDirectory() as tmp:
             tmp = pathlib.Path(tmp); files = []; marks = []; t = 0.0
-            for i, sec in enumerate(ch["sections"]):
-                marks.append({"title": sec["title"], "s": round(t, 2)})
-                spoken = (sec["title"] + ". " if sec["title"] else "") + sec["text"]
-                for j, p in enumerate(pieces(spoken)):
-                    a = tmp / f"{i:03d}_{j:02d}.mp3"
-                    a.write_bytes(synth(p.strip(), tok))
-                    spent["chars"] += len(p)
-                    t += duration(a); files.append(a)
+            # Google judges sentence length with ITS OWN splitter - it does not end a sentence
+            # on a period between digits, so a genealogy list arrives as one long sentence
+            # however short we cut ours. On a refusal, send smaller pieces and try again.
+            refused = None
+            for limit in (4000, 800, 300):
+                files = []; marks = []; t = 0.0; refused = None
+                try:
+                    for i, sec in enumerate(ch["sections"]):
+                        marks.append({"title": sec["title"], "s": round(t, 2)})
+                        spoken = (sec["title"] + ". " if sec["title"] else "") + sec["text"]
+                        for j, p in enumerate(pieces(spoken, limit)):
+                            a = tmp / f"{limit}_{i:03d}_{j:02d}.mp3"
+                            a.write_bytes(synth(p.strip(), tok))
+                            spent["chars"] += len(p)
+                            t += duration(a); files.append(a)
+                    break
+                except SynthRefused as e:
+                    refused = e
+                    SPENT.write_text(json.dumps(spent))
+                    print(f"{ch['ref']}: refused at {limit}-byte pieces, trying smaller", flush=True)
+            if refused is not None:
+                SPENT.write_text(json.dumps(spent))
+                print(f"SKIPPED {ch['ref']}: {refused}", flush=True)
+                (OUT / (f.stem + ".refused")).write_text(str(refused))
+                continue
             SPENT.write_text(json.dumps(spent))
             lst = tmp / "list.txt"
             lst.write_text("".join(f"file '{a}'\n" for a in files))

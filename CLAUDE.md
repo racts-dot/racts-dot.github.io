@@ -38,6 +38,80 @@ still wins on money, public and hard-to-undo.
   Her *"as long as it is the same duplicate that we have on recipes"* was checked and failed: Hormozi
   held 202 items Recipes lacked, Workflows 69. The condition was hers; the measurement decides.
 
+- `[HUMAN 2026-09-17]` **WHAT SHE ASKS FOR ON ONE APP IS ASKED FOR ON EVERY APP, AND IT STAYS ASKED.**
+  Her words: *"Just apply for the things that I apply for every other app"* and *"Probably the rule applies
+  for the same app going forward unless it's asked."* A piece she asks for JOINS THE KIT LIST the same day -
+  in `status/app_kit_check.py` - not only the app she happened to be looking at. Only she takes a piece back.
+  ⛔ Why it is written down: on 19 Sep TripShare still had no swipe, two days after the kit rule - *"There are
+  no swipe and I ask you to put that um one into the list"* - and pull-to-refresh, which she has asked for
+  repeatedly, is live in 3 of 19 apps because it was never added to the list.
+
+- `[HUMAN 2026-09-18]` **READ ALOUD USES A NATURAL VOICE.** Her words, and she asked for this to be the rule:
+  *"Put it in the rule book that it has to have the um natural voices."* Creator Reading Room is the reference
+  implementation - match it, do not build a second voice stack. Four more of hers about the same voice, all
+  still open:
+  - it reads only what was asked for - *"a better voice that only reads the questions"* (Glaucoma study)
+  - the control sits at the TOP of the page, not the bottom - *"Voice on top not at the bottom"* (Prayer Points)
+  - voice and speed change by TAP, not a dropdown - *"tap to change instead of drop box"* (the Desk)
+  - she can select a part and hear just that part, and SEE what is being read - *"i want the select to hear the
+    specitic part"* (Recipes), *"get things highlighted once you ... activate this ... so we know which pages
+    being talked about"* (TripShare)
+  - it stops when she leaves the page - *"the voice gets out of it when I quit. So it has been fixed but
+    hasn't"* (the Desk). Read as: audio keeps playing after she leaves, and the earlier fix did not hold.
+
+- `[HUMAN 2026-09-17]` **HIGHLIGHTS AND NOTES ARE A KIT PIECE, not a Reading Room feature.** Her words:
+  *"I will need the highlight versions highlighters as well and the notes probably"* (Daily Chapter) and
+  *"Just like the creators reading - make highlights and notes for you to know which needs to be ammeded"*
+  (Rule Shelf, 19 Sep). Reference: Creator Reading Room.
+
+- `[HUMAN 2026-09-19]` **NOTHING LINKS OUT IF IT COULD LIVE IN THE APP.** Her words: *"I don't want it in a
+  separate links or some sort. I'll want it like in the same app"* (Recipes), *"not to link to somewhere but to
+  like um have the notes so you can do the work here"* (the Desk), *"it's better if you have it on the tab not
+  the link"* (TripShare). A tab, a panel or a pop-up inside the app beats sending her to another page.
+
+- `[HUMAN 2026-09-17]` **EVERY BOX MOVES AND RESIZES, AND IT DRAGS FROM ANYWHERE ON IT.** Her words: *"all the
+  floating things should be movable, no matter where you're dragging"* and *"in every boxes, even for this one,
+  I want to be able to have the option to resize, move it around"* (Daily Chapter), *"it doesn't drag if you
+  touch the bottom of a part and there's too much of a bezel"* (16 Sep), *"I can't really drag this thing"*
+  (Rule Shelf, 19 Sep).
+
+- `[HUMAN 2026-09-16]` **AN APP'S CONTENT COMES FROM HER OWN SOURCES.** Her words: *"I will need it from my own
+  resource. All those information. Do not find it from elsewhere"* and *"Everything has to be from the resources
+  like if it is not just mention reference. So I was wanting to get things from the Notion notes and to be
+  here"* (Priest Hood). Her Notion notes and her files are the source; anything from elsewhere is labelled a
+  reference, never presented as hers. And the source is linked: *"I will want the link to where it was sourced
+  from, the photos and everything"* (the Desk).
+
+- `[HUMAN 2026-09-18]` **AN APP WITHOUT ITS ICON IS NOT DONE.** Three notes, three apps, same sentence -
+  Sales Tracker *"I would like to have some thumbnail for this one, like the app thumbnail"*, Glaucoma study
+  *"I will need the thumbnail for the application"*, Rule Shelf *"I don't have the um app thumbnail here"*.
+  The icon is a kit piece; her pick is read from the tick-box page, never from a summary of it.
+
+🚨 **CORRECTED 19 Sep 2026, SAME DAY, BY A WINDOWS SESSION. ~~`status/app_kit_check.py` is in no repo's
+`origin/main`~~ — THAT WAS WRONG AND IT WAS MY SEARCH THAT WAS WRONG.** The file has been on home-notes
+`origin/main` since 17 Sep (`ae18d3a6`), last changed 19 Sep (`b61c19ef`, the viewport piece), 11,882 bytes,
+and `status/` has an exception in that repo's `.gitignore`. My `git ls-tree | grep kit | head` truncated before
+reaching it, so a zero came back from a search that never finished — the 18 Sep lesson, one day late.
+
+⚠ **WHAT IS ACTUALLY TRUE, re-derived on the Mac 19 Sep:** the file is not on the Mac's DISK because
+`~/home-notes` is **99 ahead and 958 behind** `origin/main`, and the 30-minute sync fails on it **every run** —
+`pull FAILED: fatal: Cannot fast-forward to multiple branches` in `status/sync_all_log.txt`, with 2,431 modified
+files in that checkout. So every check, rule and register Windows has written for weeks has never reached a Mac
+session. **That is the machine-level reason her instructions keep having to be repeated, and it is not fixed.**
+Until it is: run the check from origin without touching the worktree —
+`git -C ~/home-notes show origin/main:status/app_kit_check.py > /tmp/k.py && python /tmp/k.py`.
+
+⚠ **THE CHECK IS ALSO WINDOWS-SHAPED IN TWO WAYS.** `SITE_REPO = HOME/".site-publish"` does not exist on the
+Mac (the clone here is `~/website`), and the rule's own `python status/app_kit_check.py` is a path that resolves
+only on Windows, where home-notes IS the home folder. Both need a both-machines form, not the Mac's.
+
+🔴 **AND THE THING THAT MATTERS MOST. RUN ON THE MAC 19 Sep IT REPORTED `25 apps, 4 gaps` — while she was
+telling us, that same day, that TripShare has no swipe.** It scores swipe by finding the WORD in the served
+page. Her 17 Sep lesson already said a reference is not a load; this is the next step of the same mistake —
+**a reference is not a working feature.** It also does not test five of the things she asks for most:
+natural voice, pull-to-refresh, highlights and notes, boxes that drag and resize, and the app icon.
+**A green check is why nothing changed for weeks. Do not quote it as evidence until it tests behaviour.**
+
 ## The checks (mechanisms, no AI) - an app is not done until these say so
 
 | Check | What it proves | Run |

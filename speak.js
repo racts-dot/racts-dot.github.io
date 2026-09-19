@@ -276,14 +276,30 @@
     } catch (e) {}
   }
 
-  // Never silent: if the natural voice cannot be reached she is TOLD, and the phone voice takes over.
+  // Never silent: if the natural voice cannot be reached she is TOLD - and since
+  // 19 Sep 2026 ("get rid of karen") reading STOPS there rather than dropping to
+  // the phone voice, so a fault is heard as a fault and not as a bad voice.
   function toPhone(why) {
     cloudBroken = true;
-    if (nowEl) nowEl.textContent = why;
-    if (playing && !paused) sayOnDevice(parts[idx]);
+    finish(why || whyNoNatural());
   }
 
-  function sayOnDevice(p) {
+  /* ---- 19 Sep 2026, her words: "how about you get rid of karen" -------------
+     Karen is the phone's own voice. It used to be the SILENT fallback whenever
+     the natural voice could not be reached, which is exactly why she pressed
+     Read aloud, heard the robot, and concluded nothing had shipped. It now says
+     what is wrong instead, so a fault looks like a fault.
+     ⚠ The cost of this: with no internet there is no read aloud at all.
+     sayOnDevice is kept, unused, so turning Karen back on is one line.
+  --------------------------------------------------------------------------- */
+  function whyNoNatural() {
+    if (NO_NATURAL) return "This app keeps its words on your phone, so it has no natural voice.";
+    if (store.get(K_CLOUD) === "0") return "The natural voice is switched off here \u2014 turn it back on above.";
+    if (!pass()) return "The natural voice needs this device connected \u2014 enter the apps password once.";
+    return "The natural voice could not be reached just now. Try again in a moment.";
+  }
+
+  function sayOnDevice(p) {   /* kept, no longer called - see the note above */
     if (!p) return;
     var u = new SpeechSynthesisUtterance(p.text);
     var v = /[\uAC00-\uD7A3]/.test(p.text) ? (koreanVoice() || chosenVoice()) : chosenVoice();
@@ -321,7 +337,7 @@
     mark(p.el);
     nowEl.textContent = p.text.length > 90 ? p.text.slice(0, 88) + "\u2026" : p.text;
     paint();
-    if (cloudOn() && !cloudBroken) sayFromRelay(p); else sayOnDevice(p);
+    if (cloudOn() && !cloudBroken) sayFromRelay(p); else finish(whyNoNatural());
   }
   function holdOn() {
     paused = true;
@@ -344,7 +360,8 @@
     parts = collect(); idx = 0; paused = false; cloudBroken = false; playToken++;
     if (!parts.length) { nowEl.textContent = "Nothing to read on this screen."; return; }
     playing = true;
-    if (cloudOn()) nowEl.textContent = "Fetching the natural voice\u2026";
+    if (!cloudOn()) { playing = false; nowEl.textContent = whyNoNatural(); paint(); return; }
+    nowEl.textContent = "Fetching the natural voice\u2026";
     step();
   }
   function finish(msg) {

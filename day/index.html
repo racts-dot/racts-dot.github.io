@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Day</title>
+<meta name="description" content="What has actually been done today, in order, against thirty digital products.">
+<meta name="theme-color" content="#0E1116">
+<link rel="manifest" href="/day/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/day/apple-touch-icon.png">
+<link rel="icon" href="/day/icon-192.png" sizes="192x192">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="The Day">
+<style>
+  :root{
+    --ground:#0E1116; --surface:#161B23; --surface-2:#1D242E; --line:#2A3340;
+    --ink:#EDF1F6; --muted:#9AA7B6; --faint:#6E7C8C;
+    --live:#54C88F; --published:#7FB2F0; --ready:#E4B75C; --build:#B69BE8; --pause:#8A97A6;
+    --accent:#54C88F; --warn:#E4875C;
+    --body:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif;
+    --num:ui-rounded,-apple-system,"SF Pro Rounded",system-ui,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body)}
+  body{padding:0 16px calc(96px + env(safe-area-inset-bottom));max-width:720px;margin:0 auto;
+       overscroll-behavior-y:contain}
+  a{color:var(--accent)}
+
+  header{padding:calc(18px + env(safe-area-inset-top)) 0 10px;position:sticky;top:0;z-index:30;
+         background:linear-gradient(var(--ground) 72%,rgba(14,17,22,0));}
+  .top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  h1{font-size:20px;margin:0;letter-spacing:-.2px}
+  .when{color:var(--faint);font-size:13px}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--live);display:inline-block;
+       box-shadow:0 0 0 0 rgba(84,200,143,.7)}
+  .dot.beat{animation:beat 2.2s ease-out infinite}
+  .dot.cold{background:var(--warn);animation:none}
+  @keyframes beat{0%{box-shadow:0 0 0 0 rgba(84,200,143,.55)}70%{box-shadow:0 0 0 9px rgba(84,200,143,0)}
+                  100%{box-shadow:0 0 0 0 rgba(84,200,143,0)}}
+
+  .banner{display:none;margin:8px 0 0;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.45;
+          background:#2A2018;border:1px solid #5A3F28;color:#F0D7BF}
+  .banner.show{display:block}
+
+  .score{margin:14px 0 0;padding:18px 18px 16px;border-radius:20px;background:var(--surface);
+         border:1px solid var(--line)}
+  /* Her ruling, 19 Sep 2026: BOTH numbers the same size, neither under the other.
+     On Etsy is what she pressed Publish on; verified live is what somebody read back. */
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .half b{font-family:var(--num);font-size:52px;line-height:.92;font-weight:800;letter-spacing:-2px;display:block}
+  .half b.live{color:var(--live)} .half b.pub{color:var(--published)}
+  .half span{font-size:15px;color:var(--ink);margin-top:6px;display:block;line-height:1.3}
+  .half span em{font-style:normal;display:block;font-size:12px;color:var(--faint);margin-top:2px}
+  .of{text-align:center;font-size:17px;color:var(--muted);margin-top:14px}
+  .bar{position:relative;height:9px;border-radius:99px;background:var(--surface-2);margin:12px 0 4px;overflow:hidden}
+  .bar i{position:absolute;left:0;top:0;height:100%;border-radius:99px;width:0;transition:width .7s ease}
+  #barPub{background:var(--published)}          /* on Etsy, the wider one */
+  #bar{background:var(--live)}                  /* verified live, drawn over it */
+  .pace{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .pace b{color:var(--ink);font-weight:600}
+  .pace.miss b{color:var(--warn)}
+  .pace .unit{display:block;opacity:.75;font-size:12px;margin-top:2px}
+
+  .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+  .tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 13px}
+  .tile b{font-family:var(--num);font-size:26px;font-weight:700;display:block;line-height:1.1}
+  .tile span{font-size:12px;color:var(--muted);line-height:1.35;display:block;margin-top:3px}
+  .tile.live b{color:var(--live)} .tile.pub b{color:var(--published)}
+  .tile.ready b{color:var(--ready)} .tile.build b{color:var(--build)}
+
+  h2{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);
+     margin:26px 0 10px;font-weight:600}
+
+  .lane{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;background:var(--surface);
+        border:1px solid var(--line);border-radius:14px;margin-bottom:8px}
+  .lane .tag{flex:0 0 auto;font-family:var(--num);font-weight:700;font-size:13px;padding:2px 9px;
+             border-radius:8px;background:var(--surface-2);color:var(--ink)}
+  .lane .what{font-size:14px;line-height:1.4;min-width:0}
+  .lane .what em{font-style:normal;color:var(--muted)}
+
+  .feed{list-style:none;margin:0;padding:0}
+  .ev{display:grid;grid-template-columns:52px 1fr;gap:12px;padding:12px 0;border-top:1px solid var(--line)}
+  .ev:first-child{border-top:0}
+  .ev time{font-family:var(--num);font-size:13px;color:var(--faint);padding-top:2px}
+  .ev .body{min-width:0}
+  .ev .t{font-size:15px;line-height:1.42;word-wrap:break-word}
+  /* Commits and register notes are evidence that work happened; they are NOT product
+     completions and never move a count. They read quieter so they cannot pass for one. */
+  .ev[data-kind=commit] .t, .ev[data-kind=register] .t{font-size:14px;color:var(--muted)}
+  .ev[data-kind=commit] time, .ev[data-kind=register] time{opacity:.65}
+  .ev .d{font-size:13px;color:var(--muted);margin-top:3px;line-height:1.4}
+  .ev .src{display:inline-block;font-size:11px;color:var(--faint);border:1px solid var(--line);
+           border-radius:7px;padding:1px 6px;margin-top:6px}
+  .ev .pip{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--faint);
+           margin-right:7px;vertical-align:1px}
+  .ev[data-stage=live] .pip{background:var(--live)}
+  .ev[data-stage=published] .pip{background:var(--published)}
+  .ev[data-stage="ready to list"] .pip{background:var(--ready)}
+  .ev[data-stage=building] .pip{background:var(--build)}
+  .ev[data-kind=register] .pip{background:#E4875C}
+  .ev.fresh{animation:in .6s ease}
+  .ev.fresh .t::after{content:"new";font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+       color:var(--ground);background:var(--accent);border-radius:6px;padding:1px 5px;margin-left:8px;
+       vertical-align:2px}
+  @keyframes in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  .day-split{font-size:12px;color:var(--faint);letter-spacing:.06em;text-transform:uppercase;
+             padding:16px 0 6px;border-top:1px solid var(--line);margin-top:6px}
+
+  .jump{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom));
+        background:var(--accent);color:#08130D;border:0;border-radius:99px;padding:10px 18px;font-size:14px;
+        font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.45);display:none;z-index:35;font-family:var(--body)}
+  .jump.show{display:block}
+
+  footer{margin:30px 0 0;padding-top:16px;border-top:1px solid var(--line);color:var(--faint);
+         font-size:12px;line-height:1.6;word-break:break-word}
+  /* Not decoration and not hidden from assistive tech: /pull.js clicks #refresh if the
+     page has one, which is how a shared pull gesture triggers THIS page's in-place
+     re-fetch instead of a full reload. Off-screen, still focusable, still clickable. */
+  #refresh{position:absolute;left:-9999px;width:1px;height:1px;border:0;padding:0;background:none}
+  .empty{color:var(--muted);font-size:14px;line-height:1.5;background:var(--surface);
+         border:1px solid var(--line);border-radius:16px;padding:14px}
+</style>
+<script src="/textsize.js"></script>
+<script src="/speak.js" defer></script>
+<script src="/pull.js" defer></script><script src="../hearsel.js" defer></script>
+</head>
+<body>
+<button id="refresh" aria-label="Refresh now"></button>
+
+<header>
+  <div class="top">
+    <h1>The Day</h1>
+    <span class="dot beat" id="dot" title="live"></span>
+    <span class="when" id="when">loading…</span>
+  </div>
+  <div class="banner" id="banner"></div>
+</header>
+
+<section class="score">
+  <div class="pair">
+    <div class="half"><b id="onEtsy" class="pub">–</b><span>on Etsy<em>Publish pressed</em></span></div>
+    <div class="half"><b id="doneToday" class="live">–</b><span>verified live<em>public page read back</em></span></div>
+  </div>
+  <div class="of">of <span id="target">30</span> today</div>
+  <div class="bar"><i id="barPub"></i><i id="bar"></i></div>
+  <div class="pace" id="pace"></div>
+  <div class="pace" id="coverage"></div>
+</section>
+
+<div class="tiles two">
+  <div class="tile ready"><b id="cReady">–</b><span>ready to list</span></div>
+  <div class="tile build"><b id="cBuild">–</b><span>in build or paused</span></div>
+</div>
+
+<h2>What each lane is on</h2>
+<div id="lanes"></div>
+
+<h2>Today, newest first</h2>
+<ul class="feed" id="feed"></ul>
+
+<footer id="foot"></footer>
+<button class="jump" id="jump">new above ↑</button>
+
+<script>
+(function(){
+  "use strict";
+  var FEED = "/day/stream.json", POLL = 20000, CACHE = "day.stream.last";
+  var $ = function(id){ return document.getElementById(id); };
+  var seen = {}, first = true, pending = 0;
+
+  function store(k,v){ try{ if(v===undefined) return JSON.parse(localStorage.getItem(k)||"null");
+                            localStorage.setItem(k,JSON.stringify(v)); }catch(e){ return null; } }
+
+  function ago(iso){
+    var t = Date.parse(iso); if(isNaN(t)) return "";
+    var m = Math.round((Date.now()-t)/60000);
+    if(m < 1) return "just now"; if(m === 1) return "1 minute ago";
+    if(m < 60) return m + " minutes ago";
+    var h = Math.round(m/60); return h === 1 ? "1 hour ago" : h + " hours ago";
+  }
+  function clock(iso){
+    var d = new Date(iso); if(isNaN(d)) return "";
+    var h = d.getHours(), m = d.getMinutes();
+    return (h<10?"0":"")+h+":"+(m<10?"0":"")+m;
+  }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+
+  function paint(d, live){
+    var c = d.counts || {}, p = d.pace || {}, target = d.target || 30;
+    $("target").textContent = target;
+    var onEtsy = (c.published_not_read_back || 0) + (c.live_total || 0);
+    $("onEtsy").textContent = onEtsy;
+    $("doneToday").textContent = c.live_total != null ? c.live_total : "–";
+    $("barPub").style.width = Math.min(100, (onEtsy/target)*100) + "%";
+    $("bar").style.width = Math.min(100, ((c.live_total||0)/target)*100) + "%";
+    $("cReady").textContent = c.ready_to_list || 0;
+    $("cBuild").textContent = c.in_build || 0;
+
+    // The pace line says the plain thing. A target that cannot be reached from here
+    // is said out loud, because a bar that only ever looks encouraging is a lie.
+    var moves = c.moves_today || 0, byMid = p.by_midnight || 0, pe = $("pace");
+
+    // Both reviewers, 19 Sep 2026, landed on the same line: a verdict is only worth printing when the
+    // evidence can carry it. GPT 5.6 Sol: "on_for_target: false overstates what the evidence supports…
+    // the defensible state is cannot determine." With a stale table, or a table that holds fewer products
+    // than the target, this page cannot tell "nothing was produced" from "nothing was written down".
+    // So it says UNKNOWN. It never turns not-knowing into a zero.
+    // The builder decides this now, from the SLIP BOX: slips carry their own clock,
+    // so a zero is only meaningful when somebody is still dropping them. The old
+    // version worked it out from the queue table's age, which is the thing the slip
+    // box replaced. Falls back to that reading for a feed built before slips existed.
+    var j = d.judgement || {};
+    var srcAge = (d.source || {}).age_days || 0;
+    var canJudge = j.can_tell !== undefined
+      ? j.can_tell
+      : (srcAge === 0 && (d.coverage || {}).can_account_for_target !== false);
+    var why = j.why || (srcAge > 0
+      ? "the table it reads is " + srcAge + " day" + (srcAge === 1 ? "" : "s") + " old"
+      : "the table holds " + ((d.coverage || {}).tracked) + " products, not " + target);
+
+    if((c.live_total||0) >= target){
+      pe.className = "pace"; pe.innerHTML = "<b>Thirty is done.</b> Anything after this is ahead.";
+    } else if(!canJudge){
+      // The honest state. Note it is NOT the warning colour: not knowing is not the same as failing.
+      pe.className = "pace";
+      pe.innerHTML = "<b>Cannot tell whether today is on for " + target + ".</b> " +
+        moves + " step" + (moves===1?"":"s") + " first seen today, but " + why +
+        " — so a zero here may mean nothing was made, or may mean nothing was written down. " +
+        "This page will not guess between the two. " + (c.ready_to_list||0) +
+        " product" + ((c.ready_to_list||0)===1?" is":"s are") + " sitting at ready to list.";
+    } else if(moves === 0){
+      pe.className = "pace miss";
+      pe.innerHTML = "<b>Nothing has moved today yet.</b> Both numbers above are totals, not today. " + (c.ready_to_list||0) +
+        " product" + ((c.ready_to_list||0)===1?" is":"s are") + " sitting at ready to list — listing them is what moves this number.";
+    } else {
+      pe.className = "pace" + (p.on_for_target ? "" : " miss");
+      // A step is not a product: one product can take several steps, and one can go live without a step
+      // being recorded. Said out loud so "N by midnight" is not read as N finished products.
+      pe.innerHTML = moves + " step" + (moves===1?"":"s") + " first seen today, about <b>" +
+        p.moves_per_hour + " an hour</b>. At that rate: <b>" + byMid + " steps by midnight</b>" +
+        (p.on_for_target ? " — on for " + target + "." : " — short of " + target + ".") +
+        " <span class=\"unit\">Steps, not finished products: one product can take several.</span>";
+    }
+
+    // Source COVERAGE, which is a different thing from source freshness: a feed can be
+    // a minute old and still be reading a table that holds 12 products against a target
+    // of 30. (GPT 5.6 Sol, 19 Sep 2026.)
+    var cov = d.coverage || {}, cv = $("coverage"), lines = [];
+    if(cov.tracked != null && !cov.can_account_for_target)
+      lines.push("The table it reads holds <b>" + cov.tracked + " products</b>, not " + target +
+        " — so this page cannot show a path to " + target + ", only what those " + cov.tracked + " did.");
+    if(d.baseline)
+      lines.push("<b>This is the first build since the record was reset</b>, so every row below reads as newly seen and nothing here counts as today's work.");
+    cv.innerHTML = lines.join("<br>");
+    cv.style.display = lines.length ? "" : "none";
+
+    var lanes = d.lanes || [], lw = $("lanes");
+    lw.innerHTML = lanes.length ? lanes.map(function(L){
+      return '<div class="lane"><span class="tag">' + esc(L.lane) + '</span><div class="what">' +
+        L.items.map(function(i){ return esc(i.product) + ' <em>· ' + esc(i.stage) + '</em>'; }).join("<br>") +
+        '</div></div>';
+    }).join("") : '<div class="empty">No lane has an unfinished product in the queue table.</div>';
+
+    var evs = d.events || [], today = d.day, out = [], splitDone = false;
+    for(var i=0;i<evs.length;i++){
+      var e = evs[i], isToday = (e.at||"").slice(0,10) === today;
+      if(!isToday && !splitDone){ out.push('<li class="day-split">earlier</li>'); splitDone = true; }
+      var fresh = !first && !seen[e.id];
+      if(fresh) pending++;
+      seen[e.id] = 1;
+      out.push('<li class="ev' + (fresh?" fresh":"") + '" data-kind="' + esc(e.kind) +
+        '" data-stage="' + esc(e.stage||"") + '"><time>' + esc(clock(e.at)) + '</time><div class="body">' +
+        '<div class="t"><span class="pip"></span>' + esc(e.title) + '</div>' +
+        (e.detail ? '<div class="d">' + esc(e.detail) + '</div>' : "") +
+        '<span class="src">' + esc(e.source) +
+        (e.kind==="queue-move"||e.kind==="queue-new" ? " · first seen" : " · activity, not a count") +
+        '</span></div></li>');
+    }
+    $("feed").innerHTML = out.length ? out.join("") :
+      '<li class="empty">Nothing has been recorded today yet.</li>';
+    first = false;
+
+    var built = ago(d.made_iso || d.made);
+    $("when").textContent = (live ? "built " : "last copy, built ") + built;
+    // A beating dot next to a fresh build time reads as live telemetry. It is not: this is a snapshot
+    // rebuilt on a timer from a table somebody types into. So the dot beats only when the TABLE is
+    // current too, not merely when the file was rebuilt a minute ago. (GPT 5.6 Sol, 19 Sep 2026.)
+    var cold = !live || /hour/.test(built) || ((d.source || {}).age_days || 0) > 0;
+    $("dot").className = "dot" + (cold ? " cold" : " beat");
+    $("dot").title = cold ? "a snapshot, not live" : "live";
+
+    // The banner carries everything that would otherwise make a stale day look like
+    // a quiet one. Each line is a measured fact from the feed, never a guess.
+    var b = $("banner"), msgs = [], src = d.source || {};
+    if(!live) msgs.push("Offline, or the feed did not answer. This is the copy saved on this phone, built " + built + ".");
+    else if(/hour/.test(built)) msgs.push("This feed was built " + built + ". The 20-minute timer may not be running, so treat every number here as that old.");
+    if(src.age_days > 0) msgs.push("The queue table it reads is dated " + esc(src.date) + " — " +
+      src.age_days + " day" + (src.age_days === 1 ? "" : "s") + " old. Anything the lanes have done since then is not in here, and this page cannot tell the difference between a quiet day and an unwritten table.");
+    if(src.matches_github === false) msgs.push("That table on this Mac is NOT the same as the copy on GitHub, so the other machine is reading different rows.");
+    if(msgs.length){ b.className = "banner show"; b.textContent = msgs.join(" "); }
+    else b.className = "banner";
+
+    $("foot").innerHTML = "Built by a plain script — no AI, no tokens, no money. Every line comes from the " +
+      "product factory queue table, the handover register or git's own log." +
+      (d.source_file ? "<br>Queue read from: " + esc(d.source_file) : "") +
+      (d.slips ? "<br>Today's moves come from the slip box: " + (d.slips.today || 0) +
+        " slip(s) today, " + (d.slips.total || 0) + " in all" +
+        (d.slips.unreadable ? ", " + d.slips.unreadable + " unreadable line(s)" : "") +
+        ". A slip is written by whoever did the work, at the moment they did it." : "") +
+      "<br>The feed is only rewritten when something actually changes, so a quiet gap in it is a quiet gap in the work." +
+      "<br>Feed written " + esc(d.made || "") + ". Live means somebody read the public Etsy page back; " +
+      "published means the row says Publish was pressed and nobody has checked since.";
+
+    if(pending > 0 && window.scrollY > 260){ $("jump").classList.add("show");
+      $("jump").textContent = pending + " new above ↑"; }
+  }
+
+  function pull(){
+    return fetch(FEED + "?t=" + Date.now(), {cache:"no-store"})
+      .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(d){ store(CACHE, d); paint(d, true); return true; })
+      .catch(function(){ var d = store(CACHE); if(d) paint(d, false);
+        else { $("when").textContent = "no feed yet"; $("dot").className = "dot cold";
+               $("banner").className = "banner show";
+               $("banner").textContent = "The feed has never reached this phone. It is built by the script and pushed to the site; if it has not been pushed yet, there is nothing to show."; }
+        return false; });
+  }
+
+  $("jump").addEventListener("click", function(){
+    window.scrollTo({top:0, behavior:"smooth"}); pending = 0; this.classList.remove("show"); });
+  window.addEventListener("scroll", function(){
+    if(window.scrollY < 260){ pending = 0; $("jump").classList.remove("show"); } });
+
+  // The shared /pull.js clicks this when she drags down; it re-fetches the feed where
+  // it stands. One pill (the kit's), no reload, no second implementation in this file.
+  $("refresh").addEventListener("click", function(){ pull(); });
+
+  pull();
+  setInterval(pull, POLL);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) pull(); });
+
+  // Pull-to-refresh is the SHARED kit piece, /pull.js, not a copy in here. This page
+  // had its own inline version and the kit one was added on top on 19 Sep — two of them
+  // on one page. The kit file's own header says it: load it, do not reimplement it.
+
+  if("serviceWorker" in navigator) addEventListener("load", function(){
+    navigator.serviceWorker.register("/day/sw.js").catch(function(){}); });
+})();
+</script>
+<script src="/feedback.js" defer data-app="The Day"></script>
+</body>
+</html>
