@@ -6,7 +6,7 @@ everything I will want something separate ... rules specifically for that, separ
 **Scope:** everything a person opens on a phone or in a browser that is hers - this folder
 (racts-dot.github.io and every app in it), the pages.dev copies (prayer-points, morning-and-evening,
 creator-reading-room), stay-ledger, and the Notion relay. **Not** the digital products; their book is
-`C:\Users\soyan\claude desktoi\CLAUDE.md`. The global book (`~/.claude/CLAUDE.md`) still loads first and
+`~/claude desktoi\CLAUDE.md`. The global book (`~/.claude/CLAUDE.md`) still loads first and
 still wins on money, public and hard-to-undo.
 
 ## Her rules for the apps
@@ -44,7 +44,6 @@ still wins on money, public and hard-to-undo.
 |---|---|---|
 | `python status/app_kit_check.py` | Aa, Read aloud, 🎙, swipe, Notion are REFERENCED | nightly 23:30, `app-kit-check` |
 | **Asset sweep** | every file each live page asks for LOADS (a reference is not a load - 18 Sep: two kit scripts 404'd on a page scored 5/5) | fetch each page, request every `src`/`href`, expect 200 |
-| **60-pixel test** | the icon still reads at the size a phone draws it (7 of 11 failed first time) | render at 60 px on dark, LOOK |
 | **Corner check** | no sheet grey / white field in the four corners of any icon | read the corner pixels |
 | **Served bytes** | what is live is what is on disk | md5 of the served file = md5 on disk, never a 200 alone |
 | **Read the page, not the folder** | `/videos/` is 출처 찾기, a word-search inside videos, not a library | open the page before drawing for it |
@@ -66,7 +65,7 @@ This folder IS the live website. It publishes to https://racts-dot.github.io/
 ### The one rule
 
 **There must only ever be ONE copy of this folder on this computer, and it is
-this one: `C:\Users\soyan\Desktop\Sales Tracker Website`.**
+this one: `~/Desktop/Sales Tracker Website`.**
 
 - Never copy or duplicate it anywhere else — not Downloads, not Google Drive,
   not a backup folder.
