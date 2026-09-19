@@ -689,7 +689,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     </div>
     <div class="block" id="meBlock">
       <div class="sec-head"><h2>From Morning &amp; Evening</h2>
-        <p class="sec-note">Your win for today and what you planned last night. Tick them in <a href="../reflect/">Morning &amp; Evening</a>.</p>
+        <p class="sec-note">Your win for today and what you planned last night. Tick them here.</p>
         <span class="count" id="meCount"></span></div>
       <div id="meList"></div>
     </div>
@@ -2106,12 +2106,15 @@ function renderME(){
   for(let back=0; back<7; back++){
     const day=plusDays(todayISO(), -back), m=read("mornings/"+day), ev=read("reflections/"+plusDays(day,-1));
     if(m && m.win && (back===0 || !m.winDone))
-      rows.push({text:m.win, kind:"Win for "+(back===0?"today":shortDate(day)), done:!!m.winDone, back});
+      rows.push({text:m.win, kind:"Win for "+(back===0?"today":shortDate(day)), done:!!m.winDone, back,
+                 key:"mornings/"+day, field:"winDone"});
     if(ev && ev.tomorrow && (back===0 || !ev.tomorrowDone))
-      rows.push({text:ev.tomorrow, kind:"Planned the night before "+(back===0?"today":shortDate(day)), done:!!ev.tomorrowDone, back});
+      rows.push({text:ev.tomorrow, kind:"Planned the night before "+(back===0?"today":shortDate(day)), done:!!ev.tomorrowDone, back,
+                 key:"reflections/"+plusDays(day,-1), field:"tomorrowDone"});
   }
   $("#meCount").textContent = rows.length ? rows.filter(r=>!r.done).length+" open" : "";
-  box.innerHTML = rows.length ? rows.map(r=>cardHTML({ title:r.text, sev:"mine", done:r.done,
+  box.innerHTML = rows.length ? rows.map(r=>cardHTML({ title:r.text, sev:"mine", done:r.done, tick:1,
+      attr:`data-me="${esc(r.field)}" data-meday="${esc(r.key)}"`,
       meta:[pill(r.kind,"cool"), r.back>0&&!r.done?pill("Rolled over "+r.back+(r.back===1?" day":" days"),"watch"):""] })).join("")
     : `<p class="none">Nothing from Morning &amp; Evening on this phone yet. It only shows here on the home-screen Desk, on the same phone.</p>`;
 }
@@ -2284,6 +2287,22 @@ document.addEventListener("change", e=>{
   const k=card.dataset.xl, r=xl[k].find(x=>x.id===card.dataset.xid); if(!r) return;
   r.done=t.checked; r.doneAt=t.checked?new Date().toISOString():null; saveXL(k); renderXL(k);
   logIt(t.checked?"did":"note",(t.checked?"Ticked off: ":"Put back: ")+r.text);
+});
+/* Ticking a Morning & Evening row from the Desk. It writes the SAME record that app reads, under the
+   same key and with the same field names, so Morning & Evening shows it ticked too - one record,
+   two windows onto it, rather than two copies that drift. Nothing else in the record is touched. */
+document.addEventListener("change", e=>{
+  const t=e.target; if(!t.classList||!t.classList.contains("tick")) return;
+  const card=t.closest(".card"); if(!card||!card.dataset.me) return;
+  const key="morning-evening:"+card.dataset.meday, field=card.dataset.me;
+  let rec; try{ rec=JSON.parse(localStorage.getItem(key)||"null"); }catch(err){ rec=null; }
+  if(!rec){ toast("That record is not on this phone."); t.checked=!t.checked; return; }
+  rec[field]=t.checked;
+  try{ localStorage.setItem(key, JSON.stringify(rec)); }
+  catch(err){ toast("Could not save that."); t.checked=!t.checked; return; }
+  const ttl=card.querySelector(".c-title");
+  logIt(t.checked?"did":"note",(t.checked?"Ticked off: ":"Put back: ")+(ttl?ttl.textContent:""));
+  renderME();
 });
 document.addEventListener("input", e=>{
   if(e.target && e.target.id==="xl-keep-find") renderXL("keep");
