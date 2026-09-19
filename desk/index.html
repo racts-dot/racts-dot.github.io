@@ -78,6 +78,14 @@ nav.tabs{padding-bottom:env(safe-area-inset-bottom)!important}</style>
 .day-k{font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:.04em}
 .dayrow.is-diary .day-t{color:var(--accent,#1f6feb)}
 .dayrow.day-head .day-s{font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.6}
+.stagehead{margin:14px 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+  font-weight:700;opacity:.75;display:flex;gap:8px;align-items:baseline}
+.stagehead span{font-weight:600;opacity:.6}
+.stagehead.s-hold{color:#b45309}.stagehead.s-dead{color:#9ca3af}.stagehead.s-live{color:#15803d}
+.tilerow{display:flex;flex-wrap:wrap;gap:8px}
+.tile .tstuck{margin-left:6px;font-weight:700;color:#b45309}
+.tile .tstuck.soft{opacity:.7;font-weight:600}
+.tile .tblock{display:block;font-size:11px;opacity:.8;margin-top:3px;overflow-wrap:anywhere}
 .toast-undo{margin-left:10px;padding:2px 10px;border-radius:999px;border:1px solid currentColor;
   background:transparent;color:inherit;font:inherit;font-weight:600;cursor:pointer}
 #deskbg{position:fixed;inset:0;z-index:-2;overflow:hidden;background:var(--ground)}
@@ -1381,7 +1389,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
        paper in today". So Status, Money and The Paper leave the bar; they are still reachable
        under More, nothing was deleted. eBay takes the free slot - it was already a page, it
        had just never been in the bar. -->
-  <button data-go="ebay"><span class="g">▧</span>eBay</button>
+  <button data-go="status"><span class="g">◎</span>Status<span class="dot hide" id="statDot"></span></button>
   <button data-more><span class="g">⋯</span>More</button>
 </nav>
 
@@ -1698,13 +1706,31 @@ function renderWaiting(){
 }
 const STAGE = {idea:["Idea","work"],built:["Built","work"],listed:["Listed","live"],
   selling:["Selling","live"],paused:["Paused","hold"],blocked:["Blocked","hold"],killed:["Killed","dead"]};
+const STAGE_ORDER = ["blocked","paused","selling","listed","built","idea","killed"];
+function stuckDays(s){ const d = s.moved || s.read; return d ? daysSince(d) : null; }
 function renderStatus(){
-  $("#statCount").textContent = status.length ? status.length+" things" : "";
-  $("#tiles").innerHTML = status.length ? status.map((s,i)=>{
-    const st = STAGE[s.stage] || ["—","work"];
-    return `<button class="tile s-${st[1]}" data-i="${i}">
-      <span class="tn">${esc(s.name)}</span><span class="ts">${esc(st[0])}</span></button>`;
-  }).join("") : `<p class="none">Nothing here yet.</p>`;
+  const blocked = status.filter(s=>s.stage==="blocked").length;
+  $("#statCount").textContent = status.length
+    ? (blocked ? blocked+" blocked of "+status.length : status.length+" things") : "";
+  const dot = $("#statDot"); if(dot) dot.classList.toggle("hide", !blocked);
+  if(!status.length){ $("#tiles").innerHTML = `<p class="none">Nothing here yet.</p>`; return; }
+  let h = "";
+  STAGE_ORDER.forEach(k=>{
+    const inStage = status.map((s,i)=>({s,i})).filter(x=>x.s.stage===k);
+    if(!inStage.length) return;
+    const st = STAGE[k] || ["—","work"];
+    h += `<p class="stagehead s-${st[1]}">${esc(st[0])} <span>${inStage.length}</span></p>`;
+    h += `<div class="tilerow">` + inStage.map(({s,i})=>{
+      const n = stuckDays(s);
+      const sat = n===null ? "" : n>=14 ? `<span class="tstuck">${n} days</span>`
+                : n>=7 ? `<span class="tstuck soft">${n} days</span>` : "";
+      return `<button class="tile s-${st[1]}" data-i="${i}">
+        <span class="tn">${esc(s.name)}</span>
+        <span class="ts">${esc(st[0])}${sat}</span>
+        ${s.block?`<span class="tblock">${esc(s.block)}</span>`:""}</button>`;
+    }).join("") + `</div>`;
+  });
+  $("#tiles").innerHTML = h;
 }
 function renderRolling(){
   const due = rolling.filter(r=>daysSince(r.next)>=0).length;
@@ -2560,6 +2586,7 @@ function openTile(i){
     <div class="setrow" style="margin-top:12px"><label for="tileStage">Stage</label>
       <select id="tileStage">${Object.entries(STAGE).map(([k,v])=>
         `<option value="${k}"${k===s.stage?" selected":""}>${v[0]}</option>`).join("")}</select></div>
+    <div class="adder"><input class="full" id="tileBlock" type="text" placeholder="What is stopping it, if anything." value="${esc(s.block||"")}"><span></span><span></span></div>
     <div class="adder"><textarea class="full" id="tileNote" placeholder="What is true about it now.">${esc(s.note||"")}</textarea>
       <span></span><button id="tileSave">Save</button></div>
     <div class="adder"><span></span>${xbtn("Remove this one","delStat",s.id)}</div>`;
@@ -2598,7 +2625,10 @@ document.addEventListener("click", e=>{
   if(e.target.id==="tileSave"){
     const s=status[tileIdx]; if(!s) return;
     const was=s.stage;
-    s.stage=$("#tileStage").value; s.note=$("#tileNote").value.trim(); s.read=todayISO();
+    const wasStage=s.stage; s.stage=$("#tileStage").value;
+      if(s.stage!==wasStage) s.moved=todayISO();
+      s.block=($("#tileBlock")?$("#tileBlock").value.trim():s.block)||"";
+      s.note=$("#tileNote").value.trim(); s.read=todayISO();
     saveStatus(); renderStatus(); openTile(tileIdx);
     logIt(was===s.stage?"note":"set", was===s.stage
       ? "Updated what is true about "+s.name
@@ -3370,7 +3400,7 @@ add("#mineGo", ()=>{ const t=$("#mineText").value.trim(); if(!t){ toast("Type it
 $("#mineText").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#mineGo").click(); });
 
 add("#statGo", ()=>{ const n=$("#statName").value.trim(); if(!n){ toast("Give it a name."); return; }
-  status.push({id:uid("s"), name:n, stage:$("#statStage").value, note:"", read:todayISO()});
+  status.push({id:uid("s"), name:n, stage:$("#statStage").value, note:"", block:"", read:todayISO(), moved:todayISO()});
   $("#statName").value=""; renderStatus(); saveStatus();
   logIt("new","Started tracking "+n); toast("Added."); });
 
