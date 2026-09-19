@@ -60,6 +60,7 @@
   .pace{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5}
   .pace b{color:var(--ink);font-weight:600}
   .pace.miss b{color:var(--warn)}
+  .pace .unit{display:block;opacity:.75;font-size:12px;margin-top:2px}
 
   .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
   .tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 13px}
@@ -200,17 +201,41 @@
     // The pace line says the plain thing. A target that cannot be reached from here
     // is said out loud, because a bar that only ever looks encouraging is a lie.
     var moves = c.moves_today || 0, byMid = p.by_midnight || 0, pe = $("pace");
+
+    // Both reviewers, 19 Sep 2026, landed on the same line: a verdict is only worth printing when the
+    // evidence can carry it. GPT 5.6 Sol: "on_for_target: false overstates what the evidence supports…
+    // the defensible state is cannot determine." With a stale table, or a table that holds fewer products
+    // than the target, this page cannot tell "nothing was produced" from "nothing was written down".
+    // So it says UNKNOWN. It never turns not-knowing into a zero.
+    var srcAge = (d.source || {}).age_days || 0;
+    var covers = (d.coverage || {}).can_account_for_target !== false;
+    var canJudge = srcAge === 0 && covers;
+    var why = srcAge > 0
+      ? "the table it reads is " + srcAge + " day" + (srcAge === 1 ? "" : "s") + " old"
+      : "the table holds " + ((d.coverage || {}).tracked) + " products, not " + target;
+
     if((c.live_total||0) >= target){
       pe.className = "pace"; pe.innerHTML = "<b>Thirty is done.</b> Anything after this is ahead.";
+    } else if(!canJudge){
+      // The honest state. Note it is NOT the warning colour: not knowing is not the same as failing.
+      pe.className = "pace";
+      pe.innerHTML = "<b>Cannot tell whether today is on for " + target + ".</b> " +
+        moves + " step" + (moves===1?"":"s") + " first seen today, but " + why +
+        " — so a zero here may mean nothing was made, or may mean nothing was written down. " +
+        "This page will not guess between the two. " + (c.ready_to_list||0) +
+        " product" + ((c.ready_to_list||0)===1?" is":"s are") + " sitting at ready to list.";
     } else if(moves === 0){
       pe.className = "pace miss";
       pe.innerHTML = "<b>Nothing has moved today yet.</b> Both numbers above are totals, not today. " + (c.ready_to_list||0) +
         " product" + ((c.ready_to_list||0)===1?" is":"s are") + " sitting at ready to list — listing them is what moves this number.";
     } else {
       pe.className = "pace" + (p.on_for_target ? "" : " miss");
+      // A step is not a product: one product can take several steps, and one can go live without a step
+      // being recorded. Said out loud so "N by midnight" is not read as N finished products.
       pe.innerHTML = moves + " step" + (moves===1?"":"s") + " first seen today, about <b>" +
-        p.moves_per_hour + " an hour</b>. At that rate: <b>" + byMid + " by midnight</b>" +
-        (p.on_for_target ? " — on for " + target + "." : " — short of " + target + ".");
+        p.moves_per_hour + " an hour</b>. At that rate: <b>" + byMid + " steps by midnight</b>" +
+        (p.on_for_target ? " — on for " + target + "." : " — short of " + target + ".") +
+        " <span class=\"unit\">Steps, not finished products: one product can take several.</span>";
     }
 
     // Source COVERAGE, which is a different thing from source freshness: a feed can be
@@ -253,8 +278,12 @@
 
     var built = ago(d.made_iso || d.made);
     $("when").textContent = (live ? "built " : "last copy, built ") + built;
-    var cold = !live || /hour/.test(built);
+    // A beating dot next to a fresh build time reads as live telemetry. It is not: this is a snapshot
+    // rebuilt on a timer from a table somebody types into. So the dot beats only when the TABLE is
+    // current too, not merely when the file was rebuilt a minute ago. (GPT 5.6 Sol, 19 Sep 2026.)
+    var cold = !live || /hour/.test(built) || ((d.source || {}).age_days || 0) > 0;
     $("dot").className = "dot" + (cold ? " cold" : " beat");
+    $("dot").title = cold ? "a snapshot, not live" : "live";
 
     // The banner carries everything that would otherwise make a stale day look like
     // a quiet one. Each line is a measured fact from the feed, never a guess.
