@@ -155,7 +155,28 @@
   .chats .a{color:var(--faint);font-size:12px;flex:0 0 auto;font-variant-numeric:tabular-nums}
   .chats .quiet .w{color:var(--muted)}
 
+  /* ---- the scratch pad: the one thing here that is the SAME on every machine ---- */
+  .pad textarea{width:100%;min-height:190px;resize:vertical;background:rgba(0,0,0,.22);color:var(--ink);
+                border:1px solid var(--line);border-radius:12px;padding:11px 12px;font:inherit;font-size:14.5px;
+                line-height:1.5;outline:none}
+  .pad textarea:focus{border-color:rgba(84,200,143,.55)}
+  .padfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;
+           color:var(--faint);font-size:12px;flex-wrap:wrap}
+  .padfoot button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:12px;
+                  padding:3px 9px;border-radius:8px;cursor:pointer}
+  .padfoot button:hover{color:var(--ink);border-color:rgba(255,255,255,.22)}
+  .clash{margin-top:8px;padding:9px 11px;border-radius:10px;border:1px solid rgba(228,135,92,.45);
+         background:rgba(228,135,92,.10);color:var(--ink);font-size:13px;display:none}
+  .clash.on{display:block}
+  .clash button{margin-top:7px;margin-right:7px}
+
   /* ---- the tiles ---- */
+  .search{display:flex;align-items:center;gap:9px;margin:0 0 14px;padding:9px 13px;border-radius:12px;
+          background:var(--surface);border:1px solid var(--line)}
+  .search input{flex:1;background:transparent;border:0;color:var(--ink);font:inherit;font-size:14.5px;outline:none}
+  .search .ico{color:var(--faint);font-size:14px}
+  .search .count{color:var(--faint);font-size:12px}
+  .group.hide{display:none}
   .groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
   .group h3{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
   .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
@@ -178,6 +199,8 @@
 <script src="/speak.js" defer></script>
 <script src="/pull.js" defer></script>
 <script src="/swipe.js" defer data-sections="section.card, .group"></script>
+<!-- data-quiet: the password sheet never pops up on a new tab. The pad shows a Connect line instead. -->
+<script src="/notion-sync.js" defer data-quiet></script>
 </head>
 <body>
 
@@ -227,6 +250,20 @@
         <ul id="events"><li class="empty">reading /day/stream.json…</li></ul>
       </section>
       <div style="display:grid;gap:16px;align-content:start">
+
+        <!-- THE ONE THING HERE THAT IS THE SAME ON EVERY DEVICE. Its text lives in Notion,
+             not in this browser, so the Mac, the PC and the phone all open the same pad. -->
+        <section class="card pad" id="padCard">
+          <h2>Scratch pad <span id="padWho">every device</span></h2>
+          <textarea id="pad" placeholder="anything you want on every device" spellcheck="true"
+                    aria-label="Scratch pad, shared across your devices"></textarea>
+          <div class="padfoot">
+            <span id="padState">…</span>
+            <span><button id="padSync" type="button">save now</button></span>
+          </div>
+          <div class="clash" id="padClash" role="alert"></div>
+        </section>
+
         <section class="card" id="waiting">
           <h2>Waiting on you <a href="/desk/">the Desk →</a></h2>
           <ul class="wait" id="wait"><li class="empty">reading /desk/progress.json…</li></ul>
@@ -236,6 +273,12 @@
           <ul class="chats" id="chats"><li class="empty">reading…</li></ul>
         </section>
       </div>
+    </div>
+
+    <div class="search">
+      <span class="ico" aria-hidden="true">⌕</span>
+      <input id="tileq" type="search" placeholder="search your sites" autocomplete="off" aria-label="Search the link tiles">
+      <span class="count" id="tilecount"></span>
     </div>
 
     <div class="groups" id="groups"></div>
@@ -256,12 +299,14 @@
   var POLL = 60 * 1000;
   function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(m){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]; }); }
-  function pad(n){ return (n < 10 ? "0" : "") + n; }
+  /* two digits. NOT named "pad": the textarea below has id="pad", and the browser
+     publishes every id on window, which shadowed this and stopped the clock. */
+  function two(n){ return (n < 10 ? "0" : "") + n; }
 
   /* ---- clock and greeting: the machine's own clock, nothing fetched ---- */
   function tick(){
     var d = new Date(), h = d.getHours();
-    $("clock").innerHTML = pad(h % 12 || 12) + ":" + pad(d.getMinutes()) + "<small>" + (h < 12 ? "am" : "pm") + "</small>";
+    $("clock").innerHTML = two(h % 12 || 12) + ":" + two(d.getMinutes()) + "<small>" + (h < 12 ? "am" : "pm") + "</small>";
     $("greet").textContent = (h < 5 ? "Still up, Rachel." : h < 12 ? "Good morning, Rachel." :
                               h < 17 ? "Good afternoon, Rachel." : h < 22 ? "Good evening, Rachel." : "Late one, Rachel.");
     $("date").textContent = d.toLocaleDateString("en-AU", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
@@ -289,7 +334,7 @@
     var m = Math.round((Date.now() - t) / 60000);
     return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m/60) + " h ago" : Math.round(m/1440) + " d ago";
   }
-  function hhmm(iso){ var d = new Date(iso); return isNaN(d) ? "" : pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function hhmm(iso){ var d = new Date(iso); return isNaN(d) ? "" : two(d.getHours()) + ":" + two(d.getMinutes()); }
   function kindOf(e){
     var k = (e.kind || "").toLowerCase(), s = (e.stage || "").toLowerCase();
     if (s === "live" || k === "live") return "live";
@@ -374,7 +419,128 @@
     }).join("");
   }
 
-  /* ---- the tiles ---- */
+  /* ================= the scratch pad: one pad, every device =================
+     Her ask, 19 Sep 2026: "do you have anything like a scratch pad that synchronises?",
+     then "can it be for every device i own". So the text does NOT live in this browser.
+     It goes to a Notion database through apps-notion-relay - the same road twenty of her
+     apps already use - and every device reads that same row back.
+        this device  --NotionSync.save-->  relay  -->  Notion "Scratch pad"
+        any device   <--NotionSync.list--  relay  <--
+     A localStorage copy is kept too, but only so the pad works offline and before the
+     relay password has been entered on a new device. Notion is what is true.
+     IT NEVER OVERWRITES WHAT SHE IS TYPING. If another device saved something newer and
+     different, it SAYS SO and she chooses. Silently replacing her words would be the
+     worst possible bug in a notepad. ========================================== */
+  var PAD_APP = "scratch", PAD_ID = "pad", PAD_LOCAL = "start.pad";
+  var padBox = $("pad"), padState = $("padState"), padClash = $("padClash");
+  var padSaved = "", padTimer = null, padBusy = false;
+
+  function padSay(m){ padState.textContent = m; }
+  function padStamp(){ return new Date().toISOString(); }
+  function padKeepLocal(){
+    try { localStorage.setItem(PAD_LOCAL, JSON.stringify({
+      text: padBox.value, sent: padSaved, at: padStamp(), machine: MACHINE })); } catch(e){}
+  }
+  try {
+    var praw = localStorage.getItem(PAD_LOCAL);
+    if (praw){ var po = JSON.parse(praw); padBox.value = po.text || ""; padSaved = po.sent || ""; }
+  } catch(e){}
+
+  function padSend(){
+    padKeepLocal();
+    if (padBox.value === padSaved){ return; }
+    if (!window.NotionSync){ padSay("on this device only - the sync script did not load"); return; }
+    if (padBusy) return;
+    padBusy = true; padSay("saving...");
+    var text = padBox.value, now = padStamp();
+    var first = (text.split("\n")[0] || "").trim().slice(0, 80) || "(empty)";
+    try {
+      NotionSync.save(PAD_APP, PAD_ID, { title: first, detail: text, when: now,
+                                         data: { machine: MACHINE, at: now } });
+      padSaved = text; padKeepLocal();
+      setTimeout(function(){
+        padBusy = false;
+        var n = NotionSync.pending ? NotionSync.pending() : 0;
+        padSay(n ? "waiting to send (" + n + ") - it will go when the relay answers"
+                 : "saved to every device, " + new Date().toLocaleTimeString("en-AU",
+                     { hour: "2-digit", minute: "2-digit" }));
+      }, 900);
+    } catch(e){ padBusy = false; padSay("could not save: " + e.message); }
+  }
+
+  function padPull(){
+    if (!window.NotionSync || !NotionSync.list) return;
+    NotionSync.list(PAD_APP).then(function(rows){
+      var row = (rows || []).filter(function(r){ return r.id === PAD_ID; })[0];
+      if (!row){ padSay(padBox.value ? "not sent yet" : "empty - type anything"); return; }
+      var who = (row.data && row.data.machine) || "another device";
+      var when = row.when ? ago(row.when) : "";
+      if (row.detail === padBox.value){
+        padSaved = row.detail; padKeepLocal();
+        padClash.className = "clash";
+        padSay("in step everywhere, last written on " + who + " " + when);
+        return;
+      }
+      /* Nothing of hers is at risk only if she has not typed since the last send. */
+      if (padBox.value === padSaved || padBox.value === ""){
+        padBox.value = row.detail; padSaved = row.detail; padKeepLocal();
+        padClash.className = "clash";
+        padSay("picked up from " + who + " " + when);
+      } else {
+        padClash.className = "clash on";
+        padClash.innerHTML = "<b>" + esc(who) + "</b> saved a different copy " + esc(when) +
+          ", and you have words here that have not been sent. Nothing has been changed." +
+          "<div><button id='padTake' type='button'>use theirs</button>" +
+          "<button id='padKeep' type='button'>keep mine and send it</button></div>";
+        $("padTake").onclick = function(){
+          padBox.value = row.detail; padSaved = row.detail; padKeepLocal();
+          padClash.className = "clash"; padSay("took the copy from " + who);
+        };
+        $("padKeep").onclick = function(){ padClash.className = "clash"; padSend(); };
+      }
+    }).catch(function(e){
+      padSay(/password/i.test(e.message || "")
+        ? "on this device only - press Connect to share it with your others"
+        : "could not read the shared copy: " + (e.message || e));
+    });
+  }
+
+  $("padWho").textContent = "every device, this is " + MACHINE;
+  padSay("on this device");
+  padBox.addEventListener("input", function(){
+    padKeepLocal(); padSay("typing...");
+    clearTimeout(padTimer); padTimer = setTimeout(padSend, 1500);
+  });
+  padBox.addEventListener("blur", function(){ clearTimeout(padTimer); padSend(); });
+  $("padSync").addEventListener("click", function(){ clearTimeout(padTimer); padSend(); padPull(); });
+  window.addEventListener("pagehide", function(){ if (padBox.value !== padSaved) padSend(); });
+
+  /* ---- searching the tiles. Her note on the feedback board, 19 Sep: "left search bar
+     for the websites". It filters what is already on the page: no network, no second
+     list to keep up to date, and Enter opens the first thing still showing. ---- */
+  function tileFilter(){
+    var q = ($("tileq").value || "").trim().toLowerCase();
+    var groups = document.querySelectorAll(".group"), all = 0, shown = 0;
+    for (var i = 0; i < groups.length; i++){
+      var tiles = groups[i].querySelectorAll(".tile"), any = 0;
+      for (var j = 0; j < tiles.length; j++){
+        all++;
+        var hit = !q || tiles[j].textContent.toLowerCase().indexOf(q) >= 0;
+        tiles[j].style.display = hit ? "" : "none";
+        if (hit){ any++; shown++; }
+      }
+      groups[i].className = "group" + (any ? "" : " hide");
+    }
+    $("tilecount").textContent = q ? shown + " of " + all : "";
+  }
+  $("tileq").addEventListener("input", tileFilter);
+  $("tileq").addEventListener("keydown", function(e){
+    if (e.key !== "Enter") return;
+    var first = null, tiles = document.querySelectorAll(".tile");
+    for (var i = 0; i < tiles.length && !first; i++) if (tiles[i].style.display !== "none") first = tiles[i];
+    if (first) location.href = first.getAttribute("href");
+  });
+
   function renderLinks(d){
     $("groups").innerHTML = (d.groups || []).map(function(g){
       return '<div class="group"><h3>' + esc(g.name) + '</h3><div class="tiles">' + (g.links || []).map(function(l){
@@ -406,7 +572,7 @@
   var tilesBuilt = false;
   function buildTiles(){
     if (tilesBuilt) return; tilesBuilt = true;
-    get("/start/links.json", renderLinks, function(e){
+    get("/start/links.json", function(d){ renderLinks(d); tileFilter(); }, function(e){
       tilesBuilt = false;
       $("groups").innerHTML = '<p class="empty">links.json did not load (' + esc(e.message) + ").</p>";
     });
@@ -415,7 +581,7 @@
   /* ---- open and close: one button, Esc, the scrim, and the browser Back key ---- */
   var lastFocus = null;
   function open(){
-    buildTiles(); pull();
+    buildTiles(); pull(); padPull();
     document.body.classList.add("open");
     $("trigger").setAttribute("aria-expanded", "true");
     lastFocus = document.activeElement;
