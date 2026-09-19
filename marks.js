@@ -38,6 +38,20 @@
     ".am-note button{font:600 .95rem/1 inherit;padding:.6rem .9rem;border-radius:.5rem;border:1px solid rgba(127,127,127,.45);" +
     "background:transparent;color:inherit;min-height:44px;cursor:pointer}" +
     ".am-note button.go{background:#2b6cb0;border-color:#2b6cb0;color:#fff}" +
+    /* Her three asks, 20 Sep 2026: the note must move, the delete must not be missed,
+       and the bar must retract so it stops eating the page. */
+    ".am-bar button.del{color:#c0392b}" +
+    "@media (prefers-color-scheme:dark){.am-bar button.del{color:#ff8a7a}}" +
+    ".am-bar .sep{width:1px;align-self:stretch;margin:.35rem .15rem;background:rgba(127,127,127,.35)}" +
+    ".am-bar .fold{padding:.5rem .55rem;opacity:.6;min-height:44px}" +
+    ".am-bar.shut .fold{opacity:.9}" +
+    ".am-bar.shut button:not(.fold){display:none}" +
+    ".am-bar.shut .sep{display:none}" +
+    ".am-note{touch-action:none}" +
+    ".am-note .nhead{display:flex;align-items:center;gap:.5rem;margin:-.2rem 0 .5rem;cursor:grab;opacity:.75}" +
+    ".am-note .nhead::before{content:'';width:2.2rem;height:.25rem;border-radius:.2rem;background:currentColor}" +
+    ".am-note .nhead span{font:600 .8rem/1 inherit}" +
+    ".am-note textarea{touch-action:auto}" +
     ".am-said{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);z-index:2147483002;padding:.55rem .9rem;" +
     "border-radius:999rem;background:rgba(20,20,22,.92);color:#fff;font:600 .85rem/1 sans-serif;pointer-events:none}";
   document.head.appendChild(css);
@@ -124,9 +138,11 @@
   var bar = document.createElement("div");
   bar.className = "am-bar"; bar.hidden = true;
   bar.innerHTML = '<div class="am-grip" title="Drag me"></div>' +
+    '<button type="button" class="fold" data-a="fold" title="Fold this away" aria-label="Fold this bar away">▾</button>' +
     '<button type="button" data-a="hl">🖍 Highlight</button>' +
     '<button type="button" data-a="note">📝 Note</button>' +
-    '<button type="button" data-a="del" hidden>🗑 Delete</button>';
+    '<span class="sep" aria-hidden="true"></span>' +
+    '<button type="button" class="del" data-a="del" hidden>🗑 Delete</button>';
   document.body.appendChild(bar);
 
   var pending = null, current = null, moved = false;
@@ -139,9 +155,28 @@
     bar.style.left = L + "px"; bar.style.top = T + "px";
   }
   function hideBar() { bar.hidden = true; pending = null; current = null; }
+
+  /* Folded away, the bar is just its grip and an arrow, so it stops covering the words
+     underneath. Her words, 20 Sep 2026: "the highlight thing can retract to save the
+     space". The choice is remembered, because a control you must re-fold every time is
+     the same annoyance in a different shape. */
+  var SHUT = "marks.shut";
+  function shutNow() { try { return localStorage.getItem(SHUT) === "1"; } catch (e) { return false; } }
+  function paintFold() {
+    bar.classList.toggle("shut", shutNow());
+    var f = bar.querySelector('[data-a="fold"]');
+    f.textContent = shutNow() ? "▸" : "▾";
+    f.title = shutNow() ? "Open the highlight buttons" : "Fold this away";
+  }
   function show(which) {
     bar.querySelector('[data-a="hl"]').hidden = which !== "sel";
-    bar.querySelector('[data-a="del"]').hidden = which !== "mark";
+    /* ⛔ Delete is the one that must never be missed, so it is red, it has a rule beside
+       it, and folding never hides it while a highlight is actually selected. */
+    var del = bar.querySelector('[data-a="del"]');
+    del.hidden = which !== "mark";
+    bar.querySelector(".sep").hidden = which !== "mark";
+    if (which === "mark" && shutNow()) { try { localStorage.setItem(SHUT, "0"); } catch (e) {} }
+    paintFold();
   }
 
   // Her rule 17 Sep: every floating box drags, from anywhere on it. The grip is for the case where
@@ -171,12 +206,67 @@
     bar.querySelector(".am-grip").addEventListener("pointerdown", down);
   })();
 
+  /* Her rule of 17 Sep, and asked again for this box on 20 Sep: every floating box
+     moves, and it drags from ANYWHERE on it - not only a handle. The two exceptions
+     are the typing area and the buttons, because dragging those would mean she could
+     never type or press them. The box starts pinned to the bottom; the first drag
+     unpins it, and where she leaves it is where it opens next time. */
+  var NPOS = "marks.notepos";
+  function dragBox(box) {
+    var sx = 0, sy = 0, ox = 0, oy = 0, on = false, went = false;
+    try {
+      var saved = JSON.parse(localStorage.getItem(NPOS) || "null");
+      if (saved && saved.l != null) {
+        if (saved.w) { box.style.width = Math.min(saved.w, innerWidth - 8) + "px"; box.style.maxWidth = "none"; }
+        box.style.inset = "auto";
+        box.style.left = Math.max(4, Math.min(saved.l, innerWidth - 60)) + "px";
+        box.style.top = Math.max(4, Math.min(saved.t, innerHeight - 60)) + "px";
+      }
+    } catch (e) {}
+    function down(e) {
+      var t = e.target;
+      if (t.closest && t.closest("textarea,button")) return;
+      var r = box.getBoundingClientRect();
+      /* Unpin from the bottom edge the moment she takes hold of it, or left/top would
+         fight the original inset rule and the box would jump. */
+      /* The box got its WIDTH from being pinned to both edges. Dropping inset without
+         pinning the width first made it collapse to the size of its own buttons the
+         moment she picked it up - measured, 400px down to 150px. */
+      box.style.width = r.width + "px";
+      box.style.maxWidth = "none";
+      box.style.inset = "auto";
+      box.style.left = r.left + "px"; box.style.top = r.top + "px";
+      box.style.margin = "0";
+      on = true; went = false; sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+      document.addEventListener("pointermove", move, { passive: false });
+      document.addEventListener("pointerup", up, { passive: true });
+    }
+    function move(e) {
+      if (!on) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.abs(dx) + Math.abs(dy) > 4) went = true;
+      if (e.cancelable) e.preventDefault();
+      box.style.left = Math.max(4, Math.min(ox + dx, innerWidth - box.offsetWidth - 4)) + "px";
+      box.style.top = Math.max(4, Math.min(oy + dy, innerHeight - box.offsetHeight - 4)) + "px";
+    }
+    function up() {
+      on = false;
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      if (went) { try { localStorage.setItem(NPOS,
+        JSON.stringify({ l: box.offsetLeft, t: box.offsetTop, w: box.offsetWidth })); } catch (e) {} }
+    }
+    box.addEventListener("pointerdown", down);
+  }
+
   function noteBox(initial, onSave) {
     var box = document.createElement("div");
     box.className = "am-note";
-    box.innerHTML = '<textarea placeholder="What needs changing here?"></textarea>' +
+    box.innerHTML = '<div class="nhead"><span>drag me anywhere</span></div>' +
+      '<textarea placeholder="What needs changing here?"></textarea>' +
       '<div class="row"><button type="button" data-c="x">Cancel</button><button type="button" class="go" data-c="ok">Save note</button></div>';
     document.body.appendChild(box);
+    dragBox(box);
     var ta = box.querySelector("textarea");
     ta.value = initial || ""; ta.focus();
     box.addEventListener("click", function (e) {
@@ -216,6 +306,10 @@
     if (moved) { moved = false; return; }
     var a = e.target.getAttribute && e.target.getAttribute("data-a");
     if (!a) return;
+    if (a === "fold") {
+      try { localStorage.setItem(SHUT, shutNow() ? "0" : "1"); } catch (e) {}
+      paintFold(); return;
+    }
     if (a === "hl") { addFromSelection(""); hideBar(); return; }
     if (a === "note") {
       if (current) {

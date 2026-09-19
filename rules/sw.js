@@ -11,7 +11,13 @@
 
    Added 19 Sep 2026 on her word, "even though it is not app, I want app."
 */
-const CACHE = "rule-shelf-v3";
+/* v2, 20 Sep 2026: three of the seven shared scripts the page loads were never in the
+   list below - marks.js, notion-sync.js and pull.js - so on a phone with no signal the
+   shelf opened without highlights, without notes, without Notion and without pull to
+   refresh, and nothing said so. Found by the cache serving a stale marks.js during a
+   change to it. The list is now derived from what index.html actually loads; if a script
+   is added to the page, add it here too, or it silently stops working offline. */
+const CACHE = "rule-shelf-v2";
 const SHELL = [
   "./",
   "./index.html",
@@ -22,7 +28,10 @@ const SHELL = [
   "../textsize.js",
   "../speak.js",
   "../feedback.js",
-  "../swipe.js"
+  "../swipe.js",
+  "../marks.js",
+  "../notion-sync.js",
+  "../pull.js"
 ];
 
 self.addEventListener("install", function (event) {
