@@ -3,7 +3,7 @@
  * The page itself, its icons and the shared scripts are cached so it opens on a train. */
 var CACHE = "day-v1";
 var SHELL = ["/day/", "/day/index.html", "/day/manifest.webmanifest",
-             "/day/icon-192.png", "/textsize.js", "/feedback.js"];
+             "/day/icon-192.png", "/textsize.js", "/feedback.js", "/pull.js", "/speak.js"];
 self.addEventListener("install", function(e){
   e.waitUntil(caches.open(CACHE).then(function(c){ return c.addAll(SHELL); }).then(function(){
     return self.skipWaiting(); }));

@@ -27,12 +27,6 @@
        overscroll-behavior-y:contain}
   a{color:var(--accent)}
 
-  /* ---- pull to refresh ---- */
-  #pull{position:fixed;top:0;left:0;right:0;display:flex;align-items:center;justify-content:center;
-        height:0;overflow:hidden;color:var(--muted);font-size:13px;z-index:40;transition:height .18s ease}
-  #pull.on{height:44px}
-  #pull.go{color:var(--accent)}
-
   header{padding:calc(18px + env(safe-area-inset-top)) 0 10px;position:sticky;top:0;z-index:30;
          background:linear-gradient(var(--ground) 72%,rgba(14,17,22,0));}
   .top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -127,8 +121,6 @@
 <script src="/pull.js" defer></script>
 </head>
 <body>
-<div id="pull">pull to refresh</div>
-
 <header>
   <div class="top">
     <h1>The Day</h1>
@@ -300,20 +292,9 @@
   setInterval(pull, POLL);
   document.addEventListener("visibilitychange", function(){ if(!document.hidden) pull(); });
 
-  // pull to refresh: only from the very top, and it never fights a normal scroll.
-  var y0 = null, el = $("pull");
-  addEventListener("touchstart", function(e){ y0 = window.scrollY <= 0 ? e.touches[0].clientY : null; }, {passive:true});
-  addEventListener("touchmove", function(e){
-    if(y0 === null) return;
-    var dy = e.touches[0].clientY - y0;
-    if(dy > 8){ el.classList.add("on"); el.classList.toggle("go", dy > 64);
-                el.textContent = dy > 64 ? "release to refresh" : "pull to refresh"; }
-  }, {passive:true});
-  addEventListener("touchend", function(){
-    if(el.classList.contains("go")){ el.textContent = "refreshing…";
-      pull().then(function(){ el.className = ""; }); } else el.className = "";
-    y0 = null;
-  });
+  // Pull-to-refresh is the SHARED kit piece, /pull.js, not a copy in here. This page
+  // had its own inline version and the kit one was added on top on 19 Sep — two of them
+  // on one page. The kit file's own header says it: load it, do not reimplement it.
 
   if("serviceWorker" in navigator) addEventListener("load", function(){
     navigator.serviceWorker.register("/day/sw.js").catch(function(){}); });
