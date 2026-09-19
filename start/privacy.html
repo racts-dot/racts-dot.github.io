@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Privacy policy — Start</title>
+<meta name="description" content="What the Start browser extension does with data. It collects nothing.">
+<meta name="theme-color" content="#0B0E13">
+<!-- Written 19 Sep 2026 because the Chrome Web Store asks for a privacy policy URL.
+     ⛔ EVERY CLAIM BELOW WAS CHECKED AGAINST THE PACKAGE AT start/extension/ BEFORE IT
+     WAS WRITTEN, not assumed: the only addresses in the bundle are racts-dot.github.io
+     and apps-notion-relay.workers.dev, and there is no analytics, no third party script
+     and no key of any kind in it. If the extension ever gains another network call, this
+     page is wrong until somebody changes it. -->
+<style>
+  :root{
+    --ground:#0B0E13; --surface:rgba(22,27,35,.72); --line:rgba(255,255,255,.08);
+    --ink:#EDF1F6; --muted:#9AA7B6; --faint:#6E7C8C; --accent:#54C88F;
+    --body:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body)}
+  body{padding:0 18px calc(70px + env(safe-area-inset-bottom));
+       background:radial-gradient(1000px 600px at 12% -10%, rgba(84,200,143,.13), transparent 60%),
+                  var(--ground);background-attachment:fixed}
+  .wrap{max-width:720px;margin:0 auto}
+  header{padding:calc(48px + env(safe-area-inset-top)) 0 4px}
+  h1{font-size:28px;margin:0 0 4px;letter-spacing:-.02em}
+  .when{color:var(--faint);font-size:13.5px;margin:0 0 30px}
+  h2{font-size:17px;margin:30px 0 8px;letter-spacing:-.01em}
+  p{color:var(--muted);font-size:15.5px;line-height:1.65;margin:0 0 12px}
+  p b,li b{color:var(--ink)}
+  ul{color:var(--muted);font-size:15.5px;line-height:1.7;padding-left:20px;margin:0 0 12px}
+  .lead{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .lead p{margin:0;color:var(--ink);font-size:16px}
+  a{color:var(--accent)}
+  footer{color:var(--faint);font-size:13px;margin-top:34px;line-height:1.6;
+         border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Privacy policy</h1>
+  <p class="when">For the browser extension <b>Start</b> · 19 September 2026</p>
+</header>
+
+<div class="lead">
+  <p><b>Start collects nothing.</b> It has no analytics, no accounts, no advertising and no
+  third-party services. Nothing you do in it is sent to the developer, because there is
+  nowhere for it to be sent.</p>
+</div>
+
+<h2>What it stores, and where</h2>
+<p>Start is a replacement new tab page. Two things it holds are yours:</p>
+<ul>
+  <li><b>Today's focus line</b> stays in your own browser, on that one device. It is never
+    transmitted anywhere.</li>
+  <li><b>The scratch pad</b> is saved to <b>your own Notion workspace</b>, through a relay
+    that you run, so that the same note appears on your other computers. It passes through
+    no service belonging to anyone else.</li>
+</ul>
+
+<h2>What it connects to</h2>
+<p>Exactly two addresses, both belonging to the person using it:</p>
+<ul>
+  <li><b>racts-dot.github.io</b> — four small JSON files are read to display the day's
+    progress, decisions waiting, and the list of links shown on the page.</li>
+  <li><b>apps-notion-relay.apps-notion-relay.apps-notion-relay.workers.dev</b> — the scratch pad note is read and written here,
+    and this relay is operated by the user and speaks only to the user's own Notion.</li>
+</ul>
+<p>No other address is contacted. The extension does not read the pages you browse, does not
+touch your history, your bookmarks, your passwords or your other tabs, and does not run any
+code fetched from the internet.</p>
+
+<h2>Who can see it</h2>
+<p>Only you. The developer has no server, receives no copy of anything, and has no way to
+read your focus line or your scratch pad.</p>
+
+<h2>Removing your data</h2>
+<p>Uninstalling the extension removes the focus line with the browser's own storage. The
+scratch pad lives in your Notion workspace, so delete that page to remove it.</p>
+
+<h2>Children</h2>
+<p>Start is a personal productivity page. It is not directed at children and collects no
+personal information from anyone, of any age.</p>
+
+<h2>Changes</h2>
+<p>If the extension ever starts handling data differently, this page will say so, with the
+date it changed.</p>
+
+<footer>
+  Questions about this policy go to the publisher contact address listed on the extension's
+  Chrome Web Store page.
+  <br>The extension's full source is at
+  <a href="/start/Start-extension.zip">Start-extension.zip</a>, so every claim here can be
+  checked rather than taken on trust.
+</footer>
+
+</div>
+</body>
+</html>
