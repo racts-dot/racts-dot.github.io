@@ -51,18 +51,23 @@
 
   .score{margin:14px 0 0;padding:18px 18px 16px;border-radius:20px;background:var(--surface);
          border:1px solid var(--line)}
-  .big{display:flex;align-items:flex-end;gap:12px}
-  .big b{font-family:var(--num);font-size:58px;line-height:.92;font-weight:800;letter-spacing:-2px}
-  .big span{font-size:19px;color:var(--muted);padding-bottom:7px}
-  .big-label{color:var(--muted);font-size:14px;margin-top:6px}
-  .bar{height:9px;border-radius:99px;background:var(--surface-2);margin:14px 0 4px;overflow:hidden}
-  .bar i{display:block;height:100%;background:var(--live);border-radius:99px;width:0;transition:width .7s ease}
+  /* Her ruling, 19 Sep 2026: BOTH numbers the same size, neither under the other.
+     On Etsy is what she pressed Publish on; verified live is what somebody read back. */
+  .pair{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .half b{font-family:var(--num);font-size:52px;line-height:.92;font-weight:800;letter-spacing:-2px;display:block}
+  .half b.live{color:var(--live)} .half b.pub{color:var(--published)}
+  .half span{font-size:15px;color:var(--ink);margin-top:6px;display:block;line-height:1.3}
+  .half span em{font-style:normal;display:block;font-size:12px;color:var(--faint);margin-top:2px}
+  .of{text-align:center;font-size:17px;color:var(--muted);margin-top:14px}
+  .bar{position:relative;height:9px;border-radius:99px;background:var(--surface-2);margin:12px 0 4px;overflow:hidden}
+  .bar i{position:absolute;left:0;top:0;height:100%;border-radius:99px;width:0;transition:width .7s ease}
+  #barPub{background:var(--published)}          /* on Etsy, the wider one */
+  #bar{background:var(--live)}                  /* verified live, drawn over it */
   .pace{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.5}
   .pace b{color:var(--ink);font-weight:600}
   .pace.miss b{color:var(--warn)}
 
   .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
-  @media(min-width:520px){.tiles{grid-template-columns:repeat(4,1fr)}}
   .tile{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 13px}
   .tile b{font-family:var(--num);font-size:26px;font-weight:700;display:block;line-height:1.1}
   .tile span{font-size:12px;color:var(--muted);line-height:1.35;display:block;margin-top:3px}
@@ -132,18 +137,17 @@
 </header>
 
 <section class="score">
-  <div class="big"><b id="doneToday">–</b><span>of <span id="target">30</span> today</span></div>
-  <div class="big-label">products <b>first seen live</b> today — a queue row saying LIVE, with the
-    public page read back. The table carries no clock, so this is when it was first seen, not proof
-    of the hour it happened.</div>
-  <div class="bar"><i id="bar"></i></div>
+  <div class="pair">
+    <div class="half"><b id="onEtsy" class="pub">–</b><span>on Etsy<em>Publish pressed</em></span></div>
+    <div class="half"><b id="doneToday" class="live">–</b><span>verified live<em>public page read back</em></span></div>
+  </div>
+  <div class="of">of <span id="target">30</span> today</div>
+  <div class="bar"><i id="barPub"></i><i id="bar"></i></div>
   <div class="pace" id="pace"></div>
   <div class="pace" id="coverage"></div>
 </section>
 
-<div class="tiles">
-  <div class="tile live"><b id="cLive">–</b><span>live, page read back</span></div>
-  <div class="tile pub"><b id="cPub">–</b><span>published, not read back</span></div>
+<div class="tiles two">
   <div class="tile ready"><b id="cReady">–</b><span>ready to list</span></div>
   <div class="tile build"><b id="cBuild">–</b><span>in build or paused</span></div>
 </div>
@@ -185,25 +189,26 @@
   function paint(d, live){
     var c = d.counts || {}, p = d.pace || {}, target = d.target || 30;
     $("target").textContent = target;
-    $("doneToday").textContent = c.live_today != null ? c.live_today : "–";
-    $("bar").style.width = Math.min(100, ((c.live_today||0)/target)*100) + "%";
-    $("cLive").textContent = c.live_total || 0;
-    $("cPub").textContent = c.published_not_read_back || 0;
+    var onEtsy = (c.published_not_read_back || 0) + (c.live_total || 0);
+    $("onEtsy").textContent = onEtsy;
+    $("doneToday").textContent = c.live_total != null ? c.live_total : "–";
+    $("barPub").style.width = Math.min(100, (onEtsy/target)*100) + "%";
+    $("bar").style.width = Math.min(100, ((c.live_total||0)/target)*100) + "%";
     $("cReady").textContent = c.ready_to_list || 0;
     $("cBuild").textContent = c.in_build || 0;
 
     // The pace line says the plain thing. A target that cannot be reached from here
     // is said out loud, because a bar that only ever looks encouraging is a lie.
     var moves = c.moves_today || 0, byMid = p.by_midnight || 0, pe = $("pace");
-    if((c.live_today||0) >= target){
+    if((c.live_total||0) >= target){
       pe.className = "pace"; pe.innerHTML = "<b>Thirty is done.</b> Anything after this is ahead.";
     } else if(moves === 0){
       pe.className = "pace miss";
-      pe.innerHTML = "<b>Nothing has moved today yet.</b> " + (c.ready_to_list||0) +
+      pe.innerHTML = "<b>Nothing has moved today yet.</b> Both numbers above are totals, not today. " + (c.ready_to_list||0) +
         " product" + ((c.ready_to_list||0)===1?" is":"s are") + " sitting at ready to list — listing them is what moves this number.";
     } else {
       pe.className = "pace" + (p.on_for_target ? "" : " miss");
-      pe.innerHTML = moves + " step" + (moves===1?"":"s") + " today, about <b>" +
+      pe.innerHTML = moves + " step" + (moves===1?"":"s") + " first seen today, about <b>" +
         p.moves_per_hour + " an hour</b>. At that rate: <b>" + byMid + " by midnight</b>" +
         (p.on_for_target ? " — on for " + target + "." : " — short of " + target + ".");
     }
@@ -215,9 +220,6 @@
     if(cov.tracked != null && !cov.can_account_for_target)
       lines.push("The table it reads holds <b>" + cov.tracked + " products</b>, not " + target +
         " — so this page cannot show a path to " + target + ", only what those " + cov.tracked + " did.");
-    if((c.published_not_read_back || 0) + (c.live_total || 0) > 0)
-      lines.push("On Etsy altogether: <b>" + ((c.published_not_read_back||0) + (c.live_total||0)) +
-        "</b> — " + (c.live_total||0) + " read back, " + (c.published_not_read_back||0) + " not checked since Publish.");
     if(d.baseline)
       lines.push("<b>This is the first build since the record was reset</b>, so every row below reads as newly seen and nothing here counts as today's work.");
     cv.innerHTML = lines.join("<br>");
