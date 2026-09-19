@@ -67,35 +67,50 @@
   /* --- painting a saved mark back onto the page -------------------------------------------------
      Marks are stored by their exact words plus which occurrence, not by a DOM path: the Rule Shelf
      redraws itself, and a path would point at nothing after that. */
-  function paintOne(m) {
-    var root = document.querySelector(ROOT_SEL); if (!root || !m.text) return false;
-    var walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+  function walker() {
+    var root = document.querySelector(ROOT_SEL) || document.body;
+    return document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: function (n) {
-        if (!n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
-        if (n.parentElement.closest("script,style,textarea,input,mark.am,.am-bar,.am-note")) return NodeFilter.FILTER_REJECT;
+        if (!n.nodeValue) return NodeFilter.FILTER_REJECT;
+        var pe = n.parentElement;
+        if (!pe || pe.closest("script,style,textarea,input,.am-bar,.am-note")) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       }
     });
-    var seen = 0, n;
-    while ((n = walk.nextNode())) {
-      var i = n.nodeValue.indexOf(m.text);
-      while (i >= 0) {
-        if (seen++ === (m.nth || 0)) {
-          try {
-            var r = document.createRange();
-            r.setStart(n, i); r.setEnd(n, i + m.text.length);
-            var el = document.createElement("mark");
-            el.className = "am" + (m.note ? " noted" : "");
-            el.dataset.am = m.id;
-            if (m.note) el.title = m.note;
-            r.surroundContents(el);
-            return true;
-          } catch (e) { return false; }
-        }
-        i = n.nodeValue.indexOf(m.text, i + 1);
-      }
+  }
+
+  function wrap(node, at, text, m) {
+    try {
+      var r = document.createRange();
+      r.setStart(node, at); r.setEnd(node, at + text.length);
+      var el = document.createElement("mark");
+      el.className = "am" + (m.note ? " noted" : "");
+      el.dataset.am = m.id;
+      if (m.note) el.title = m.note;
+      r.surroundContents(el);
+      return true;
+    } catch (e) { return false; }
+  }
+
+  /* Find a saved mark again. Prefer the occurrence it was made on; if the page has changed enough that
+     the count no longer lines up, take the first one rather than showing nothing - a highlight in the
+     right words and the wrong copy of them still points at the rule she meant. */
+  function paintOne(m) {
+    if (!m.text) return false;
+    var w = walk_collect(m.text);
+    if (!w.length) return false;
+    var hit = w[m.nth] || w[0];
+    return wrap(hit.node, hit.at, m.text, m);
+  }
+
+  function walk_collect(text) {
+    var out = [], wk = walker(), n;
+    while ((n = wk.nextNode())) {
+      if (n.parentElement && n.parentElement.closest("mark.am")) continue;
+      var i = n.nodeValue.indexOf(text);
+      while (i >= 0) { out.push({ node: n, at: i }); i = n.nodeValue.indexOf(text, i + 1); }
     }
-    return false;
+    return out;
   }
   function paintAll() {
     var list = store(), n = 0;
@@ -178,18 +193,20 @@
     var text = String(sel).trim();
     if (!text) return null;
     // which occurrence of these words this is, counted the same way paintOne counts
-    var before = 0, root = document.querySelector(ROOT_SEL) || document.body;
-    try {
-      var pre = document.createRange();
-      pre.setStart(root, 0);
-      pre.setEnd(sel.getRangeAt(0).startContainer, sel.getRangeAt(0).startOffset);
-      var hay = pre.toString(), at = hay.indexOf(text);
-      while (at >= 0) { before++; at = hay.indexOf(text, at + 1); }
-    } catch (e) {}
+    var rng = sel.getRangeAt(0);
+    var all = walk_collect(text), before = 0;
+    for (var k = 0; k < all.length; k++) {
+      var probe = document.createRange();
+      probe.setStart(all[k].node, all[k].at);
+      if (probe.compareBoundaryPoints(Range.START_TO_START, rng) < 0) before++;
+    }
     var m = { id: String(Date.now()) + String(Math.random()).slice(2, 6), text: text, nth: before, note: note || "", at: Date.now() };
     var list = store(); list.push(m); keep(list);
+    // Paint the words she actually selected. Anything else re-finds them, and re-finding was the bug.
+    var painted = false;
+    if (all[before]) painted = wrap(all[before].node, all[before].at, text, m);
     sel.removeAllRanges();
-    paintOne(m);
+    if (!painted) paintOne(m);
     send(m);
     said(note ? "Note saved" : "Highlighted");
     return m;
