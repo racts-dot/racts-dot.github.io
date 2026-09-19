@@ -6,7 +6,7 @@ everything I will want something separate ... rules specifically for that, separ
 **Scope:** everything a person opens on a phone or in a browser that is hers - this folder
 (racts-dot.github.io and every app in it), the pages.dev copies (prayer-points, morning-and-evening,
 creator-reading-room), stay-ledger, and the Notion relay. **Not** the digital products; their book is
-`C:\Users\soyan\claude desktoi\CLAUDE.md`. The global book (`~/.claude/CLAUDE.md`) still loads first and
+`~/claude desktoi\CLAUDE.md`. The global book (`~/.claude/CLAUDE.md`) still loads first and
 still wins on money, public and hard-to-undo.
 
 ## Her rules for the apps
@@ -66,7 +66,7 @@ This folder IS the live website. It publishes to https://racts-dot.github.io/
 ### The one rule
 
 **There must only ever be ONE copy of this folder on this computer, and it is
-this one: `C:\Users\soyan\Desktop\Sales Tracker Website`.**
+this one: `~/Desktop/Sales Tracker Website`.**
 
 - Never copy or duplicate it anywhere else — not Downloads, not Google Drive,
   not a backup folder.
