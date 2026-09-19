@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Store listing text</title>
+<meta name="description" content="Every field the Chrome Web Store is asking for, ready to copy.">
+<meta name="theme-color" content="#0B0E13">
+<!-- Written 19 Sep 2026 because the dashboard refused to publish with eight things missing.
+     Six of them are wording; this page holds that wording so it can be pasted on the
+     Windows machine, where the Mac's files do not exist. Two are hers alone: the contact
+     email and its verification. Nothing here is a claim about the extension that is not
+     true of the package at start/extension/. -->
+<style>
+  :root{
+    --ground:#0B0E13; --surface:rgba(22,27,35,.72); --surface-2:rgba(29,36,46,.9);
+    --line:rgba(255,255,255,.08); --ink:#EDF1F6; --muted:#9AA7B6; --faint:#6E7C8C;
+    --accent:#54C88F; --warn:#E4875C;
+    --body:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body)}
+  body{padding:0 16px calc(80px + env(safe-area-inset-bottom));
+       background:radial-gradient(1100px 650px at 10% -10%, rgba(84,200,143,.14), transparent 60%),
+                  radial-gradient(900px 600px at 100% 0%, rgba(127,178,240,.12), transparent 55%),
+                  var(--ground);background-attachment:fixed}
+  .wrap{max-width:840px;margin:0 auto}
+  header{padding:calc(40px + env(safe-area-inset-top)) 0 8px}
+  h1{font-size:26px;margin:0 0 6px;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:15px;line-height:1.5;margin:0 0 26px}
+  .sub b{color:var(--ink)}
+  section{background:var(--surface);border:1px solid var(--line);border-radius:16px;
+          padding:16px 18px;margin:0 0 14px;backdrop-filter:blur(14px)}
+  h2{font-size:13px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);
+     margin:0 0 4px}
+  .where{color:var(--faint);font-size:12.5px;margin:0 0 11px}
+  pre{margin:0;background:rgba(0,0,0,.28);border:1px solid var(--line);border-radius:11px;
+      padding:13px 14px;white-space:pre-wrap;overflow-wrap:anywhere;font:inherit;font-size:14.5px;
+      line-height:1.55;color:var(--ink)}
+  button{margin-top:10px;background:none;border:1px solid var(--line);color:var(--muted);
+         font:inherit;font-size:13px;padding:6px 13px;border-radius:9px;cursor:pointer}
+  button:hover{color:var(--ink);border-color:rgba(255,255,255,.22);background:var(--surface-2)}
+  button.done{color:var(--accent);border-color:rgba(84,200,143,.5)}
+  .mine{border-color:rgba(228,135,92,.4)}
+  .mine h2{color:var(--warn)}
+  ol{margin:6px 0 0;padding-left:20px;color:var(--muted);font-size:14.5px;line-height:1.7}
+  ol b{color:var(--ink)}
+  a{color:var(--accent)}
+  footer{color:var(--faint);font-size:12.5px;line-height:1.6;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>The eight things the store wants</h1>
+  <p class="sub">Six are wording, below, with a copy button each. <b>Two are yours alone</b> — the
+  contact email and verifying it — because they need your inbox.</p>
+</header>
+
+<section>
+  <h2>1 · Single purpose description</h2>
+  <p class="where">Privacy practices tab</p>
+  <pre id="t1">Start replaces Chrome's new tab with one personal start page: a clock, a single line for what the user wants to finish today, a private scratch pad, and a set of links to the sites the user already works in.</pre>
+  <button data-copy="t1" type="button">copy</button>
+</section>
+
+<section>
+  <h2>2 · Justification for host permission use</h2>
+  <p class="where">Privacy practices tab · covers both permissions</p>
+  <pre id="t2">The extension reads four small JSON files from the user's own website, racts-dot.github.io, to display the day's progress, the decisions waiting on the user, and the user's own list of links. It also reads and writes one note through the user's own relay at apps-notion-relay.workers.dev, so the scratch pad shows the same text on each of the user's computers. Both addresses belong to the user. No other site is contacted, and nothing is sent to any third party.</pre>
+  <button data-copy="t2" type="button">copy</button>
+</section>
+
+<section>
+  <h2>3 · Justification for remote code use</h2>
+  <p class="where">Privacy practices tab</p>
+  <pre id="t3">This extension does not execute remote code. Every HTML, CSS and JavaScript file it runs is contained in the uploaded package. The only network requests retrieve JSON data files and the user's own saved note. No script is loaded, injected or evaluated from a remote source, and no eval of fetched content takes place.</pre>
+  <button data-copy="t3" type="button">copy</button>
+  <p class="where" style="margin:10px 0 0">If there is a yes/no question above this box asking
+  whether the extension uses remote code, the honest answer is <b>No</b> — that is what the
+  package was rebuilt to achieve. Paste this only if it still demands text.</p>
+</section>
+
+<section>
+  <h2>4 · Detailed description</h2>
+  <p class="where">Store listing tab · needs 25 characters or more</p>
+  <pre id="t4">Start replaces the new tab with a calm page: a large clock, a greeting, and one line for the single thing you want to finish today.
+
+Everything else stays out of the way behind one small button in the corner. Press it, or the D key, and you get the day's progress, anything waiting on your decision, and a grid of links to the places you work, with a search box to filter them.
+
+A scratch pad sits in that panel and is shared between your own computers through your own Notion workspace, so a note typed on one machine is already there on the next. If two machines disagree it asks you rather than overwriting what you typed.
+
+Nothing is collected and nothing is tracked. The page reads only the data files on your own website and your own relay.</pre>
+  <button data-copy="t4" type="button">copy</button>
+</section>
+
+<section>
+  <h2>5 · Screenshot</h2>
+  <p class="where">Store listing tab · at least one, 1280x800, no transparency</p>
+  <ol style="padding-left:0;list-style:none">
+    <li><a href="/start/store/screenshot-1-calm.png">screenshot-1-calm.png</a> — the page as it opens</li>
+    <li><a href="/start/store/screenshot-2-panels.png">screenshot-2-panels.png</a> — the panel open, with example products, not your real ones</li>
+  </ol>
+</section>
+
+<section>
+  <h2>6 · Data usage certification</h2>
+  <p class="where">Privacy practices tab · three tick boxes</p>
+  <ol>
+    <li>Not being sold to third parties — <b>tick</b></li>
+    <li>Not being used or transferred for purposes unrelated to the single purpose — <b>tick</b></li>
+    <li>Not being used to determine creditworthiness or for lending — <b>tick</b></li>
+  </ol>
+  <p class="where" style="margin:11px 0 0">All three are true of this package: it sends nothing
+  anywhere except your own two addresses.</p>
+</section>
+
+<section class="mine">
+  <h2>7 and 8 · Yours, because they need your inbox</h2>
+  <p class="where">Settings page</p>
+  <ol>
+    <li>Enter a <b>publisher contact email</b>.</li>
+    <li>Press verify, then open the email Google sends and click its link.</li>
+  </ol>
+  <p class="where" style="margin:11px 0 0">Nobody can do this for you, and until it is done the
+  Publish button stays refused however complete everything else is.</p>
+</section>
+
+<footer>
+  One more setting before you press publish: <b>Visibility → Unlisted</b>, so it never appears in
+  search and only a link reaches it. It still installs and syncs across your own computers.
+  <br>The package itself is at <a href="/start/Start-extension.zip">Start-extension.zip</a>,
+  the store icon at <a href="/start/extension/icon-128.png">icon-128.png</a>.
+</footer>
+
+</div>
+
+<script>
+document.addEventListener("click", function(e){
+  var b = e.target.closest("button[data-copy]"); if (!b) return;
+  var text = document.getElementById(b.getAttribute("data-copy")).textContent;
+  navigator.clipboard.writeText(text).then(function(){
+    var was = b.textContent; b.textContent = "copied"; b.className = "done";
+    setTimeout(function(){ b.textContent = was; b.className = ""; }, 1600);
+  }).catch(function(){
+    /* Clipboard refused, which happens on some setups. Select it so she can copy by hand
+       rather than leaving her with a button that silently does nothing. */
+    var r = document.createRange(); r.selectNodeContents(document.getElementById(b.getAttribute("data-copy")));
+    var s = getSelection(); s.removeAllRanges(); s.addRange(r);
+    b.textContent = "selected - press Ctrl+C";
+  });
+});
+</script>
+<script src="/textsize.js"></script>
+<script src="/speak.js" defer></script>
+<script src="/pull.js" defer></script>
+<script src="/swipe.js" defer data-sections="section"></script>
+<script src="/feedback.js" defer data-app="Start"></script>
+</body>
+</html>
