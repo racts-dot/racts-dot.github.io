@@ -207,12 +207,18 @@
     // the defensible state is cannot determine." With a stale table, or a table that holds fewer products
     // than the target, this page cannot tell "nothing was produced" from "nothing was written down".
     // So it says UNKNOWN. It never turns not-knowing into a zero.
+    // The builder decides this now, from the SLIP BOX: slips carry their own clock,
+    // so a zero is only meaningful when somebody is still dropping them. The old
+    // version worked it out from the queue table's age, which is the thing the slip
+    // box replaced. Falls back to that reading for a feed built before slips existed.
+    var j = d.judgement || {};
     var srcAge = (d.source || {}).age_days || 0;
-    var covers = (d.coverage || {}).can_account_for_target !== false;
-    var canJudge = srcAge === 0 && covers;
-    var why = srcAge > 0
+    var canJudge = j.can_tell !== undefined
+      ? j.can_tell
+      : (srcAge === 0 && (d.coverage || {}).can_account_for_target !== false);
+    var why = j.why || (srcAge > 0
       ? "the table it reads is " + srcAge + " day" + (srcAge === 1 ? "" : "s") + " old"
-      : "the table holds " + ((d.coverage || {}).tracked) + " products, not " + target;
+      : "the table holds " + ((d.coverage || {}).tracked) + " products, not " + target);
 
     if((c.live_total||0) >= target){
       pe.className = "pace"; pe.innerHTML = "<b>Thirty is done.</b> Anything after this is ahead.";
@@ -299,6 +305,10 @@
     $("foot").innerHTML = "Built by a plain script — no AI, no tokens, no money. Every line comes from the " +
       "product factory queue table, the handover register or git's own log." +
       (d.source_file ? "<br>Queue read from: " + esc(d.source_file) : "") +
+      (d.slips ? "<br>Today's moves come from the slip box: " + (d.slips.today || 0) +
+        " slip(s) today, " + (d.slips.total || 0) + " in all" +
+        (d.slips.unreadable ? ", " + d.slips.unreadable + " unreadable line(s)" : "") +
+        ". A slip is written by whoever did the work, at the moment they did it." : "") +
       "<br>The feed is only rewritten when something actually changes, so a quiet gap in it is a quiet gap in the work." +
       "<br>Feed written " + esc(d.made || "") + ". Live means somebody read the public Etsy page back; " +
       "published means the row says Publish was pressed and nobody has checked since.";
