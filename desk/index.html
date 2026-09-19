@@ -538,6 +538,18 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   color:var(--surface);padding:10px 16px;border-radius:3px;font-size:14px;z-index:50;
   box-shadow:var(--shadow);max-width:88vw;text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Per-page comment box. Her words 19 Sep: "it has to have a comment section that I will
+   have to let you know what you what has to be done here", and her pick when asked how:
+   "A free-text box on every page". It sends through feedback.js's own queue, so it works
+   offline, retries, and lands in the same Notion feedback database the 🎙 bubble uses -
+   tagged with the page she was on. */
+.saybox{margin:18px 0 0;border-top:1px solid var(--line);padding-top:14px}
+.saybox textarea{width:100%;box-sizing:border-box;min-height:64px;resize:vertical;
+  font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.saybox .row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.saybox button{font:600 14px/1 inherit;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+.saybox .said{font-size:13px;color:var(--ink-faint)}
 </style>
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 
@@ -1200,6 +1212,39 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const DAY = 86400000, CAL = "Google Calendar";
+
+/* ---------------- comment box on every page ----------------
+   One box per page, appended after the page renders. It does NOT post on its own: it calls
+   AppFeedback.send(), so the password, the retry, the offline queue and the Notion landing
+   are the ones already proven by the 🎙 bubble. Duplicating that send path is how two
+   things drift apart. */
+function addSayBoxes(){
+  var names = {};
+  try { PAGES.forEach(function(p){ names[p.id] = p.name; }); } catch(e){}
+  document.querySelectorAll("section.page").forEach(function(sec){
+    if (sec.querySelector(".saybox")) return;
+    var id = (sec.id || "").replace(/^p-/, "");
+    var where = names[id] || id || "Desk";
+    var box = document.createElement("div");
+    box.className = "block saybox";
+    box.innerHTML =
+      '<div class="sec-head"><h2>Say what needs doing here</h2>' +
+      '<p class="sec-note">Anything on this page. It reaches Claude with the page name on it \u2014 ' +
+      'you do not have to explain where you were.</p></div>' +
+      '<textarea placeholder="What should happen on ' + esc(where) + '?"></textarea>' +
+      '<div class="row"><button type="button">Send</button><span class="said"></span></div>';
+    var ta = box.querySelector("textarea"), btn = box.querySelector("button"), say = box.querySelector(".said");
+    btn.addEventListener("click", function(){
+      var t = ta.value.trim();
+      if (!t){ say.textContent = "Type something first."; return; }
+      var ok = false;
+      try { ok = window.AppFeedback && window.AppFeedback.send ? window.AppFeedback.send(t, where) : false; } catch(e){}
+      if (ok){ ta.value = ""; say.textContent = "Sent from " + where + "."; }
+      else { say.textContent = "Could not send. The \ud83c\udf99 button at the side still works."; }
+    });
+    sec.appendChild(box);
+  });
+}
 
 const PAGES = [
   {id:"today",   name:"Today",              why:"Your to-do first. It rolls over until you tick it, and every line keeps its date and time.", nav:1},
@@ -2196,6 +2241,7 @@ $("#tabs").addEventListener("click", e=>{
   if(b.dataset.go) go(b.dataset.go);
 });
 document.addEventListener("click", e=>{ if(e.target.closest("[data-close]")) closeSheets(); });
+addSayBoxes();
 $("#moreMenu").innerHTML = PAGES.filter(p=>!p.nav).map(p=>
   `<button data-go="${p.id}"><span class="mn">${esc(p.name)}</span>
     <span class="mw">${esc(p.why)}</span></button>`).join("");

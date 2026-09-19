@@ -449,7 +449,28 @@
 
   W.addEventListener("online", flush);
   setInterval(flush, 60000);
-  W.AppFeedback = { flush: flush, pending: function () { return queue().length; }, connect: connect };
+  /* Send a note from somewhere OTHER than the bubble - added 19 Sep 2026 for her ask
+     "I would appreciate having the feedback messages to send at specific page", so the
+     Desk can put a comment box on every page. It deliberately reuses THIS queue, password,
+     retry and offline handling rather than posting on its own: one send path, several
+     entry points. `where` is appended to the app name so the note says which page it came
+     from. Returns true if it was queued, false if this browser refused to store it. */
+  function sendNote(text, where) {
+    text = String(text == null ? "" : text).trim();
+    if (!text) return false;
+    var item = {
+      id: newId(), text: text.slice(0, 20000),
+      app: appName() + (where ? " \u00b7 " + String(where).slice(0, 60) : ""),
+      url: location.href, title: D.title || "",
+      when: new Date().toISOString(), device: device(), textSize: textSize()
+    };
+    var q = queue(); q.push(item);
+    if (!store.json(QUEUE_KEY, q)) return false;
+    flush();
+    return true;
+  }
+
+  W.AppFeedback = { flush: flush, pending: function () { return queue().length; }, connect: connect, send: sendNote };
   if (D.readyState === "loading") D.addEventListener("DOMContentLoaded", function () { build(); flush(); });
   else { build(); flush(); }
 })();
