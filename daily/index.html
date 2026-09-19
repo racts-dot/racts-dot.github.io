@@ -1881,6 +1881,11 @@ document.getElementById("listenBtn").addEventListener("click", function(){
 });
 document.getElementById("playStop").addEventListener("click", stopListening);
 document.getElementById("playPause").addEventListener("click", function(ev){
+  if (recAudio){
+    if (recAudio.paused){ recAudio.play(); ev.target.textContent = "Pause"; }
+    else { recAudio.pause(); ev.target.textContent = "Play"; }
+    return;
+  }
   const s2 = window.speechSynthesis;
   if (!s2) return;
   if (s2.paused){ s2.resume(); ev.target.textContent = "Pause"; }
@@ -1890,6 +1895,7 @@ document.getElementById("playRate").addEventListener("input", function(ev){
   settings.rate = parseFloat(ev.target.value);
   jset("settings", settings);
   document.getElementById("rateNow").textContent = settings.rate.toFixed(1) + "x";
+  if (recAudio){ try { recAudio.playbackRate = settings.rate; } catch (e){} return; }
   if (readChunks.length) speakFrom(readAt);   /* carry on, at the new speed */
 });
 document.getElementById("saveDayBtn").addEventListener("click", function(){
@@ -2203,7 +2209,7 @@ if ("speechSynthesis" in window){
   window.speechSynthesis.onvoiceschanged = fillVoices;
 }
 
-function speaking(){ return window.speechSynthesis && window.speechSynthesis.speaking; }
+function speaking(){ return !!(recAudio && !recAudio.paused) || !!(window.speechSynthesis && window.speechSynthesis.speaking); }
 
 let readChunks = [];
 let readAt = 0;
@@ -2220,6 +2226,7 @@ function showPlayer(on){
 function stopListening(){
   wantSpeech = false;
   releaseScreen();
+  if (recAudio){ try { recAudio.pause(); recAudio.currentTime = 0; } catch (e){} recAudio = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   readChunks = [];
   readAt = 0;
@@ -2250,7 +2257,66 @@ function speakFrom(index){
   document.getElementById("playPause").textContent = "Pause";
 }
 
-function startListening(){
+/* ---- HER OWN RECORDING OF THIS CHAPTER, 19 Sep 2026 ----------------------
+   The whole NLT is recorded in her chosen voice and kept in a PRIVATE R2
+   bucket - the text is licensed, so it is never on a public URL. The relay
+   mints a signed link per chapter, because an <audio src> CANNOT send a
+   password header and a cross-site cookie is blocked by Safari.
+   Every failure here falls through to the live phone voice below: no password
+   on this device, a chapter not recorded, no internet. Read aloud never just
+   stops working, it only sounds less good.
+-------------------------------------------------------------------------- */
+const REC_RELAY = "https://apps-notion-relay.apps-notion-relay.workers.dev";
+let recAudio = null;
+
+function recPass(){
+  try {
+    const raw = localStorage.getItem("notionSync.pass");
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    return (typeof p === "string" && p) ? p : null;
+  } catch (e){ return null; }
+}
+
+/* "1 Kings 19" -> "1_Kings_19.mp3". The recordings were named from this very
+   book list, so Song of Solomon is Song_of_Solomon and Psalms stays Psalms. */
+function recKey(){
+  const now = chapterFor(viewDate);
+  if (!now || now.state !== "ok" || !now.item || !now.item.ref) return null;
+  return String(now.item.ref).trim().replace(/\s+/g, "_") + ".mp3";
+}
+
+async function playRecording(){
+  const pw = recPass(); if (!pw) return false;
+  const key = recKey(); if (!key) return false;
+  let src;
+  try {
+    const r = await fetch(REC_RELAY + "/audio-token?ch=" + encodeURIComponent(key),
+                          { headers: { "X-Pass": pw } });
+    if (!r.ok) return false;
+    const j = await r.json();
+    if (!j || !j.ok || !j.url) return false;
+    src = REC_RELAY + j.url;
+  } catch (e){ return false; }
+
+  try {
+    const a = new Audio(src);
+    a.preload = "auto";
+    a.playbackRate = settings.rate || 1;
+    a.addEventListener("ended", stopListening);
+    a.addEventListener("error", function(){ recAudio = null; });
+    await a.play();
+    recAudio = a;
+  } catch (e){ recAudio = null; return false; }
+
+  wantSpeech = true;
+  holdScreenAwake();
+  showPlayer(true);
+  return true;
+}
+
+async function startListening(){
+  if (await playRecording()) return;     /* her voice, already recorded */
   if (!("speechSynthesis" in window)){
     toast("This browser cannot read aloud", null, null);
     return;
