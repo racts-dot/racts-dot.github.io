@@ -2154,6 +2154,22 @@ document.addEventListener("visibilitychange", function(){
    American, and the novelty voices pushed to the bottom. */
 let VOICES = [], voiceURI = null;
 
+/* ⛔ HER REPORT, 19 Sep 2026: "the albert thing is reading the bible. its very bad dont hire
+   albert for voice over." Albert is one of Apple's joke voices and the old penalty list did not
+   name it - nor Fred, Junior, Boing, Jester, Cellos or Wobble, all installed on her Mac. So it
+   scored en-US 14 + local 6 = 20, the same as any ordinary American voice, and the sort order
+   decided; alphabetically Albert is near the front.
+
+   ⚠ AND THIS PAGE IS WHY THE FIRST FIX DID NOT REACH HER. The same fix went into
+   claude desktoi/bible_daily/index.html the same evening - a DIFFERENT app, 117,381 bytes, not
+   the one she opens. This file, daily/index.html, is the served Daily Chapter. Fixing a second
+   copy of an app reports success and changes nothing.
+
+   ⭐ A BLOCKLIST OF SILLY NAMES IS ALWAYS MISSING THE NEXT ONE, so an unrecognised name now
+   scores BELOW every voice known to be a real speaking voice; the blocklist is the second line. */
+const REAL_VOICES = /(samantha|karen|daniel|moira|tessa|rishi|fiona|alex|ava|allison|susan|nicky|aaron|serena|martha|arthur|gordon|catherine|james|hazel|george|zira|david|mark|jenny|aria|guy|google|siri|natural|neural|enhanced|premium|wavenet|chirp|polyglot)/i;
+const JOKE_VOICES = /(albert|bad news|good news|bahh|bells|boing|bubbles|cellos|deranged|hysterical|jester|junior|kathy|organ|princess|ralph|superstar|trinoids|whisper|wobble|zarvox|fred|bruce|agnes|victoria|novelty|eloquence|compact)/i;
+
 function voiceScore(v){
   let n = 0;
   const nm = (v.name || "") + " " + (v.voiceURI || "");
@@ -2165,7 +2181,8 @@ function voiceScore(v){
   else if (/^en/i.test(v.lang)) n += 8;
   else n -= 200;
   if (v.localService) n += 6;
-  if (/compact|eloquence|novelty|whisper|bells|bubbles|zarvox|trinoids|bahh/i.test(nm)) n -= 140;
+  if (JOKE_VOICES.test(nm)) n -= 140;
+  else if (!REAL_VOICES.test(nm)) n -= 60;   // never heard of it: below anything known to be real
   return n;
 }
 
@@ -2173,6 +2190,16 @@ function fillVoices(){
   if (!("speechSynthesis" in window)) return;
   if (!voiceURI && settings && settings.voiceURI) voiceURI = settings.voiceURI;
   const all = window.speechSynthesis.getVoices() || [];
+  /* Better scoring alone would NOT fix her phone: a joke voice already saved here wins over any
+     scoring for ever. So a SAVED joke voice is dropped and re-picked; anything else she chose
+     is left alone. */
+  if (voiceURI){
+    const stored = all.filter(function(v){ return v.voiceURI === voiceURI; })[0];
+    if (stored && JOKE_VOICES.test((stored.name || "") + " " + (stored.voiceURI || ""))){
+      voiceURI = null;
+      if (settings){ settings.voiceURI = null; try { jset("settings", settings); } catch (e) {} }
+    }
+  }
   VOICES = all.filter(function(v){ return /^en/i.test(v.lang); })
               .sort(function(a, b){ return voiceScore(b) - voiceScore(a); });
   if (!VOICES.length) VOICES = all.slice();
