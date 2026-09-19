@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "Start",
+  "version": "1.0.0",
+  "description": "Rachel's own new tab: a clock, one focus line, a scratch pad shared across her devices, and every place she works.",
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "host_permissions": [
+    "https://racts-dot.github.io/*",
+    "https://apps-notion-relay.apps-notion-relay.workers.dev/*"
+  ]
+}
