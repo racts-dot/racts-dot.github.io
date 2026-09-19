@@ -550,6 +550,28 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 .saybox .row{display:flex;gap:8px;align-items:center;margin-top:8px}
 .saybox button{font:600 14px/1 inherit;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
 .saybox .said{font-size:13px;color:var(--ink-faint)}
+
+/* Scratch paper, restored 19 Sep 2026. Her words 16 Sep: "I want a scratch paper here so I
+   can kind of like draw what my day is going to be like." Live until 06aac71 (19 Sep, "comment
+   box on every page, new tab bar") rewrote this file and dropped the markup, CSS and script.
+   The old script could not be pasted back - it shared 60 identifiers with the rewritten file -
+   so this is a self-contained rewrite in its own closure: draw, undo, clear, saved on this
+   device, no shared names. */
+.sc-tools{display:flex;gap:8px;margin:6px 0}
+.sc-tools button{font:inherit;font-size:13px;padding:5px 12px;border-radius:6px;
+  border:1px solid var(--line,#d7dbe2);background:var(--surface,#fff);color:inherit;cursor:pointer}
+.sc-wrap{border:1px solid var(--line,#d7dbe2);border-radius:8px;overflow:hidden;background:var(--surface,#fff)}
+#scratch{display:block;width:100%;height:320px;touch-action:none;cursor:crosshair}
+
+/* Apps list, her ask 19 Sep: "in my desk I would want the list of apps i have built in one
+   section". Built from a live check of every address, not from memory - 20 addresses answered,
+   17 distinct apps, several on both GitHub Pages and Cloudflare. */
+.applist{list-style:none;margin:6px 0 0;padding:0}
+.applist li{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  padding:7px 0;border-top:1px solid var(--line-soft,#e7eaef)}
+.applist li:first-child{border-top:0}
+.applist .app-name{font-weight:600;text-decoration:none;color:inherit}
+.applist .app-where{font-size:12px;opacity:.7;white-space:nowrap}
 </style>
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 
@@ -648,6 +670,40 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <p class="sec-note" id="diaryNote">Straight off your Google Calendar.</p>
         <span class="count" id="diaryCount"></span></div>
       <div class="diary" id="diary"></div>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>Apps you have built</h2>
+        <p class="sec-note">Every one that answers right now. Checked 19 Sep 2026.</p>
+        <span class="count">17</span></div>
+      <ul class="applist">
+        <li><a class="app-name" href="https://racts-dot.github.io/daily/" target="_blank" rel="noopener">Daily Chapter</a><span class="app-where"><a href="https://racts-dot.github.io/daily/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/workflows/" target="_blank" rel="noopener">Doser AI Marketing Workflows</a><span class="app-where"><a href="https://racts-dot.github.io/workflows/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/hormozi/" target="_blank" rel="noopener">Hormozi Marketing Recipes</a><span class="app-where"><a href="https://racts-dot.github.io/hormozi/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/ledger/" target="_blank" rel="noopener">June Resale Ledger</a><span class="app-where"><a href="https://racts-dot.github.io/ledger/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/ledgers/" target="_blank" rel="noopener">Ledgers</a><span class="app-where"><a href="https://racts-dot.github.io/ledgers/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/reflect/" target="_blank" rel="noopener">Morning and Evening</a><span class="app-where"><a href="https://racts-dot.github.io/reflect/" target="_blank" rel="noopener">GitHub</a> · <a href="https://morning-and-evening.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
+        <li><a class="app-name" href="https://prayer-points.pages.dev/" target="_blank" rel="noopener">Prayer Points</a><span class="app-where"><a href="https://prayer-points.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/priesthood/" target="_blank" rel="noopener">Priest Hood</a><span class="app-where"><a href="https://racts-dot.github.io/priesthood/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/rules/" target="_blank" rel="noopener">Rachel&#x27;s Rule Shelf</a><span class="app-where"><a href="https://racts-dot.github.io/rules/" target="_blank" rel="noopener">GitHub</a> · <a href="https://rule-shelf.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/desk/" target="_blank" rel="noopener">Rachie&#x27;s Desk</a><span class="app-where"><a href="https://racts-dot.github.io/desk/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://creator-reading-room.pages.dev/" target="_blank" rel="noopener">Reading Room</a><span class="app-where"><a href="https://creator-reading-room.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/recipes/" target="_blank" rel="noopener">Recipes</a><span class="app-where"><a href="https://racts-dot.github.io/recipes/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/cookbook/" target="_blank" rel="noopener">Sabrina&#x27;s Prompt Cookbook</a><span class="app-where"><a href="https://racts-dot.github.io/cookbook/" target="_blank" rel="noopener">GitHub</a> · <a href="https://prompt-cookbook.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/study/" target="_blank" rel="noopener">Study · finance, AI, SQL, Python</a><span class="app-where"><a href="https://racts-dot.github.io/study/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/tripshare/" target="_blank" rel="noopener">TripShare</a><span class="app-where"><a href="https://racts-dot.github.io/tripshare/" target="_blank" rel="noopener">GitHub</a></span></li>
+        <li><a class="app-name" href="https://waple-diary.pages.dev/" target="_blank" rel="noopener">Waple Diary</a><span class="app-where"><a href="https://waple-diary.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
+        <li><a class="app-name" href="https://racts-dot.github.io/videos/" target="_blank" rel="noopener">출처 찾기</a><span class="app-where"><a href="https://racts-dot.github.io/videos/" target="_blank" rel="noopener">GitHub</a></span></li>
+      </ul>
+    </div>
+    <div class="block">
+      <div class="sec-head"><h2>Scratch paper</h2>
+        <p class="sec-note">Draw your day. Saved on this device.</p>
+        <span class="count" id="scSaved"></span></div>
+      <div class="sc-tools">
+        <button type="button" id="scUndo">Undo</button>
+        <button type="button" id="scClear">Clear</button>
+      </div>
+      <div class="sc-wrap"><canvas id="scratch" aria-label="Scratch paper, draw with your finger"></canvas></div>
     </div>
     <div class="block">
       <div class="sec-head"><h2>Waiting on you</h2>
@@ -3804,6 +3860,48 @@ if("serviceWorker" in navigator){
       if (v) window.deskNotion(doc, v);
     });
   });
+})();
+</script>
+<script>
+/* Scratch paper - self-contained, shares no identifier with the rest of the page. */
+(function(){
+  var cv=document.getElementById("scratch"); if(!cv) return;
+  var saved=document.getElementById("scSaved");
+  var ctx=cv.getContext("2d"), KEY="desk.scratch.v1", strokes=[], live=null;
+  try{ var raw=localStorage.getItem(KEY); if(raw) strokes=JSON.parse(raw)||[]; }catch(e){}
+  function store(){ try{ localStorage.setItem(KEY, JSON.stringify(strokes)); }catch(e){}
+    if(saved) saved.textContent = strokes.length ? strokes.length+" strokes" : ""; }
+  function paint(){
+    ctx.clearRect(0,0,cv.clientWidth,cv.clientHeight);
+    ctx.lineWidth=2.2; ctx.lineCap="round"; ctx.lineJoin="round";
+    ctx.strokeStyle=getComputedStyle(document.body).color||"#15181e";
+    var all=strokes.concat(live?[live]:[]);
+    for(var i=0;i<all.length;i++){
+      var pts=all[i]; if(!pts||pts.length<2) continue;
+      ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
+      for(var j=1;j<pts.length;j++) ctx.lineTo(pts[j][0],pts[j][1]);
+      ctx.stroke();
+    }
+  }
+  function fit(){
+    var dpr=window.devicePixelRatio||1;
+    cv.width=Math.max(1,Math.round(cv.clientWidth*dpr));
+    cv.height=Math.max(1,Math.round(cv.clientHeight*dpr));
+    ctx.setTransform(dpr,0,0,dpr,0,0); paint();
+  }
+  function at(ev){ var r=cv.getBoundingClientRect(); return [ev.clientX-r.left, ev.clientY-r.top]; }
+  cv.addEventListener("pointerdown",function(ev){ ev.preventDefault(); cv.setPointerCapture&&cv.setPointerCapture(ev.pointerId); live=[at(ev)]; });
+  cv.addEventListener("pointermove",function(ev){ if(!live) return; ev.preventDefault(); live.push(at(ev)); paint(); });
+  window.addEventListener("pointerup",function(){ if(live&&live.length>1) strokes.push(live); live=null; store(); paint(); });
+  window.addEventListener("pointercancel",function(){ live=null; paint(); });
+  var u=document.getElementById("scUndo"), c=document.getElementById("scClear");
+  if(u) u.addEventListener("click",function(){ strokes.pop(); store(); paint(); });
+  if(c) c.addEventListener("click",function(){
+    if(!strokes.length) return;
+    if(!confirm("Clear the scratch paper? This cannot be undone.")) return;
+    strokes=[]; store(); paint(); });
+  window.addEventListener("resize",fit);
+  store(); fit();
 })();
 </script>
 </body></html>
