@@ -27,17 +27,22 @@
     set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
   };
 
+/* 19 Sep 2026, her app-feedback note on Prayer Points: "Voice on top not at the bottom".
+   MEASURED before changing anything - the three bubbles stack up the left edge:
+     speak 84px  ·  textsize Aa 140px  ·  feedback 192px
+   so the voice bubble was the LOWEST of the three. Swapped with feedback, which is now
+   lowest, so the voice bubble sits on top of the stack. Aa is untouched at 140. */
   var css = document.createElement("style");
   css.textContent =
-    ".sa-fab{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483644;" +
+    ".sa-fab{position:fixed;left:12px;bottom:calc(192px + env(safe-area-inset-bottom));z-index:2147483644;" +
     "display:flex;align-items:center;gap:6px;font:600 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;" +
     "padding:10px 14px;border-radius:999px;border:0;background:#1c1c1e;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer}" +
     /* 17 Sep 2026, her words: the mic "should look like exactly what it is for the speaker, as well as AA floating" -
        so the icon-only bubble is the same 44 px circle as the Aa (textsize.js) and 🎙 (feedback.js) bubbles */
     ".sa-fab.sa-icon{width:44px;height:44px;box-sizing:border-box;padding:0;justify-content:center;font-size:18px}" +
     ".sa-fab:focus-visible,.sa-panel button:focus-visible,.sa-panel select:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
-    ".sa-panel{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483645;max-width:420px;" +
-    "background:#fff;color:#1c1c1e;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3);padding:10px 10px 16px;overflow:auto;box-sizing:border-box;" +
+    ".sa-panel{position:fixed;left:12px;right:12px;bottom:calc(192px + env(safe-area-inset-bottom));z-index:2147483645;max-width:420px;" +
+    "background:#fff;color:#1c1c1e;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3);padding:14px;" +
     "font:14px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;gap:10px}" +
     ".sa-panel[hidden]{display:none}" +
     ".sa-grip{cursor:grab;user-select:none;-webkit-user-select:none;font:600 12px/1 inherit;opacity:.6;padding:0 0 8px;touch-action:none}" +
@@ -202,13 +207,7 @@
     }
     handle.style.touchAction = "none";
     handle.addEventListener("pointerdown", function (e) {
-      /* Her feedback 17 Sep 2026: "all the floating things should be movable, no matter where
-         you're dragging." The panel used to drag only by its grip. Now the whole card is the
-         handle, so the guard has to skip the controls INSIDE it - while still letting the fab
-         itself be dragged, since the fab IS a button. */
-      if (e.button > 0) return;
-      var hit = e.target.closest("button,select,input,textarea,a,.sa-rsz");
-      if (hit && hit !== el) return;
+      if (e.button > 0 || (handle !== el && e.target.closest("button,select,.sa-rsz"))) return;
       down = true; moved = false; pid = e.pointerId;
       var r = el.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
     });
@@ -250,25 +249,17 @@
       '<div class="sa-now">\u2605 = a higher-quality voice. On iPhone, more voices: Settings \u2192 Accessibility \u2192 Spoken Content \u2192 Voices \u2192 English.</div>';
     document.body.appendChild(fab); document.body.appendChild(panel);
     makeDraggable(fab, "speak.pos");
-    makeDraggable(panel, "speak.panel.pos");   /* whole card, not just .sa-grip - her 17 Sep feedback */
+    makeDraggable(panel, "speak.panel.pos", panel.querySelector(".sa-grip"));
     (function (grip) {   /* 17 Sep: "everything is resizable the boxes and movable" - drag the corner */
-      /* her 17 Sep (Sales Tracker): "cannot be resized to the smaller version as much. It just stays big."
-         Width AND height now, down to 180 x 110; what does not fit scrolls inside the panel. */
-      var on = false, sx = 0, sy = 0, w0 = 0, h0 = 0;
+      var on = false, sx = 0, w0 = 0;
       function setW(w) { panel.style.setProperty("max-width", "none", "important");
-        panel.style.setProperty("width", Math.max(180, Math.min(w, window.innerWidth - 8)) + "px", "important");
+        panel.style.setProperty("width", Math.max(260, Math.min(w, window.innerWidth - 8)) + "px", "important");
         panel.style.setProperty("right", "auto", "important"); }
-      function setH(h) { var t = panel.getBoundingClientRect().top;
-        panel.style.setProperty("height", Math.max(110, Math.min(h, window.innerHeight - Math.max(t, 0) - 4)) + "px", "important");
-        panel.style.setProperty("bottom", "auto", "important"); panel.style.setProperty("top", Math.max(t, 4) + "px", "important"); }
-      panel.restoreSize = function () { var f = +store.get("speak.panel.w"); if (f) setW(f * window.innerWidth);
-        var g = +store.get("speak.panel.h"); if (g) setH(g * window.innerHeight); };
-      grip.addEventListener("pointerdown", function (e) { on = true; sx = e.clientX; sy = e.clientY; var r = panel.getBoundingClientRect(); w0 = r.width; h0 = r.height;
-        panel.style.setProperty("left", r.left + "px", "important"); panel.style.setProperty("top", r.top + "px", "important");
-        panel.style.setProperty("bottom", "auto", "important"); try { grip.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); e.stopPropagation(); });
-      grip.addEventListener("pointermove", function (e) { if (on) { setW(w0 + e.clientX - sx); setH(h0 + e.clientY - sy); e.preventDefault(); } });
-      function end() { if (!on) return; on = false; var r = panel.getBoundingClientRect();
-        store.set("speak.panel.w", String(r.width / window.innerWidth)); store.set("speak.panel.h", String(r.height / window.innerHeight)); }
+      panel.restoreSize = function () { var f = +store.get("speak.panel.w"); if (f) setW(f * window.innerWidth); };
+      grip.addEventListener("pointerdown", function (e) { on = true; sx = e.clientX; var r = panel.getBoundingClientRect(); w0 = r.width;
+        panel.style.setProperty("left", r.left + "px", "important"); try { grip.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); e.stopPropagation(); });
+      grip.addEventListener("pointermove", function (e) { if (on) { setW(w0 + e.clientX - sx); e.preventDefault(); } });
+      function end() { if (!on) return; on = false; store.set("speak.panel.w", String(panel.getBoundingClientRect().width / window.innerWidth)); }
       grip.addEventListener("pointerup", end); grip.addEventListener("pointercancel", end);
     })(panel.querySelector(".sa-rsz"));
     mainBtn = panel.querySelector(".sa-main"); stopBtn = panel.querySelector(".sa-stop");
@@ -290,25 +281,6 @@
     paint();
   }
 
-  // ⛔ STOP TALKING WHEN THE APP IS CLOSED OR BACKGROUNDED.
-  // Her feedback, 16 Sep 2026, Rachie's Desk: "So the voice gets out of it when
-  // I quit. So it has been fixed but hasn't." It had been fixed on the Desk page
-  // ONLY, inline, and the Desk is one of eight apps that load this shared file -
-  // measured 18 Sep 2026: the live speak.js had no pagehide, no beforeunload, no
-  // visibilitychange and no cancel of any kind, so every other app kept speaking.
-  //
-  // pagehide is the one that matters and the one the Desk's inline fix missed: on
-  // iOS, closing or swiping away an installed web app fires pagehide, and does not
-  // reliably fire beforeunload. visibilitychange covers backgrounding, and
-  // beforeunload covers a desktop tab close. All three, because no single event
-  // fires on every platform.
-  function hush() { try { SS.cancel(); } catch (e) {} }
-  window.addEventListener("pagehide", hush);
-  window.addEventListener("beforeunload", hush);
-  document.addEventListener("visibilitychange", function () {
-    if (document.visibilityState === "hidden") hush();
-  });
-
-  window.SpeakAloud = { start: function () { start(); }, stop: function () { finish(""); }, draggable: makeDraggable, hush: hush };
+  window.SpeakAloud = { start: function () { start(); }, stop: function () { finish(""); }, draggable: makeDraggable };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build); else build();
 })();
