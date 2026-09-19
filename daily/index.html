@@ -1870,8 +1870,9 @@ document.getElementById("reloadText").addEventListener("click", function(){ load
     /* 19 Sep 2026: this used the phone voice every time, whatever else was set.
        Her pick reads it now, or it says why - it never drops back to Karen. */
     sayWithNaturalVoice(text).then(function(ok){
-      if (!ok) toast(recPass() ? "The natural voice could not be reached just now"
-                               : "Read aloud needs this device connected", null, null);
+      if (ok) return;
+      if (!recPass()){ connectThisDevice().then(function(c){ if (c) sayWithNaturalVoice(text); }); return; }
+      toast("The natural voice could not be reached just now", null, null);
     });
   });
 })();
@@ -2287,6 +2288,30 @@ function recKey(){
 
 /* Selected text, or a chapter with no recording, goes to the relay's /tts -
    her own Google key, capped there at 1,500 characters a request. */
+/* 19 Sep 2026: this page has no "Connect to Notion" button - it never saves
+   anything to Notion - so a device with no apps password had NO WAY to turn the
+   natural voice on, and was simply told to connect. That is an instruction she
+   could not follow. It now asks for the password here, checks it against the
+   relay before keeping it, and stores it exactly where every other app looks.
+   Nothing is sent anywhere until the relay says the password is right. */
+async function connectThisDevice(){
+  let pw = null;
+  try { pw = window.prompt("Enter your apps password once to turn on the natural voice on this device:"); }
+  catch (e){ return false; }
+  pw = (pw || "").trim();
+  if (!pw) return false;
+  try {
+    const r = await fetch(REC_RELAY + "/ping", { headers: { "X-Pass": pw } });
+    if (!r.ok){
+      toast(r.status === 401 ? "That password was not right" : "Could not check the password just now", null, null);
+      return false;
+    }
+  } catch (e){ toast("No internet, so the password cannot be checked", null, null); return false; }
+  try { localStorage.setItem("notionSync.pass", JSON.stringify(pw)); } catch (e){ return false; }
+  toast("This device is connected \u2014 the natural voice is on", null, null);
+  return true;
+}
+
 async function sayWithNaturalVoice(text){
   const pw = recPass(); if (!pw || !text) return false;
   try {
@@ -2347,10 +2372,8 @@ async function startListening(){
      page sounded unchanged all day while everything behind it worked. It now
      says what is wrong. The cost, stated plainly: with no internet, or on a
      device that has never been connected, there is no read aloud here at all. */
-  if (!recPass()){
-    toast("Read aloud needs this device connected \u2014 enter the apps password once", null, null);
-    return;
-  }
+  if (!recPass() && !(await connectThisDevice())) return;
+  if (await playRecording()) return;     /* now connected - her recording */
   const text = readingText();
   if (!text){ toast("No chapter loaded to read", null, null); return; }
   if (await sayWithNaturalVoice(text)) return;
