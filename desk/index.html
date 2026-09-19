@@ -22,6 +22,8 @@ nav.tabs{padding-bottom:env(safe-area-inset-bottom)!important}</style>
 <script src="../pull.js" defer></script>
 </head>
 <body>
+<div id="deskbg" aria-hidden="true"><i style="background-image:url(../tripshare/bg/korea-blossom.jpg)"></i><i style="background-image:url(../tripshare/bg/korea-hanok.jpg)"></i><i style="background-image:url(../tripshare/bg/europe-rooftops.jpg)"></i><i style="background-image:url(../tripshare/bg/europe-alps.jpg)"></i><i style="background-image:url(../tripshare/bg/sky-clouds.jpg)"></i><i style="background-image:url(../tripshare/bg/sky-aurora.jpg)"></i></div>
+<div id="deskscrim" aria-hidden="true"></div>
 <title>Rachie's Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -65,6 +67,20 @@ nav.tabs{padding-bottom:env(safe-area-inset-bottom)!important}</style>
 }
 *{box-sizing:border-box}
 #sky{position:fixed;inset:0;z-index:0;display:block;pointer-events:none}
+#deskbg{position:fixed;inset:0;z-index:-2;overflow:hidden;background:var(--ground)}
+#deskbg i{position:absolute;inset:-6%;background-size:cover;background-position:center;opacity:0;
+  will-change:opacity,transform;animation:dbfade 96s linear infinite, dbdrift 48s ease-in-out infinite alternate}
+#deskbg i:nth-child(1){animation-delay:0s,0s}
+#deskbg i:nth-child(2){animation-delay:16s,-8s}
+#deskbg i:nth-child(3){animation-delay:32s,-16s}
+#deskbg i:nth-child(4){animation-delay:48s,-24s}
+#deskbg i:nth-child(5){animation-delay:64s,-32s}
+#deskbg i:nth-child(6){animation-delay:80s,-40s}
+@keyframes dbfade{0%{opacity:0}3%{opacity:1}16%{opacity:1}19%{opacity:0}100%{opacity:0}}
+@keyframes dbdrift{from{transform:scale(1.04) translate3d(0,0,0)}to{transform:scale(1.10) translate3d(-1.5%,-1%,0)}}
+#deskscrim{position:fixed;inset:0;z-index:-1;pointer-events:none;background:var(--ground);opacity:.88}
+@media (prefers-reduced-motion:reduce){#deskbg i{animation:dbfade 96s linear infinite}}
+@media print{#deskbg,#deskscrim{display:none}}
 body{background:var(--ground);color:var(--ink);
   font-family:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;margin:0;
@@ -573,6 +589,14 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 .applist li:first-child{border-top:0}
 .applist .app-name{font-weight:600;text-decoration:none;color:inherit}
 .applist .app-where{font-size:12px;opacity:.7;white-space:nowrap}
+.appcat{border-top:1px solid var(--line,#e6e0d5)}
+.appcat:first-of-type{border-top:0}
+.appcat>summary{cursor:pointer;padding:8px 0;font-weight:600;list-style:none;display:flex;
+  justify-content:space-between;align-items:baseline;gap:10px}
+.appcat>summary::-webkit-details-marker{display:none}
+.appcat>summary::after{content:"\203A";opacity:.5;transition:transform .15s ease}
+.appcat[open]>summary::after{transform:rotate(90deg)}
+.appcat .applist{margin:0 0 8px}
 </style>
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 
@@ -674,35 +698,60 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     </div>
     <div class="block">
       <div class="sec-head"><h2>Apps you have built</h2>
-        <p class="sec-note">Every one that answers right now. Checked 19 Sep 2026.</p>
-        <span class="count">17</span></div>
-      <ul class="applist">
-        <li><a class="app-name" href="https://racts-dot.github.io/daily/" target="_blank" rel="noopener">Daily Chapter</a><span class="app-where"><a href="https://racts-dot.github.io/daily/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/workflows/" target="_blank" rel="noopener">Doser AI Marketing Workflows</a><span class="app-where"><a href="https://racts-dot.github.io/workflows/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/hormozi/" target="_blank" rel="noopener">Hormozi Marketing Recipes</a><span class="app-where"><a href="https://racts-dot.github.io/hormozi/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/ledger/" target="_blank" rel="noopener">June Resale Ledger</a><span class="app-where"><a href="https://racts-dot.github.io/ledger/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/ledgers/" target="_blank" rel="noopener">Ledgers</a><span class="app-where"><a href="https://racts-dot.github.io/ledgers/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/reflect/" target="_blank" rel="noopener">Morning and Evening</a><span class="app-where"><a href="https://racts-dot.github.io/reflect/" target="_blank" rel="noopener">GitHub</a> · <a href="https://morning-and-evening.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
-        <li><a class="app-name" href="https://prayer-points.pages.dev/" target="_blank" rel="noopener">Prayer Points</a><span class="app-where"><a href="https://prayer-points.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/priesthood/" target="_blank" rel="noopener">Priest Hood</a><span class="app-where"><a href="https://racts-dot.github.io/priesthood/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/rules/" target="_blank" rel="noopener">Rachel&#x27;s Rule Shelf</a><span class="app-where"><a href="https://racts-dot.github.io/rules/" target="_blank" rel="noopener">GitHub</a> · <a href="https://rule-shelf.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/desk/" target="_blank" rel="noopener">Rachie&#x27;s Desk</a><span class="app-where"><a href="https://racts-dot.github.io/desk/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://creator-reading-room.pages.dev/" target="_blank" rel="noopener">Reading Room</a><span class="app-where"><a href="https://creator-reading-room.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/recipes/" target="_blank" rel="noopener">Recipes</a><span class="app-where"><a href="https://racts-dot.github.io/recipes/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/cookbook/" target="_blank" rel="noopener">Sabrina&#x27;s Prompt Cookbook</a><span class="app-where"><a href="https://racts-dot.github.io/cookbook/" target="_blank" rel="noopener">GitHub</a> · <a href="https://prompt-cookbook.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/study/" target="_blank" rel="noopener">Study · finance, AI, SQL, Python</a><span class="app-where"><a href="https://racts-dot.github.io/study/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/tripshare/" target="_blank" rel="noopener">TripShare</a><span class="app-where"><a href="https://racts-dot.github.io/tripshare/" target="_blank" rel="noopener">GitHub</a></span></li>
-        <li><a class="app-name" href="https://waple-diary.pages.dev/" target="_blank" rel="noopener">Waple Diary</a><span class="app-where"><a href="https://waple-diary.pages.dev/" target="_blank" rel="noopener">Cloudflare</a></span></li>
-        <li><a class="app-name" href="https://racts-dot.github.io/videos/" target="_blank" rel="noopener">출처 찾기</a><span class="app-where"><a href="https://racts-dot.github.io/videos/" target="_blank" rel="noopener">GitHub</a></span></li>
-      </ul>
+        <p class="sec-note">Grouped. Tap a group to open it. Every one answered when checked, 19 Sep 2026.</p>
+        <span class="count">26</span></div>
+        <details class="appcat"><summary>Faith and daily reading <span class="count">7</span></summary>
+        <ul class="applist">
+          <li><a class="app-name" href="https://racts-dot.github.io/daily-chapter/" target="_blank" rel="noopener">Daily Chapter</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/daily/" target="_blank" rel="noopener">Daily reading</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/priesthood/" target="_blank" rel="noopener">Priest Hood</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://prayer-points.pages.dev/" target="_blank" rel="noopener">Prayer Points</a><span class="app-where">Cloudflare</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/reflect/" target="_blank" rel="noopener">Morning and Evening</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://morning-and-evening.pages.dev/" target="_blank" rel="noopener">Morning and Evening (installed)</a><span class="app-where">Cloudflare</span></li>
+          <li><a class="app-name" href="https://waple-diary.pages.dev/" target="_blank" rel="noopener">Waple Diary</a><span class="app-where">Cloudflare</span></li>
+        </ul></details>
+        <details class="appcat"><summary>Learning and marketing <span class="count">6</span></summary>
+        <ul class="applist">
+          <li><a class="app-name" href="https://creator-reading-room.pages.dev/" target="_blank" rel="noopener">Creator Reading Room</a><span class="app-where">Cloudflare</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/cookbook/" target="_blank" rel="noopener">Sabrina&#x27;s Prompt Cookbook</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/hormozi/" target="_blank" rel="noopener">Hormozi Marketing Recipes</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/workflows/" target="_blank" rel="noopener">Doser AI Marketing Workflows</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/videos/" target="_blank" rel="noopener">Video search 출처 찾기</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/study/" target="_blank" rel="noopener">Study</a><span class="app-where">GitHub</span></li>
+        </ul></details>
+        <details class="appcat"><summary>Money and stock <span class="count">4</span></summary>
+        <ul class="applist">
+          <li><a class="app-name" href="https://racts-dot.github.io/ledgers/" target="_blank" rel="noopener">Ledgers (all three)</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/ledger/" target="_blank" rel="noopener">June Resale Ledger</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/ledger-9f4c2e/" target="_blank" rel="noopener">Easy Life Stock Ledger</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/app.html" target="_blank" rel="noopener">Sales Tracker</a><span class="app-where">GitHub</span></li>
+        </ul></details>
+        <details class="appcat"><summary>Your day <span class="count">6</span></summary>
+        <ul class="applist">
+          <li><a class="app-name" href="https://racts-dot.github.io/desk/" target="_blank" rel="noopener">Rachie&#x27;s Desk</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/day/" target="_blank" rel="noopener">The Day</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/todo/" target="_blank" rel="noopener">To-do</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/worklog/" target="_blank" rel="noopener">Worklog</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/tripshare/" target="_blank" rel="noopener">TripShare</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/recipes/" target="_blank" rel="noopener">Recipes</a><span class="app-where">GitHub</span></li>
+        </ul></details>
+        <details class="appcat"><summary>Rules, notes and handover <span class="count">3</span></summary>
+        <ul class="applist">
+          <li><a class="app-name" href="https://racts-dot.github.io/rules/" target="_blank" rel="noopener">Rachel&#x27;s Rule Shelf</a><span class="app-where">GitHub</span></li>
+          <li><a class="app-name" href="https://notion-reader.apps-notion-relay.workers.dev/" target="_blank" rel="noopener">Notion Reader</a><span class="app-where">Worker</span></li>
+          <li><a class="app-name" href="https://racts-dot.github.io/board.html" target="_blank" rel="noopener">AI Handoff Board</a><span class="app-where">GitHub</span></li>
+        </ul></details>
     </div>
     <div class="block">
       <div class="sec-head"><h2>Scratch paper</h2>
         <p class="sec-note">Draw your day. Saved on this device.</p>
         <span class="count" id="scSaved"></span></div>
-      <div class="sc-tools">
-        <button type="button" id="scUndo">Undo</button>
-        <button type="button" id="scClear">Clear</button>
+      <div class="sc-tools" role="group" aria-label="Pen">
+        <button type="button" class="catchip on" data-pen="ink" aria-pressed="true">Pen</button>
+        <button type="button" class="catchip" data-pen="accent" aria-pressed="false">Blue</button>
+        <button type="button" class="catchip" data-pen="erase" aria-pressed="false">Rubber</button>
+        <button type="button" class="catchip" id="scUndo">Undo</button>
+        <button type="button" class="catchip" id="scClear">Clear</button>
       </div>
       <div class="sc-wrap"><canvas id="scratch" aria-label="Scratch paper, draw with your finger"></canvas></div>
     </div>
@@ -2538,6 +2587,22 @@ function stopSpeaking(){
   $("#player").classList.remove("on"); $("#pFill").style.width="0"; $("#pNow").textContent="Ready";
   paintPlaying();
 }
+/* Her note 16 Sep, still open on the board 19 Sep: "So the voice gets out of it when I quit. So it
+   has been fixed but hasn't." Both halves of that sentence are true. It WAS fixed - in the shared
+   speak.js, on 18 Sep, with pagehide + beforeunload + visibilitychange. The Desk does not load
+   speak.js; it has this player of its own, so the fix never reached the page she was complaining
+   about. Measured 19 Sep: desk/index.html had no pagehide, no beforeunload, and stopSpeaking was
+   only ever called by a button.
+   The same split as speak.js, so the two behave alike: QUIT stops everything; BACKGROUNDING does
+   not, because of her 15 Sep ask, "I can have it play in the background" - #recAudio is a recorded
+   file the phone keeps playing, and the robot voice iOS suspends by itself. */
+function hushOnQuit(){
+  try{ stopSpeaking(); }catch(e){}
+  var a=document.getElementById("recAudio"); if(a){ try{ a.pause(); }catch(e){} }
+}
+window.addEventListener("pagehide", hushOnQuit);
+window.addEventListener("beforeunload", hushOnQuit);
+
 const headIdx = () => queue.map((p,i)=>p.head?i:-1).filter(i=>i>=0);
 function jump(dir){
   if(!queue.length) return;
@@ -3868,21 +3933,32 @@ if("serviceWorker" in navigator){
 (function(){
   var cv=document.getElementById("scratch"); if(!cv) return;
   var saved=document.getElementById("scSaved");
-  var ctx=cv.getContext("2d"), KEY="desk.scratch.v1", strokes=[], live=null;
+  var ctx=cv.getContext("2d"), KEY="desk.scratch.v1", strokes=[], live=null, pen="ink";
   try{ var raw=localStorage.getItem(KEY); if(raw) strokes=JSON.parse(raw)||[]; }catch(e){}
   function store(){ try{ localStorage.setItem(KEY, JSON.stringify(strokes)); }catch(e){}
     if(saved) saved.textContent = strokes.length ? strokes.length+" strokes" : ""; }
+  /* A stroke is {p:pen, pts:[...]}. Strokes saved before the pens came back are a bare array of
+     points; they are read as the plain pen rather than thrown away. */
+  function ptsOf(s){ return Array.isArray(s) ? s : (s && s.pts) || []; }
+  function penOf(s){ return Array.isArray(s) ? "ink" : (s && s.p) || "ink"; }
   function paint(){
     ctx.clearRect(0,0,cv.clientWidth,cv.clientHeight);
-    ctx.lineWidth=2.2; ctx.lineCap="round"; ctx.lineJoin="round";
-    ctx.strokeStyle=getComputedStyle(document.body).color||"#15181e";
+    ctx.lineCap="round"; ctx.lineJoin="round";
+    var ink=getComputedStyle(document.body).color||"#15181e";
+    var blue=(getComputedStyle(document.documentElement).getPropertyValue("--accent")||"").trim()||"#1f6feb";
     var all=strokes.concat(live?[live]:[]);
     for(var i=0;i<all.length;i++){
-      var pts=all[i]; if(!pts||pts.length<2) continue;
+      var pts=ptsOf(all[i]), pk=penOf(all[i]); if(pts.length<2) continue;
+      /* The rubber cuts a hole instead of painting over in the paper colour, so it still works
+         when she is on the dark theme. */
+      ctx.globalCompositeOperation = pk==="erase" ? "destination-out" : "source-over";
+      ctx.lineWidth = pk==="erase" ? 16 : 2.2;
+      ctx.strokeStyle = pk==="accent" ? blue : ink;
       ctx.beginPath(); ctx.moveTo(pts[0][0],pts[0][1]);
       for(var j=1;j<pts.length;j++) ctx.lineTo(pts[j][0],pts[j][1]);
       ctx.stroke();
     }
+    ctx.globalCompositeOperation="source-over";
   }
   function fit(){
     var dpr=window.devicePixelRatio||1;
@@ -3891,10 +3967,17 @@ if("serviceWorker" in navigator){
     ctx.setTransform(dpr,0,0,dpr,0,0); paint();
   }
   function at(ev){ var r=cv.getBoundingClientRect(); return [ev.clientX-r.left, ev.clientY-r.top]; }
-  cv.addEventListener("pointerdown",function(ev){ ev.preventDefault(); cv.setPointerCapture&&cv.setPointerCapture(ev.pointerId); live=[at(ev)]; });
-  cv.addEventListener("pointermove",function(ev){ if(!live) return; ev.preventDefault(); live.push(at(ev)); paint(); });
-  window.addEventListener("pointerup",function(){ if(live&&live.length>1) strokes.push(live); live=null; store(); paint(); });
+  cv.addEventListener("pointerdown",function(ev){ ev.preventDefault(); cv.setPointerCapture&&cv.setPointerCapture(ev.pointerId); live={p:pen, pts:[at(ev)]}; });
+  cv.addEventListener("pointermove",function(ev){ if(!live) return; ev.preventDefault(); live.pts.push(at(ev)); paint(); });
+  window.addEventListener("pointerup",function(){ if(live&&live.pts.length>1) strokes.push(live); live=null; store(); paint(); });
   window.addEventListener("pointercancel",function(){ live=null; paint(); });
+  var chips=[].slice.call(document.querySelectorAll(".sc-tools [data-pen]"));
+  chips.forEach(function(b){
+    b.addEventListener("click",function(){
+      pen=b.getAttribute("data-pen");
+      chips.forEach(function(x){ var on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-pressed",String(on)); });
+    });
+  });
   var u=document.getElementById("scUndo"), c=document.getElementById("scClear");
   if(u) u.addEventListener("click",function(){ strokes.pop(); store(); paint(); });
   if(c) c.addEventListener("click",function(){
