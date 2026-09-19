@@ -87,12 +87,30 @@ still wins on money, public and hard-to-undo.
   *"I will need the thumbnail for the application"*, Rule Shelf *"I don't have the um app thumbnail here"*.
   The icon is a kit piece; her pick is read from the tick-box page, never from a summary of it.
 
-⚠ **MEASURED ON THIS MAC, 19 Sep 2026: `status/app_kit_check.py` IS NOT ON THIS MACHINE AND IS IN NO REPO's
-`origin/main`.** home-notes' `.gitignore` is `*`, so a file created on Windows never travels until it is
-force-added. **So on the Mac the kit rule above has no mechanism behind it, and a Mac session told to run the
-check runs nothing and reads the silence as a pass.** Until it is pushed from Windows, the kit is checked here
-BY HAND, against this list - and the gaps that count are the ones in her feedback, not the ones a green check
-would report.
+🚨 **CORRECTED 19 Sep 2026, SAME DAY, BY A WINDOWS SESSION. ~~`status/app_kit_check.py` is in no repo's
+`origin/main`~~ — THAT WAS WRONG AND IT WAS MY SEARCH THAT WAS WRONG.** The file has been on home-notes
+`origin/main` since 17 Sep (`ae18d3a6`), last changed 19 Sep (`b61c19ef`, the viewport piece), 11,882 bytes,
+and `status/` has an exception in that repo's `.gitignore`. My `git ls-tree | grep kit | head` truncated before
+reaching it, so a zero came back from a search that never finished — the 18 Sep lesson, one day late.
+
+⚠ **WHAT IS ACTUALLY TRUE, re-derived on the Mac 19 Sep:** the file is not on the Mac's DISK because
+`~/home-notes` is **99 ahead and 958 behind** `origin/main`, and the 30-minute sync fails on it **every run** —
+`pull FAILED: fatal: Cannot fast-forward to multiple branches` in `status/sync_all_log.txt`, with 2,431 modified
+files in that checkout. So every check, rule and register Windows has written for weeks has never reached a Mac
+session. **That is the machine-level reason her instructions keep having to be repeated, and it is not fixed.**
+Until it is: run the check from origin without touching the worktree —
+`git -C ~/home-notes show origin/main:status/app_kit_check.py > /tmp/k.py && python /tmp/k.py`.
+
+⚠ **THE CHECK IS ALSO WINDOWS-SHAPED IN TWO WAYS.** `SITE_REPO = HOME/".site-publish"` does not exist on the
+Mac (the clone here is `~/website`), and the rule's own `python status/app_kit_check.py` is a path that resolves
+only on Windows, where home-notes IS the home folder. Both need a both-machines form, not the Mac's.
+
+🔴 **AND THE THING THAT MATTERS MOST. RUN ON THE MAC 19 Sep IT REPORTED `25 apps, 4 gaps` — while she was
+telling us, that same day, that TripShare has no swipe.** It scores swipe by finding the WORD in the served
+page. Her 17 Sep lesson already said a reference is not a load; this is the next step of the same mistake —
+**a reference is not a working feature.** It also does not test five of the things she asks for most:
+natural voice, pull-to-refresh, highlights and notes, boxes that drag and resize, and the app icon.
+**A green check is why nothing changed for weeks. Do not quote it as evidence until it tests behaviour.**
 
 ## The checks (mechanisms, no AI) - an app is not done until these say so
 
