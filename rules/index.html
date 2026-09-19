@@ -167,6 +167,39 @@ table.meas .warn{color:var(--muted)}
   .pathcell{word-break:break-all}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ── PHONE: stack every table instead of making her scroll sideways ──
+   Her words 19 Sep 2026: "The shelf is not phone frinfly". Measured at 375 px on the
+   same markup: table.meas rendered 454 px and a doc-body table 532 px, so each table
+   had its OWN sideways scrollbar and columns collapsed to one word a line ("every /
+   folder / (the"). Below 860 px - the same point the nav already flips - each row
+   becomes a card: every cell on its own line under its column name, nothing hidden,
+   nothing truncated. Measured after: document width equals the viewport, no horizontal
+   scroll. ⚠ This page is regenerated in-session by another chat from the live rule
+   books; if this block disappears, that rebuild dropped it. */
+@media (max-width:860px){
+  .tablewrap{overflow-x:visible}
+  table.meas, .doc-body table{display:block;width:100%;border:0}
+  table.meas thead, .doc-body table thead{position:absolute;width:1px;height:1px;
+    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  table.meas tbody, .doc-body table tbody,
+  table.meas tr, .doc-body table tr{display:block;width:100%}
+  table.meas tr, .doc-body table tr{border:1px solid var(--line);margin:0 0 10px;
+    background:var(--surface)}
+  table.meas td, .doc-body table td{display:block;width:100%;border:0;
+    border-top:1px solid var(--line-soft);padding:9px 13px;text-align:left!important;
+    white-space:normal!important;overflow-wrap:anywhere}
+  table.meas tr td:first-child, .doc-body table tr td:first-child{border-top:0;
+    font-family:Archivo,Helvetica,Arial,sans-serif;font-weight:700}
+  table.meas td::before, .doc-body table td::before{
+    content:attr(data-label);display:block;font-family:Archivo,Helvetica,Arial,sans-serif;
+    font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
+    margin-bottom:3px}
+  table.meas td:first-child::before, .doc-body table td:first-child::before{content:none}
+  table.meas .num{text-align:left}
+  .plain{padding:16px 13px;font-size:12px}
+  .doc-body pre{font-size:12px;padding:11px 12px}
+}
 </style>
 
 <div class="topbar"><b id="tbTitle">Rachel&rsquo;s Rule Shelf</b><button id="menuBtn">Books</button></div>
@@ -316,4 +349,26 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(function () {});
   });
 }
+</script>
+<script>
+/* Give every table cell its column name so the phone layout can print it. Re-runs on
+   each render because the doc body is built on the fly. */
+(function(){
+  function label(root){
+    (root||document).querySelectorAll('table').forEach(function(t){
+      var head = t.querySelector('thead tr') || t.querySelector('tr');
+      if(!head) return;
+      var names = Array.prototype.map.call(head.children, function(c){ return (c.textContent||'').trim(); });
+      t.querySelectorAll('tbody tr, tr').forEach(function(r){
+        if(r === head) return;
+        Array.prototype.forEach.call(r.children, function(c,i){
+          if(!c.hasAttribute('data-label') && names[i]) c.setAttribute('data-label', names[i]);
+        });
+      });
+    });
+  }
+  label(document);
+  var m = document.getElementById('main');
+  if(m && window.MutationObserver){ new MutationObserver(function(){ label(m); }).observe(m,{childList:true,subtree:true}); }
+})();
 </script>
