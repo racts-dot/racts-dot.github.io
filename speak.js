@@ -249,7 +249,12 @@
       headers: { "Content-Type": "application/json", "X-Pass": pw },
       body: JSON.stringify({ text: p.text, voice: store.get(K_NVOICE) || "aoede" })
     }).then(function (r) {
-      if (!r.ok) return r.json().catch(function () { return {}; }).then(function (j) { throw new Error(j.error || ("relay said " + r.status)); });
+      if (!r.ok) return r.json()["catch"](function () { return {}; }).then(function (j) {
+        // 404 = the relay has not been redeployed with /tts yet; 503 = no Google key in Cloudflare.
+        // Both are "not switched on", not a fault, and she should not be shown a bare status code.
+        if (!j.error && (r.status === 404 || r.status === 503)) throw new Error("The natural voice is not switched on yet - using the phone voice.");
+        throw new Error(j.error || ("the voice server said " + r.status));
+      });
       return r.blob();
     }).then(function (b) { p.url = URL.createObjectURL(b); p.pending = null; return p.url; },
       function (e) { p.pending = null; throw e; });
