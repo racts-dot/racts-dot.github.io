@@ -183,7 +183,9 @@
 
   /* ---- the tiles ---- */
   .search{display:flex;align-items:center;gap:9px;margin:0 0 14px;padding:9px 13px;border-radius:12px;
-          background:var(--surface);border:1px solid var(--line)}
+          background:var(--surface);border:1px solid var(--line);
+          max-width:320px;margin-right:auto}
+  @media (max-width:520px){ .search{max-width:none} }
   .search input{flex:1;background:transparent;border:0;color:var(--ink);font:inherit;font-size:14.5px;outline:none}
   .search .ico{color:var(--faint);font-size:14px}
   .search .count{color:var(--faint);font-size:12px}

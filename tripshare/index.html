@@ -141,7 +141,7 @@
   /* The scrim: paper colour at low opacity so every theme keeps its own
      contrast instead of one hard-coded wash that only suits the light one. */
   #bgscrim { position: fixed; inset: 0; z-index: -1; pointer-events: none;
-             background: var(--paper); opacity: 0.78; }
+             background: var(--paper); opacity: 0.58; }
   /* 19 Sep 2026, her note: "And it is not moving the background." The six photos were loading
      (all 200 image/jpeg, checked live) and the animation was correct - but iPhones with
      Settings > Accessibility > Motion > Reduce Motion switched on matched the rule below, which
@@ -870,7 +870,13 @@
   function go(name, id) {
     if (!okToLeaveItemForm()) return;
     if (name !== "shared") view.previewing = false;
-    view.name = name; view.id = id || null; render();
+    view.name = name; view.id = id || null;
+    // The calendar gets an address of its own, so it can be bookmarked and sent.
+    try {
+      if (name === "plan") { if (location.hash !== "#plan") history.replaceState(null, "", "#plan"); }
+      else if (location.hash === "#plan") history.replaceState(null, "", location.pathname);
+    } catch (e) {}
+    render();
   }
 
   /* ---------- sorting ---------- */
@@ -1868,6 +1874,7 @@
   }
   function boot() {
     var m = readHash();
+    if (!m && location.hash === "#plan" && NOTION_TRIP) { view.name = "plan"; paintAlerts(); render(); return; }
     if (m) {
       try { view.shared = decodeTrip(m[1]); view.name = "shared"; }
       catch (e) { view.name = "broken"; }
