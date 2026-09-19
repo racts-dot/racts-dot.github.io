@@ -168,6 +168,12 @@
   .item.k-food { border-left: 3px solid var(--k-food); }
   .item.k-note { border-left: 3px solid var(--k-note); }
   .item[class*="k-"] { padding-left: .55rem; }
+  .navlink { display: block; padding: .5rem .7rem; font-size: .85rem; text-align: center;
+              border-top: 1px solid var(--line, #d9cebd); }
+  .when .dur { display: block; font-size: .7rem; opacity: .85; }
+  .when.d-short { border-left: 3px solid #2e7d32; padding-left: .4rem; }
+  .when.d-mid   { border-left: 3px solid #ef6c00; padding-left: .4rem; }
+  .when.d-long  { border-left: 3px solid #6a1b9a; padding-left: .4rem; }
   .mapbtn { margin-top: .4rem; }
   .mapwrap { margin-top: .5rem; border: 1px solid var(--line, #d9cebd); border-radius: .6rem; overflow: hidden; }
   .mapwrap iframe { display: block; width: 100%; height: 15rem; border: 0; }
@@ -473,6 +479,20 @@
   function kindLabel(k) {
     for (var i = 0; i < KINDS.length; i++) if (KINDS[i][0] === k) return KINDS[i][1];
     return "Note";
+  }
+  /* Minutes between two "HH:MM" strings, or null when either is missing. An end before the start
+     is read as crossing midnight, which is what a late dinner or a night flight actually is. */
+  function spanMins(s, e) {
+    var m1 = /^(\d{1,2}):(\d{2})$/.exec(s || ""), m2 = /^(\d{1,2}):(\d{2})$/.exec(e || "");
+    if (!m1 || !m2) return null;
+    var a = (+m1[1]) * 60 + (+m1[2]), b = (+m2[1]) * 60 + (+m2[2]);
+    var d = b - a; if (d < 0) d += 24 * 60;
+    return d;
+  }
+  function fmtSpan(m) {
+    if (m < 60) return m + " min";
+    var h = Math.floor(m / 60), r = m % 60;
+    return h + "h" + (r ? " " + r + "m" : "");
   }
   function safeUrl(u) {
     if (!u) return "";
@@ -1419,6 +1439,8 @@
   function itemRow(t, a, redraw, editable) {
     var row = document.createElement("div"); row.className = "item k-" + (a.k || "note");
     var when = fmtTime(a.s) + (a.e ? "–" + fmtTime(a.e) : "");
+    var mins = spanMins(a.s, a.e);
+    var band = mins === null ? "" : (mins <= 60 ? "d-short" : mins <= 180 ? "d-mid" : "d-long");
     var links = "";
     if (safeUrl(a.w)) links += '<a href="' + esc(a.w) + '" target="_blank" rel="noopener noreferrer">Open link</a>';
     if (safeUrl(a.m)) links += '<a href="' + esc(a.m) + '" target="_blank" rel="noopener noreferrer">Open map</a>';
@@ -1436,7 +1458,10 @@
       encodeURIComponent(a.l || a.t) +
       '" target="_blank" rel="noopener noreferrer">Find videos</a>';
     row.innerHTML =
-      '<div class="when">' + esc(when || "—") + '</div>' +
+      '<div class="when' + (band ? " " + band : "") + '"' +
+        (mins === null ? "" : ' title="' + esc(fmtSpan(mins)) + '"') + '>' +
+        esc(when || "—") + (mins === null ? "" : '<span class="dur">' + esc(fmtSpan(mins)) + '</span>') +
+      '</div>' +
       '<div class="body">' +
         '<div class="ttl">' + esc(a.t || "Untitled") + '<span class="kind">' + esc(kindLabel(a.k)) + '</span></div>' +
         (a.l ? '<div class="where">' + esc(a.l) + '</div>' : "") +
@@ -1461,6 +1486,12 @@
           f.title = "Map of " + (a.l || a.t || "this stop");
           f.src = "https://www.google.com/maps?q=" + encodeURIComponent(a.l || a.t) + "&output=embed";
           mwrap.appendChild(f);
+          var nv = document.createElement("a");
+          nv.className = "navlink";
+          nv.href = "https://map.naver.com/p/search/" + encodeURIComponent(a.l || a.t);
+          nv.target = "_blank"; nv.rel = "noopener noreferrer";
+          nv.textContent = "Open in Naver 네이버 지도";
+          mwrap.appendChild(nv);
         }
       };
       row.querySelector(".body").appendChild(mb);
