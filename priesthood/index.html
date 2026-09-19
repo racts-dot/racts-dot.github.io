@@ -121,6 +121,43 @@ footer ul{padding-left:1.25rem}
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="favicon.png" sizes="32x32">
 <meta name="theme-color" content="#f7f4ec">
+<style>
+/* The bottom bar, lifted off the edge.
+
+   Rachel, 19 Sep 2026: "So I need need the bottom to be updated, so that is a bit higher and it's like alphas".
+   The bar shell.js builds is flush with the bottom of the screen and runs the full width. This floats it: a bit
+   higher, pulled in from both sides, rounded, and see-through enough to read the page through it. The lift is
+   measured from env(safe-area-inset-bottom), so on the iPhone it sits above the home indicator rather than
+   under it.
+
+   These rules live in the page, not in the bar's own stylesheet, because they have to beat it: shell.js adds its
+   stylesheet to the head after this one, so a rule of the same weight would lose on order alone. "body nav.ph-bar"
+   outweighs "nav.ph-bar", and "html body" outweighs "body", which is why they are written the long way.
+
+   The two backgrounds are deliberate: a browser that does not know color-mix() keeps the solid one above it and
+   the bar simply stays opaque.
+
+   NOTE FOR WHOEVER BUILDS THIS NEXT: this is the published copy, and "claude desktoi/priesthood/app/site_shell.py"
+   rewrites it from the build. The lasting home for these rules is the css string in SHELL_JS in that file. */
+html body{padding-bottom:calc(5rem + env(safe-area-inset-bottom))}
+body nav.ph-bar{
+  left:max(.625rem,env(safe-area-inset-left));
+  right:max(.625rem,env(safe-area-inset-right));
+  bottom:calc(.625rem + env(safe-area-inset-bottom));
+  padding:0 .25rem;
+  border:1px solid var(--line);
+  border-radius:1.25rem;
+  background:var(--panel);
+  background:color-mix(in srgb,var(--panel) 78%,transparent);
+  -webkit-backdrop-filter:saturate(1.5) blur(14px);
+  backdrop-filter:saturate(1.5) blur(14px);
+  box-shadow:0 .5rem 1.5rem rgba(0,0,0,.18)
+}
+/* The section you are on was marked with a line along the top edge of the bar; inside a rounded bar that line
+   runs off the corner, so the mark is the tab itself instead. */
+body nav.ph-bar a{border-radius:1rem}
+body nav.ph-bar a[aria-current=page]{border-top-color:transparent;background:var(--chip)}
+</style>
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 </head>
 <body>

@@ -158,6 +158,21 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
   color:var(--ink-faint);display:flex;flex-wrap:wrap;gap:5px 13px}
 .brief-run b{font-weight:500;color:var(--ink-soft)}
 .brief-run .at{color:var(--accent);font-weight:500}
+/* 19 Sep 2026, her words: "Morning play the brevi can be a bit prettier." Nothing moves - a
+   rule of colour across the top, the heading given a short underline, the play button in the
+   accent instead of flat black, and the run of counts set as chips rather than grey text. */
+.brief{position:relative;padding-top:18px}
+.brief::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;
+  background:linear-gradient(90deg,var(--accent),var(--ok))}
+.brief-h{font-size:23px;line-height:1.15;letter-spacing:-.01em}
+.brief-h::after{content:"";display:block;width:34px;height:2px;margin-top:7px;
+  background:var(--accent);opacity:.55}
+.brief-top #playBrief{background:var(--accent);border-color:var(--accent);color:var(--surface);
+  border-radius:10px;box-shadow:0 6px 18px -10px var(--accent)}
+.brief-top #playBrief:hover{filter:brightness(1.08)}
+.brief-run{gap:7px 8px}
+.brief-run span{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;
+  border-radius:999px;background:var(--surface-2);border:1px solid var(--line-soft)}
 @media (max-width:520px){.brief{grid-template-columns:1fr}
   .brief > button{grid-column:1;grid-row:auto;width:100%;margin-top:11px}}
 .rec{grid-column:1 / -1;margin-top:11px;padding-top:11px;border-top:1px solid var(--line-soft);display:none}
@@ -601,6 +616,39 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 .appcat>summary::after{content:"\203A";opacity:.5;transition:transform .15s ease}
 .appcat[open]>summary::after{transform:rotate(90deg)}
 .appcat .applist{margin:0 0 8px}
+
+/* ---- 19 Sep 2026: the three things she asked for ---- */
+/* a Listen row is a door now, so it is a button and it names what it is counting */
+.runrow{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:3px 12px;width:100%;
+  text-align:left;align-items:baseline;background:var(--glass);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--line-soft);border-left:4px solid var(--line);border-radius:2px;
+  padding:13px 15px;margin-top:10px;box-shadow:var(--shadow);color:var(--ink);
+  font-family:"Public Sans",sans-serif;font-weight:400;min-height:0;cursor:pointer}
+.runrow:hover{border-left-color:var(--accent)}
+.rr-n{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  color:var(--ink-faint)}
+.rr-t{font-size:16.5px;font-weight:700;line-height:1.35}
+.rr-v{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:500;letter-spacing:.08em;
+  text-transform:uppercase;padding:3px 8px;border-radius:2px;white-space:nowrap;
+  background:var(--accent-soft);color:var(--accent);justify-self:end}
+.rr-w{grid-column:2 / -1;font-size:14px;color:var(--ink-soft);line-height:1.4}
+/* same for a shop reading. The chevron is there because a phone has no hover to tell her. */
+.reading[data-r]{cursor:pointer}
+.reading[data-r]:hover .r-label{color:var(--accent)}
+.reading[data-r]:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.r-more{color:var(--accent);font-weight:400;margin-left:7px;opacity:.75}
+/* a paper story's own picture and its link back to where it came from */
+.storypic{margin:0 0 10px}
+.storypic img{display:block;width:100%;height:auto;border:1px solid var(--line-soft);
+  border-radius:2px}
+.storypic figcaption{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-faint);margin-top:5px}
+.storysrc{margin:9px 0 0}
+.storysrc a{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--accent);text-decoration:none;
+  border-bottom:1px solid var(--line)}
+.storysrc a:hover{border-bottom-color:var(--accent)}
 </style>
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 
@@ -1325,6 +1373,10 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 <script>
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+/* Only http and https ever reach an href or a src. A feed line is data, not code, and a
+   "javascript:" address in one would otherwise run here. */
+const safeURL = u => { const s=String(u==null?"":u).trim();
+  return /^https?:\/\//i.test(s) ? s : ""; };
 const DAY = 86400000, CAL = "Google Calendar";
 
 /* ---------------- comment box on every page ----------------
@@ -1810,8 +1862,9 @@ function renderMoney(){
 }
 function renderShop(){
   const R=(DESK&&DESK.readings)||[];
-  $("#readings").innerHTML = R.length ? R.map(r=>{ const st=daysSince(r.read)>(r.stale||7);
-    return `<div class="reading"><p class="r-label">${esc(r.label)}</p>
+  /* 19 Sep 2026, her words about this panel: "This needs to be click for more info". */
+  $("#readings").innerHTML = R.length ? R.map((r,i)=>{ const st=daysSince(r.read)>(r.stale||7);
+    return `<div class="reading" data-r="${i}" role="button" tabindex="0"><p class="r-label">${esc(r.label)}<span class="r-more" aria-hidden="true">\u203a</span></p>
       <p class="r-value">${esc(r.value)}<br><span style="color:var(--ink-faint);font-size:13.5px">${esc(r.note||"")}</span></p>
       <div class="r-when"><span class="r-date">${esc(shortDate(r.read))}</span>
       <span class="pill ${st?"stale":"ok"}">${st?"Go and look again":esc(agoWords(r.read))}</span></div></div>`;
@@ -1839,6 +1892,18 @@ function renderPaper(){
     `<div class="means"><span class="tag">For you</span><p>${esc(x.t)}</p></div>`).join("");
   const strip = h => String(h).replace(/^\s*\d+\.\s*/,"");
 
+  /* 19 Sep 2026, her words: "I will want the link to where it was sourced from, the photos and
+     everything." A story carried neither, so both are optional and nothing shows until the feed
+     starts carrying them: s.u is the link out, s.img a picture. The feed must only ever name a
+     picture we are allowed to hold - never a newspaper's own photo pulled off their site. */
+  const srcLink = s => { const u=safeURL(s && s.u);
+    return u ? `<p class="storysrc"><a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(
+      (s && s.src) || "Where this came from")} \u203a</a></p>` : ""; };
+  const pic = s => { const u=safeURL(s && s.img);
+    return u ? `<figure class="storypic"><img src="${esc(u)}" alt="${esc((s && s.imgAlt)||"")}"
+      loading="lazy" referrerpolicy="no-referrer">${(s && s.imgCredit)
+      ? `<figcaption>${esc(s.imgCredit)}</figcaption>` : ""}</figure>` : ""; };
+
   const all = (NEWS.stories||[]).slice();
   const last = all.length>1 && /take away|read twice|one thing/i.test(all[all.length-1].h)
     ? all.pop() : null;
@@ -1850,10 +1915,11 @@ function renderPaper(){
     $("#leadStory").innerHTML = `<article class="lead">
       <p class="kick">The one to read first</p>
       <h3>${esc(strip(lead.h))}</h3>
+      ${pic(lead)}
       ${lead.p?`<p class="lede">${esc(lead.p)}</p>`:""}
       ${quote?`<blockquote class="pullquote">${esc(quote.t)}</blockquote>`:""}
       ${bullets(ps.filter(x=>x!==quote))}
-      ${meansBox(ps)}</article>`;
+      ${meansBox(ps)}${srcLink(lead)}</article>`;
   } else $("#leadStory").innerHTML="";
 
   $("#stories").innerHTML = all.map((s,i)=>{
@@ -1861,13 +1927,14 @@ function renderPaper(){
     return `<article class="story">
       <p class="kick">${String(i+2).padStart(2,"0")}</p>
       <h3>${esc(strip(s.h))}</h3>
+      ${pic(s)}
       ${s.p?`<p class="lede">${esc(s.p)}</p>`:""}
-      ${bullets(ps)}${meansBox(ps)}</article>`; }).join("");
+      ${bullets(ps)}${meansBox(ps)}${srcLink(s)}</article>`; }).join("");
 
   $("#takeaway").innerHTML = last ? `<div class="takeaway">
     <h3>${esc(strip(last.h))}</h3>
     ${last.p?`<p>${esc(last.p)}</p>`:""}
-    ${(last.pts||[]).map(p=>`<p>${esc(p)}</p>`).join("")}</div>` : "";
+    ${(last.pts||[]).map(p=>`<p>${esc(p)}</p>`).join("")}${srcLink(last)}</div>` : "";
 
   $("#newsFoot").textContent = age<=0?"This morning's edition."
     : age===1?"Yesterday's edition." : "This edition is "+age+" days old.";
@@ -2003,24 +2070,55 @@ function renderThread(){
 }
 function renderRunOrder(){
   const rows = briefRows();
-  $("#briefRun").innerHTML = rows.map(([k,v])=>
-    `<span><b>${esc(k)}</b> <span class="at">${esc(String(v))}</span></span>`).join("");
-  $("#runOrder").innerHTML = rows.map(([k,v],i)=>cardHTML({
-    title:(i+1)+". "+k, body:"", meta:[pill(String(v))] })).join("");
+  $("#briefRun").innerHTML = rows.map(r=>
+    `<span><b>${esc(r.k)}</b> <span class="at">${esc(String(r.v))}</span></span>`).join("");
+  /* 19 Sep 2026, her words: "It needs to open when clicked. If you have google and gpt and
+     claude. And say 1 renewals. What the hell will you know which? And it turns out to be an
+     insurance." A bare count never says WHICH one, so every row now carries the first few names
+     and is itself a button that opens the page they live on. Deliberately NOT a .card: her
+     15 Sep rule hides a card's body until the title is tapped, and here the names ARE the point. */
+  $("#runOrder").innerHTML = rows.map((r,i)=>
+    `<button type="button" class="runrow" data-go="${esc(r.go)}"${r.at?` data-at="${esc(r.at)}"`:""}>
+      <span class="rr-n">${String(i+1).padStart(2,"0")}</span>
+      <span class="rr-t">${esc(r.k)}</span>
+      <span class="rr-v">${esc(String(r.v))}</span>
+      ${r.who?`<span class="rr-w">${esc(r.who)}</span>`:""}
+    </button>`).join("");
+}
+/* the first few names behind a count. Three is enough to recognise the one she means, and a
+   name is cut short because some of these are whole sentences - Money's labels especially. */
+function fewNames(list, pick){
+  const names = (list||[]).map(pick).map(s=>String(s==null?"":s).trim()).filter(Boolean)
+    .map(s=> s.length>58 ? s.slice(0,57).replace(/[\s,.;:]+$/,"")+"\u2026" : s);
+  if(!names.length) return "";
+  const shown = names.slice(0,3).join(" \u00b7 ");
+  return names.length>3 ? shown+" \u00b7 and "+(names.length-3)+" more" : shown;
 }
 function briefRows(){
-  const T=todaysEvents().length, W=DESK?(DESK.waiting||[]).filter(j=>!done[j.id]).length:0;
-  const M=mine.filter(m=>!m.done).length, MO=DESK?(DESK.money||[]).length:0;
-  const R=rolling.filter(r=>daysSince(r.next)>=0).length;
-  const O=outbox.filter(o=>!o.sent).length;
-  const RN=renewals.filter(r=>!r.cancelled && r.renews && daysSince(r.renews)>=-14).length;
+  const TE=todaysEvents(), T=TE.length;
+  const WL=DESK?(DESK.waiting||[]).filter(j=>!done[j.id]):[], W=WL.length;
+  const ML=mine.filter(m=>!m.done), M=ML.length;
+  const MOL=DESK?(DESK.money||[]):[], MO=MOL.length;
+  const RL=rolling.filter(r=>daysSince(r.next)>=0), R=RL.length;
+  const OL=outbox.filter(o=>!o.sent), O=OL.length;
+  const RNL=renewals.filter(r=>!r.cancelled && r.renews && daysSince(r.renews)>=-14), RN=RNL.length;
   const na=NEWS?daysSince(NEWS.date):null;
   const lessonOn = LESSON && LESSON.date===todayISO() && LESSON.title;
-  return [["Diary", events===null?"reading":T?T:"clear"], ["Waiting", W], ["Your list", M],
-    ["Rolling due", R], ["Outbox", O], ["Renewals soon", RN], ["Money", MO],
-    ["Paper", NEWS ? (settings.paper==="off"?"muted":(na<=0?"today":na+"d old")) : "none"],
-    ["Lesson", settings.lesson==="off" ? "muted" : (lessonOn?"ready":"not picked")],
-    ["Voice", (AUDIO && AUDIO.url) ? "recorded" : "device only"]];
+  const lead = NEWS && (NEWS.stories||[])[0];
+  return [
+    {k:"Diary", v:events===null?"reading":T?T:"clear", go:"today", at:"#diary",
+      who:fewNames(TE, e=>e.summary)},
+    {k:"Waiting", v:W, go:"today", at:"#waiting", who:fewNames(WL, j=>j.title)},
+    {k:"Your list", v:M, go:"today", at:"#mine", who:fewNames(ML, m=>m.text)},
+    {k:"Rolling due", v:R, go:"rolling", who:fewNames(RL, r=>r.text)},
+    {k:"Outbox", v:O, go:"outbox", who:fewNames(OL, o=>o.who)},
+    {k:"Renewals soon", v:RN, go:"renewals", who:fewNames(RNL, r=>r.name)},
+    {k:"Money", v:MO, go:"money", who:fewNames(MOL, m=>m.label)},
+    {k:"Paper", v:NEWS ? (settings.paper==="off"?"muted":(na<=0?"today":na+"d old")) : "none",
+      go:"paper", who:lead ? String(lead.h).replace(/^\s*\d+\.\s*/,"") : ""},
+    {k:"Lesson", v:settings.lesson==="off" ? "muted" : (lessonOn?"ready":"not picked"),
+      go:"yours", at:"#lesson", who:lessonOn ? LESSON.title : ""},
+    {k:"Voice", v:(AUDIO && AUDIO.url) ? "recorded" : "device only", go:"listen", who:""}];
 }
 function renderAudio(){
   const box=$("#rec"), el=$("#recAudio");
@@ -2377,6 +2475,18 @@ function go(id){
 function closeSheets(){ $$(".sheet").forEach(s=>s.classList.remove("on")); }
 function openSheet(id){ closeSheets(); $("#"+id).classList.add("on"); }
 
+/* A row on Listen opens the page it is counting, and lands on that block rather than the top
+   of the page - "Waiting" and "Your list" both live on Today, so the top would not answer her. */
+function goAt(id, sel){
+  go(id);
+  if(!sel) return;
+  const el = $(sel); if(!el) return;
+  setTimeout(()=>{ try{ el.scrollIntoView({block:"start", behavior:"smooth"}); }catch(e){} }, 60);
+}
+/* a real <button>, so the keyboard already works - no keydown handler needed here */
+$("#runOrder").addEventListener("click", e=>{
+  const c=e.target.closest("[data-go]"); if(c) goAt(c.dataset.go, c.dataset.at); });
+
 $("#tabs").addEventListener("click", e=>{
   const b=e.target.closest("button"); if(!b) return;
   if(b.hasAttribute("data-more")){ openSheet("moreSheet"); return; }
@@ -2395,8 +2505,12 @@ $("#chatBtn").addEventListener("click", ()=>openSheet("chatSheet"));
 
 /* ---------------- status tiles: tap and swipe ---------------- */
 let tileIdx = 0;
+/* The same sheet now shows two different kinds of thing, so the swipe has to know which one it
+   is looking at - otherwise a swipe on a shop reading jumps into the status tiles. */
+let readIdx = 0, sheetKind = "status";
 function openTile(i){
   if(!status.length) return;
+  sheetKind = "status";
   tileIdx = (i + status.length) % status.length;
   const s = status[tileIdx], st = STAGE[s.stage] || ["—","work"];
   $("#tileName").textContent = s.name;
@@ -2414,6 +2528,33 @@ function openTile(i){
 }
 $("#tiles").addEventListener("click", e=>{
   const t=e.target.closest(".tile"); if(t) openTile(+t.dataset.i); });
+
+/* A shop reading opened out: the whole note, the day it was read in words, and the rule that
+   decides when it goes stale - none of which fits on the card. */
+function openReading(i){
+  const R=(DESK&&DESK.readings)||[]; if(!R.length) return;
+  sheetKind = "reading";
+  readIdx = (i + R.length) % R.length;
+  const r = R[readIdx], days = r.stale||7, st = daysSince(r.read)>days;
+  $("#tileName").textContent = r.label;
+  $("#tileBody").innerHTML = `
+    <p class="r-value" style="margin:0 0 10px;font-size:17px;color:var(--ink)">${esc(r.value)}</p>
+    <div class="c-meta" style="margin-bottom:10px">${pill((readIdx+1)+" of "+R.length)}
+      ${pill(st?"Go and look again":agoWords(r.read), st?"stale":"ok")}</div>
+    ${r.note?`<p class="c-body">${esc(r.note)}</p>`
+           :`<p class="none">Nothing written about this one yet.</p>`}
+    <p class="c-body">Read on ${esc(longDate(r.read))}.</p>
+    <p class="sec-note" style="margin-top:12px">This one counts as out of date after
+      ${days} day${days===1?"":"s"}${st?", and it is past that now":""}.
+      A number with no reading date is not a fact.</p>`;
+  openSheet("tileSheet");
+}
+$("#readings").addEventListener("click", e=>{
+  const d=e.target.closest(".reading[data-r]"); if(d) openReading(+d.dataset.r); });
+$("#readings").addEventListener("keydown", e=>{
+  if(e.key!=="Enter" && e.key!==" ") return;
+  const d=e.target.closest(".reading[data-r]"); if(!d) return;
+  e.preventDefault(); openReading(+d.dataset.r); });
 document.addEventListener("click", e=>{
   if(e.target.id==="tileSave"){
     const s=status[tileIdx]; if(!s) return;
@@ -2431,7 +2572,9 @@ document.addEventListener("click", e=>{
   p.addEventListener("touchstart", e=>{ x0 = e.touches[0].clientX; }, {passive:true});
   p.addEventListener("touchend", e=>{
     if(x0===null) return; const dx = e.changedTouches[0].clientX - x0; x0=null;
-    if(Math.abs(dx) > 55) openTile(tileIdx + (dx<0?1:-1));
+    if(Math.abs(dx) <= 55) return;
+    const step = dx<0?1:-1;
+    if(sheetKind==="reading") openReading(readIdx + step); else openTile(tileIdx + step);
   }, {passive:true});
 })();
 

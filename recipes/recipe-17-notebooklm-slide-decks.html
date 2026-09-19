@@ -88,6 +88,96 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
 </head>
 <body>
 <div class="wrap">
+<!--boxmove--><style>
+.bx{position:relative}
+.readbar.bx,.sources.bx,.ck.bx,.done.bx{padding-right:28px}
+.bx>.bxg{position:absolute;top:-11px;right:12px;display:flex;gap:4px;z-index:4}
+.bx>.bxg>button{all:unset;box-sizing:border-box;cursor:grab;touch-action:none;background:var(--chip);color:var(--text);
+  border:1px solid var(--border);border-radius:999px;font:600 11px/1 -apple-system,BlinkMacSystemFont,sans-serif;padding:4px 9px;opacity:.8}
+.bx>.bxg>button[data-home]{cursor:pointer}
+.bx>.bxg>button[hidden]{display:none}
+.bx>.bxr{position:absolute;right:2px;bottom:2px;width:22px;height:22px;cursor:nwse-resize;touch-action:none;opacity:.6;
+  background:linear-gradient(135deg,transparent 52%,var(--muted) 52%,var(--muted) 60%,transparent 60%,transparent 70%,var(--muted) 70%,var(--muted) 78%,transparent 78%)}
+.bx.bxfloat{position:fixed;z-index:60;margin:0;max-width:calc(100vw - 12px);box-shadow:0 10px 24px -12px rgba(0,0,0,.8)}
+.readbar.bxfloat{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:8px 28px 8px 8px}
+.bx.dragging{-webkit-user-select:none;user-select:none}
+</style>
+<script>
+/*boxmove*/
+(function(){
+  function dragIt(el, handle, key){   // 16 Sep: "the videos should be movable" - same feel as the Read aloud bubble
+    var sx, sy, ox, oy, moved = false, on = false, endedAt = 0;
+    function clamp(x, y){ var r = el.getBoundingClientRect();
+      return [Math.max(0, Math.min(x, innerWidth - r.width)), Math.max(0, Math.min(y, innerHeight - Math.min(r.height, 60)))]; }
+    function place(x, y){ var c = clamp(x, y); el.style.setProperty('left', c[0] + 'px', 'important'); el.style.setProperty('top', c[1] + 'px', 'important');
+      el.style.setProperty('right', 'auto', 'important'); el.style.setProperty('bottom', 'auto', 'important'); }
+    el.restorePos = function(){ try { var p = JSON.parse(localStorage.getItem(key) || 'null'); if (p) place(p[0] * innerWidth, p[1] * innerHeight); } catch (e) {} };
+    handle.style.touchAction = 'none';
+    handle.addEventListener('pointerdown', function(e){ if (e.target.closest('button:not([data-drag])')) return;
+      on = true; moved = false; sx = e.clientX; sy = e.clientY; var r = el.getBoundingClientRect(); ox = r.left; oy = r.top;
+      try { handle.setPointerCapture(e.pointerId); } catch (x) {} });
+    handle.addEventListener('pointermove', function(e){ if (!on) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      if (!moved) { moved = true; el.classList.add('dragging'); if (el.onDragStart) el.onDragStart(); }
+      place(ox + dx, oy + dy); e.preventDefault(); });
+    function end(){ if (!on) return; on = false; endedAt = Date.now(); el.classList.remove('dragging');
+      if (moved) { var r = el.getBoundingClientRect(); try { localStorage.setItem(key, JSON.stringify([r.left / innerWidth, r.top / innerHeight])); } catch (e) {} } }
+    handle.addEventListener('pointerup', end); handle.addEventListener('pointercancel', end);
+    handle.addEventListener('click', function(e){ if (moved && Date.now() - endedAt < 400) { e.stopPropagation(); e.preventDefault(); } moved = false; }, true);
+    addEventListener('resize', function(){ if (el.style.left) { var r = el.getBoundingClientRect(); place(r.left, r.top); } });
+  }
+  function sizeIt(el, grip, key, min){   // 17 Sep: "everything is resizable the boxes and movable" - drag the corner
+    var sx, w0, on = false;
+    el.restoreSize = function(){ try { var f = +localStorage.getItem(key); if (f) el.style.setProperty('width', Math.max(min, Math.min(f * innerWidth, innerWidth - 16)) + 'px', 'important'); } catch (e) {} };
+    grip.style.touchAction = 'none';
+    grip.addEventListener('pointerdown', function(e){ on = true; sx = e.clientX; w0 = el.getBoundingClientRect().width;
+      if (el.onDragStart) el.onDragStart(); el.classList.add('dragging'); try { grip.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); e.stopPropagation(); });
+    grip.addEventListener('pointermove', function(e){ if (!on) return;
+      var left = el.getBoundingClientRect().left;
+      var w = Math.max(min, Math.min(w0 + e.clientX - sx, innerWidth - left - 4));
+      el.style.setProperty('width', w + 'px', 'important'); e.preventDefault(); });
+    function end(){ if (!on) return; on = false; el.classList.remove('dragging');
+      try { localStorage.setItem(key, String(el.getBoundingClientRect().width / innerWidth)); } catch (e) {} }
+    grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
+    grip.addEventListener('click', function(e){ e.stopPropagation(); e.preventDefault(); }, true);
+  }
+  function enhance(el, key){   // one ordinary box: grip, corner, and the place it was left in
+    if (!el || el.dataset.bx) return; el.dataset.bx = '1'; el.classList.add('bx');
+    var g = document.createElement('div'); g.className = 'bxg';
+    g.innerHTML = '<button type="button" data-drag="1" title="Drag to move this box" aria-label="Drag to move this box">&#10303;</button>' +
+                  '<button type="button" data-home="1" title="Put this box back" aria-label="Put this box back" hidden>&#8634;</button>';
+    el.appendChild(g);
+    var r = document.createElement('div'); r.className = 'bxr'; r.title = 'Drag to resize this box';
+    r.setAttribute('aria-label', 'Resize this box'); el.appendChild(r);
+    var home = g.querySelector('[data-home]');
+    function lift(){   // the box leaves the page's flow only once she actually moves it
+      if (el.classList.contains('bxfloat')) return;
+      var b = el.getBoundingClientRect();
+      el.style.setProperty('width', b.width + 'px', 'important'); el.classList.add('bxfloat');
+      el.style.setProperty('left', b.left + 'px', 'important'); el.style.setProperty('top', Math.max(0, b.top) + 'px', 'important');
+      home.hidden = false;
+    }
+    el.onDragStart = lift;
+    dragIt(el, g.querySelector('[data-drag]'), key + '.pos');
+    sizeIt(el, r, key + '.w', 160);
+    home.addEventListener('click', function(){
+      el.classList.remove('bxfloat'); ['left', 'top', 'right', 'bottom', 'width'].forEach(function(k){ el.style.removeProperty(k); });
+      try { localStorage.removeItem(key + '.pos'); localStorage.removeItem(key + '.w'); } catch (e) {}
+      home.hidden = true;
+    });
+    try { if (localStorage.getItem(key + '.pos') || localStorage.getItem(key + '.w')) { lift(); el.restoreSize(); el.restorePos(); } } catch (e) {}
+  }
+  window.RecipeBox = { drag: dragIt, size: sizeIt, enhance: enhance };
+  // #doneBox, not .done: the checklist puts class "done" on every ticked row, so a saved tick would
+  // otherwise hand a checklist LINE its own move grip the next time the page opened.
+  var BOXES = [['.readbar', 'recipes.readbar'], ['.sources', 'recipes.sources'],
+               ['.ck', 'recipes.checklist'], ['#doneBox', 'recipes.done']];
+  function all(){ BOXES.forEach(function(p){ document.querySelectorAll(p[0]).forEach(function(el){ enhance(el, p[1]); }); }); }
+  // The checklist builds itself while the page is still parsing, so wait for the end of it, not for load.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', all); else all();
+})();
+</script><!--/boxmove-->
 <a class="back" href="./">← all recipes</a>
 <h1>RECIPE 17 — Free slide decks with NotebookLM</h1>
 <div class="player" data-id="uSUMR8sAhOA"><button type="button" data-id="uSUMR8sAhOA" aria-label="Play the video"><img src="https://i.ytimg.com/vi/uSUMR8sAhOA/hqdefault.jpg" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span><span class="cap">Tap to play the video this recipe comes from</span></button></div>
@@ -172,9 +262,11 @@ ADVANCED        plain, one accent colour per slide,
 .done span{flex:1 1 100%;font-size:14px;color:var(--muted)}
 .done button{font:600 14px/1 -apple-system,BlinkMacSystemFont,sans-serif;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer}
 .done button.on{background:var(--accent);border-color:var(--accent);color:#0f1115}
+.done .dsv{font-size:13px}
 </style>
 <div class="done" id="doneBox"><span>Have you tried this recipe? The coach on the Recipes home uses this.</span>
-<button type="button" data-s="started">Started</button><button type="button" data-s="done">&#10003; I've done it</button></div>
+<button type="button" data-s="started">Started</button><button type="button" data-s="done">&#10003; I've done it</button>
+<span class="dsv" id="doneSaved" aria-live="polite"></span></div>
 <script src="../notion-sync.js" data-quiet></script>
 <script>
 (function(){
@@ -182,9 +274,25 @@ ADVANCED        plain, one accent colour per slide,
   var id = (location.pathname.split("/").pop() || "").replace(/\.html$/, ""), K = "recipeDone." + id;
   var h1 = document.querySelector("h1"), title = h1 ? h1.textContent.trim() : id;
   function get(){ try { return localStorage.getItem(K) || ""; } catch(e){ return ""; } }
-  function paint(){ var st = get(); box.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on", b.dataset.s === st); b.setAttribute("aria-pressed", b.dataset.s === st); }); }
+  /* 20 Sep 2026, her words: "Is it not saved yet". The tick used to save in silence, so there was nothing
+     on the page that said where it had got to. These three lines are read off what notion-sync.js itself
+     keeps: its queue (still waiting) and its sent2 map (the version Notion already has). */
+  var line = document.getElementById("doneSaved");
+  function where(){
+    if(!get()) return "";
+    var k = "recipeprogress|" + id, q = [], sent = {};
+    try { q = JSON.parse(localStorage.getItem("notionSync.queue") || "[]"); } catch(e){}
+    try { sent = JSON.parse(localStorage.getItem("notionSync.sent2") || "{}"); } catch(e){}
+    var out = window.NotionSync && window.NotionSync.connected();
+    if(q.some(function(x){ return x.body && (x.body.app + "|" + x.body.id) === k; }))
+      return out ? "Saved on this phone · waiting for Notion" : "Saved on this phone · waiting for Notion - tap Connect";
+    if(sent && sent[k]) return "Saved to Notion ✓";
+    return "Saved on this phone";
+  }
+  function said(){ if(line) line.textContent = where(); }
+  function paint(){ var st = get(); box.querySelectorAll("button[data-s]").forEach(function(b){ b.classList.toggle("on", b.dataset.s === st); b.setAttribute("aria-pressed", b.dataset.s === st); }); said(); }
   box.addEventListener("click", function(e){
-    var b = e.target.closest("button"); if(!b) return;
+    var b = e.target.closest("button[data-s]"); if(!b) return;   // not the move grip, which lives in here too
     var st = get() === b.dataset.s ? "" : b.dataset.s;
     try { if(st) localStorage.setItem(K, st); else localStorage.removeItem(K); } catch(x){}
     paint();
@@ -192,8 +300,10 @@ ADVANCED        plain, one accent colour per slide,
       if(st) window.NotionSync.save("recipeprogress", id, {title: title, detail: st, when: new Date().toISOString(), data: {state: st}});
       else window.NotionSync.remove("recipeprogress", id);
     }
+    said();   // the queue only grows on this click; the poll below catches it leaving
   });
   paint();
+  setInterval(said, 2000);   // so "waiting for Notion" turns into "Saved to Notion" by itself
 })();
 </script><!--/progress-->
 <div class="foot">Built 2026-09-16 from RECIPE_17_notebooklm_slide_decks.md. Edit the markdown, not this page.</div>
@@ -293,45 +403,11 @@ ADVANCED        plain, one accent colour per slide,
   box.appendChild(bar);
   var rsz = document.createElement('div'); rsz.className = 'rsz'; rsz.title = 'Drag to resize'; rsz.setAttribute('aria-label', 'Resize the video'); box.appendChild(rsz);
   var YTP = null, ready = false, loaded = box.dataset.id, pending = null;
-  function dragIt(el, handle, key){   // 16 Sep: "the videos should be movable" - same feel as the Read aloud bubble
-    var sx, sy, ox, oy, moved = false, on = false, endedAt = 0;
-    function clamp(x, y){ var r = el.getBoundingClientRect();
-      return [Math.max(0, Math.min(x, innerWidth - r.width)), Math.max(0, Math.min(y, innerHeight - Math.min(r.height, 60)))]; }
-    function place(x, y){ var c = clamp(x, y); el.style.setProperty('left', c[0] + 'px', 'important'); el.style.setProperty('top', c[1] + 'px', 'important');
-      el.style.setProperty('right', 'auto', 'important'); el.style.setProperty('bottom', 'auto', 'important'); }
-    el.restorePos = function(){ try { var p = JSON.parse(localStorage.getItem(key) || 'null'); if (p) place(p[0] * innerWidth, p[1] * innerHeight); } catch (e) {} };
-    handle.style.touchAction = 'none';
-    handle.addEventListener('pointerdown', function(e){ if (e.target.closest('button:not([data-drag])')) return;
-      on = true; moved = false; sx = e.clientX; sy = e.clientY; var r = el.getBoundingClientRect(); ox = r.left; oy = r.top;
-      try { handle.setPointerCapture(e.pointerId); } catch (x) {} });
-    handle.addEventListener('pointermove', function(e){ if (!on) return;
-      var dx = e.clientX - sx, dy = e.clientY - sy;
-      if (!moved && Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
-      if (!moved) { moved = true; el.classList.add('dragging'); if (el.onDragStart) el.onDragStart(); }
-      place(ox + dx, oy + dy); e.preventDefault(); });
-    function end(){ if (!on) return; on = false; endedAt = Date.now(); el.classList.remove('dragging');
-      if (moved) { var r = el.getBoundingClientRect(); try { localStorage.setItem(key, JSON.stringify([r.left / innerWidth, r.top / innerHeight])); } catch (e) {} } }
-    handle.addEventListener('pointerup', end); handle.addEventListener('pointercancel', end);
-    handle.addEventListener('click', function(e){ if (moved && Date.now() - endedAt < 400) { e.stopPropagation(); e.preventDefault(); } moved = false; }, true);
-    addEventListener('resize', function(){ if (el.style.left) { var r = el.getBoundingClientRect(); place(r.left, r.top); } });
-  }
-  function sizeIt(el, grip, key, min){   // 17 Sep: "everything is resizable the boxes and movable" - drag the corner
-    var sx, w0, on = false;
-    el.restoreSize = function(){ try { var f = +localStorage.getItem(key); if (f) el.style.setProperty('width', Math.max(min, Math.min(f * innerWidth, innerWidth - 16)) + 'px', 'important'); } catch (e) {} };
-    grip.style.touchAction = 'none';
-    grip.addEventListener('pointerdown', function(e){ on = true; sx = e.clientX; w0 = el.getBoundingClientRect().width;
-      if (el.onDragStart) el.onDragStart(); el.classList.add('dragging'); try { grip.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); e.stopPropagation(); });
-    grip.addEventListener('pointermove', function(e){ if (!on) return;
-      var left = el.getBoundingClientRect().left;
-      var w = Math.max(min, Math.min(w0 + e.clientX - sx, innerWidth - left - 4));
-      el.style.setProperty('width', w + 'px', 'important'); e.preventDefault(); });
-    function end(){ if (!on) return; on = false; el.classList.remove('dragging');
-      try { localStorage.setItem(key, String(el.getBoundingClientRect().width / innerWidth)); } catch (e) {} }
-    grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
-    grip.addEventListener('click', function(e){ e.stopPropagation(); e.preventDefault(); }, true);
-  }
-  dragIt(box, bar.querySelector('[data-drag]'), 'recipes.player.pos');
-  sizeIt(box, rsz, 'recipes.player.w', 200);
+  // 20 Sep 2026: dragIt and sizeIt now live in the boxmove block at the top of the body, so the Read aloud
+  // bar, the listen box, the checklist and the "I've done it" box move and resize exactly like the video.
+  var RB = window.RecipeBox || {};
+  if (RB.drag) RB.drag(box, bar.querySelector('[data-drag]'), 'recipes.player.pos');
+  if (RB.size) RB.size(box, rsz, 'recipes.player.w', 200);
   box.onDragStart = function(){ if (!box.classList.contains('float')) { var r = box.getBoundingClientRect(); box.classList.add('float');
     box.style.setProperty('left', r.left + 'px', 'important'); box.style.setProperty('top', Math.max(0, r.top) + 'px', 'important'); } };
   var idOf = function(h){ var m = /[?&]v=([A-Za-z0-9_-]{11})/.exec(h); return m && m[1]; };
@@ -389,6 +465,7 @@ ADVANCED        plain, one accent colour per slide,
 .ck{margin:14px 0 22px;padding:14px 14px 10px;border:1px solid var(--chip,#ddd);border-radius:14px;background:var(--card,#fff)}
 .ck .ckh{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:6px;font-weight:700}
 .ck .ckn{font-weight:500;font-size:13px;opacity:.75}
+.ck .cksv{font-size:13px;opacity:.7;margin:0 0 4px}
 .ck label{display:grid;grid-template-columns:28px minmax(0,1fr);gap:8px;align-items:start;padding:9px 0;border-top:1px solid var(--chip,#eee);cursor:pointer}
 .ck input{width:22px;height:22px;margin:2px 0 0;accent-color:var(--accent,#2b6)}
 .ck .cks{white-space:pre-wrap;overflow-wrap:anywhere;font-size:15px;line-height:1.45}
@@ -427,7 +504,8 @@ ADVANCED        plain, one accent colour per slide,
   if (!steps.length) return;
   var saved = {}; try { saved = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
   var box = document.createElement('div'); box.className = 'ck'; box.setAttribute('data-speak-skip', '');
-  box.innerHTML = '<div class="ckh"><span>&#9745; Checklist <span class="ckn"></span></span><button type="button">Start again</button></div>';
+  box.innerHTML = '<div class="ckh"><span>&#9745; Checklist <span class="ckn"></span></span><button type="button">Start again</button></div>' +
+                  '<div class="cksv" aria-live="polite"></div>';
   steps.forEach(function(st, i){
     var l = document.createElement('label');
     l.innerHTML = '<input type="checkbox"><span class="cks"></span>';
@@ -438,7 +516,10 @@ ADVANCED        plain, one accent colour per slide,
     box.appendChild(l);
   });
   function count(){ var d = steps.filter(function(_, i){ return saved[i]; }).length;
-    box.querySelector('.ckn').textContent = d + ' of ' + steps.length + ' done'; }
+    box.querySelector('.ckn').textContent = d + ' of ' + steps.length + ' done';
+    /* 20 Sep 2026, her words: "Is it not saved yet". A tick used to save in silence. These ticks are kept
+       on this phone only - unlike the "I've done it" box, they never go to Notion - so say exactly that. */
+    box.querySelector('.cksv').textContent = d ? '✓ Saved on this phone' : 'Nothing ticked yet'; }
   box.querySelector('button').addEventListener('click', function(){ saved = {}; try { localStorage.removeItem(key); } catch (e) {}
     [].forEach.call(box.querySelectorAll('label'), function(l){ l.querySelector('input').checked = false; l.classList.remove('done'); }); count(); });
   count();
