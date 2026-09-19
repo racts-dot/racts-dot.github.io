@@ -17,13 +17,15 @@
      button, swipe. Her rule 17 Sep: an app is not done until app_kit_check.py
      shows it with no gap. -->
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#eef0f3">
 <script src="../textsize.js" data-bottom="120"></script>
 <script src="../speak.js" defer></script>
 <script src="../feedback.js" defer></script>
 <script src="../swipe.js" defer></script>
-<script src="../pull.js" defer></script>
+<script src="../pull.js" defer></script><script src="../hearsel.js" defer></script>
 <script src="../notion-sync.js"></script>
 <script src="../marks.js" defer></script>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -214,7 +216,6 @@ table.meas .warn{color:var(--muted)}
   .plain{padding:16px 13px;font-size:12px}
   .doc-body pre{font-size:12px;padding:11px 12px}
 }
-
   /* Easy read: give every rule its own edges. Her note, 19 Sep 2026. */
   .easybtn{background:none;border:1px solid currentColor;border-radius:8px;font:inherit;
            font-size:12.5px;padding:3px 10px;cursor:pointer;opacity:.75}
@@ -229,7 +230,7 @@ table.meas .warn{color:var(--muted)}
   .doc-body.easy h2, .doc-body.easy h3{margin-top:1.6em}
 </style>
 
-<div class="topbar"><b id="tbTitle">Rachel&rsquo;s Rule Shelf</b><button id="menuBtn">Books</button></div>
+<div class="topbar"><button id="menuBtn">Books</button><b id="tbTitle">Rachel&rsquo;s Rule Shelf</b></div>
 <div class="wrap">
   <nav id="nav"></nav>
   <main id="main"></main>
