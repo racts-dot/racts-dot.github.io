@@ -93,17 +93,53 @@
     });
   }
 
-  function wrap(node, at, text, m) {
-    try {
-      var r = document.createRange();
-      r.setStart(node, at); r.setEnd(node, at + text.length);
-      var el = document.createElement("mark");
-      el.className = "am" + (m.note ? " noted" : "");
-      el.dataset.am = m.id;
-      if (m.note) el.title = m.note;
-      r.surroundContents(el);
-      return true;
-    } catch (e) { return false; }
+  /* A selection almost never sits inside one text node. Her rule books are thick with **bold** and
+     `code`, so a dragged phrase crosses an element boundary the moment it is longer than a word - and
+     surroundContents() THROWS on a range that only partly contains an element. That is why highlighting
+     more than one word did nothing here, while the toast still said "Highlighted".
+     Measured 19 Sep 2026 in her own saved marks: "Run", "⛔ Run B", "highest in intellig".
+     So: flatten the readable text once, find the phrase in THAT, then wrap each text node the phrase
+     touches in its own <mark>. Several <mark> elements, one mark id. */
+  function flat() {
+    var nodes = [], str = "", wk = walker(), n;
+    while ((n = wk.nextNode())) {
+      if (n.parentElement && n.parentElement.closest("mark.am")) continue;
+      nodes.push({ node: n, start: str.length, len: n.nodeValue.length });
+      str += n.nodeValue;
+    }
+    return { nodes: nodes, str: str };
+  }
+
+  /* Every place this phrase appears, as offsets into the flattened text. */
+  function walk_collect(text) {
+    var f = flat(), out = [], i = f.str.indexOf(text);
+    while (i >= 0) { out.push({ at: i, flat: f }); i = f.str.indexOf(text, i + 1); }
+    return out;
+  }
+
+  /* Wrap [at, at+len) of the flattened text, one <mark> per text node it touches. */
+  function paintSpan(f, at, len, m) {
+    var end = at + len, pieces = [], k;
+    for (k = 0; k < f.nodes.length; k++) {
+      var e = f.nodes[k], a = Math.max(at, e.start), b = Math.min(end, e.start + e.len);
+      if (b > a) pieces.push({ node: e.node, from: a - e.start, to: b - e.start });
+    }
+    if (!pieces.length) return false;
+    // Wrap back to front: splitting a node invalidates offsets after the split point.
+    var done = 0;
+    for (k = pieces.length - 1; k >= 0; k--) {
+      try {
+        var pc = pieces[k], r = document.createRange();
+        r.setStart(pc.node, pc.from); r.setEnd(pc.node, pc.to);
+        var el = document.createElement("mark");
+        el.className = "am" + (m.note ? " noted" : "");
+        el.dataset.am = m.id;
+        if (m.note) el.title = m.note;
+        r.surroundContents(el);
+        done++;
+      } catch (e) {}
+    }
+    return done > 0;
   }
 
   /* Find a saved mark again. Prefer the occurrence it was made on; if the page has changed enough that
@@ -114,18 +150,9 @@
     var w = walk_collect(m.text);
     if (!w.length) return false;
     var hit = w[m.nth] || w[0];
-    return wrap(hit.node, hit.at, m.text, m);
+    return paintSpan(hit.flat, hit.at, m.text.length, m);
   }
 
-  function walk_collect(text) {
-    var out = [], wk = walker(), n;
-    while ((n = wk.nextNode())) {
-      if (n.parentElement && n.parentElement.closest("mark.am")) continue;
-      var i = n.nodeValue.indexOf(text);
-      while (i >= 0) { out.push({ node: n, at: i }); i = n.nodeValue.indexOf(text, i + 1); }
-    }
-    return out;
-  }
   function paintAll() {
     var list = store(), n = 0;
     for (var i = 0; i < list.length; i++) {
@@ -286,19 +313,28 @@
     var rng = sel.getRangeAt(0);
     var all = walk_collect(text), before = 0;
     for (var k = 0; k < all.length; k++) {
+      var e0 = null, f = all[k].flat, j;
+      for (j = 0; j < f.nodes.length; j++) {
+        var nd = f.nodes[j];
+        if (all[k].at >= nd.start && all[k].at < nd.start + nd.len) { e0 = nd; break; }
+      }
+      if (!e0) continue;
       var probe = document.createRange();
-      probe.setStart(all[k].node, all[k].at);
+      probe.setStart(e0.node, all[k].at - e0.start);
       if (probe.compareBoundaryPoints(Range.START_TO_START, rng) < 0) before++;
     }
     var m = { id: String(Date.now()) + String(Math.random()).slice(2, 6), text: text, nth: before, note: note || "", at: Date.now() };
     var list = store(); list.push(m); keep(list);
-    // Paint the words she actually selected. Anything else re-finds them, and re-finding was the bug.
+    // Paint the words she actually selected, across however many elements they cross.
     var painted = false;
-    if (all[before]) painted = wrap(all[before].node, all[before].at, text, m);
+    if (all[before]) painted = paintSpan(all[before].flat, all[before].at, text.length, m);
     sel.removeAllRanges();
-    if (!painted) paintOne(m);
+    if (!painted) painted = paintOne(m);
     send(m);
-    said(note ? "Note saved" : "Highlighted");
+    // Tell the truth. The old code said "Highlighted" whether or not anything was painted,
+    // which is why she could not tell a saved mark from a lost one.
+    said(painted ? (note ? "Note saved" : "Highlighted")
+                 : (note ? "Note saved (not shown on the page)" : "Saved, but could not highlight here"));
     return m;
   }
 
