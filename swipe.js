@@ -112,7 +112,7 @@
   /* ---------- the gesture ---------- */
   function skip(el) {
     for (; el && el.nodeType === 1; el = el.parentElement) {
-      if (el.matches("input,textarea,select,button.sa-fab,.sa-panel,iframe") || el.isContentEditable) return true;
+      if (el.matches("input,textarea,select,iframe,.sa-fab,.sa-panel,.ts-fab,.ts-panel,.fb-fab,.fb-panel") || el.isContentEditable) return true;
       if (el.scrollWidth > el.clientWidth) {
         var o = getComputedStyle(el).overflowX;
         if (o === "auto" || o === "scroll") return true;
