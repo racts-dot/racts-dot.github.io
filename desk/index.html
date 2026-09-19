@@ -69,6 +69,15 @@ nav.tabs{padding-bottom:env(safe-area-inset-bottom)!important}</style>
 #sky{position:fixed;inset:0;z-index:0;display:block;pointer-events:none}
 .ratechips{display:flex;flex-wrap:wrap;gap:6px}
 .setlab{font-weight:600}
+.day{display:flex;flex-direction:column;gap:2px}
+.dayrow{display:grid;grid-template-columns:4.2rem 1fr auto;gap:10px;align-items:baseline;
+  padding:7px 0;border-top:1px solid var(--line,#e6e0d5)}
+.dayrow:first-child{border-top:0}
+.day-t{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;opacity:.85}
+.day-s{min-width:0;overflow-wrap:anywhere}
+.day-k{font-size:11px;opacity:.55;text-transform:uppercase;letter-spacing:.04em}
+.dayrow.is-diary .day-t{color:var(--accent,#1f6feb)}
+.dayrow.day-head .day-s{font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.6}
 .toast-undo{margin-left:10px;padding:2px 10px;border-radius:999px;border:1px solid currentColor;
   background:transparent;color:inherit;font:inherit;font-weight:600;cursor:pointer}
 #deskbg{position:fixed;inset:0;z-index:-2;overflow:hidden;background:var(--ground)}
@@ -722,6 +731,12 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 
   <!-- 2 TODAY -->
   <section class="page on" id="p-today">
+    <div class="block" id="dayBlock">
+      <div class="sec-head"><h2>Your day</h2>
+        <p class="sec-note">Your diary and today&rsquo;s to-do in one order. Give a to-do a time and it lands here.</p>
+        <span class="count" id="dayCount"></span></div>
+      <div class="day" id="dayList"></div>
+    </div>
     <div class="block" id="todoBlock">
       <div class="sec-head"><h2>To-do</h2>
         <p class="sec-note">Stays until you tick it, rolling over day to day. Every line keeps its date and time.</p>
@@ -731,7 +746,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <div class="adder todo-adder" id="mineAdd">
         <input class="full" id="mineText" type="text" placeholder="List the next five eBay items. Ring the accountant.">
         <select id="mineCat" aria-label="Category"><option value="Waiting on me">Waiting on me</option><option value="Waiting on Claude">Waiting on Claude</option><option value="E-commerce">E-commerce</option><option value="Digital products">Digital products</option><option value="Learning">Learning</option><option value="Life">Life</option><option value="Admin">Admin</option></select>
-        <input id="mineWhen" type="date" aria-label="Due date, optional"><button id="mineGo">Add</button>
+        <input id="mineWhen" type="date" aria-label="Due date, optional"><input id="mineTime" type="time" aria-label="Time, optional"><button id="mineGo">Add</button>
         <p class="hint">A date is optional. Ticked lines show when they were done, then go to The log the next day.</p>
       </div>
     </div>
@@ -1556,6 +1571,30 @@ const todaysEvents = () => !events ? [] :
 const comingEvents = () => !events ? [] :
   events.filter(e=>e.status!=="cancelled" && evDayISO(e)>todayISO()).slice(0,6);
 
+/* Your day: one time-ordered list for today, built from what is already here - her Google Calendar
+   events and the to-dos due today. Nothing new is fetched and nothing is stored twice; this is a
+   view over the two lists that already exist. Timed things come first in clock order, then the
+   untimed ones under "Any time", because an hour is a fact and "sometime today" is not. */
+function renderDay(){
+  const box=$("#dayList"); if(!box) return;
+  const today=todayISO();
+  const evs=(typeof todaysEvents==="function" && Array.isArray(events)) ? todaysEvents() : [];
+  const rows=[];
+  evs.forEach(e=>rows.push({t:evTime(e)||"", s:e.summary||"Untitled", kind:"diary"}));
+  mine.filter(m=>!m.done && m.due===today).forEach(m=>
+    rows.push({t:m.time||"", s:m.text, kind:"todo", id:m.id}));
+  const timed=rows.filter(r=>r.t).sort((a,b)=>String(a.t).localeCompare(String(b.t)));
+  const any=rows.filter(r=>!r.t);
+  $("#dayCount").textContent = rows.length ? rows.length+(rows.length===1?" thing":" things") : "clear";
+  if(!rows.length){ box.innerHTML='<p class="none">Nothing timed today. Add a time to a to-do and it appears here.</p>'; return; }
+  const line = r => `<div class="dayrow${r.kind==="diary"?" is-diary":""}">
+      <span class="day-t">${esc(r.t||"")}</span>
+      <span class="day-s">${esc(r.s)}</span>
+      <span class="day-k">${r.kind==="diary"?"diary":"to-do"}</span></div>`;
+  let h = timed.map(line).join("");
+  if(any.length) h += '<div class="dayrow day-head"><span class="day-t"></span><span class="day-s">Any time</span><span class="day-k"></span></div>' + any.map(line).join("");
+  box.innerHTML=h;
+}
 function renderDiary(){
   const box=$("#diary"), n=$("#diaryNote"), c=$("#diaryCount");
   if(evError){ n.textContent=evError; c.textContent=""; box.innerHTML=""; return; }
@@ -1602,7 +1641,7 @@ const stampWords = iso => { if(!iso) return ""; const d=new Date(iso);
     + d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}); };
 const isoDay = iso => { const d=new Date(iso);
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
-function renderMine(){
+function renderMine(){ setTimeout(renderDay,0);
   /* ticked lines stay visible on the day they were ticked, then live on in The log */
   const shown = mine.filter(m=>!m.done || !m.doneAt || isoDay(m.doneAt)===todayISO());
   const open = mine.filter(m=>!m.done).length;
@@ -3324,8 +3363,8 @@ add("#ideaGo", ()=>{ const t=$("#ideaText").value.trim(); if(!t){ toast("Type it
   toast("Parked, in your words."); });
 
 add("#mineGo", ()=>{ const t=$("#mineText").value.trim(); if(!t){ toast("Type it first."); return; }
-  mine.push({id:uid("m"), text:t, cat:$("#mineCat").value||"Life", due:$("#mineWhen").value||null, done:false, at:new Date().toISOString()});
-  $("#mineText").value=""; $("#mineWhen").value="";
+  mine.push({id:uid("m"), text:t, cat:$("#mineCat").value||"Life", due:$("#mineWhen").value||null, time:$("#mineTime").value||null, done:false, at:new Date().toISOString()});
+  $("#mineText").value=""; $("#mineWhen").value=""; $("#mineTime").value="";
   renderMine(); renderWaiting(); renderRunOrder(); saveMine();
   logIt("new","Added to your to-do ("+($("#mineCat").value||"Life")+"): "+t); toast("On your to-do."); });
 $("#mineText").addEventListener("keydown", e=>{ if(e.key==="Enter") $("#mineGo").click(); });
