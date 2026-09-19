@@ -131,6 +131,8 @@ def recipe_pages():
             "title": re.sub(r"^RECIPE\s*\d+\s*[—-]\s*", "", txt(h1.group(1) if h1 else name, 140), flags=re.I),
             "desc": blurbs.get(name) or txt(first_p.group(1) if first_p else "", 150),
             "href": name, "thumb": f"https://i.ytimg.com/vi/{vid.group(1)}/hqdefault.jpg" if vid else "",
+            # 19 Sep, her "no video engraved in it": the id travels with the card so the picture plays here
+            "vid": vid.group(1) if vid else "",
             "listen": os.path.exists(SITE / "recipes" / "a" / (name[:-5] + ".mp3")),
             "meta": recipe_meta(name, s),
         })
@@ -149,6 +151,7 @@ def topic_cards(folder, src, label):
                         "desc": txt(c.get("gets"), 150), "href": f"../{folder}/#find=" + title,
                         # 17 Sep, her "no thumbnail ... no video": the card's first source video, like the recipe cards
                         "thumb": (f"https://i.ytimg.com/vi/{c['src'][0]['id']}/mqdefault.jpg" if c.get("src") and c["src"][0].get("id") else ""),
+                        "vid": (c["src"][0]["id"] if c.get("src") and c["src"][0].get("id") else ""),
                         "listen": False,
                         "meta": ("\u25B6 %d video%s" % (len(c["src"]), "" if len(c["src"]) == 1 else "s")) if c.get("src") else ""})
     return out
@@ -161,9 +164,18 @@ def prompts():
         tools = p.get("t")
         if isinstance(tools, str):
             tools = re.findall(r"'([^']+)'", tools) or [tools]
+        # 19 Sep, her "There's no thumbnail updated just yet": every one of these cards was pictureless,
+        # and the cookbook already carried the video each prompt came from. Measured 20 Sep: all 99
+        # resolve to a YouTube id, so the whole Prompts tab gets the same real frame the other tabs use.
+        vids = [m.group(1) for m in (re.search(r"[?&]v=([A-Za-z0-9_-]{11})", s.get("u") or "")
+                                     for s in (p.get("src") or [])) if m]
+        vids = list(dict.fromkeys(vids))
         out.append({"src": "prompts", "label": ", ".join(tools or [])[:40] or "Prompt", "title": txt(p.get("n"), 120),
                     "desc": txt(p.get("p"), 150), "href": "../cookbook/#find=" + txt(p.get("n"), 120),
-                    "thumb": "", "listen": False})
+                    "thumb": (f"https://i.ytimg.com/vi/{vids[0]}/mqdefault.jpg" if vids else ""),
+                    "vid": vids[0] if vids else "",
+                    "meta": ("▶ %d video%s" % (len(vids), "" if len(vids) == 1 else "s")) if vids else "",
+                    "listen": False})
     return out
 
 
@@ -207,9 +219,20 @@ h1{font:600 clamp(32px,8vw,46px)/1.05 var(--serif);margin:0 0 6px;letter-spacing
   text-decoration:none;color:inherit;transition:transform .12s ease}
 .card:active{transform:scale(.99)}
 .card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--chip)}
-.card .th{position:relative}
+/* 19 Sep, her "no video engraved in it ... there is nothing": the picture is its own button now, not part
+   of the link, so tapping it plays the video right here instead of leaving for the page. The words below
+   still open the recipe. A button cannot sit inside a link, which is why the card stopped being one. */
+.card .th{all:unset;display:block;position:relative;width:100%;aspect-ratio:16/9;background:var(--chip)}
+.card button.th{cursor:pointer}
 .card .th::after{content:"\\25B6";position:absolute;left:10px;bottom:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:grid;place-items:center;font-size:14px;padding-left:2px;box-sizing:border-box}
-.card .in{padding:12px 14px 14px;display:grid;gap:6px}
+.card .th:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.card .th.playing{cursor:default}
+.card .th.playing::after{display:none}
+.card .th iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+/* top LEFT on purpose: YouTube puts its own share and title buttons in the top right of the embed */
+.card .th .x{all:unset;position:absolute;left:6px;top:6px;z-index:2;width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,.72);color:#fff;display:grid;place-items:center;font-size:13px;cursor:pointer}
+.card .in{padding:12px 14px 14px;display:grid;gap:6px;text-decoration:none;color:inherit}
 .chip{justify-self:start;font:700 11px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:var(--chip)}
 .s-recipes .chip{color:var(--recipes)} .s-hormozi .chip{color:var(--hormozi)} .s-doser .chip{color:var(--doser)} .s-prompts .chip{color:var(--prompts)}
 .card .t{font:600 17px/1.3 var(--serif)}
@@ -229,7 +252,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
 .coach .ev{color:var(--ink2);font-size:13px}
 .coach .tom{background:var(--chip);border-radius:10px;padding:10px 12px;font-size:15px}
 </style>
-<script src="../textsize.js"></script><script src="../feedback.js" defer></script><script src="../pull.js" defer></script><script src="../hearsel.js" defer></script>
+<script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -274,15 +297,42 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
       return (cur === "all" || x.src === cur) && (!low || (x.title + " " + x.desc + " " + x.label).toLowerCase().indexOf(low) >= 0);
     });
     document.getElementById("count").textContent = rows.length + (rows.length === 1 ? " recipe" : " recipes") + (term ? " match “" + term + "”" : "");
+    stop();   // the rows are about to be thrown away, so nothing is playing any more
     document.getElementById("grid").innerHTML = rows.length ? rows.map(function(x){
-      return '<a class="card s-' + x.src + '" href="' + esc(x.href) + '">' +
-        (x.thumb ? '<div class="th"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></div>' : "") +
-        '<div class="in"><span class="chip">' + esc(NAME[x.src]) + (x.label && x.src !== "prompts" ? " · " + esc(x.label) : "") + '</span>' +
+      var pic = !x.thumb ? "" : (x.vid
+        ? '<button type="button" class="th" data-v="' + esc(x.vid) + '" aria-label="Play the video for ' + esc(x.title) + '"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></button>'
+        : '<div class="th"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></div>');
+      return '<div class="card s-' + x.src + '">' + pic +
+        '<a class="in" href="' + esc(x.href) + '"><span class="chip">' + esc(NAME[x.src]) + (x.label && x.src !== "prompts" ? " · " + esc(x.label) : "") + '</span>' +
         '<div class="t">' + mark(x.title, term) + '</div>' +
         (x.desc ? '<div class="d">' + mark(x.desc, term) + '</div>' : "") +
-        (x.meta ? '<div class="l">' + esc(x.meta) + '</div>' : (x.listen ? '<div class="l">🎙 Natural voice</div>' : "")) + '</div></a>';
+        (x.meta ? '<div class="l">' + esc(x.meta) + '</div>' : (x.listen ? '<div class="l">🎙 Natural voice</div>' : "")) + '</a></div>';
     }).join("") : '<p class="empty">Nothing matches. Try fewer words.</p>';
   }
+  /* 19 Sep, her "there is nothing, no video engraved in it": tapping a card's picture plays the video in
+     that picture, the way the recipe pages already play theirs. One at a time - starting another, changing
+     tab or searching puts the picture back. The words under it still open the recipe. */
+  var NOW = null;
+  function stop(){
+    if(!NOW) return;
+    if(NOW.isConnected){ NOW.innerHTML = NOW.dataset.pic; NOW.classList.remove("playing"); }
+    NOW = null;
+  }
+  function play(th){
+    if(th === NOW) return;
+    stop();
+    th.dataset.pic = th.innerHTML;
+    th.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(th.dataset.v) +
+      '?autoplay=1&playsinline=1&rel=0" title="Video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
+      '<button type="button" class="x" aria-label="Close the video">✕</button>';
+    th.classList.add("playing");
+    NOW = th;
+  }
+  document.getElementById("grid").addEventListener("click", function(e){
+    if(e.target.closest(".th .x")){ stop(); return; }
+    var th = e.target.closest("button.th[data-v]");
+    if(th && !th.classList.contains("playing")) play(th);
+  });
   document.getElementById("tabs").addEventListener("click", function(e){
     var b = e.target.closest(".tab"); if(!b) return;
     cur = b.dataset.t; try{ localStorage.setItem("recipesHub.tab", cur); }catch(err){}

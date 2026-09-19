@@ -249,6 +249,78 @@ function fmt(n){ return n.toLocaleString('en-AU'); }
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function on(shelf){ return DOCS.filter(function(d){ return d.shelf === shelf; }); }
 
+/* ================== WHICH COMPUTER'S PATHS ====================================
+   Her note on the feedback board, 19 Sep 2026: "It looks like it is for the um
+   Windows, not even app." Every path this shelf printed was a Windows one, so on
+   her Mac and on her phone they named nothing at all.
+   NOTHING HERE TOUCHES A BOOK. Rule 55 - nobody changes the wording of a rule -
+   so the Windows paths written INSIDE the books stay exactly as she wrote them.
+   This changes only the shelf's own labels: the path chip under each card, the
+   two tables on the front page, and the line at the foot of a book.
+   Every Mac path below was read off this Mac with ls on 20 Sep 2026, not guessed.
+   The three books that genuinely are not on the Mac say so rather than invent a
+   path - a made-up path is worse than an honest gap. */
+var WIN_ROOT = "C:\\Users\\[user]\\";
+var COPY_ONLY = "a copy in the notes repo, not a book a Mac session loads";
+var MAC = {
+  ".claude/CLAUDE.md":                     "~/.claude/CLAUDE.md",
+  ".claude/hooks/answer_style.py":         "~/.claude/hooks/answer_style.py",
+  ".claude/LESSONS.md":                    "~/.claude/LESSONS.md",
+  ".claude/RULE_HISTORY.md":               "~/claude-config/RULE_HISTORY.md",
+  ".site-publish/CLAUDE.md":               "~/website/CLAUDE.md",
+  "costway-scraper/CLAUDE.md":             "~/pf/CLAUDE.md",
+  ".claude/skills/ebay-listing/SKILL.md":  "~/claude-config/skills/ebay-listing/SKILL.md",
+  ".claude/skills/notion-summary/SKILL.md":"~/.claude/skills/notion-summary/SKILL.md",
+  ".claude/commands/board.md":             "~/.claude/commands/board.md",
+  ".claude/commands/pickup.md":            "~/.claude/commands/pickup.md",
+  ".claude/commands/recap.md":             "~/.claude/commands/recap.md",
+  ".claude/commands/rule.md":              "~/.claude/commands/rule.md",
+  ".claude/commands/summarise.md":         "~/.claude/commands/summarise.md",
+  ".claude/commands/videos.md":            "~/.claude/commands/videos.md",
+  /* The three "claude desktoi" books DO exist on the Mac, but only as a copy
+     carried inside the notes repo - no Mac session loads them from there. Saying
+     just the path would send her to edit a file nothing reads, which is the fault
+     this repo has hit before, so each one carries the warning with it. */
+  "claude desktoi/CLAUDE.md":              ["~/home-notes/claude desktoi/CLAUDE.md", COPY_ONLY],
+  "claude desktoi/QUALITY_STANDARD.md":    ["~/home-notes/claude desktoi/QUALITY_STANDARD.md", COPY_ONLY],
+  "claude desktoi/.claude/skills/digital-product/SKILL.md":
+                                           ["~/home-notes/claude desktoi/.claude/skills/digital-product/SKILL.md", COPY_ONLY]
+};
+/* The Windows folder names on the front table, and where each one lives here. */
+var FOLDER_MAC = { "claude desktoi": null, "costway-scraper": "~/pf", ".site-publish": "~/website" };
+var MACH_KEY = "ruleshelf.machine";
+function machine(){
+  try { var v = localStorage.getItem(MACH_KEY); if (v === "win" || v === "mac") return v; } catch(e){}
+  /* No choice stored yet: guess from the browser. Windows says so in the platform
+     string; a Mac, an iPhone and an iPad all fall through to the Mac paths, which
+     is what she meant by "not even app" - she was reading it on the phone. */
+  return /Win/i.test(navigator.platform || navigator.userAgent || "") ? "win" : "mac";
+}
+function winPath(p){ return WIN_ROOT + p.replace(/\//g, "\\"); }
+function shownPath(p){
+  if (machine() !== "mac") return winPath(p);
+  var m = MAC[p];
+  if (!m) return winPath(p) + "  \u2014 Windows only, not on this Mac";
+  return (typeof m === "string") ? m : (m[0] + "  \u2014 " + m[1]);
+}
+function shownFolder(n){
+  if (machine() !== "mac" || !(n in FOLDER_MAC)) return n;
+  return FOLDER_MAC[n] || (n + " \u2014 Windows only");
+}
+/* "Loads in costway-scraper" names a Windows folder too, so the pill under each
+   card gets the same treatment as the table cell. */
+function shownLoaded(t){
+  if (machine() !== "mac") return t;
+  var m = /^Loads in (.+)$/.exec(t);
+  return m ? "Loads in " + shownFolder(m[1]) : t;
+}
+/* Same shape as the easy-read button: it is labelled with the state it switches TO. */
+function machBtn(){
+  return '<button class="easybtn" data-mach="1" type="button">' +
+         (machine() === "mac" ? "Windows paths" : "Mac paths") + '</button>';
+}
+function machWord(){ return machine() === "mac" ? "this Mac" : "the Windows PC"; }
+
 (function buildNav(){
   var h = '<div class="brand"><span>Read before working</span><b>Rachel&rsquo;s Rule Shelf</b></div>';
   h += '<a href="#" data-go="home">The shelf<em>start here</em></a>';
@@ -273,6 +345,8 @@ function renderHome(){
        'against your target of ' + fmt(TARGET) +
        ' &mdash; ' + (over > 0 ? fmt(over) + ' over.' : 'inside it.') + '</p>';
   h += '<div class="note"><b>This page is public, and it is a copy.</b> Editing anything here would change nothing on the machine. A few things were taken out before it went up: an email address, a full name, a cloud project id, a link to a private page, and a username inside file paths. Everything else is the books word for word.</div>';
+  h += '<p class="tnote">Paths on this page are written for <b>' + machWord() + '</b>. ' +
+       'The paths inside the books themselves are left exactly as she wrote them. ' + machBtn() + '</p>';
   h += '<h2 class="shelf-head">What a session actually loads</h2>';
   h += '<p class="tnote">Three books load in every folder. Each product folder then adds its own. ' +
        'This is why the same question costs different amounts of reading depending on where it is asked.</p>';
@@ -280,7 +354,7 @@ function renderHome(){
        '<th class="num">Characters read before any work</th><th class="num">Against 50,000</th></tr></thead><tbody>';
   FOLDERS.forEach(function(f){
     var d = f.chars - TARGET;
-    h += '<tr><td>' + esc(f.name) + '</td><td class="num">' + fmt(f.chars) + '</td>' +
+    h += '<tr><td>' + esc(shownFolder(f.name)) + '</td><td class="num">' + fmt(f.chars) + '</td>' +
          '<td class="num ' + (d > 0 ? 'bad' : 'good') + '">' +
          (d > 0 ? '+' + fmt(d) : fmt(d)) + '</td></tr>';
   });
@@ -293,7 +367,7 @@ function renderHome(){
   h += '<div class="tablewrap"><table class="meas"><thead><tr><th>Book</th><th class="num">You sealed it at</th>' +
        '<th class="num">It is now</th><th class="num">Change</th></tr></thead><tbody>';
   SEAL_ROWS.forEach(function(r){
-    h += '<tr><td>' + esc(r.label) + '<br><span class="pathcell">' + esc(r.path) + '</span></td>' +
+    h += '<tr><td>' + esc(r.label) + '<br><span class="pathcell">' + esc(shownPath(r.path)) + '</span></td>' +
          '<td class="num">' + fmt(r.was) + '</td><td class="num">' + fmt(r.now) + '</td>' +
          '<td class="num ' + (r.delta > 0 ? 'bad' : (r.delta < 0 ? 'warn' : 'good')) + '">' +
          (r.delta === 0 ? 'unchanged' : (r.delta > 0 ? '+' : '') + fmt(r.delta)) + '</td></tr>';
@@ -306,7 +380,7 @@ function renderHome(){
       h += '<button class="card" data-go="' + d.id + '"><h3>' + esc(d.title) + '</h3>' +
            (d.blurb ? '<p>' + d.blurb + '</p>' : '') +
            '<span class="m">' + fmt(d.chars) + ' chars &middot; ' + d.date +
-           '<br>' + esc(d.loaded) + '</span></button>';
+           '<br>' + esc(shownLoaded(d.loaded)) + '</span></button>';
     });
     h += '</div>';
   });
@@ -387,10 +461,10 @@ function paintEasy(d){
   btn.setAttribute("aria-pressed", on ? "true" : "false");
   foot.innerHTML = on
     ? "Easy read: the capitals are softened and the rules are spaced out, so this is <b>not</b> " +
-      "how the file looks. Nothing in " + esc(d.path) + " was changed. Press " +
+      "how the file looks. Nothing in " + esc(shownPath(d.path)) + " was changed. Press " +
       "<b>as written</b> above for the real text.<br>" +
       "To change a line, say which one and what it should say instead."
-    : "Verbatim from " + esc(d.path) + ".<br>" +
+    : "Verbatim from " + esc(shownPath(d.path)) + ".<br>" +
       "To change a line, say which one and what it should say instead.";
   btn.onclick = function(){
     try { localStorage.setItem(EASY_KEY, easyOn() ? "0" : "1"); } catch(e){}
@@ -408,11 +482,12 @@ function renderDoc(d){
     '<h1 class="doc">' + esc(d.title) + '</h1>' +
     (d.blurb ? '<p class="blurb">' + d.blurb + '</p>' : '') +
     '<div class="factbar">' +
-      '<span class="pill">' + esc(d.loaded) + '</span>' +
+      '<span class="pill">' + esc(shownLoaded(d.loaded)) + '</span>' +
       '<span><b>' + fmt(d.chars) + '</b> characters</span>' +
       '<span>last changed <b>' + d.date + '</b></span>' +
-      '<span>' + esc(d.path) + '</span>' +
+      '<span>' + esc(shownPath(d.path)) + '</span>' +
       '<button class="easybtn" id="easybtn" type="button"></button>' +
+      machBtn() +
     '</div>' + body +
     '<div class="foot" id="docfoot"></div>';
   paintEasy(d);
@@ -425,7 +500,9 @@ function renderDoc(d){
   }
 }
 
+var CURRENT = 'home';   /* what is on screen, so the paths button can redraw it */
 function go(id){
+  CURRENT = id;
   var links = nav.querySelectorAll('a');
   for (var i = 0; i < links.length; i++)
     links[i].classList.toggle('on', links[i].getAttribute('data-go') === id);
@@ -443,6 +520,15 @@ function go(id){
 document.addEventListener('click', function(e){
   var t = e.target.closest('[data-go]');
   if (t) { e.preventDefault(); go(t.getAttribute('data-go')); }
+});
+/* The paths button. Separate from the [data-go] handler above because it changes
+   how the page is labelled, not which book is open. */
+document.addEventListener('click', function(e){
+  var t = e.target.closest('[data-mach]');
+  if (!t) return;
+  e.preventDefault();
+  try { localStorage.setItem(MACH_KEY, machine() === "mac" ? "win" : "mac"); } catch(err){}
+  go(CURRENT);
 });
 document.getElementById('menuBtn').addEventListener('click', function(){
   nav.classList.toggle('open');

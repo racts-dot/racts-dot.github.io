@@ -96,6 +96,15 @@ blockquote cite{display:block;color:var(--soft);font-style:normal;font-size:.875
 .outside p{margin:.25rem 0}
 .outside .src{font-size:.9375rem}
 .note{color:var(--soft);font-size:.9375rem}
+/* "Where this comes from": the box at the foot of every card, built by fromBlock() in the script below.
+   Rachel, 16 Sep 2026: "Everything has to be from the resources like if it is not just mention reference."
+   Small print in the same soft ink the rest of the small print uses, so it sits under the card without
+   competing with it. Ruled off at the top because it is about the card rather than part of it. */
+.from{border-top:1px solid var(--line);margin:1.25rem 0 0;padding:.75rem 0 0}
+.from h3{margin:0 0 .375rem}
+.from .src-list{margin:0;padding-left:1.125rem;color:var(--soft);font-size:.9375rem}
+.from .src-list li{margin:.25rem 0}
+.from .note{margin:.5rem 0 0}
 .table-wrap{overflow-x:auto;margin:.5rem 0}
 table{border-collapse:collapse;width:100%;font-size:.9375rem}
 th,td{text-align:left;padding:.375rem .5rem;border-bottom:1px solid var(--line);vertical-align:top}
@@ -177,6 +186,8 @@ a transliteration, the Strong's number and a short gloss from the STEP Bible lex
 the 66 books of the Protestant Bible, or from later tradition, is in a box marked <b>Outside Scripture</b>.</p>
 <p>In this build: God's names 27, Angels 20, Demons and devils 23, Elements from the Scriptures 16, Ordinances of heaven 8 entries; 349 verse references.</p>
 <p><b>Sources</b></p>
+<p class="note">Your own notes are not in this build. Everything listed below is a public text or a licensed
+lexicon read from elsewhere, and every card ends with a box naming the sources that card used.</p>
 <ul><li>Verse text: World English Bible and King James Version, fetched chapter by chapter from bible-api.com (public domain, read 16 Sep 2026)</li><li>Latin of Isaiah 14:12: Clementine Latin Vulgate, from bible-api.com (public domain, read 16 Sep 2026)</li><li>Word forms, transliterations, glosses; which word stands in which verse: STEP Bible (STEPBible.org, github.com/STEPBible/STEPBible-Data): TBESH, TBESG lexicons and the TAHOT, TAGNT tagged texts, based on work at Tyndale House Cambridge (CC BY 4.0, read 16 Sep 2026)</li><li>Hebrew cross-check of Strong's numbers: Open Scriptures Hebrew Bible Project, HebrewLexicon (HebrewStrong.xml), github.com/openscriptures/HebrewLexicon (CC BY 4.0, read 16 Sep 2026)</li><li>Tobit and 2 Esdras (Outside Scripture items only): World English Bible deuterocanon, eBible.org (eng-web_usfm.zip) (public domain, read 16 Sep 2026)</li><li>1 Enoch, Origen, Pseudo-Dionysius (Outside Scripture items only): R. H. Charles, The Book of Enoch (1917); Ante-Nicene Fathers vol. 4 (Origen, De Principiis); John Parker's translation of Dionysius the Areopagite (1897); all read on en.wikisource.org (public domain, read 16 Sep 2026)</li></ul>
 <p>This page makes no network requests, so web addresses are printed without their prefix and are not links.
 Published at racts-dot.github.io/priesthood/ for reading. Not for sale.</p>
@@ -238,6 +249,37 @@ function outsideBlock(items) {
   return box;
 }
 
+/* "Where this comes from": every card ends by naming its own sources, and says plainly what is NOT from
+   Rachel's own material.
+
+   Rachel, 16 Sep 2026: "Everything has to be from the resources like if it is not just mention reference. So I
+   was wanting to get things from the Notion notes and to be here." And again, 18 Sep 2026: "I will need it from
+   my own resource. All those information. Do not find it from elsewhere."
+
+   Her Notion notes are not in this build - not one line of it came from them. Rather than leave her to work that
+   out, the last line of every card says so. The source wording itself is read out of the data, so it is written
+   once in sections.json and cannot drift from the list on the Home page; if a source is ever renamed there and
+   stops matching, the line is dropped rather than a stale one printed. */
+function sourceNamed(part) {
+  const s = (D.sources || []).find(x => (x.what || "").toLowerCase().indexOf(part) >= 0);
+  return s ? s.source + " (" + s.licence + ", read " + s.read + ")" : null;
+}
+
+function fromBlock(e) {
+  const box = el("section", "from");
+  box.setAttribute("aria-label", "Where this comes from");
+  box.appendChild(el("h3", null, "Where this comes from"));
+  const ul = el("ul", "src-list");
+  const add = (what, line) => { if (line) ul.appendChild(el("li", null, what + ": " + line)); };
+  if ((e.says && e.says.length) || (e.occurs && e.occurs.length)) add("Verse text", sourceNamed("verse text"));
+  if ((e.words && e.words.length) || e.table) add("Original words", sourceNamed("word forms"));
+  (e.outside_scripture || []).forEach(o => add("Outside Scripture", o.source));
+  if (ul.childNodes.length) box.appendChild(ul);
+  box.appendChild(el("p", "note", "From your own notes: nothing on this card yet. Every line above came from the "
+    + "texts named here, not from your notes."));
+  return box;
+}
+
 function verseBlock(ref, id) {
   const v = D.verses[ref];
   const q = el("blockquote");
@@ -289,6 +331,11 @@ function wordBlock(w) {
   add("Strong's", strongLabel(w.strongs));
   add("Lexicon gloss", x.gloss);
   if (w.note) add("Note", w.note);
+  // Rachel, 16 Sep 2026: "Everything has to be from the resources like if it is not just mention reference."
+  // The form, transliteration and gloss are STEP Bible's under CC BY 4.0, so the credit now sits on the word it
+  // covers instead of only in the list at the foot of the Home page. Short here on purpose: the full wording,
+  // licence and reading date are in the card's own "Where this comes from" box.
+  add("Source", "STEP Bible lexicon (CC BY 4.0)");
   return dl;
 }
 
@@ -360,7 +407,16 @@ function fillCard(e) {
   e.says.forEach(s => { const li = el("li"); li.appendChild(el("span", null, s.text)); citeButtons(s.cites, li); ul.appendChild(li); });
   (e.occurs || []).forEach(o => { const li = el("li"); li.appendChild(el("span", null, o.text)); citeButtons(o.cites, li); ul.appendChild(li); });
   c.appendChild(ul);
-  if (e.table) { c.appendChild(el("h3", null, e.table.caption)); c.appendChild(tableBlock(e.table)); if (e.table.note) c.appendChild(el("p", "note", e.table.note)); }
+  if (e.table) {
+    c.appendChild(el("h3", null, e.table.caption));
+    c.appendChild(tableBlock(e.table));
+    if (e.table.note) c.appendChild(el("p", "note", e.table.note));
+    // Same reason as the word block, 16 Sep 2026: the table prints WEB and KJV wording beside STEP Bible's
+    // Hebrew, so it says so under the table. It goes here and not inside tableBlock() because that returns the
+    // scrolling region, and a source line does not belong inside something the reader has to scroll sideways.
+    c.appendChild(el("p", "note", "Source: World English Bible and King James Version (public domain); Hebrew "
+      + "form, transliteration and Strong's number from the STEP Bible lexicon (CC BY 4.0)"));
+  }
   if (e.outside_scripture && e.outside_scripture.length && !e.outside_only) c.appendChild(outsideBlock(e.outside_scripture));
   if (e.see_also && e.see_also.length) {
     c.appendChild(el("h3", null, "See also"));
@@ -368,6 +424,7 @@ function fillCard(e) {
     e.see_also.forEach(id => { const t = BY_ID[id]; if (!t) return; const b = el("button", null, t.name); b.type = "button"; b.onclick = () => openCard(id); row.appendChild(b); });
     c.appendChild(row);
   }
+  c.appendChild(fromBlock(e));
   dlg.replaceChildren(c);
 }
 

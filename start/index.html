@@ -199,6 +199,65 @@
   .tile .n{font-size:14.5px;font-weight:600;letter-spacing:-.01em}
   .tile .h{font-size:12px;color:var(--faint);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+  /* ---- Momentum's shape. Her note, 19 Sep 2026: "interface to match momentum" -
+         one big CENTRED clock, the greeting under it, one focus line, and everything
+         else quiet at the edges. Nothing is taken away to get it; the clock, greeting,
+         date and focus line are the same elements, moved to the middle. ---- */
+  .hero{text-align:center}
+  /* The centred column is capped so it can never run under the board at the right edge. */
+  .focus{justify-content:center;max-width:620px;margin-left:auto;margin-right:auto}
+  .focus input{flex:0 1 460px;min-width:0}
+  .stale{max-width:620px;margin-left:auto;margin-right:auto}
+
+  /* ---- the weather, top right and quiet. Her note, 19 Sep 2026: "Weather".
+         open-meteo.com answers without a key and without an account, so this cannot
+         run up a bill or ask her to sign in to anything. ---- */
+  .wx{position:fixed;top:calc(14px + env(safe-area-inset-top));right:20px;z-index:20;
+      background:none;border:0;color:var(--muted);font:inherit;font-size:14px;
+      padding:4px 6px;border-radius:8px;cursor:pointer;opacity:.55;
+      transition:opacity .18s ease}
+  .wx:hover,.wx:focus-visible{opacity:1;outline:none}
+  .wx .deg{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--ink)}
+  .wx[hidden]{display:none}
+
+  /* ---- the board, down the right. Her note, 19 Sep 2026: "actually can i have
+         something like board that i can switch depending on the tasks i am up to on
+         the right hand side". Named boards, one shown at a time. Quiet until she
+         looks at it, like the corner button. On a phone it falls BELOW the clock
+         rather than beside it - there is no room for a right-hand column at 375px. ---- */
+  .board{width:auto;max-width:560px;margin:0 auto 32px;transition:opacity .18s ease}
+  .board:hover,.board:focus-within{opacity:1}
+  .btabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+  .btab{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:12.5px;
+        padding:3px 9px;border-radius:999px;cursor:pointer}
+  .btab.on{color:var(--ink);border-color:rgba(255,255,255,.26);background:var(--surface)}
+  .btab i{font-style:normal;color:var(--faint);margin-left:5px;font-size:11.5px}
+  .bitems{margin:0 0 8px;padding:0;list-style:none}
+  .bitems li{display:flex;align-items:flex-start;gap:6px;padding:4px 0;text-align:left}
+  .bitems li+li{border-top:1px solid var(--line)}
+  .bitems li.bempty{display:block;color:var(--faint);font-size:13px;padding:4px 0}
+  .bt{flex:1;text-align:left;background:none;border:0;color:var(--ink);font:inherit;font-size:14px;
+      line-height:1.35;padding:2px 0;cursor:pointer;overflow-wrap:anywhere}
+  .bitems li.done .bt{color:var(--faint);text-decoration:line-through}
+  .bx{background:none;border:0;color:var(--faint);font:inherit;font-size:14px;cursor:pointer;
+      padding:2px 4px;border-radius:6px;opacity:0;transition:opacity .12s ease}
+  .bitems li:hover .bx,.bx:focus-visible{opacity:1;color:var(--ink);outline:none}
+  .badd input{width:100%;background:transparent;border:0;border-bottom:1px solid var(--line);
+              color:var(--ink);font:inherit;font-size:14px;padding:5px 2px;outline:none}
+  .badd input:focus{border-bottom-color:var(--accent)}
+  .bfoot{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .bfoot button{background:none;border:0;color:var(--faint);font:inherit;font-size:12px;cursor:pointer;
+                padding:2px 5px;border-radius:6px}
+  .bfoot button:hover{color:var(--ink);background:var(--line)}
+  /* 1240px is measured, not chosen: below it the board's left edge and the focus line's
+     right edge start to meet, and a board sitting on top of the one line she types every
+     morning is worse than a board she scrolls to. */
+  @media (min-width:1240px){
+    .board{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:20;
+           width:248px;max-width:none;margin:0;opacity:.62}
+    .bitems{max-height:44svh;overflow-y:auto;overscroll-behavior:contain}
+  }
+
   footer{color:var(--faint);font-size:12px;margin-top:28px;line-height:1.6}
   footer a{color:var(--muted)}
 
@@ -217,6 +276,10 @@
 </head>
 <body>
 
+<!-- The weather sits at the edge and says one line. It is hidden until there is either a
+     saved reading or the word to tap, so a new tab never flashes an empty box. -->
+<button class="wx" id="wx" type="button" hidden>weather</button>
+
 <!-- THE DEFAULT VIEW. Clock, greeting, one focus line. Nothing else, on purpose. -->
 <div class="wrap">
 <header class="hero">
@@ -231,6 +294,23 @@
   <!-- The one thing that survives into the calm view, and only when it is actually wrong. -->
   <div class="stale" id="stale"></div>
 </header>
+
+<!-- THE BOARD. Her note, 19 Sep 2026: "actually can i have something like board that i can
+     switch depending on the tasks i am up to on the right hand side". The names across the
+     top are the boards; tapping one switches to it. It lives on this device, like the focus
+     line above - the scratch pad in the drawer is the one that follows her between machines. -->
+<aside class="board" id="board" aria-label="Boards">
+  <div class="btabs" id="btabs"></div>
+  <ul class="bitems" id="bitems"></ul>
+  <form class="badd" id="badd" autocomplete="off">
+    <input id="bnew" type="text" placeholder="add" aria-label="Add to this board" spellcheck="false">
+  </form>
+  <div class="bfoot">
+    <button id="bAdd" type="button">+ board</button>
+    <button id="bRename" type="button">rename</button>
+    <button id="bDel" type="button">remove</button>
+  </div>
+</aside>
 </div>
 
 <!-- ONE BUTTON. Everything else is behind it. -->
@@ -331,15 +411,158 @@
   var MACHINE = /Mac/i.test(navigator.platform + " " + navigator.userAgent) ? "Mac"
               : /Win/i.test(navigator.platform + " " + navigator.userAgent) ? "Windows" : "this device";
   $("focusLabel").textContent = "Today on " + MACHINE;
-  var KEY = "start.focus." + new Date().toISOString().slice(0,10);
+  /* THE KEY IS THE LOCAL DATE. It was toISOString() until 20 Sep 2026, and that is UTC:
+     in Australia the UTC date rolls over at ten or eleven in the MORNING, so the line she
+     typed at breakfast started reading from tomorrow's key mid-morning and the box emptied
+     itself in front of her. That is her note - the Today box "appears to save nowhere". It
+     always saved; it was saving under a name that changed halfway through her day.
+     The old key is still read once, so nothing typed today is lost on the changeover. */
+  function ymd(d){ return d.getFullYear() + "-" + two(d.getMonth() + 1) + "-" + two(d.getDate()); }
+  var KEY = "start.focus." + ymd(new Date()), OLDKEY = "start.focus." + new Date().toISOString().slice(0,10);
   var focus = $("focus"), clear = $("focusClear");
-  try { focus.value = localStorage.getItem(KEY) || ""; } catch(e){}
+  try { focus.value = localStorage.getItem(KEY) || localStorage.getItem(OLDKEY) || ""; } catch(e){}
   clear.hidden = !focus.value;
   focus.addEventListener("input", function(){
     try { localStorage.setItem(KEY, focus.value); } catch(e){}
     clear.hidden = !focus.value;
   });
   clear.addEventListener("click", function(){ focus.value = ""; focus.dispatchEvent(new Event("input")); });
+
+  /* ================= the weather =========================================
+     Her note, 19 Sep 2026: one word, "Weather". open-meteo.com answers by
+     coordinates with no key and no account, so nothing here can cost anything
+     or ask her to sign in. Two rules, both deliberate:
+       * the browser's location box appears ONLY when she taps the word. A new
+         tab must never open on a permission prompt.
+       * every failure is silent - no error box, no red text. A start page that
+         opens on an error is worse than one with no weather on it.
+     The last reading is kept on the device so the number is already there on the
+     next tab, and it is only asked for again when it is over half an hour old. == */
+  var WX = "start.wx", WX_AGE = 30 * 60 * 1000, wxOut = $("wx");
+  function wxLoad(){ try { return JSON.parse(localStorage.getItem(WX) || "null"); } catch(e){ return null; } }
+  function wxKeep(o){ try { localStorage.setItem(WX, JSON.stringify(o)); } catch(e){} }
+  function wxWord(c){
+    if (c === 0) return "clear";
+    if (c === 1) return "mostly clear";
+    if (c === 2) return "part cloud";
+    if (c === 3) return "overcast";
+    if (c === 45 || c === 48) return "fog";
+    if (c >= 51 && c <= 57) return "drizzle";
+    if (c >= 61 && c <= 67) return "rain";
+    if (c >= 71 && c <= 77) return "snow";
+    if (c >= 80 && c <= 82) return "showers";
+    if (c === 85 || c === 86) return "snow showers";
+    if (c >= 95) return "storm";
+    return "";
+  }
+  function wxPaint(o){
+    if (!o || o.t == null) return;
+    var w = wxWord(o.code);
+    wxOut.innerHTML = '<span class="deg">' + Math.round(o.t) + "\u00B0</span>" + (w ? " " + esc(w) : "");
+    wxOut.title = "read " + (o.at ? ago(new Date(o.at).toISOString()) : "") + " \u00B7 tap to read it again";
+    wxOut.hidden = false;
+  }
+  function wxGet(lat, lon){
+    fetch("https://api.open-meteo.com/v1/forecast?latitude=" + lat.toFixed(3) +
+          "&longitude=" + lon.toFixed(3) + "&current=temperature_2m,weather_code&timezone=auto")
+      .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(d){
+        var c = d && d.current; if (!c || c.temperature_2m == null) return;
+        var o = { lat: lat, lon: lon, t: c.temperature_2m, code: c.weather_code, at: Date.now() };
+        wxKeep(o); wxPaint(o);
+      })
+      .catch(function(){ var had = wxLoad(); if (had) wxPaint(had); });   /* silent, on purpose */
+  }
+  function wxAsk(){
+    var had = wxLoad();
+    if (!navigator.geolocation){ return; }
+    wxOut.textContent = "\u2026";
+    navigator.geolocation.getCurrentPosition(
+      function(pos){ wxGet(pos.coords.latitude, pos.coords.longitude); },
+      function(){ if (had) wxPaint(had); else wxOut.textContent = "weather"; },
+      { maximumAge: WX_AGE, timeout: 8000 });
+  }
+  /* Only ever refreshes coordinates it was already given. No reading, no request. */
+  function wxTick(){
+    var o = wxLoad();
+    if (o && Date.now() - (o.at || 0) > WX_AGE) wxGet(o.lat, o.lon);
+  }
+  (function(){
+    var o = wxLoad();
+    if (o) wxPaint(o); else wxOut.textContent = "weather";
+    wxOut.hidden = false;
+    wxOut.addEventListener("click", wxAsk);
+    wxTick();
+  })();
+
+  /* ================= the boards ==========================================
+     Her note, 19 Sep 2026: "actually can i have something like board that i can
+     switch depending on the tasks i am up to on the right hand side". So: named
+     boards, one on screen at a time, switched by tapping its name. They are kept
+     on THIS device, the same as the focus line and for the same reason - there is
+     no server behind this page, and a board that pretends to follow her between
+     machines and does not is worse than one that says where it lives. The scratch
+     pad in the drawer is the one that is the same everywhere. ================== */
+  var BKEY = "start.boards", bState = null;
+  function bLoad(){
+    try {
+      var o = JSON.parse(localStorage.getItem(BKEY) || "null");
+      if (o && o.boards && o.boards.length) return o;
+    } catch(e){}
+    return { boards: [ { name: "Now", items: [] } ], at: 0 };
+  }
+  function bKeep(){ try { localStorage.setItem(BKEY, JSON.stringify(bState)); } catch(e){} }
+  function bNow(){ return bState.boards[bState.at]; }
+  function bDraw(){
+    if (!(bState.at >= 0 && bState.at < bState.boards.length)) bState.at = 0;
+    $("btabs").innerHTML = bState.boards.map(function(b, i){
+      var left = (b.items || []).filter(function(it){ return !it.done; }).length;
+      return '<button type="button" class="btab' + (i === bState.at ? " on" : "") + '" data-i="' + i + '">' +
+             esc(b.name) + (left ? "<i>" + left + "</i>" : "") + "</button>";
+    }).join("");
+    var b = bNow(), items = b.items || [];
+    $("bitems").innerHTML = items.length
+      ? items.map(function(it, i){
+          return '<li class="' + (it.done ? "done" : "") + '">' +
+                 '<button type="button" class="bt" data-t="' + i + '">' + esc(it.t) + "</button>" +
+                 '<button type="button" class="bx" data-x="' + i + '" aria-label="Remove this line">\u00D7</button></li>';
+        }).join("")
+      : '<li class="bempty">nothing on this board yet</li>';
+    $("bnew").placeholder = "add to " + b.name;
+  }
+  $("btabs").addEventListener("click", function(e){
+    var t = e.target && e.target.closest ? e.target.closest(".btab") : null;
+    if (!t) return;
+    bState.at = parseInt(t.getAttribute("data-i"), 10); bKeep(); bDraw();
+  });
+  $("bitems").addEventListener("click", function(e){
+    var el = e.target, b = bNow();
+    if (!el || !el.getAttribute) return;
+    if (el.getAttribute("data-t") !== null){ var i = +el.getAttribute("data-t"); b.items[i].done = !b.items[i].done; }
+    else if (el.getAttribute("data-x") !== null){ b.items.splice(+el.getAttribute("data-x"), 1); }
+    else return;
+    bKeep(); bDraw();
+  });
+  $("badd").addEventListener("submit", function(e){
+    e.preventDefault();
+    var v = $("bnew").value.trim(); if (!v) return;
+    bNow().items.push({ t: v, done: false }); $("bnew").value = ""; bKeep(); bDraw();
+  });
+  $("bAdd").addEventListener("click", function(){
+    var n = (window.prompt("Name the board") || "").trim(); if (!n) return;
+    bState.boards.push({ name: n, items: [] }); bState.at = bState.boards.length - 1; bKeep(); bDraw();
+  });
+  $("bRename").addEventListener("click", function(){
+    var b = bNow(), n = (window.prompt("Rename this board", b.name) || "").trim();
+    if (!n) return; b.name = n; bKeep(); bDraw();
+  });
+  /* Asks first, and refuses to leave her with none. Nothing else on this page deletes. */
+  $("bDel").addEventListener("click", function(){
+    if (bState.boards.length < 2){ window.alert("This is the only board, so it stays."); return; }
+    if (!window.confirm('Remove the board "' + bNow().name + '" and everything on it?')) return;
+    bState.boards.splice(bState.at, 1); bState.at = 0; bKeep(); bDraw();
+  });
+  bState = bLoad(); bDraw();
 
   /* ---- The Day: the count and the stream ---- */
   function ago(iso){
@@ -378,7 +601,7 @@
     bits.push("feed " + (made ? ago(made) : "undated") + (stale ? " · timer may be down" : ""));
     $("pace").textContent = bits.join(" · ");
 
-    var today = d.day || new Date().toISOString().slice(0,10);
+    var today = d.day || ymd(new Date());   /* local, for the same reason as the focus key */
     /* The timers' own commits ("The Day: ...", "Desk: ...", "Hourly backup ...") are not work she
        did; The Day app shows them, a start page does not need to. */
     var noise = /^(The Day: tasks done today|Desk: where we're up to|Hourly backup |The Day: |Desk card)/i;
@@ -568,6 +791,7 @@
       .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(ok).catch(fail || function(){});
   }
   function pull(){
+    wxTick();                       /* free unless the reading is over half an hour old */
     get("/day/stream.json", renderDay, function(e){
       $("pace").textContent = "The Day feed could not be read (" + e.message + ")"; $("dot").className = "dot cold";
       $("events").innerHTML = '<li class="empty">/day/stream.json did not load.</li>';

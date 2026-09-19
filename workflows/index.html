@@ -99,6 +99,8 @@ h1{font-size:clamp(34px,6vw,64px);font-weight:880;font-stretch:118%;letter-spaci
 h1 span{display:inline-block;background:linear-gradient(transparent 58%,var(--hi) 58%,var(--hi) 92%,transparent 92%);color:inherit;padding:0 .06em}
 .lede{max-width:64ch;color:var(--ink2);font-size:17px;margin:0}
 .lede b{color:var(--ink)}
+.goal{max-width:64ch;color:var(--ink);font-size:19.5px;line-height:1.35;margin:0 0 10px;font-weight:600}
+.goal .label{display:block;margin-bottom:2px}
 
 /* the journey map */
 .map{margin:22px 0 6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 12px 10px;overflow-x:auto}
@@ -226,6 +228,10 @@ html.ts-big .yn{justify-self:start}
 <header class="wrap">
   <div class="kick"><span class="label">Marketing cookbook</span><span class="label" id="countline"></span></div>
   <h1>Doser <span>AI Marketing</span> Workflows</h1>
+  <!-- 20 Sep 2026, her words: "So the terminal of how the goal will be should be at the front."
+       Where the trip ends was only the grey label at the right-hand end of the map, under the
+       how-to. It is said in words here instead, first thing, before any of the mechanics. -->
+  <p class="goal"><span class="label">Where this ends up</span>A stranger becomes a customer who comes back. Every stop below is one leg of that trip, in the order a buyer meets them.</p>
   <p class="lede">How to do each thing, step by step, starting with what acts on your own listings. Begin at stop 1; the automation stops come last on purpose. <b>His words are shown as he said them</b>, matched to the video captions, with a link to the exact second. Tick <b>Already doing this?</b> and the map shows what's left.</p>
   <div class="map" id="map" role="navigation" aria-label="Topics in customer order"></div>
   <p class="maphint">Green bar: recipes you've marked as already doing. Tap a stop to jump to it.</p>
