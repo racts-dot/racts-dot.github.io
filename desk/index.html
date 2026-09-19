@@ -18,14 +18,7 @@
 <link rel="icon" href="icon-192.png">
 <style>:root{color-scheme:light dark}html,body{margin:0;padding:0}
 body{padding-bottom:env(safe-area-inset-bottom)}
-nav.tabs{padding-bottom:env(safe-area-inset-bottom)!important}.period{display:flex;align-items:center;gap:.4rem;margin:0 0 .5rem;font-size:.95rem}
-.period-btn{background:none;border:0;padding:.15rem .1rem;font:inherit;font-weight:600;
-  color:inherit;cursor:pointer;border-bottom:1px dotted currentColor;opacity:.75}
-.period-btn:hover,.period-btn:focus-visible{opacity:1}
-.period-dot{opacity:.45}
-.period-note{margin:.1rem 0 .6rem;font-size:.9rem;line-height:1.45;opacity:.85}
-.period-note.empty{opacity:.6;font-style:italic}
-</style>
+nav.tabs{padding-bottom:env(safe-area-inset-bottom)!important}</style>
 </head>
 <body>
 <title>Rachie's Desk</title>
@@ -104,6 +97,10 @@ h1{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:clamp(28px,7
   width:40px;height:40px;min-height:0;padding:0;border-radius:3px;font-size:16px;cursor:pointer;
   display:grid;place-items:center}
 .corner button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.corner button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.fresh{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-faint);margin:8px 0 0}
+.fresh.stale{color:var(--accent)}
 
 button{font-family:"Public Sans",sans-serif;font-size:15px;font-weight:700;color:var(--surface);
   background:var(--ink);border:1px solid var(--ink);border-radius:2px;padding:11px 17px;
@@ -345,34 +342,7 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
   border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
 /* ---- just say it: one box, and it decides where each line belongs ---- */
 /* It used to float over the page and sat on top of a control. In the corner it covers nothing. */
-#sayFab{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important;
-  width:auto!important;padding:0 11px!important;font-size:13px!important;font-weight:700;white-space:nowrap}
-/* build 23: how old the delivered facts are, on every page */
-.dataage{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.03em;color:var(--ink-faint);margin:7px 0 0}
-.dataage.old{color:var(--stop)}
-.dataage.old::before{content:"⚠ "}
-/* build 23: folds that start closed */
-details.fold{margin-top:10px;border:1px solid var(--line-soft);border-radius:2px;background:var(--glass-2)}
-details.fold > summary{list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;padding:11px 14px;font-weight:700;font-size:15px}
-details.fold > summary::-webkit-details-marker{display:none}
-details.fold > summary::before{content:"›";color:var(--ink-faint);font-weight:400;display:inline-block;transition:transform .15s}
-details.fold[open] > summary::before{transform:rotate(90deg)}
-details.fold > summary .count{margin-left:auto}
-details.fold > :not(summary){margin-left:14px;margin-right:14px}
-details.fold[open]{padding-bottom:12px}
-.ag-adder{grid-template-columns:auto 1fr auto}
-@media(max-width:480px){.ag-adder{grid-template-columns:1fr auto}.ag-adder #agTime{grid-column:1 / -1}}
-.sc-tools{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.sc-wrap{background:#fffdf7;border:1px solid var(--line);border-radius:4px;overflow:hidden;
-  background-image:linear-gradient(rgba(27,73,101,.08) 1px,transparent 1px);background-size:100% 28px}
-#scratch{display:block;width:100%;height:380px;touch-action:none;cursor:crosshair}
-.ledgers{display:grid;gap:9px;margin-top:10px}
-.ledger-card{display:grid;gap:3px;text-decoration:none;color:var(--ink);background:var(--glass);border:1px solid var(--line-soft);
-  border-left:4px solid var(--accent);border-radius:2px;padding:12px 14px;box-shadow:var(--shadow)}
-.ledger-card b{font-size:15.5px}.ledger-card b::after{content:" ›";color:var(--ink-faint);font-weight:400}
-.ledger-card span{font-size:13.5px;color:var(--ink-soft)}
-.pj-bar{height:5px;background:var(--line-soft);border-radius:3px;overflow:hidden;margin-top:6px}
-.pj-bar span{display:block;height:100%;background:var(--accent)}
+#sayFab{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
 .say-row{border-top:1px solid var(--line-soft);padding:10px 0}
 .say-row:first-child{border-top:0}
 .say-txt{margin:0 0 7px;font-size:14.5px;color:var(--ink)}
@@ -569,29 +539,17 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   box-shadow:var(--shadow);max-width:88vw;text-align:center}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* 17 Sep 2026 - the embedded June Resale Ledger on Desk's Ledgers page. */
-.ledger-embed{border:1px solid var(--line,#e3e3de);border-radius:12px;overflow:hidden;margin:0 0 12px}
-.ledger-embed-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:10px 13px;border-bottom:1px solid var(--line,#e3e3de);font-size:15px}
-.ledger-embed-head a{font-size:13px;white-space:nowrap;text-decoration:none}
-.ledger-frame{display:block;width:100%;height:70vh;min-height:420px;border:0;background:transparent}
-@media (max-width:520px){.ledger-frame{height:78vh}}
-
-/* 17 Sep 2026 - all three ledgers as tabs inside Desk's Ledgers page. */
-.lg3{border:1px solid var(--line,#e3e3de);border-radius:12px;overflow:hidden;margin-top:10px}
-.lg3-tabs{display:flex}
-.lg3-tabs button{flex:1 1 0;min-width:0;background:none;border:0;
-  border-bottom:3px solid transparent;font:inherit;font-weight:600;font-size:14px;
-  padding:9px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;
-  gap:1px;line-height:1.2;color:inherit;opacity:.6;-webkit-tap-highlight-color:transparent}
-.lg3-tabs button span{font-weight:400;font-size:11px}
-.lg3-tabs button[aria-selected=true]{opacity:1;border-bottom-color:currentColor}
-.lg3-open{padding:7px 12px;border-bottom:1px solid var(--line,#e3e3de);text-align:right}
-.lg3-open a{font-size:13px;text-decoration:none;white-space:nowrap}
-.lg3-body{position:relative}
-.lg3-frame{display:block;width:100%;height:72vh;min-height:430px;border:0;background:transparent}
-.lg3-frame[hidden]{display:none}
-@media (max-width:360px){.lg3-tabs button span{display:none}}
+/* Per-page comment box. Her words 19 Sep: "it has to have a comment section that I will
+   have to let you know what you what has to be done here", and her pick when asked how:
+   "A free-text box on every page". It sends through feedback.js's own queue, so it works
+   offline, retries, and lands in the same Notion feedback database the 🎙 bubble uses -
+   tagged with the page she was on. */
+.saybox{margin:18px 0 0;border-top:1px solid var(--line);padding-top:14px}
+.saybox textarea{width:100%;box-sizing:border-box;min-height:64px;resize:vertical;
+  font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.saybox .row{display:flex;gap:8px;align-items:center;margin-top:8px}
+.saybox button{font:600 14px/1 inherit;border:0;border-radius:10px;padding:10px 14px;cursor:pointer}
+.saybox .said{font-size:13px;color:var(--ink-faint)}
 </style>
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 
@@ -605,14 +563,14 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <h1 id="pageTitle">Rachie's Desk</h1>
       </div>
       <div class="corner">
-        <button id="sayFab" aria-label="Add to the desk by talking or typing" title="Add to the desk">＋ Add</button>
+        <button id="readPage" aria-label="Read this page aloud" title="Read this page aloud">&#9654;</button>
+        <button id="sayFab" aria-label="Just say it" title="Just say it">&#127908;</button>
         <button id="chatBtn" aria-label="Ask Claude" title="Ask Claude">✻</button>
         <button id="setBtn" aria-label="Settings" title="Settings">⚙</button>
       </div>
     </div>
     <p class="why" id="pageWhy">Loading…</p>
-    <p class="dataage" id="dataAge"></p>
-    <button id="readPage" class="readbar">&#9654; Read this page aloud</button>
+    <p class="fresh" id="freshTop"></p>
 
     <div class="brief" id="briefCard">
       <p class="brief-h">The morning brief</p>
@@ -678,33 +636,6 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <p class="hint">A date is optional. Ticked lines show when they were done, then go to The log the next day.</p>
       </div>
     </div>
-    <div class="block" id="agendaBlock">
-      <div class="sec-head"><h2>Agenda</h2>
-        <p class="sec-note">What you are up to, hour by hour. Your calendar shows here too when it is connected.</p>
-        <span class="count" id="agCount"></span></div>
-      <div class="catbar" id="agDays" role="group" aria-label="Which day">
-        <button type="button" class="catchip on" data-agday="0" aria-pressed="true">Today</button>
-        <button type="button" class="catchip" data-agday="1" aria-pressed="false">Tomorrow</button></div>
-      <div id="agList"></div>
-      <div class="adder ag-adder">
-        <input id="agTime" type="time" aria-label="Time, optional">
-        <input id="agText" type="text" placeholder="School run. Photograph three trolleys.">
-        <button id="agGo" type="button">Add</button>
-        <p class="hint">A time is optional. Lines without one sit at the top.</p>
-      </div>
-    </div>
-    <div class="block" id="scratchBlock">
-      <details class="fold" id="scFold" open><summary><span>Scratch paper</span><span class="count" id="scSaved"></span></summary>
-        <p class="sec-note" style="margin:2px 0 8px">Draw your day with a finger. It stays on this phone until you clear it.</p>
-        <div class="sc-tools" role="group" aria-label="Pen">
-          <button type="button" class="catchip on" data-pen="ink" aria-pressed="true">Pen</button>
-          <button type="button" class="catchip" data-pen="accent" aria-pressed="false">Blue</button>
-          <button type="button" class="catchip" data-pen="erase" aria-pressed="false">Rubber</button>
-          <button type="button" class="catchip" id="scUndo">Undo</button>
-          <button type="button" class="catchip" id="scClear">Clear</button></div>
-        <div class="sc-wrap"><canvas id="scratch" aria-label="Scratch paper, draw with your finger"></canvas></div>
-      </details>
-    </div>
     <div class="block" id="meBlock">
       <div class="sec-head"><h2>From Morning &amp; Evening</h2>
         <p class="sec-note">Your win for today and what you planned last night. Tick them in <a href="../reflect/">Morning &amp; Evening</a>.</p>
@@ -719,17 +650,6 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <div class="diary" id="diary"></div>
     </div>
     <div class="block">
-      <!-- Her comment on the Desk artifact, 17 Sep 2026: "add that this this month is
-           September. So like if you just like click onto September, then it will have what
-           September is about. 2026 what 2026 is about." The words come from desk/period.json,
-           which SHE fills in - an empty entry says so plainly instead of showing a sentence
-           no human wrote. -->
-      <p class="period" id="periodStrip">
-        <button type="button" class="period-btn" id="periodMonth"></button>
-        <span class="period-dot">·</span>
-        <button type="button" class="period-btn" id="periodYear"></button>
-      </p>
-      <p class="period-note" id="periodNote" hidden></p>
       <div class="sec-head"><h2>Waiting on you</h2>
         <p class="sec-note">Nobody else can do these.</p>
         <span class="count" id="waitCount"></span></div>
@@ -769,14 +689,6 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   <!-- 4 MONEY -->
   <section class="page" id="p-money">
     <div id="diaMoney"></div>
-    <div class="block" id="ledgerLinks">
-      <div class="sec-head"><h2>Ledgers</h2>
-        <p class="sec-note">The sale and stock ledgers, one tap away.</p></div>
-      <div class="ledgers">
-        <a class="ledger-card" href="../ledger/"><b>June Resale Ledger</b><span>The 111 resale items by batch: cost, where each sold, and for how much.</span></a>
-        <a class="ledger-card" href="../ledger-9f4c2e/"><b>Easy Life Stock Ledger</b><span>The stock take: what is on hand and what is tied up in it.</span></a>
-      </div>
-    </div>
     <div class="block">
       <div class="sec-head"><h2>What is running</h2>
         <p class="sec-note">Only what somebody actually read off an account.</p></div>
@@ -983,102 +895,6 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     </div>
   </section>
 
-  <!-- LEDGERS (build 24) -->
-  <section class="page" id="p-ledgers">
-    <div class="block">
-      <div class="sec-head"><h2>Your ledgers</h2>
-        <p class="sec-note">All three, here. Tap one.</p></div>
-
-      <!-- 17 Sep 2026, her correction: "the desk is the head command center...
-           the desk should have the all three, not the ledger have the desk."
-           So all three ledgers live HERE, inside Desk, and Desk is never a tab
-           inside them. The Desk tab that had been added to /ledgers/ was
-           removed the same day.
-
-           Each is an iframe of the original app served as it is. None of the
-           three files is edited and each still opens on its own URL unchanged.
-           Only the tab you tap is loaded - the Sales Tracker alone is 1.76 MB,
-           so loading all three at once would make this page unusable. -->
-      <div class="lg3">
-        <div class="lg3-tabs" role="tablist" aria-label="Ledgers">
-          <button role="tab" id="lg3-t-resale"  aria-selected="true"  aria-controls="lg3-f-resale">Resale<span>111 items</span></button>
-          <button role="tab" id="lg3-t-tracker" aria-selected="false" aria-controls="lg3-f-tracker">Tracker<span>live sheet</span></button>
-          <button role="tab" id="lg3-t-stock"   aria-selected="false" aria-controls="lg3-f-stock">Life Stock<span>+ notepad</span></button>
-        </div>
-        <div class="lg3-open"><a id="lg3-out" href="../ledger/" target="_blank" rel="noopener">Open this one on its own &#8599;</a></div>
-        <div class="lg3-body">
-          <iframe id="lg3-f-resale"  class="lg3-frame" title="June Resale Ledger"      src="../ledger/"></iframe>
-          <iframe id="lg3-f-tracker" class="lg3-frame" title="Sales Tracker"           hidden></iframe>
-          <iframe id="lg3-f-stock"   class="lg3-frame" title="Easy Life Stock Ledger"  hidden></iframe>
-        </div>
-      </div>
-
-      <script>
-      (function(){
-        var T = [
-          { k:"resale",  src:"../ledger/" },
-          { k:"tracker", src:"../app.html" },
-          { k:"stock",   src:"../ledger-9f4c2e/" }
-        ];
-        function g(id){ return document.getElementById(id); }
-        function show(k){
-          T.forEach(function(t){
-            var f = g("lg3-f-"+t.k), b = g("lg3-t-"+t.k), on = (t.k===k);
-            if (on && !f.getAttribute("src")) f.setAttribute("src", t.src);
-            f.hidden = !on;
-            b.setAttribute("aria-selected", on ? "true" : "false");
-            if (on) g("lg3-out").setAttribute("href", t.src);
-          });
-          try { localStorage.setItem("desk.ledger.tab", k); } catch(e){}
-        }
-        T.forEach(function(t){
-          g("lg3-t-"+t.k).addEventListener("click", function(){ show(t.k); });
-        });
-        var start = "resale";
-        try { var v = localStorage.getItem("desk.ledger.tab");
-              if (T.some(function(t){return t.k===v;})) start = v; } catch(e){}
-        show(start);
-      })();
-      </script>
-    </div>
-  </section>
-
-  <!-- PROJECTS (build 23) -->
-  <section class="page" id="p-projects">
-    <div class="block">
-      <details class="fold" id="tgFold"><summary><span>Terminal goal</span><span class="count" id="tgSum"></span></summary>
-        <div id="tgText"></div>
-        <div class="adder"><textarea class="full" id="tgInput" rows="2" placeholder="The one thing all of this is for."></textarea>
-          <button type="button" class="ghost" id="tgEdit">Edit</button><button type="button" id="tgSave">Keep it</button></div>
-      </details>
-      <details class="fold"><summary><span>Goal achievement</span><span class="count" id="pjScoreSum"></span></summary>
-        <div id="pjScore"></div>
-      </details>
-      <details class="fold"><summary><span>Goals written under AI admin</span><span class="count" id="pjGoalsSum"></span></summary>
-        <div id="pjGoals"></div>
-      </details>
-      <div class="sec-head" style="margin-top:26px"><h2>Projects</h2>
-        <p class="sec-note">Every Status tile, grouped by stage. Tap a stage to open it.</p>
-        <span class="count" id="pjCount"></span></div>
-      <div id="pjList"></div>
-    </div>
-  </section>
-
-  <!-- ROLL OVER (build 23) -->
-  <section class="page" id="p-rollover">
-    <div class="block">
-      <div class="sec-head"><h2>Rolled over</h2>
-        <p class="sec-note">To-dos still open from an earlier day. Tick one and it is done everywhere.</p>
-        <span class="count" id="roCount"></span></div>
-      <div id="roList"></div>
-    </div>
-    <div class="block">
-      <div class="sec-head"><h2>From Morning &amp; Evening</h2>
-        <p class="sec-note">Wins and night-before plans left open. Read from <a href="../reflect/">Morning &amp; Evening</a>; tick them there.</p></div>
-      <div id="roME"></div>
-    </div>
-  </section>
-
   <!-- LOG -->
   <section class="page" id="p-log">
     <div class="block">
@@ -1168,6 +984,11 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     </div>
   </section>
   <section class="page" id="p-admin">
+    <div class="block">
+      <div class="sec-head"><h2>Where we're up to</h2>
+        <p class="sec-note">Every job and what happens next, rebuilt from the handover notes every 20 minutes by the Mac. Nothing here is typed by you, and nothing you type is sent here.</p></div>
+      <div id="progressLive"><p class="none">Reading where things are up to…</p></div>
+    </div>
     <div class="block">
       <div class="sec-head"><h2>AI admin</h2>
         <p class="sec-note">Goals, plans and budget for the AI side. Short notes, dated.</p>
@@ -1292,7 +1113,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
       <select id="setLesson"><option value="on">Yes</option><option value="off">No</option></select></div>
     <div class="setrow" style="border-top:1px solid var(--line-soft);margin-top:6px">
       <label>This copy</label>
-      <span class="p-lab" id="setBuild">BUILD 2026-09-17 · build 24</span></div>
+      <span class="p-lab" id="setBuild">BUILD 2026-09-15 · build 22</span></div>
     <div class="setrow" style="border-bottom:0">
       <label for="hardReload">Not seeing a change?</label>
       <button id="hardReload" class="ghost" style="flex:0 0 auto">Throw away the old copy</button></div>
@@ -1346,8 +1167,6 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     <div class="sheet-head"><h2>Just say it</h2><button class="x" data-close>Close</button></div>
     <p class="sec-note" id="sayHow">Tap the microphone on your keyboard and talk. One thought
       per line. It works out where each one belongs; tap a name to change it.</p>
-    <p class="sec-note" style="margin-top:6px"><b>This puts things ON your desk.</b> The round 🎙 bubble
-      at the side is different: it sends feedback about the app itself to Claude.</p>
     <textarea class="full" id="sayBox" rows="4"
       placeholder="Renew the AFR on the 2nd. Reply to the buyer about the lamp. Walked this morning."></textarea>
     <div class="adder"><span></span><button id="sayGo">File them</button></div>
@@ -1380,9 +1199,12 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 <nav class="tabs" id="tabs">
   <button data-go="ideas" class="on"><span class="g">✦</span>Ideas</button>
   <button data-go="today"><span class="g">▤</span>Today<span class="dot hide" id="deskDot"></span></button>
-  <button data-go="status"><span class="g">◈</span>Status</button>
-  <button data-go="money"><span class="g">$</span>Money</button>
-  <button data-go="paper"><span class="g">◫</span>Paper</button>
+  <!-- 19 Sep 2026, her words: "status, anything to do with like they just need to go away",
+       "the money bit, it's not my business, just go away", "today, you will have to have the
+       paper in today". So Status, Money and The Paper leave the bar; they are still reachable
+       under More, nothing was deleted. eBay takes the free slot - it was already a page, it
+       had just never been in the bar. -->
+  <button data-go="ebay"><span class="g">▧</span>eBay</button>
   <button data-more><span class="g">⋯</span>More</button>
 </nav>
 
@@ -1391,16 +1213,45 @@ const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAl
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const DAY = 86400000, CAL = "Google Calendar";
 
+/* ---------------- comment box on every page ----------------
+   One box per page, appended after the page renders. It does NOT post on its own: it calls
+   AppFeedback.send(), so the password, the retry, the offline queue and the Notion landing
+   are the ones already proven by the 🎙 bubble. Duplicating that send path is how two
+   things drift apart. */
+function addSayBoxes(){
+  var names = {};
+  try { PAGES.forEach(function(p){ names[p.id] = p.name; }); } catch(e){}
+  document.querySelectorAll("section.page").forEach(function(sec){
+    if (sec.querySelector(".saybox")) return;
+    var id = (sec.id || "").replace(/^p-/, "");
+    var where = names[id] || id || "Desk";
+    var box = document.createElement("div");
+    box.className = "block saybox";
+    box.innerHTML =
+      '<div class="sec-head"><h2>Say what needs doing here</h2>' +
+      '<p class="sec-note">Anything on this page. It reaches Claude with the page name on it \u2014 ' +
+      'you do not have to explain where you were.</p></div>' +
+      '<textarea placeholder="What should happen on ' + esc(where) + '?"></textarea>' +
+      '<div class="row"><button type="button">Send</button><span class="said"></span></div>';
+    var ta = box.querySelector("textarea"), btn = box.querySelector("button"), say = box.querySelector(".said");
+    btn.addEventListener("click", function(){
+      var t = ta.value.trim();
+      if (!t){ say.textContent = "Type something first."; return; }
+      var ok = false;
+      try { ok = window.AppFeedback && window.AppFeedback.send ? window.AppFeedback.send(t, where) : false; } catch(e){}
+      if (ok){ ta.value = ""; say.textContent = "Sent from " + where + "."; }
+      else { say.textContent = "Could not send. The \ud83c\udf99 button at the side still works."; }
+    });
+    sec.appendChild(box);
+  });
+}
+
 const PAGES = [
   {id:"today",   name:"Today",              why:"Your to-do first. It rolls over until you tick it, and every line keeps its date and time.", nav:1},
   {id:"ideas",   name:"Ideas",              why:"Say it however it comes out. Nothing is asked of you here.", nav:1},
-  {id:"status",  name:"Status",             why:"One tile per thing. Which stage it is at, and what is blocking it.", nav:1},
-  {id:"money",   name:"Money",              why:"Only figures somebody actually read off a real account.", nav:1},
-  {id:"paper",   name:"The Paper",          why:"The AFR, in plain words, with what it means for you.", nav:1},
-  {id:"projects",name:"Projects",           why:"Your terminal goal, how the goals are going, and every project by stage. Folded until you open it."},
-  {id:"ledgers", name:"Ledgers",            why:"All three ledgers in one place: June Resale, the Sales Tracker and Easy Life Stock."},
-  {id:"rollover",name:"Roll over",          why:"Everything still open from an earlier day: your to-do, and Morning & Evening."},
-  {id:"ebay",    name:"eBay",               why:"Your e-commerce side: the listings list, and where the eBay connection stands."},
+  {id:"status",  name:"Status",             why:"One tile per thing. Which stage it is at, and what is blocking it."},
+  {id:"money",   name:"Money",              why:"Only figures somebody actually read off a real account."},
+  {id:"paper",   name:"The Paper",          why:"The AFR, in plain words, with what it means for you."},
   {id:"cast",    name:"The cast",           why:"The five of them, and which part of this desk each one keeps."},
   {id:"listen",  name:"Listen",             why:"The whole morning in one go, hands free."},
   {id:"rolling", name:"Rolling",            why:"The ones that never finish. Ticked today, back on their own."},
@@ -1417,6 +1268,7 @@ const PAGES = [
   {id:"learn",   name:"Learning",           why:"What you want to understand or set up, each with an ELI5 and the videos behind it."},
   {id:"try",     name:"Want to try",        why:"Things you spotted in the Reading Room. Ask Claude to try one when you have time."},
   {id:"keep",    name:"Tips & notes",       why:"Tips, tricks and things you write down. Stamped, searchable, easy to come back to."},
+  {id:"ebay",    name:"eBay",               why:"Your e-commerce side: the listings list, and where the eBay connection stands.", nav:1},
   {id:"admin",   name:"AI admin",           why:"Goals, plans and budget for the AI side. A few notes, kept out of your way."},
   {id:"timeline",name:"What you achieved",  why:"Since January, in order, each one with where it was recorded."},
   {id:"sources", name:"How sure",           why:"How far to trust each kind of source, and how things here were researched."},
@@ -1617,6 +1469,14 @@ function renderWaiting(){
     title:j.title, body:j.body, sev:j.sev,
     meta:[pill(j.tag), pill(agoWords(j.read))] })).join("");
   const age=DESK.built?daysSince(DESK.built):null;
+  const ft=$("#freshTop");
+  if(ft){
+    if(age===null){ ft.textContent="Not updated yet"; ft.classList.add("stale"); }
+    else if(age<=0){ ft.textContent="Updated today"; ft.classList.remove("stale"); }
+    else if(age===1){ ft.textContent="Updated yesterday"; ft.classList.remove("stale"); }
+    else { ft.textContent="Updated "+age+" days ago \u00b7 "+shortDate(DESK.built)+" \u00b7 out of date";
+           ft.classList.add("stale"); }
+  }
   $("#asOf").textContent = age===null ? "" : age<=0
     ? "Read on or before "+shortDate(DESK.built)+", and written up today."
     : "Last rebuilt "+age+(age===1?" day":" days")+" ago, on "+shortDate(DESK.built)+".";
@@ -2117,20 +1977,7 @@ function renderXL(k){
   box.innerHTML = items.length ? items.map(r=>xlCard(k,r)).join("") : `<p class="none">${empty}</p>`;
 }
 function renderME(){
-  const rows = meRows();
-  const box=$("#meList");
-  if(box){
-    $("#meCount").textContent = rows.length ? rows.filter(r=>!r.done).length+" open" : "";
-    box.innerHTML = meCards(rows);
-  }
-  try{ renderRollover(rows); }catch(e){}
-}
-const meCards = rows => rows.length ? rows.map(r=>cardHTML({ title:r.text, sev:"mine", done:r.done,
-      meta:[pill(r.kind,"cool"), r.back>0&&!r.done?pill("Rolled over "+r.back+(r.back===1?" day":" days"),"watch"):""] })).join("")
-    : `<p class="none">Nothing from Morning &amp; Evening on this phone yet. It only shows here on the home-screen Desk, on the same phone.</p>`;
-/* Read-only: Morning & Evening (../reflect/) keeps its entries in this same site's phone storage under
-   "morning-evening:mornings/<day>" and "morning-evening:reflections/<day>". Nothing here writes to them. */
-function meRows(){
+  const box=$("#meList"); if(!box) return;
   const read = k => { try{ return JSON.parse(localStorage.getItem("morning-evening:"+k)||"null"); }catch(e){ return null; } };
   const rows=[];
   for(let back=0; back<7; back++){
@@ -2140,169 +1987,11 @@ function meRows(){
     if(ev && ev.tomorrow && (back===0 || !ev.tomorrowDone))
       rows.push({text:ev.tomorrow, kind:"Planned the night before "+(back===0?"today":shortDate(day)), done:!!ev.tomorrowDone, back});
   }
-  return rows;
+  $("#meCount").textContent = rows.length ? rows.filter(r=>!r.done).length+" open" : "";
+  box.innerHTML = rows.length ? rows.map(r=>cardHTML({ title:r.text, sev:"mine", done:r.done,
+      meta:[pill(r.kind,"cool"), r.back>0&&!r.done?pill("Rolled over "+r.back+(r.back===1?" day":" days"),"watch"):""] })).join("")
+    : `<p class="none">Nothing from Morning &amp; Evening on this phone yet. It only shows here on the home-screen Desk, on the same phone.</p>`;
 }
-
-/* ---------------- build 23: Roll over and Projects (her 17 Sep phone notes) ----------------
-   "I will also need to list to roll over, and it will have to connect to the morning and the evening."
-   One list: every to-do still open from an earlier day, then what Morning & Evening left open. */
-function renderRollover(meList){
-  const box=$("#roList"); if(!box) return;
-  const t=todayISO();
-  const old = mine.filter(m=>!m.done && m.at && isoDay(m.at)<t)
-    .sort((a,b)=>String(a.at).localeCompare(String(b.at)));
-  const me = (meList||meRows()).filter(r=>!r.done && r.back>0);
-  const meToday = (meList||meRows()).filter(r=>r.back===0);
-  $("#roCount").textContent = (old.length+me.length) ? (old.length+me.length)+" rolled over" : "";
-  box.innerHTML = old.length ? old.map(m=>{
-      const n=daysSince(isoDay(m.at));
-      return cardHTML({ title:m.text, sev:"watch", tick:1, done:false, attr:`data-mid="${esc(m.id)}"`,
-        meta:[ pill(m.cat||"Life","cool"), pill("Rolled over "+n+(n===1?" day":" days"),"watch"),
-               `<span class="stamp">Added ${esc(stampWords(m.at))}</span>` ]}); }).join("")
-    : `<p class="none">No to-do has rolled over. Everything added before today is ticked.</p>`;
-  $("#roME").innerHTML = (me.length ? meCards(me) : `<p class="none">Nothing left open from earlier mornings or evenings on this phone.</p>`)
-    + (meToday.length ? `<p class="sugg-h" style="margin-top:14px">Today, from Morning &amp; Evening</p>` + meCards(meToday) : "");
-}
-let terminalGoal = null;   /* {text, at} - typed here, kept on this phone like everything else */
-const saveTerminal = () => save("state/terminal", terminalGoal||{}, 1);
-function renderProjects(){
-  const tg=$("#tgText"); if(!tg) return;
-  const has = terminalGoal && terminalGoal.text;
-  tg.innerHTML = has ? `<p class="c-title" style="white-space:pre-wrap">${esc(terminalGoal.text)}</p>
-      <p class="stamp" style="margin:6px 0 0">Written ${esc(stampWords(terminalGoal.at))}</p>`
-    : `<p class="none" style="padding:6px 0">Not written here yet. Type it below, once.</p>`;
-  $("#tgSum").textContent = has ? terminalGoal.text.split("\n")[0].slice(0,70) : "not set";
-  /* goal achievement: the numbers she is moving (Scoreboard), each against its target */
-  const sc=$("#pjScore"); const reached = s => { const n=parseFloat(String(s.now).replace(/[^0-9.\-]/g,"")),
-      g=parseFloat(String(s.target).replace(/[^0-9.\-]/g,"")); return isFinite(n)&&isFinite(g)&&g ? Math.max(0,Math.min(100,Math.round(100*n/g))) : null; };
-  $("#pjScoreSum").textContent = score.length ? score.length+(score.length===1?" goal":" goals") : "none yet";
-  sc.innerHTML = score.length ? score.map(s=>{ const p=reached(s);
-      return `<div class="reading"><p class="r-label">${esc(s.name)}</p>
-        <p class="r-value">${esc(s.now||"?")}${s.target?` <span style="color:var(--ink-faint)">of ${esc(s.target)}</span>`:""}</p>
-        <div class="r-when">${p===null?pill("no % yet"):pill(p+"%", p>=100?"ok":p>=50?"cool":"watch")}
-          ${s.read?`<span class="r-date" style="margin-top:5px">${esc(shortDate(s.read))}</span>`:""}</div>
-        ${p===null?"":`<div class="pj-bar" style="grid-column:1 / -1"><span style="width:${p}%"></span></div>`}</div>`; }).join("")
-    : `<p class="none">No goal numbers yet. Add one on Scoreboard (More) with where it is now and where it should be.</p>`;
-  /* projects: the Status tiles, grouped by stage */
-  const order=["selling","listed","built","idea","paused","blocked","killed"];
-  $("#pjCount").textContent = status.length ? status.length+" projects" : "";
-  $("#pjList").innerHTML = status.length ? order.filter(k=>status.some(s=>s.stage===k)).map(k=>{
-      const list=status.filter(s=>s.stage===k), st=STAGE[k];
-      return `<details class="fold"><summary><span>${esc(st[0])}</span><span class="count">${list.length}</span></summary>
-        ${list.map(s=>cardHTML({title:s.name, sev:st[1]==="live"?"ask":st[1]==="hold"?"watch":st[1]==="dead"?"stop":"mine",
-          body:s.note||""})).join("")}</details>`; }).join("")
-    : `<p class="none">No projects on this phone yet. They come from the Status tiles.</p>`;
-  const goals = (xl.admin||[]).filter(r=>r.cat==="Goal");
-  $("#pjGoals").innerHTML = goals.length ? goals.map(r=>cardHTML({title:r.text, sev:"mine",
-      meta:[`<span class="stamp">${esc(stampWords(r.at))}</span>`]})).join("")
-    : `<p class="none">No goals written under AI admin.</p>`;
-  $("#pjGoalsSum").textContent = goals.length ? String(goals.length) : "none";
-}
-/* ---------------- build 24: agenda and scratch paper (her 17 Sep phone notes) ----------------
-   "What I'm up to for the day, for the agenda." / "a scratch paper here so I can kind of like draw what my day
-   is going to be like." Both are kept on this phone; the drawing never goes to Notion. */
-let agenda = [], agDay = 0;
-const saveAgenda = () => save("state/agenda", {items:agenda.slice(-400)}, 1);
-function renderAgenda(){
-  const box=$("#agList"); if(!box) return;
-  const day = plusDays(todayISO(), agDay);
-  const own = agenda.filter(a=>a.day===day).map(a=>Object.assign({src:"me"}, a));
-  const hhmm = iso => { const d=new Date(iso); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); };
-  const cal = !events ? [] : events.filter(e=>e.status!=="cancelled" && evDayISO(e)===day)
-    .map(e=>({src:"cal", text:e.summary||"Untitled", time: evStart(e).length>10 ? hhmm(evStart(e)) : ""}));
-  const rows = own.concat(cal).sort((a,b)=>String(a.time||"").localeCompare(String(b.time||"")));
-  const open = own.filter(a=>!a.done).length;
-  $("#agCount").textContent = rows.length ? open+" open"+(cal.length?" · "+cal.length+" from calendar":"") : "";
-  box.innerHTML = rows.length ? rows.map(a=> a.src==="cal"
-      ? cardHTML({title:(a.time?a.time+"  ":"")+a.text, sev:"ask", meta:[pill("Calendar","cool")]})
-      : cardHTML({title:(a.time?a.time+"  ":"")+a.text, sev:"mine", tick:1, done:a.done, attr:`data-agid="${esc(a.id)}"`,
-          meta:[a.time?"":pill("Any time"), xbtn("Remove","delAgenda",a.id)]})).join("")
-    : `<p class="none">Nothing on the agenda for ${agDay?"tomorrow":"today"} yet. Add the first line below.</p>`;
-}
-document.addEventListener("click", e=>{
-  const d=e.target.closest("[data-agday]"); if(d){ agDay=+d.dataset.agday;
-    $$("[data-agday]").forEach(b=>{ const on=b===d; b.classList.toggle("on",on); b.setAttribute("aria-pressed",on); });
-    renderAgenda(); return; }
-  if(e.target.closest("#agGo")){ const t=$("#agText").value.trim(); if(!t){ toast("Type what it is first."); return; }
-    const r={id:uid("a"), day:plusDays(todayISO(), agDay), time:$("#agTime").value||"", text:t, done:false, at:new Date().toISOString()};
-    agenda.push(r); saveAgenda(); renderAgenda(); $("#agText").value=""; $("#agTime").value="";
-    logIt("new","On the agenda"+(agDay?" for tomorrow":"")+": "+(r.time?r.time+" ":"")+t); return; }
-  const x=e.target.closest(".xbtn.delAgenda"); if(x){ const o=agenda.find(a=>a.id===x.dataset.id);
-    agenda=agenda.filter(a=>a.id!==x.dataset.id); saveAgenda(); renderAgenda(); if(o) logIt("gone","Off the agenda: "+o.text); }
-});
-document.addEventListener("change", e=>{
-  const t=e.target; if(!t.classList||!t.classList.contains("tick")) return;
-  const c=t.closest(".card"); if(!c||!c.dataset.agid) return;
-  const a=agenda.find(x=>x.id===c.dataset.agid); if(!a) return;
-  a.done=t.checked; a.doneAt=t.checked?new Date().toISOString():null; saveAgenda(); renderAgenda();
-  logIt(t.checked?"did":"note",(t.checked?"Did: ":"Put back: ")+a.text);
-});
-document.addEventListener("keydown", e=>{ if(e.key==="Enter" && e.target && e.target.id==="agText"){ e.preventDefault(); $("#agGo").click(); } });
-
-/* Scratch paper. Strokes are kept as points, so Undo works and it redraws sharp at any width. Saved on this
-   phone only (desk.state/scratch). Page swiping and pull-to-reload ignore touches that start on the canvas. */
-const Scratch = (function(){
-  const KEY="state/scratch", PAPER="#fffdf7"; let strokes=[], pen="ink", cur=null, cv=null, ctx=null, done=false;
-  const inkOf = p => p==="accent" ? "#1b4965" : p==="erase" ? PAPER : "#141a20";
-  function size(){ if(!cv) return; const r=cv.getBoundingClientRect(); if(!r.width) return;
-    const dpr=Math.min(window.devicePixelRatio||1, 2);
-    cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); draw(); }
-  function line(st){ if(!st.pts.length) return; const W=cv.getBoundingClientRect().width||1;
-    ctx.strokeStyle=inkOf(st.pen); ctx.lineWidth = st.pen==="erase" ? 22 : 2.6; ctx.lineCap="round"; ctx.lineJoin="round"; ctx.beginPath();
-    st.pts.forEach((p,i)=>{ const x=p[0]*W, y=p[1]; if(i) ctx.lineTo(x,y); else ctx.moveTo(x,y); });
-    if(st.pts.length===1) ctx.lineTo(st.pts[0][0]*W+0.1, st.pts[0][1]);
-    ctx.stroke(); }
-  function draw(){ if(!ctx) return; const r=cv.getBoundingClientRect(); ctx.clearRect(0,0,r.width,r.height); strokes.forEach(line); }
-  function stamp(){ const d=LS.get(KEY), el=$("#scSaved"); if(el) el.textContent = strokes.length ? "saved "+stampWords(d&&d.at) : "blank"; }
-  function persist(){ if(!LS.set(KEY, {strokes:strokes.slice(-800), at:new Date().toISOString()})) toast("This phone would not keep the drawing - its storage is full."); stamp(); }
-  function pos(e){ const r=cv.getBoundingClientRect(); return [(e.clientX-r.left)/(r.width||1), e.clientY-r.top]; }
-  function init(){
-    if(done) return; cv=$("#scratch"); if(!cv) return; done=true; ctx=cv.getContext("2d");
-    const d=LS.get(KEY); if(d && Array.isArray(d.strokes)) strokes=d.strokes;
-    cv.addEventListener("pointerdown", e=>{ if(e.button>0) return; e.preventDefault(); try{ cv.setPointerCapture(e.pointerId); }catch(x){}
-      cur={pen, pts:[pos(e)]}; strokes.push(cur); line(cur); });
-    cv.addEventListener("pointermove", e=>{ if(!cur) return; e.preventDefault(); cur.pts.push(pos(e));
-      line({pen:cur.pen, pts:cur.pts.slice(-2)}); });
-    const end=()=>{ if(!cur) return; cur.pts=cur.pts.map(p=>[Math.round(p[0]*1000)/1000, Math.round(p[1]*10)/10]); cur=null; persist(); };
-    cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
-    cv.addEventListener("touchstart", e=>e.preventDefault(), {passive:false});
-    cv.addEventListener("touchmove", e=>e.preventDefault(), {passive:false});
-    document.addEventListener("click", e=>{
-      const b=e.target.closest("[data-pen]"); if(b){ pen=b.dataset.pen;
-        $$("[data-pen]").forEach(x=>{ const on=x===b; x.classList.toggle("on",on); x.setAttribute("aria-pressed",on); }); return; }
-      if(e.target.closest("#scUndo")){ if(!strokes.length) return; strokes.pop(); draw(); persist(); return; }
-      if(e.target.closest("#scClear")){ if(!strokes.length) return; if(!confirm("Clear the scratch paper? This cannot be undone.")) return;
-        strokes=[]; draw(); persist(); }
-    });
-    const f=$("#scFold"); if(f){ if(LS.get("scFoldShut")) f.open=false; f.addEventListener("toggle", ()=>{ LS.set("scFoldShut", !f.open); if(f.open) size(); }); }
-    addEventListener("resize", size); size(); setTimeout(size, 300); stamp();
-    /* the Today page may be hidden when this runs; draw once it is shown */
-    document.addEventListener("click", e=>{ if(e.target.closest('[data-go="today"]')) setTimeout(size, 60); });
-  }
-  return {init, size};
-})();
-
-/* her 17 Sep: "Everything is day as fifteenth of September. When can this be updated?"
-   The dated parts of this desk come in the locked delivery. This says, on every page, how old they are. */
-function renderDataAge(){
-  const el=$("#dataAge"); if(!el) return;
-  const d = DESK && DESK.built ? DESK.built : null, n = NEWS && NEWS.date ? NEWS.date : null;
-  const got = LS.get("feedGot");
-  const parts=[];
-  const dd = d ? daysSince(d) : null;
-  parts.push(d ? "Desk data last updated " + shortDate(d)+(dd<=0?", today":dd===1?", 1 day ago":", "+dd+" days ago") : "Desk data has never arrived on this phone");
-  if(n) parts.push("paper "+shortDate(n));
-  if(got) parts.push("delivery opened "+shortDate(got));
-  el.textContent = parts.join(" · ");
-  const age = d ? daysSince(d) : 99;
-  el.classList.toggle("old", age>1);
-}
-document.addEventListener("click", e=>{
-  if(e.target.closest("#tgSave")){ const v=$("#tgInput").value.trim(); if(!v){ toast("Type it first."); return; }
-    terminalGoal={text:v, at:new Date().toISOString()}; saveTerminal(); $("#tgInput").value="";
-    renderProjects(); logIt("set","Terminal goal written: "+v); toast("Kept, with today's date."); }
-  if(e.target.closest("#tgEdit") && terminalGoal){ $("#tgInput").value=terminalGoal.text; $("#tgInput").focus(); }
-});
 function renderTimeline(){
   const box=$("#tlList"); if(!box) return;
   const it = TIMELINE.items||[];
@@ -2380,6 +2069,31 @@ document.addEventListener("click", e=>{
   xl.try.push({id:uid("x"), rr:r.id, text:(r.detail||r.title||"").slice(0,300), link:d.url||"", at:new Date().toISOString(), done:false, cat:d.creator||""});
   saveXL("try"); renderXL("try"); loadReadingRoom(); logIt("new","Want to try, from the Reading Room: "+(r.detail||r.title)); toast("On your Want to try list.");
 });
+/* ---------------- where we're up to ----------------
+   Her ask, 17 Sep 2026: "every 20 minutes to send where the tasks are or push it to the
+   desk app ... so i know where we are up to", and going through the register by hand is
+   the painful thing this replaces.
+
+   This file is PLAIN, not locked, exactly like ebay.json beside it - her ruling, "I need
+   it public". So it must never carry anything the delivery carries: no money figures, no
+   phrases, no anything she typed. It is built by secretary/build_progress.py, which copies
+   entry headings and NEXT ACTION lines out of the register and nothing else. */
+async function loadProgress(){
+  const box = $("#progressLive"); if(!box) return;
+  let d;
+  try{ const r = await fetch("progress.json?" + Date.now(), {cache:"no-store"}); if(!r.ok) throw 0; d = await r.json(); }
+  catch(e){ box.innerHTML = '<p class="none">Nothing collected yet. This shows on the home-screen Desk (racts-dot.github.io/desk).</p>'; return; }
+  const items = (d && d.items) || [];
+  if(!items.length){ box.innerHTML = '<p class="none">Nothing to report.</p>'; return; }
+  box.innerHTML = items.map(it => `<div class="keepcard">
+      <b>${esc(it.name || "")}</b>
+      <p>${esc(it.note || "")}</p>
+      <p class="stamp">${esc(it.when || "")}</p></div>`).join("")
+    + `<p class="stamp">Built ${esc(d.made || "at an unknown time")}</p>`;
+}
+document.addEventListener("click", e=>{ if(e.target.closest('[data-go="admin"]')) setTimeout(loadProgress, 60); });
+loadProgress();
+
 let EBAY = null;
 async function loadEbay(){
   const head=$("#ebayLive"); if(!head) return;
@@ -2414,15 +2128,12 @@ function renderEbayTodos(){
     meta:[m.at?`<span class="stamp">Added ${esc(stampWords(m.at))}</span>`:""]})).join("")
     : `<p class="none">Nothing filed under E-commerce. Add one on Today and pick E-commerce.</p>`;
 }
-function renderExtra(){ ["learn","try","keep","admin"].forEach(renderXL); renderME(); renderTimeline(); renderEbayTodos(); renderProjects(); renderDataAge(); renderAgenda(); }
+function renderExtra(){ ["learn","try","keep","admin"].forEach(renderXL); renderME(); renderTimeline(); renderEbayTodos(); }
 async function loadExtra(){
   for(const k of ["learn","try","keep","admin"]){
     try{ const d=await load("state/"+(k==="try"?"trylist":k)); if(d && Array.isArray(d.items)) xl[k]=d.items; }catch(e){}
   }
   try{ const n=await load("state/tlnotes"); if(n && Array.isArray(n.items)) tlNotes=n.items; }catch(e){}
-  try{ const tg=await load("state/terminal"); if(tg && tg.text) terminalGoal=tg; }catch(e){}
-  try{ const ag=await load("state/agenda"); if(ag && Array.isArray(ag.items)) agenda=ag.items; }catch(e){}
-  try{ Scratch.init(); }catch(e){}
   setTimeout(pullInbox, 1500);
   renderExtra();
 }
@@ -2520,7 +2231,6 @@ function go(id){
     : new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
   $("#briefCard").classList.toggle("hide", !(id==="ideas"||id==="today"||id==="listen"));
   closeSheets(); window.scrollTo(0,0); paintPlaying();
-  if(id==="today") setTimeout(()=>{ try{ Scratch.size(); }catch(e){} }, 30);
 }
 function closeSheets(){ $$(".sheet").forEach(s=>s.classList.remove("on")); }
 function openSheet(id){ closeSheets(); $("#"+id).classList.add("on"); }
@@ -2531,6 +2241,7 @@ $("#tabs").addEventListener("click", e=>{
   if(b.dataset.go) go(b.dataset.go);
 });
 document.addEventListener("click", e=>{ if(e.target.closest("[data-close]")) closeSheets(); });
+addSayBoxes();
 $("#moreMenu").innerHTML = PAGES.filter(p=>!p.nav).map(p=>
   `<button data-go="${p.id}"><span class="mn">${esc(p.name)}</span>
     <span class="mw">${esc(p.why)}</span></button>`).join("");
@@ -2759,7 +2470,8 @@ function paintPlaying(){
 }
 function restoreReadBar(){
   const b = $("#readPage"); if(!b) return;
-  b.classList.remove("on"); b.innerHTML = "&#9654; Read this page aloud";
+  b.classList.remove("on"); b.innerHTML = "&#9654;";
+  b.setAttribute("aria-label","Read this page aloud"); b.title="Read this page aloud";
 }
 function stopSpeaking(){
   restoreReadBar();
@@ -3101,7 +2813,8 @@ $("#readPage").addEventListener("click", ()=>{
   if(playing){ stopSpeaking(); return; }
   say(pageScript(page), false);
   $("#readPage").classList.add("on");
-  $("#readPage").innerHTML = "&#9632; Stop reading";
+  $("#readPage").innerHTML = "&#9632;";
+  $("#readPage").setAttribute("aria-label","Stop reading"); $("#readPage").title="Stop reading";
 });
 
 /* ---------------- ask Claude ---------------- */
@@ -3506,17 +3219,6 @@ $("#nowStop").addEventListener("click", ()=>{ const el=$("#recAudio");
    in the background" / "I cant play at the background". The recorded voice keeps playing when she
    leaves the app or locks the phone; the lock-screen controls come from mediaSession above. The
    robot voice cannot: the phone itself stops it in the background. */
-/* But QUITTING must stop it. Her feedback 16 Sep 2026, 21:47: "So the voice gets out of it when I
-   quit. So it has been fixed but hasn't." Measured on the live Desk 18 Sep: 11 speechSynthesis
-   calls, and no pagehide or beforeunload of any kind, so nothing ever cancelled on the way out.
-   The split that keeps BOTH of her instructions:
-     beforeunload            the page is going away (desktop close or navigate). Unambiguous.
-     pagehide, !e.persisted  the page is being DISCARDED, not put in the back/forward cache.
-                             Backgrounding an installed iOS web app fires pagehide with
-                             persisted === true, so the brief is left playing exactly as she
-                             asked on 15 Sep. Only a real quit reaches stopSpeaking(). */
-window.addEventListener("beforeunload", function(){ try { stopSpeaking(); } catch(e){} });
-window.addEventListener("pagehide", function(e){ if(!e.persisted){ try { stopSpeaking(); } catch(x){} } });
 document.getElementById("briefMore").addEventListener("click", ()=>{ const c=document.getElementById("briefCard");
   c.classList.toggle("open"); const o=c.classList.contains("open");
   document.getElementById("briefMore").setAttribute("aria-expanded", o);
@@ -3654,7 +3356,7 @@ async function takeLink(){
   const atTop = () => (window.scrollY||document.documentElement.scrollTop||0) <= 0;
 
   addEventListener("touchstart", e=>{
-    if(e.touches.length!==1 || !atTop() || (e.target.closest && e.target.closest("canvas"))) { y0=null; return; }
+    if(e.touches.length!==1 || !atTop()) { y0=null; return; }
     /* Not while something is playing or a sheet is open - a stray swipe must never
        throw away a brief she is in the middle of. */
     if(playing || document.querySelector(".sheet.on")) { y0=null; return; }
@@ -3733,20 +3435,24 @@ async function collectToday(){
   const unseen = (doc.has || []).filter(k => FEED_KEYS[k] && !took.includes(k) && LS.get(FEED_KEYS[k]) === null);
   if(old && !unseen.length) return false;   /* nothing new; do not ask for anything */
 
-  /* 17 Sep 2026, her words: "it needs to be updated to public so I have access, I approve what it takes".
-     A delivery with its sections in the open needs no phrase; a locked one still asks for it. */
+  /* A PUBLIC delivery carries its sections in clear and needs no phrase.
+     Her ruling 17 Sep 2026, her box pick: "Remove the lock, I accept it is public."
+     The publisher gained --public on 18 Sep; without this the app would ask for a
+     phrase, fail to decrypt an unlocked file, and show a delivery that never opens. */
   let body;
-  if(doc.sections){ body = doc; }
-  else {
-  const phrase = LS.get("feedPhrase");
-  if(!phrase){ $("#feedWanted").classList.remove("hide"); return false; }
-  try{ body = await openFeed(doc, phrase); }
-  catch(e){
-    /* a wrong phrase must never wipe a good desk */
-    toast("Today's delivery would not open with your phrase.");
-    $("#feedWanted").classList.remove("hide");
-    return false;
-  }
+  if(doc.public && doc.sections){
+    body = {sections: doc.sections};
+    $("#feedWanted").classList.add("hide");
+  } else {
+    const phrase = LS.get("feedPhrase");
+    if(!phrase){ $("#feedWanted").classList.remove("hide"); return false; }
+    try{ body = await openFeed(doc, phrase); }
+    catch(e){
+      /* a wrong phrase must never wipe a good desk */
+      toast("Today's delivery would not open with your phrase.");
+      $("#feedWanted").classList.remove("hide");
+      return false;
+    }
   }
   const sec = body && body.sections; if(!sec) return false;
   let n = 0;
@@ -3758,7 +3464,6 @@ async function collectToday(){
   if(!old) LS.set("feedRev", doc.rev);
   LS.set("feedTook", Array.from(new Set(took.concat(Object.keys(sec).filter(k => FEED_KEYS[k])))));
   $("#feedWanted").classList.add("hide");
-  LS.set("feedGot", todayISO());
   logIt("set", "Today's delivery arrived — " + n + " sections, " + (doc.made || "undated"));
   return n > 0;
 }
@@ -3890,7 +3595,7 @@ $("#sayGo").addEventListener("click", ()=>{
     if(e.touches.length!==1) return;
     if(document.querySelector(".sheet.on")) return;
     if(!document.getElementById("p-" + page)) return;
-    if(e.target.closest("audio,input,textarea,select,.p-bar,canvas") || sideways(e.target)) return;
+    if(e.target.closest("audio,input,textarea,select,.p-bar") || sideways(e.target)) return;
     x0=e.touches[0].clientX; y0=e.touches[0].clientY; lock=null; dx=0; W=window.innerWidth;
   }, {passive:true});
 
@@ -4002,7 +3707,7 @@ async function connect(){
   $("#foot").innerHTML = "Everything here carries the day it was read. Nothing is sent, listed "
     + "or published from this app — it only ever writes to itself."
     + "<br><span style=\"font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em\">"
-    + "BUILD 2026-09-17 · build 24</span>";
+    + "BUILD 2026-09-15 · build 22</span>";
   if(db && sample && LESSON && LESSON.topic && LESSON.date!==todayISO()) writeLesson(LESSON.topic);
 }
 
@@ -4047,7 +3752,6 @@ if("serviceWorker" in navigator){
     "state/trylist":  ["Want to try",function(r){ return r.text; }, function(r){ return (r.done?"Tried":"Not yet")+(r.link?" · "+r.link:""); }, "at"],
     "state/keep":     ["Tip",       function(r){ return String(r.text||"").slice(0,80); }, function(r){ return (r.cat||"")+" · "+(r.text||""); }, "at"],
     "state/admin":    ["AI admin",  function(r){ return r.text; }, function(r){ return r.cat||""; }, "at"],
-    "state/agenda":   ["Agenda",    function(r){ return (r.time?r.time+" ":"")+r.text; }, function(r){ return r.day+" · "+(r.done?"Done":"Open"); }, "at"],
     "state/tlnotes":  ["Achievement note", function(r){ return r.title; }, function(r){ return r.text; }, "at"]
   };
   function records(doc, data){
@@ -4100,45 +3804,6 @@ if("serviceWorker" in navigator){
       if (v) window.deskNotion(doc, v);
     });
   });
-})();
-</script>
-<script>
-/* The month and year strip above "Waiting on you". Words come from desk/period.json,
-   which Rachel writes. Never invented here: an empty entry says it is not written yet. */
-(function () {
-  var MONTHS = ["January","February","March","April","May","June","July","August",
-                "September","October","November","December"];
-  var mBtn = document.getElementById("periodMonth");
-  var yBtn = document.getElementById("periodYear");
-  var note = document.getElementById("periodNote");
-  if (!mBtn || !yBtn || !note) return;
-  var now = new Date();
-  var mKey = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0");
-  var yKey = String(now.getFullYear());
-  mBtn.textContent = MONTHS[now.getMonth()];
-  yBtn.textContent = yKey;
-  var data = {months: {}, years: {}};
-  var shown = null;
-  function show(which) {
-    if (shown === which) { note.hidden = true; shown = null; return; }
-    shown = which;
-    var txt = which === "month" ? (data.months || {})[mKey] : (data.years || {})[yKey];
-    var label = which === "month" ? MONTHS[now.getMonth()] : yKey;
-    if (txt && String(txt).trim()) {
-      note.textContent = String(txt);
-      note.classList.remove("empty");
-    } else {
-      note.textContent = "Nothing written about " + label + " yet. Add it to desk/period.json.";
-      note.classList.add("empty");
-    }
-    note.hidden = false;
-  }
-  mBtn.addEventListener("click", function () { show("month"); });
-  yBtn.addEventListener("click", function () { show("year"); });
-  fetch("period.json", {cache: "no-store"})
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (j) { if (j) data = j; if (shown) { var w = shown; shown = null; show(w); } })
-    .catch(function () { /* offline or sealed preview: the buttons still work and say so */ });
 })();
 </script>
 </body></html>
