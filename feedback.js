@@ -307,14 +307,14 @@
     var css = D.createElement("style");
     css.setAttribute("data-ts-own", "");
     css.textContent =
-      ".fb-fab{position:fixed;left:12px;bottom:calc(192px + env(safe-area-inset-bottom));z-index:2147483643;" +
+      ".fb-fab{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483643;" +
       "width:44px;height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;text-align:center;padding:0;margin:0;-webkit-appearance:none;appearance:none;" +
       "font:700 18px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:0;" +
       "border-radius:999px;border:0;background:#1c1c1e;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer}" +
       ".fb-fab[hidden]{display:none}" +
       ".fb-fab.fb-set::after{content:'';position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:#ff9f0a}" +
       ".fb-fab:focus-visible,.fb-panel button:focus-visible,.fb-panel textarea:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
-      ".fb-panel{position:fixed;left:12px;bottom:calc(192px + env(safe-area-inset-bottom));z-index:2147483647;" +
+      ".fb-panel{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483647;" +
       "width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 16px);overflow:auto;box-sizing:border-box;background:#fff;color:#1c1c1e;border-radius:16px;" +
       "box-shadow:0 10px 40px rgba(0,0,0,.3);padding:12px 12px 26px;display:grid;gap:8px;" +
       "font:400 14px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;text-align:left}" +
