@@ -1,0 +1,50 @@
+{
+  "note": "The tiles on the start page. Add a line here, push, done. Order is the order shown. No AI reads this file.",
+  "groups": [
+    {"name": "Where the work happens", "links": [
+      {"name": "Claude Code", "url": "https://claude.ai/code", "hint": "every chat, both computers"},
+      {"name": "ChatGPT", "url": "https://chatgpt.com/", "hint": "reviews, GPT-5.6 Sol"},
+      {"name": "Notion", "url": "https://app.notion.com/", "hint": "logs, feedback board"},
+      {"name": "GitHub", "url": "https://github.com/racts-dot", "hint": "every repo"},
+      {"name": "Higgsfield", "url": "https://higgsfield.ai/", "hint": "images and video, credits"},
+      {"name": "Google Cloud", "url": "https://console.cloud.google.com/vertex-ai?project=gen-lang-client-0626840434", "hint": "Vertex, Gemini spend"},
+      {"name": "Cloudflare", "url": "https://dash.cloudflare.com/", "hint": "pages.dev apps, the relay"}
+    ]},
+    {"name": "Selling", "links": [
+      {"name": "Etsy Shop Manager", "url": "https://www.etsy.com/your/shops/me/dashboard", "hint": "96 live listings"},
+      {"name": "Etsy stats", "url": "https://www.etsy.com/your/shops/me/stats", "hint": "visits, orders"},
+      {"name": "eBay Seller Hub", "url": "https://www.ebay.com.au/sh/ovw", "hint": "status disputed, ask first"},
+      {"name": "Canva", "url": "https://www.canva.com/", "hint": "editable kits"},
+      {"name": "YouTube Studio", "url": "https://studio.youtube.com/", "hint": ""}
+    ]},
+    {"name": "Her apps: work", "links": [
+      {"name": "The Day", "url": "https://racts-dot.github.io/day/", "hint": "tasks done today, streamed"},
+      {"name": "Rachie's Desk", "url": "https://racts-dot.github.io/desk/", "hint": "where we're up to"},
+      {"name": "AI Handoff Board", "url": "https://racts-dot.github.io/board.html", "hint": ""},
+      {"name": "Rule Shelf", "url": "https://racts-dot.github.io/rules/", "hint": ""},
+      {"name": "Sales Tracker", "url": "https://racts-dot.github.io/app.html", "hint": ""},
+      {"name": "Ledgers", "url": "https://racts-dot.github.io/ledgers/", "hint": "June resale, Easy Life stock"},
+      {"name": "Worklog", "url": "https://racts-dot.github.io/worklog/", "hint": "작업일지"},
+      {"name": "To-Do", "url": "https://racts-dot.github.io/todo/", "hint": ""},
+      {"name": "Notion Reader", "url": "https://notion-reader.apps-notion-relay.workers.dev/", "hint": ""}
+    ]},
+    {"name": "Her apps: learning and marketing", "links": [
+      {"name": "Creator Reading Room", "url": "https://creator-reading-room.pages.dev/", "hint": "the reference app"},
+      {"name": "Hormozi Recipes", "url": "https://racts-dot.github.io/hormozi/", "hint": ""},
+      {"name": "Doser Workflows", "url": "https://racts-dot.github.io/workflows/", "hint": ""},
+      {"name": "Prompt Cookbook", "url": "https://racts-dot.github.io/cookbook/", "hint": ""},
+      {"name": "Recipes", "url": "https://racts-dot.github.io/recipes/", "hint": ""},
+      {"name": "Study", "url": "https://racts-dot.github.io/study/", "hint": "finance, AI, SQL, Python"},
+      {"name": "Video sources", "url": "https://racts-dot.github.io/videos/", "hint": "출처 찾기"},
+      {"name": "TripShare", "url": "https://racts-dot.github.io/tripshare/", "hint": ""}
+    ]},
+    {"name": "Her apps: faith and days", "links": [
+      {"name": "Daily Chapter", "url": "https://racts-dot.github.io/daily/", "hint": "your own recordings"},
+      {"name": "Morning and Evening", "url": "https://morning-and-evening.pages.dev/", "hint": ""},
+      {"name": "Prayer Points", "url": "https://prayer-points.pages.dev/", "hint": ""},
+      {"name": "Priest Hood", "url": "https://racts-dot.github.io/priesthood/", "hint": ""},
+      {"name": "Waple Diary", "url": "https://waple-diary.pages.dev/", "hint": ""},
+      {"name": "Reflect", "url": "https://racts-dot.github.io/reflect/", "hint": ""}
+    ]}
+  ]
+}

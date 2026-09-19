@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Start</title>
+<meta name="description" content="Rachel's own start page: the clock, every place she works, and what the day has done so far, streamed.">
+<meta name="theme-color" content="#0B0E13">
+<!-- WHY THIS PAGE EXISTS. Her ask, 19 Sep 2026: "i need a webpage that i start the chrome and
+     have like i do now. i have momentum the extension but I would want my own webpage like the
+     ones linking all the things I am on. streaming the tasks status."
+     WHAT IT READS - nothing here is written by a model:
+       /start/links.json   the tiles. A chat adds a line, pushes, and the tile appears.
+       /day/stream.json    The Day feed: today's events and the count towards 30. Timer, every 20 min.
+       /desk/progress.json the Desk card: what is waiting on her. Timer, every 20 min.
+       /start/chats.json   OPTIONAL. Which chats are running on which computer. chat_activity.py
+                           writes it but does NOT publish it without her word, so the panel says
+                           "not published" until she says yes.
+     It re-reads the feeds every minute, and again whenever the tab is looked at. -->
+<style>
+  :root{
+    --ground:#0B0E13; --surface:rgba(22,27,35,.72); --surface-2:rgba(29,36,46,.9); --line:rgba(255,255,255,.08);
+    --ink:#EDF1F6; --muted:#9AA7B6; --faint:#6E7C8C;
+    --live:#54C88F; --published:#7FB2F0; --ready:#E4B75C; --build:#B69BE8; --warn:#E4875C; --accent:#54C88F;
+    --body:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,"Helvetica Neue",Arial,sans-serif;
+    --num:ui-rounded,-apple-system,"SF Pro Rounded",system-ui,sans-serif;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
+  body{padding:0 16px calc(96px + env(safe-area-inset-bottom));
+       background:
+         radial-gradient(1200px 700px at 12% -10%, rgba(84,200,143,.16), transparent 60%),
+         radial-gradient(900px 600px at 100% 0%, rgba(127,178,240,.14), transparent 55%),
+         radial-gradient(800px 500px at 50% 110%, rgba(182,155,232,.10), transparent 60%),
+         var(--ground);
+       background-attachment:fixed}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1180px;margin:0 auto}
+
+  /* ---- the top: clock, greeting, the number ---- */
+  .hero{padding:calc(56px + env(safe-area-inset-top)) 0 28px;display:grid;
+        grid-template-columns:1fr auto;gap:24px;align-items:end}
+  .clock{font-family:var(--num);font-size:clamp(56px,9vw,104px);font-weight:600;letter-spacing:-.03em;
+         line-height:1;font-variant-numeric:tabular-nums}
+  .clock small{font-size:.32em;color:var(--muted);font-weight:500;margin-left:6px;letter-spacing:0}
+  .greet{font-size:clamp(20px,2.6vw,28px);font-weight:500;margin:12px 0 4px;letter-spacing:-.01em}
+  .date{color:var(--muted);font-size:15px}
+  .focus{margin-top:14px;display:flex;align-items:center;gap:10px}
+  .focus label{color:var(--faint);font-size:13px;white-space:nowrap}
+  .focus input{flex:1;max-width:420px;background:transparent;border:0;border-bottom:1px solid var(--line);
+               color:var(--ink);font:inherit;font-size:16px;padding:6px 2px;outline:none}
+  .focus input:focus{border-bottom-color:var(--accent)}
+  .focus button{background:none;border:0;color:var(--faint);font-size:13px;cursor:pointer;padding:4px 6px;border-radius:6px}
+  .focus button:hover{color:var(--ink);background:var(--line)}
+
+  .big{text-align:right}
+  .big .n{font-family:var(--num);font-size:clamp(48px,7vw,84px);font-weight:700;line-height:1;letter-spacing:-.03em;
+          font-variant-numeric:tabular-nums}
+  .big .n b{color:var(--live)}
+  .big .n span{color:var(--faint);font-size:.42em;font-weight:500;margin-left:6px}
+  .big .sub{color:var(--muted);font-size:14px;margin-top:8px}
+  .big .sub .dot{width:8px;height:8px;border-radius:50%;background:var(--live);display:inline-block;margin-right:6px;
+                 vertical-align:1px}
+  .big .sub .dot.beat{animation:beat 2.2s ease-out infinite}
+  .big .sub .dot.cold{background:var(--warn);animation:none}
+  @keyframes beat{0%{box-shadow:0 0 0 0 rgba(84,200,143,.55)}70%{box-shadow:0 0 0 9px rgba(84,200,143,0)}
+                  100%{box-shadow:0 0 0 0 rgba(84,200,143,0)}}
+  .bar{height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:10px;width:220px;
+       margin-left:auto}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--live),var(--published));
+         border-radius:999px;transition:width .6s ease}
+
+  /* ---- the two live columns ---- */
+  .grid{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:24px}
+  section.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px;
+               backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  section.card h2{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+                  margin:0 0 12px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  section.card h2 a,section.card h2 span{font-weight:500;letter-spacing:0;text-transform:none;font-size:12px;color:var(--faint)}
+  section.card h2 a:hover{color:var(--ink)}
+  ul{list-style:none;margin:0;padding:0}
+
+  .ev{display:grid;grid-template-columns:52px 10px 1fr;gap:0 10px;padding:7px 0;align-items:start}
+  .ev+.ev{border-top:1px solid var(--line)}
+  .ev .t{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--faint);font-size:13px;padding-top:2px}
+  .ev .k{width:8px;height:8px;border-radius:50%;margin-top:7px;background:var(--faint)}
+  .ev.commit .k{background:var(--published)} .ev.stage .k{background:var(--ready)} .ev.live .k{background:var(--live)}
+  .ev.slip .k{background:var(--build)} .ev.register .k{background:var(--muted)}
+  .ev .w{font-size:14.5px;line-height:1.35;overflow-wrap:anywhere}
+  .ev .w small{color:var(--faint);margin-left:6px;font-size:12px}
+  .empty{color:var(--faint);font-size:14px;padding:6px 0}
+
+  .wait li{padding:8px 0;font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+  .wait li+li{border-top:1px solid var(--line)}
+  .wait li .d{color:var(--faint);font-size:12px;margin-top:3px}
+
+  .chats li{display:flex;gap:10px;align-items:baseline;padding:7px 0;font-size:14px}
+  .chats li+li{border-top:1px solid var(--line)}
+  .chats .m{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
+            border:1px solid var(--line);border-radius:6px;padding:2px 6px;flex:0 0 auto}
+  .chats .m.mac{color:var(--published)} .chats .m.windows{color:var(--ready)}
+  .chats .w{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chats .a{color:var(--faint);font-size:12px;flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .chats .quiet .w{color:var(--muted)}
+
+  /* ---- the tiles ---- */
+  .groups{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+  .group h3{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  .tile{display:block;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 12px 11px;
+        min-height:64px;transition:transform .12s ease,background .12s ease,border-color .12s ease}
+  .tile:hover{background:var(--surface-2);border-color:rgba(255,255,255,.18);transform:translateY(-1px)}
+  .tile .n{font-size:14.5px;font-weight:600;letter-spacing:-.01em}
+  .tile .h{font-size:12px;color:var(--faint);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  footer{color:var(--faint);font-size:12px;margin-top:28px;line-height:1.6}
+  footer a{color:var(--muted)}
+
+  @media (max-width:760px){
+    .hero{grid-template-columns:1fr;padding-top:calc(28px + env(safe-area-inset-top))}
+    .big{text-align:left} .bar{margin-left:0}
+    .grid{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion:reduce){ .big .sub .dot.beat{animation:none} .tile{transition:none} }
+</style>
+<script src="/textsize.js"></script>
+<script src="/speak.js" defer></script>
+<script src="/pull.js" defer></script>
+<script src="/swipe.js" defer data-sections="section.card, .group"></script>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div>
+    <div class="clock" id="clock" aria-live="off">--:--</div>
+    <div class="greet" id="greet">Hello, Rachel.</div>
+    <div class="date" id="date"></div>
+    <div class="focus">
+      <label for="focus">Today</label>
+      <input id="focus" type="text" placeholder="one thing to finish today" autocomplete="off" spellcheck="false">
+      <button id="focusClear" type="button" title="Clear" aria-label="Clear today's focus" hidden>done</button>
+    </div>
+  </div>
+  <div class="big">
+    <div class="n"><b id="liveToday">–</b><span id="target">of 30 today</span></div>
+    <div class="bar" aria-hidden="true"><i id="bar"></i></div>
+    <div class="sub"><span class="dot beat" id="dot"></span><span id="pace">reading the day…</span></div>
+  </div>
+</header>
+
+<div class="grid">
+  <section class="card" id="today">
+    <h2>The day, streamed <a href="/day/" id="dayLink">open The Day →</a></h2>
+    <ul id="events"><li class="empty">reading /day/stream.json…</li></ul>
+  </section>
+  <div style="display:grid;gap:16px;align-content:start">
+    <section class="card" id="waiting">
+      <h2>Waiting on you <a href="/desk/">the Desk →</a></h2>
+      <ul class="wait" id="wait"><li class="empty">reading /desk/progress.json…</li></ul>
+    </section>
+    <section class="card" id="chatsCard">
+      <h2>Chats running <span id="chatsWhen"></span></h2>
+      <ul class="chats" id="chats"><li class="empty">reading…</li></ul>
+    </section>
+  </div>
+</div>
+
+<div class="groups" id="groups"></div>
+
+<footer>
+  <span id="madeLine">Feeds: The Day and the Desk are rebuilt by timers every 20 minutes, no AI. This page re-reads them every minute.</span>
+  · <a href="/start/links.json">links.json</a> holds the tiles.
+  <button id="refresh" type="button" style="display:none" aria-hidden="true">refresh</button>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var $ = function(id){ return document.getElementById(id); };
+  var POLL = 60 * 1000;
+  function esc(s){ return String(s == null ? "" : s).replace(/[&<>"]/g, function(m){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]; }); }
+  function pad(n){ return (n < 10 ? "0" : "") + n; }
+
+  /* ---- clock and greeting: the machine's own clock, nothing fetched ---- */
+  function tick(){
+    var d = new Date(), h = d.getHours();
+    $("clock").innerHTML = pad(h % 12 || 12) + ":" + pad(d.getMinutes()) + "<small>" + (h < 12 ? "am" : "pm") + "</small>";
+    $("greet").textContent = (h < 5 ? "Still up, Rachel." : h < 12 ? "Good morning, Rachel." :
+                              h < 17 ? "Good afternoon, Rachel." : h < 22 ? "Good evening, Rachel." : "Late one, Rachel.");
+    $("date").textContent = d.toLocaleDateString("en-AU", {weekday:"long", day:"numeric", month:"long", year:"numeric"});
+  }
+  tick(); setInterval(tick, 15 * 1000);
+
+  /* ---- today's focus: hers, on this device only (Momentum does the same) ---- */
+  var KEY = "start.focus." + new Date().toISOString().slice(0,10);
+  var focus = $("focus"), clear = $("focusClear");
+  try { focus.value = localStorage.getItem(KEY) || ""; } catch(e){}
+  clear.hidden = !focus.value;
+  focus.addEventListener("input", function(){
+    try { localStorage.setItem(KEY, focus.value); } catch(e){}
+    clear.hidden = !focus.value;
+  });
+  clear.addEventListener("click", function(){ focus.value = ""; focus.dispatchEvent(new Event("input")); });
+
+  /* ---- The Day: the count and the stream ---- */
+  function ago(iso){
+    var t = Date.parse(iso); if (isNaN(t)) return "";
+    var m = Math.round((Date.now() - t) / 60000);
+    return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m/60) + " h ago" : Math.round(m/1440) + " d ago";
+  }
+  function hhmm(iso){ var d = new Date(iso); return isNaN(d) ? "" : pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function kindOf(e){
+    var k = (e.kind || "").toLowerCase(), s = (e.stage || "").toLowerCase();
+    if (s === "live" || k === "live") return "live";
+    if (k === "commit") return "commit";
+    if (k === "slip") return "slip";
+    if (k === "stage" || k === "queue" || s) return "stage";
+    return "register";
+  }
+  function renderDay(d){
+    var c = d.counts || {}, p = d.pace || {}, live = c.live_today != null ? c.live_today : "–";
+    $("liveToday").textContent = live;
+    $("target").textContent = "of " + (d.target || 30) + " today";
+    $("bar").style.width = (d.target ? Math.min(100, 100 * (c.live_today || 0) / d.target) : 0) + "%";
+    var made = d.made_iso || d.made, stale = made && (Date.now() - Date.parse(made)) > 3 * 3600 * 1000;
+    $("dot").className = "dot " + (stale ? "cold" : "beat");
+    var bits = [];
+    if (c.ready_to_list != null) bits.push(c.ready_to_list + " ready to list");
+    if (c.in_build != null) bits.push(c.in_build + " in build");
+    if (c.published_not_read_back) bits.push(c.published_not_read_back + " published, not read back");
+    bits.push("feed " + (made ? ago(made) : "undated") + (stale ? " · timer may be down" : ""));
+    $("pace").textContent = bits.join(" · ");
+
+    var today = d.day || new Date().toISOString().slice(0,10);
+    /* The timers' own commits ("The Day: ...", "Desk: ...", "Hourly backup ...") are not work she
+       did; The Day app shows them, a start page does not need to. */
+    var noise = /^(The Day: tasks done today|Desk: where we're up to|Hourly backup |The Day: |Desk card)/i;
+    var evs = (d.events || []).filter(function(e){
+      return (e.at || "").slice(0,10) === today && !(e.kind === "commit" && noise.test(e.title || "")); }).slice(0, 18);
+    if (!evs.length){
+      var y = (d.events || []).slice(0, 8);
+      $("events").innerHTML = '<li class="empty">Nothing recorded yet today' + (y.length ? " · the last things that happened:" : ".") + "</li>" +
+        y.map(row).join("");
+      return;
+    }
+    $("events").innerHTML = evs.map(row).join("");
+  }
+  function row(e){
+    var k = kindOf(e), where = e.detail && e.detail !== e.title ? "<small>" + esc(e.detail) + "</small>" : "";
+    var lane = e.lane ? "<small>lane " + esc(e.lane) + "</small>" : "";
+    return '<li class="ev ' + k + '"><span class="t">' + hhmm(e.at) + '</span><span class="k"></span>' +
+           '<span class="w">' + esc(e.title) + where + lane + "</span></li>";
+  }
+
+  /* ---- the Desk: what is waiting on her ---- */
+  function renderDesk(d){
+    var items = (d.items || []).filter(function(i){ return !/^j_/.test(i.id || ""); }).slice(0, 6);
+    if (!items.length){ $("wait").innerHTML = '<li class="empty">Nothing waiting on you.</li>'; return; }
+    $("wait").innerHTML = items.map(function(i){
+      var note = i.note && !/^No next action/.test(i.note) ? '<div class="d">' + esc(i.note.slice(0, 160)) + "</div>" : "";
+      return "<li>" + esc(i.name) + note + "</li>";
+    }).join("") + '<li class="empty" style="border-top:1px solid var(--line)">Desk card ' + (d.made ? "made " + esc(d.made) : "undated") + "</li>";
+  }
+
+  /* ---- chats, only if the file has been published ---- */
+  function renderChats(d){
+    var rows = (d.chats || []).slice(0, 10);
+    var m = Object.keys(d.machines || {}).map(function(k){
+      var i = d.machines[k]; return k + (i.stale ? " quiet " + i.hours_ago + "h" : " ok"); }).join(" · ");
+    $("chatsWhen").textContent = (d.counts ? d.counts.working + " working · " : "") + (m || "") + (d.made ? " · read " + d.made : "");
+    if (!rows.length){ $("chats").innerHTML = '<li class="empty">No chat has written in the window.</li>'; return; }
+    $("chats").innerHTML = rows.map(function(c){
+      var mc = (c.machine || "this").toLowerCase();
+      return '<li class="' + esc(c.state || "") + '"><span class="m ' + esc(mc) + '">' + esc(mc === "this" ? "here" : mc) + "</span>" +
+             '<span class="w" title="' + esc(c.did || "") + '">' + esc(c.folder) + (c.did ? " · " + esc(c.did.slice(0, 120)) : "") + "</span>" +
+             '<span class="a">' + esc((c.when || "").slice(11)) + "</span></li>";
+    }).join("");
+  }
+
+  /* ---- the tiles ---- */
+  function renderLinks(d){
+    $("groups").innerHTML = (d.groups || []).map(function(g){
+      return '<div class="group"><h3>' + esc(g.name) + '</h3><div class="tiles">' + (g.links || []).map(function(l){
+        return '<a class="tile" href="' + esc(l.url) + '"><div class="n">' + esc(l.name) + "</div>" +
+               (l.hint ? '<div class="h">' + esc(l.hint) + "</div>" : "") + "</a>";
+      }).join("") + "</div></div>";
+    }).join("");
+  }
+
+  function get(url, ok, fail){
+    fetch(url + (url.indexOf("?") < 0 ? "?" : "&") + "t=" + Date.now(), {cache:"no-store"})
+      .then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }).then(ok).catch(fail || function(){});
+  }
+  function pull(){
+    get("/day/stream.json", renderDay, function(e){
+      $("pace").textContent = "The Day feed could not be read (" + e.message + ")"; $("dot").className = "dot cold";
+      $("events").innerHTML = '<li class="empty">/day/stream.json did not load.</li>';
+    });
+    get("/desk/progress.json", renderDesk, function(e){
+      $("wait").innerHTML = '<li class="empty">/desk/progress.json did not load (' + esc(e.message) + ").</li>";
+    });
+    get("/start/chats.json", renderChats, function(e){
+      $("chatsWhen").textContent = "";
+      $("chats").innerHTML = '<li class="empty">Not published. <code>status/chat_activity.py</code> writes chats.json but puts it on the site only on your word, because it quotes what each chat was asked. Say yes and this panel fills.</li>';
+    });
+  }
+  get("/start/links.json", renderLinks, function(e){
+    $("groups").innerHTML = '<p class="empty">links.json did not load (' + esc(e.message) + ").</p>";
+  });
+  pull();
+  setInterval(pull, POLL);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) pull(); });
+  /* The shared /pull.js clicks #refresh on a drag-down; this is what it triggers. */
+  $("refresh").addEventListener("click", pull);
+})();
+</script>
+<script src="/feedback.js" defer data-app="Start"></script>
+</body>
+</html>

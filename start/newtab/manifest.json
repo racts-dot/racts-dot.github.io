@@ -1,0 +1,7 @@
+{
+  "manifest_version": 3,
+  "name": "Rachel's start page",
+  "version": "1.0",
+  "description": "Every new tab opens https://racts-dot.github.io/start/ - her own page, instead of Momentum.",
+  "chrome_url_overrides": { "newtab": "newtab.html" }
+}
