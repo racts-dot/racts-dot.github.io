@@ -1866,14 +1866,13 @@ document.getElementById("reloadText").addEventListener("click", function(){ load
     ev.preventDefault();
     const text = (window.getSelection() || "").toString().trim();
     if (!text) return hide();
-    if (!("speechSynthesis" in window)){ toast("This browser cannot read aloud", null, null); return; }
-    window.speechSynthesis.cancel();
-    const say = new SpeechSynthesisUtterance(text);
-    say.rate = settings.rate || 0.95;
-    const chosen = currentVoice();
-    if (chosen){ say.voice = chosen; say.lang = chosen.lang; }
-    window.speechSynthesis.speak(say);
     hide();
+    /* 19 Sep 2026: this used the phone voice every time, whatever else was set.
+       Her pick reads it now, or it says why - it never drops back to Karen. */
+    sayWithNaturalVoice(text).then(function(ok){
+      if (!ok) toast(recPass() ? "The natural voice could not be reached just now"
+                               : "Read aloud needs this device connected", null, null);
+    });
   });
 })();
 document.getElementById("listenBtn").addEventListener("click", function(){
@@ -2286,6 +2285,32 @@ function recKey(){
   return String(now.item.ref).trim().replace(/\s+/g, "_") + ".mp3";
 }
 
+/* Selected text, or a chapter with no recording, goes to the relay's /tts -
+   her own Google key, capped there at 1,500 characters a request. */
+async function sayWithNaturalVoice(text){
+  const pw = recPass(); if (!pw || !text) return false;
+  try {
+    const r = await fetch(REC_RELAY + "/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Pass": pw },
+      body: JSON.stringify({ text: String(text).slice(0, 1500) })
+    });
+    if (!r.ok) return false;
+    const b = await r.blob();
+    if (!b || !b.size) return false;
+    const a = new Audio(URL.createObjectURL(b));
+    a.playbackRate = settings.rate || 1;
+    a.addEventListener("ended", stopListening);
+    await a.play();
+    if (recAudio){ try { recAudio.pause(); } catch (e){} }
+    recAudio = a;
+    wantSpeech = true;
+    holdScreenAwake();
+    showPlayer(true);
+    return true;
+  } catch (e){ return false; }
+}
+
 async function playRecording(){
   const pw = recPass(); if (!pw) return false;
   const key = recKey(); if (!key) return false;
@@ -2317,12 +2342,21 @@ async function playRecording(){
 
 async function startListening(){
   if (await playRecording()) return;     /* her voice, already recorded */
-  if (!("speechSynthesis" in window)){
-    toast("This browser cannot read aloud", null, null);
+  /* 19 Sep 2026, her words: "how about you get rid of karen". Karen is the
+     phone's own voice, and it used to take over in silence - which is why this
+     page sounded unchanged all day while everything behind it worked. It now
+     says what is wrong. The cost, stated plainly: with no internet, or on a
+     device that has never been connected, there is no read aloud here at all. */
+  if (!recPass()){
+    toast("Read aloud needs this device connected \u2014 enter the apps password once", null, null);
     return;
   }
   const text = readingText();
   if (!text){ toast("No chapter loaded to read", null, null); return; }
+  if (await sayWithNaturalVoice(text)) return;
+  toast("The natural voice could not be reached just now", null, null);
+  return;
+  /* eslint-disable no-unreachable */
 
   const pieces = text.match(/[^.!?]+[.!?]*\s*/g) || [text];
   readChunks = [];

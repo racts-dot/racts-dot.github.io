@@ -2,7 +2,7 @@
    App shell: cache first, so the app opens with no internet.
    Chapter text: network first, falling back to whatever was cached.
    Bump CACHE when index.html changes, or phones keep serving the old one. */
-const CACHE = "daily-chapter-v43";   /* v43, 19 Sep 2026: Read aloud plays her recordings */
+const CACHE = "daily-chapter-v44";   /* v43, 19 Sep 2026: Read aloud plays her recordings */
 const SHELL = ["./", "./index.html", "./kings.html", "./manifest.webmanifest", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", function (event) {
