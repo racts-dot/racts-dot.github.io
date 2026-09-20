@@ -124,8 +124,12 @@
     var next = cur + d;
     if (next < 0) { say("First one"); return; }
     if (next >= list.length) { say("Last one"); return; }
-    /* the count inside <em> is not the name - say the first line only */
-    say(String(list[next].textContent || "").replace(/\s+/g, " ").trim().split(/\s{2,}|·/)[0].slice(0, 40));
+    /* the <em> holds a size or a note, not the name, and it runs straight into the title with no
+       space ("The shelfstart here") - so take it out rather than trying to split on whitespace */
+    var name = String(list[next].textContent || "");
+    var em = list[next].querySelector("em");
+    if (em) name = name.replace(String(em.textContent || ""), "");
+    say(name.replace(/\s+/g, " ").trim().slice(0, 40));
     list[next].click();
     if (scrollY > 5) scrollTo({ top: 0, behavior: "smooth" });
   }
