@@ -1,7 +1,7 @@
 /* Priest Hood service worker (written by site_shell.py).
    The page is fetched fresh first and kept for when there is no signal; everything else on this site is served
    from the cache first. Bump CACHE whenever index.html changes. */
-const CACHE = "priesthood-v7";
+const CACHE = "priesthood-v8";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./shell.js", "./pull.js", "./notes.js", "./notes.json", "../textsize.js", "../feedback.js", "../speak.js"];
 
 self.addEventListener("install", function (event) {
