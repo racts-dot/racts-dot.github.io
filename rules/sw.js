@@ -17,7 +17,7 @@
    refresh, and nothing said so. Found by the cache serving a stale marks.js during a
    change to it. The list is now derived from what index.html actually loads; if a script
    is added to the page, add it here too, or it silently stops working offline. */
-const CACHE = "rule-shelf-v5";
+const CACHE = "rule-shelf-v6";
 const SHELL = [
   "./",
   "./index.html",
