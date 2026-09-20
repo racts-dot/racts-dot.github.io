@@ -8,8 +8,11 @@ and one search box across all of them.
 
 Nothing inside the four collections is rewritten. Each keeps its own page, read aloud, videos
 and Notion saving. This script:
-  1. writes recipes/index.html, the combined home, from what the four pages actually contain;
-  2. adds a slim "All recipes" bar and a find-on-open helper (#find=...) to the three other pages,
+  1. writes recipes/cards-hormozi.json, cards-doser.json and cards-prompts.json - this app's own
+     copy of the other three collections' cards, so /recipes/ no longer needs those pages to be
+     there (her pick, 20 Sep 2026: "Not yet - move data first");
+  2. writes recipes/index.html, the combined home, from what the four pages actually contain;
+  3. adds a slim "All recipes" bar and a find-on-open helper (#find=...) to the three other pages,
      so a card tapped on the home opens that exact recipe.
 
     python3 recipes_hub.py          # after build_recipes.py or publish_marketing_pages.py
@@ -17,6 +20,7 @@ and Notion saving. This script:
 build_recipes.py and publish_marketing_pages.py both call it at the end, so a rebuild keeps the home.
 """
 import glob
+import hashlib
 import html as H
 import json
 import os
@@ -139,47 +143,139 @@ def recipe_pages():
     return out
 
 
-def topic_cards(folder, src, label):
-    d = data_blob(SITE / folder / "index.html")
-    out = []
-    if not d:
-        return out
-    for t in d.get("topics", []):
-        for c in t.get("cards", []):
-            title = txt(c.get("title"), 120)
-            out.append({"src": src, "label": txt(t.get("name"), 40) or label, "title": title,
-                        "desc": txt(c.get("gets"), 150), "href": f"../{folder}/#find=" + title,
-                        # 20 Sep, her "I'll want it like in the same app": the card's own key travels with
-                        # it, so opening it here finds the one card and never a title that merely matches
-                        "k": c.get("key", ""),
-                        # 17 Sep, her "no thumbnail ... no video": the card's first source video, like the recipe cards
-                        "thumb": (f"https://i.ytimg.com/vi/{c['src'][0]['id']}/mqdefault.jpg" if c.get("src") and c["src"][0].get("id") else ""),
-                        "vid": (c["src"][0]["id"] if c.get("src") and c["src"][0].get("id") else ""),
-                        "listen": False,
-                        "meta": ("\u25B6 %d video%s" % (len(c["src"]), "" if len(c["src"]) == 1 else "s")) if c.get("src") else ""})
+# ---- the cards this app now carries itself ------------------------------------------------
+#
+# 20 Sep 2026. Asked whether to retire /cookbook/ and /hormozi/, her pick was "Not yet - move data
+# first". Until today a Hormozi, Doser or Prompt card opened here by FETCHING that other app's page
+# and reading its data blob, so /recipes/ could not live without /hormozi/, /workflows/ and
+# /cookbook/ - which is exactly what blocked retiring them. So the cards are now written into this
+# folder as its own files and the page reads those first. The three old pages are NOT touched:
+# retiring them is hers to trigger, and this is only the move.
+#
+# SEPARATE FILES, NOT INLINED IN THE PAGE, and the reason is the phone. Measured 20 Sep 2026: the
+# three blobs are 657 KB, 127 KB and 47 KB, and even cut back to what the panel actually draws they
+# come to 481 + 87 + 38 = 606 KB against a home page of 253 KB. Inlining would make every visit
+# carry all of it before a single card is tapped. The panel was already lazy, so files fetched on
+# demand leave the home page the size it is and make a tapped card CHEAPER than it was - 87 KB of
+# JSON instead of the 186 KB HTML page it used to pull.
+#
+# Only the fields the home card and the panel read are copied. Nothing else travels.
+
+LOCAL = {"hormozi": "cards-hormozi.json", "doser": "cards-doser.json", "prompts": "cards-prompts.json"}
+
+
+def slim_card(topic, c):
+    """One Hormozi/Doser card, cut to what the home card and the panel draw."""
+    out = {"topic": txt(topic, 40)}
+    for k in ("title", "gets", "claim", "warn"):
+        if c.get(k):
+            out[k] = c[k]
+    steps = []
+    for v in c.get("steps") or []:
+        # the page's own test is (sup === "no" || sup === "none" || !q), so an empty sup or q reads
+        # the same as none at all - but "no", "none" and "partly" have to survive the cut, because
+        # they are what marks a step as the AI's words rather than his
+        st = {"do": v.get("do", "")}
+        if v.get("q"):
+            st["q"] = v["q"]
+        if v.get("sup"):
+            st["sup"] = v["sup"]
+        steps.append(st)
+    if steps:
+        out["steps"] = steps
+    src = [{k: v[k] for k in ("id", "title", "date") if v.get(k)} for v in c.get("src") or []]
+    if src:
+        out["src"] = src
     return out
 
 
-def prompts():
-    d = data_blob(SITE / "cookbook" / "index.html") or []
+def slim_prompt(p):
+    """One cookbook prompt, cut the same way."""
+    out = {"n": p.get("n", ""), "p": p.get("p", "")}
+    tools = p.get("t")
+    if isinstance(tools, str):
+        tools = re.findall(r"'([^']+)'", tools) or [tools]
+    if tools:
+        out["t"] = tools
+    src = [{k: v[k] for k in ("u", "v", "y") if v.get(k)} for v in p.get("src") or []]
+    if src:
+        out["src"] = src
+    return out
+
+
+def own_cards(folder, src):
+    """Hormozi/Doser cards: from the other app while it is still there, from our copy once it is not.
+
+    Keyed by each card's own key, in the order the topics list them. The fallback is the whole point
+    of the move - once /hormozi/ or /workflows/ is retired the page that fed this is gone, and
+    without it the next rebuild would quietly empty the tab it had been filling.
+    """
+    d = data_blob(SITE / folder / "index.html") if (SITE / folder / "index.html").exists() else None
+    if d:
+        return ({c.get("key", ""): slim_card(t.get("name"), c)
+                 for t in d.get("topics", []) for c in t.get("cards", [])}, folder)
+    kept = SITE / "recipes" / LOCAL[src]
+    if kept.exists():
+        return (json.loads(kept.read_text(encoding="utf-8")), "our own copy, /%s/ is gone" % folder)
+    return ({}, "nothing: /%s/ is gone and there is no copy" % folder)
+
+
+def own_prompts():
+    """The cookbook prompts, the same way round. A plain list: a prompt's place in it is its key."""
+    d = data_blob(SITE / "cookbook" / "index.html") if (SITE / "cookbook" / "index.html").exists() else None
+    if d:
+        return ([slim_prompt(x) for x in d], "cookbook")
+    kept = SITE / "recipes" / LOCAL["prompts"]
+    if kept.exists():
+        return (json.loads(kept.read_text(encoding="utf-8")), "our own copy, /cookbook/ is gone")
+    return ([], "nothing: /cookbook/ is gone and there is no copy")
+
+
+def write_local(src, data):
+    """Write this folder's copy, and hand back a URL that changes when the contents do.
+
+    Without the stamp a phone that cached yesterday's file would keep it after a rebuild, which is
+    the same fault the kit scripts already carry a ?v= for.
+    """
+    body = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    (SITE / "recipes" / LOCAL[src]).write_text(body, encoding="utf-8")
+    return LOCAL[src] + "?v=" + hashlib.sha256(body.encode("utf-8")).hexdigest()[:10]
+
+
+def topic_cards(folder, src, label, cards):
     out = []
-    for i, p in enumerate(d):
-        tools = p.get("t")
-        if isinstance(tools, str):
-            tools = re.findall(r"'([^']+)'", tools) or [tools]
+    for key, c in cards.items():
+        title = txt(c.get("title"), 120)
+        out.append({"src": src, "label": txt(c.get("topic"), 40) or label, "title": title,
+                    "desc": txt(c.get("gets"), 150), "href": f"../{folder}/#find=" + title,
+                    # 20 Sep, her "I'll want it like in the same app": the card's own key travels with
+                    # it, so opening it here finds the one card and never a title that merely matches
+                    "k": key,
+                    # 17 Sep, her "no thumbnail ... no video": the card's first source video, like the recipe cards
+                    "thumb": (f"https://i.ytimg.com/vi/{c['src'][0]['id']}/mqdefault.jpg" if c.get("src") and c["src"][0].get("id") else ""),
+                    "vid": (c["src"][0]["id"] if c.get("src") and c["src"][0].get("id") else ""),
+                    "listen": False,
+                    "meta": ("\u25B6 %d video%s" % (len(c["src"]), "" if len(c["src"]) == 1 else "s")) if c.get("src") else ""})
+    return out
+
+
+def prompts(items):
+    out = []
+    for i, p in enumerate(items):
+        tools = p.get("t") or []
         # 19 Sep, her "There's no thumbnail updated just yet": every one of these cards was pictureless,
         # and the cookbook already carried the video each prompt came from. Measured 20 Sep: all 99
         # resolve to a YouTube id, so the whole Prompts tab gets the same real frame the other tabs use.
         vids = [m.group(1) for m in (re.search(r"[?&]v=([A-Za-z0-9_-]{11})", s.get("u") or "")
                                      for s in (p.get("src") or [])) if m]
         vids = list(dict.fromkeys(vids))
-        out.append({"src": "prompts", "label": ", ".join(tools or [])[:40] or "Prompt", "title": txt(p.get("n"), 120),
+        out.append({"src": "prompts", "label": ", ".join(tools)[:40] or "Prompt", "title": txt(p.get("n"), 120),
                     "desc": txt(p.get("p"), 150), "href": "../cookbook/#find=" + txt(p.get("n"), 120),
                     # the cookbook's data is a plain list, so its place in that list is its key
                     "k": i,
                     "thumb": (f"https://i.ytimg.com/vi/{vids[0]}/mqdefault.jpg" if vids else ""),
                     "vid": vids[0] if vids else "",
-                    "meta": ("▶ %d video%s" % (len(vids), "" if len(vids) == 1 else "s")) if vids else "",
+                    "meta": ("\u25B6 %d video%s" % (len(vids), "" if len(vids) == 1 else "s")) if vids else "",
                     "listen": False})
     return out
 
@@ -359,27 +455,40 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     NOW = th;
   }
   /* 20 Sep, her "I don't want it in a separate links or some sort. I'll want it like in the same app":
-     a Hormozi, Doser or Prompt card opens what it actually says HERE, under the card. The other app's
-     page is fetched once and read for that one card, so the words stay in one place and nothing is
-     copied into this file. The ticks, the Notion button and the read-aloud still live on the full card,
-     one tap away at the bottom. If the fetch fails the link does what it always did. */
+     a Hormozi, Doser or Prompt card opens what it actually says HERE, under the card. The ticks, the
+     Notion button and the read-aloud still live on the full card, one tap away at the bottom.
+
+     20 Sep, her pick on retiring /cookbook/ and /hormozi/: "Not yet - move data first". So this app
+     now carries those cards itself, in cards-*.json beside this page, and reads its own copy first.
+     Fetching the other app's page is only the fallback now, for the moment before a rebuild has
+     written the copy. When the old apps go, MINE is all that is left and nothing here changes. */
   var WHERE = {hormozi:"../hormozi/", doser:"../workflows/", prompts:"../cookbook/"};
+  var MINE = __LOCAL__;
   var FULL = {hormozi:"Open the full card in Hormozi", doser:"Open the full card in Doser workflows",
               prompts:"Open in the Prompt Cookbook"};
-  function load(src){
-    if(!DATA[src]) DATA[src] = fetch(WHERE[src]).then(function(r){ return r.text(); }).then(function(t){
+  function far(src){   /* the old way: pull the other app's whole page and read its data blob out */
+    return fetch(WHERE[src]).then(function(r){ return r.text(); }).then(function(t){
       var i = t.indexOf('<script id="data"');
       var a = i < 0 ? -1 : t.indexOf(">", i) + 1, b = a < 1 ? -1 : t.indexOf("</" + "script>", a);
       if(b < 0) throw new Error("no data blob in " + src);
       return JSON.parse(t.slice(a, b));   /* the other page escapes its closing tags, which JSON itself reads back */
     });
+  }
+  function load(src){
+    if(!DATA[src]) DATA[src] = fetch(MINE[src]).then(function(r){
+      if(!r.ok) throw new Error("no copy of " + src + " here yet");
+      return r.json();
+    }).catch(function(){ return far(src); });
     return DATA[src];
   }
   function pick(d, x){
-    if(x.src === "prompts") return d[+x.k];
-    var hit = null;
-    (d.topics || []).forEach(function(t){ (t.cards || []).forEach(function(c){ if(!hit && c.key === x.k) hit = c; }); });
-    return hit;
+    if(x.src === "prompts") return d[+x.k];          /* a list either way: the place in it is the key */
+    if(d.topics){                                     /* the other app's blob, still in its own shape */
+      var hit = null;
+      (d.topics || []).forEach(function(t){ (t.cards || []).forEach(function(c){ if(!hit && c.key === x.k) hit = c; }); });
+      return hit;
+    }
+    return d[x.k];                                    /* our own copy, keyed by the card's own key */
   }
   function pic(id, name){
     return '<button type="button" class="th" data-v="' + esc(id) + '" aria-label="Play ' + esc(name) + '">' +
@@ -564,10 +673,18 @@ def keep_cache_bust(new_html, old_html):
 
 
 def main():
-    items = recipe_pages() + topic_cards("hormozi", "hormozi", "Hormozi") + topic_cards("workflows", "doser", "Doser") + prompts()
+    horm, horm_from = own_cards("hormozi", "hormozi")
+    dose, dose_from = own_cards("workflows", "doser")
+    prom, prom_from = own_prompts()
+    # this folder's own copy is written before the page that reads it, so a rebuild can never leave
+    # the page pointing at a file that is not there
+    mine = {"hormozi": write_local("hormozi", horm), "doser": write_local("doser", dose),
+            "prompts": write_local("prompts", prom)}
+    items = (recipe_pages() + topic_cards("hormozi", "hormozi", "Hormozi", horm)
+             + topic_cards("workflows", "doser", "Doser", dose) + prompts(prom))
     blob = json.dumps(items, ensure_ascii=False).replace("</", "<\\/")
     home = SITE / "recipes" / "index.html"
-    page = PAGE.replace("__DATA__", blob)
+    page = PAGE.replace("__DATA__", blob).replace("__LOCAL__", json.dumps(mine, ensure_ascii=False))
     if home.exists():
         page = keep_cache_bust(page, home.read_text(encoding="utf-8"))
     home.write_text(page, encoding="utf-8")
@@ -580,6 +697,9 @@ def main():
             if t != s:
                 p.write_text(t, encoding="utf-8")
     print("coach catalogue:", coach_catalogue(), "recipes")
+    for src, where in (("hormozi", horm_from), ("doser", dose_from), ("prompts", prom_from)):
+        f = SITE / "recipes" / LOCAL[src]
+        print("  %-8s <- %-28s %s, %d KB" % (src, where, LOCAL[src], round(f.stat().st_size / 1024)))
     counts = {}
     for x in items:
         counts[x["src"]] = counts.get(x["src"], 0) + 1

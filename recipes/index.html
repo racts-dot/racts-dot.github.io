@@ -173,27 +173,40 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     NOW = th;
   }
   /* 20 Sep, her "I don't want it in a separate links or some sort. I'll want it like in the same app":
-     a Hormozi, Doser or Prompt card opens what it actually says HERE, under the card. The other app's
-     page is fetched once and read for that one card, so the words stay in one place and nothing is
-     copied into this file. The ticks, the Notion button and the read-aloud still live on the full card,
-     one tap away at the bottom. If the fetch fails the link does what it always did. */
+     a Hormozi, Doser or Prompt card opens what it actually says HERE, under the card. The ticks, the
+     Notion button and the read-aloud still live on the full card, one tap away at the bottom.
+
+     20 Sep, her pick on retiring /cookbook/ and /hormozi/: "Not yet - move data first". So this app
+     now carries those cards itself, in cards-*.json beside this page, and reads its own copy first.
+     Fetching the other app's page is only the fallback now, for the moment before a rebuild has
+     written the copy. When the old apps go, MINE is all that is left and nothing here changes. */
   var WHERE = {hormozi:"../hormozi/", doser:"../workflows/", prompts:"../cookbook/"};
+  var MINE = {"hormozi": "cards-hormozi.json?v=8599c18ef9", "doser": "cards-doser.json?v=08be47c71e", "prompts": "cards-prompts.json?v=b5e5b4f73d"};
   var FULL = {hormozi:"Open the full card in Hormozi", doser:"Open the full card in Doser workflows",
               prompts:"Open in the Prompt Cookbook"};
-  function load(src){
-    if(!DATA[src]) DATA[src] = fetch(WHERE[src]).then(function(r){ return r.text(); }).then(function(t){
+  function far(src){   /* the old way: pull the other app's whole page and read its data blob out */
+    return fetch(WHERE[src]).then(function(r){ return r.text(); }).then(function(t){
       var i = t.indexOf('<script id="data"');
       var a = i < 0 ? -1 : t.indexOf(">", i) + 1, b = a < 1 ? -1 : t.indexOf("</" + "script>", a);
       if(b < 0) throw new Error("no data blob in " + src);
       return JSON.parse(t.slice(a, b));   /* the other page escapes its closing tags, which JSON itself reads back */
     });
+  }
+  function load(src){
+    if(!DATA[src]) DATA[src] = fetch(MINE[src]).then(function(r){
+      if(!r.ok) throw new Error("no copy of " + src + " here yet");
+      return r.json();
+    }).catch(function(){ return far(src); });
     return DATA[src];
   }
   function pick(d, x){
-    if(x.src === "prompts") return d[+x.k];
-    var hit = null;
-    (d.topics || []).forEach(function(t){ (t.cards || []).forEach(function(c){ if(!hit && c.key === x.k) hit = c; }); });
-    return hit;
+    if(x.src === "prompts") return d[+x.k];          /* a list either way: the place in it is the key */
+    if(d.topics){                                     /* the other app's blob, still in its own shape */
+      var hit = null;
+      (d.topics || []).forEach(function(t){ (t.cards || []).forEach(function(c){ if(!hit && c.key === x.k) hit = c; }); });
+      return hit;
+    }
+    return d[x.k];                                    /* our own copy, keyed by the card's own key */
   }
   function pic(id, name){
     return '<button type="button" class="th" data-v="' + esc(id) + '" aria-label="Play ' + esc(name) + '">' +

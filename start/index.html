@@ -109,9 +109,12 @@
   @media (prefers-reduced-motion:reduce){ #startbg i{animation:sbfade 96s linear infinite} }
   @media print{ #startbg,#startscrim{display:none} }
 
-  /* ---- the top: clock, greeting, focus. This is the WHOLE default view. ---- */
-  .hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;
+  /* ---- the top: clock, greeting, focus. This is the WHOLE default view.
+         It is now a ZONE - whatever she has dragged in here is what the first screen shows,
+         and it keeps the shape it had this morning: full height, everything centred. ---- */
+  #wtop{min-height:100svh;display:flex;flex-direction:column;justify-content:center;align-items:center;
         padding:calc(24px + env(safe-area-inset-top)) 0 calc(96px + env(safe-area-inset-bottom))}
+  #wtop > .wg{width:100%;max-width:620px}
   .clock{font-family:var(--num);font-size:clamp(56px,9vw,104px);font-weight:600;letter-spacing:-.03em;
          line-height:1;font-variant-numeric:tabular-nums}
   .clock small{font-size:.32em;color:var(--muted);font-weight:500;margin-left:6px;letter-spacing:0}
@@ -181,8 +184,7 @@
   .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--live),var(--published));
          border-radius:999px;transition:width .6s ease}
 
-  /* ---- the two live columns ---- */
-  .grid{display:grid;grid-template-columns:3fr 2fr;gap:16px;margin-bottom:24px}
+  /* ---- the two live columns. The grid itself is #wdraw now, up in the widget block. ---- */
   section.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px;
                backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
   section.card h2{font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
@@ -251,7 +253,7 @@
          one big CENTRED clock, the greeting under it, one focus line, and everything
          else quiet at the edges. Nothing is taken away to get it; the clock, greeting,
          date and focus line are the same elements, moved to the middle. ---- */
-  .hero{text-align:center}
+  #wtop{text-align:center}
   /* The centred column is capped so it can never run under the board at the right edge. */
   .focus{justify-content:center;max-width:620px;margin-left:auto;margin-right:auto}
   .focus input{flex:0 1 460px;min-width:0}
@@ -260,8 +262,9 @@
   /* ---- the weather, top right and quiet. Her note, 19 Sep 2026: "Weather".
          open-meteo.com answers without a key and without an account, so this cannot
          run up a bill or ask her to sign in to anything. ---- */
-  .wx{position:fixed;top:calc(14px + env(safe-area-inset-top));right:20px;z-index:20;
-      background:none;border:0;color:var(--muted);font:inherit;font-size:14px;
+  /* The weather is no longer positioned by itself: it sits in whichever zone she put it in,
+     and the corner zone below is what holds it to the top right by default. */
+  .wx{background:none;border:0;color:var(--muted);font:inherit;font-size:14px;
       padding:4px 6px;border-radius:8px;cursor:pointer;opacity:.55;
       transition:opacity .18s ease}
   .wx:hover,.wx:focus-visible{opacity:1;outline:none}
@@ -273,8 +276,9 @@
          the right hand side". Named boards, one shown at a time. Quiet until she
          looks at it, like the corner button. On a phone it falls BELOW the clock
          rather than beside it - there is no room for a right-hand column at 375px. ---- */
-  .board{width:auto;max-width:560px;margin:0 auto 32px;transition:opacity .18s ease}
-  .board:hover,.board:focus-within{opacity:1}
+  /* The boards panel is a widget now, so its width and its place come from the zone it is
+     in (see #wside below) and not from this rule. */
+  .board{width:auto;max-width:none;margin:0;text-align:left}
   .btabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
   .btab{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:12.5px;
         padding:3px 9px;border-radius:999px;cursor:pointer}
@@ -297,28 +301,157 @@
   .bfoot button{background:none;border:0;color:var(--faint);font:inherit;font-size:12px;cursor:pointer;
                 padding:2px 5px;border-radius:6px}
   .bfoot button:hover{color:var(--ink);background:var(--line)}
-  /* 1240px is measured, not chosen: below it the board's left edge and the focus line's
-     right edge start to meet, and a board sitting on top of the one line she types every
-     morning is worse than a board she scrolls to. */
+  /* ================= HER WIDGET BOARD, 20 Sep 2026 =========================
+     Her answer today, word for word: "keep both but can i adjust how it is structured
+     like widget board". So the boards panel stays, the drop-down stays, and every piece
+     of this page became a WIDGET she can pick up and put somewhere else.
+     There are four places a widget can live, and they are the four places this page
+     already had - nothing new was invented to hold them:
+       corner   the quiet top right, where the weather has been
+       screen   the first screen, centred, where the clock is
+       side     the right-hand rail on a wide monitor, under the clock on a phone
+       drawer   behind the corner button, where the day and the links are
+     Where she puts them is kept on THIS device, like the focus line and the boards
+     themselves - there is no server behind this page, and a layout that pretends to
+     follow her between machines and does not is worse than one that says where it lives.
+     ON A PHONE every zone is one column in the order she chose, and that is free rather
+     than arranged for: nothing here is positioned, so the order IS the DOM order. ==== */
+
+  /* --- the corner. Default home of the weather, which is why it keeps the exact top and
+         right it had before this was a zone. It disappears when she empties it. --- */
+  #wcorner{position:fixed;top:calc(14px + env(safe-area-inset-top));right:20px;z-index:20;
+           display:flex;align-items:center;gap:12px}
+  #wcorner:empty{display:none}
+
+  /* --- the side. 1240px is measured, not chosen: below it the rail's left edge and the
+         focus line's right edge start to meet, and a card sitting on top of the one line
+         she types every morning is worse than a card she scrolls to. --- */
+  #wside{display:flex;flex-direction:column;gap:14px;max-width:560px;margin:0 auto 32px}
+  #wside:empty{display:none}
   @media (min-width:1240px){
-    .board{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:20;
-           width:248px;max-width:none;margin:0;opacity:.62;
-           /* Only on this layout does the board float out at the right edge, past the dark
-              core of the scrim, where it would otherwise be words lying on a photograph.
-              Measured worst pixel of the six photos at 1440x900: the item text goes 9.4:1
-              to 13.6:1 and the small grey labels 2.5:1 to 3.6:1. Same glass as the cards in
-              the drawer, so it is the page's own material and not a new one. Below 1240px
-              the board sits centred in the flow, inside the dark core, and needs none. */
-           background:var(--surface);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-           border:1px solid var(--line);border-radius:16px;padding:12px 13px}
-    .bitems{max-height:44svh;overflow-y:auto;overscroll-behavior:contain}
+    body:not(.arranging) #wside{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:20;
+           width:248px;max-width:none;margin:0;max-height:86svh;overflow-y:auto;overscroll-behavior:contain}
+    /* Only on this layout does the rail float out at the right edge, past the dark core of
+       the scrim, where its words would otherwise lie on a photograph. Measured worst pixel
+       of the six photos at 1440x900: item text 9.4:1 -> 13.6:1, small grey labels 2.5:1 ->
+       3.6:1. Same glass as the cards in the drawer, so it is the page's own material and
+       not a new one. Below 1240px the rail sits in the flow, inside the dark core, and
+       needs none. It is on the WIDGET, not on the board, because any widget can be here. */
+    body:not(.arranging) #wside > .wg{background:var(--surface);
+           backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+           border:1px solid var(--line);border-radius:16px;padding:12px 13px;
+           opacity:.62;transition:opacity .18s ease}
+    body:not(.arranging) #wside > .wg:hover,body:not(.arranging) #wside > .wg:focus-within{opacity:1}
+    body:not(.arranging) #wside .bitems,body:not(.arranging) #wside .stickies{max-height:34svh;
+           overflow-y:auto;overscroll-behavior:contain}
   }
+
+  /* --- the drawer's own grid. Twelve columns so the day can be wide and the pad narrow,
+         which is the 3fr/2fr it was before, written so a card can be moved into any slot. --- */
+  #wdraw{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;margin-bottom:24px}
+  #wdraw > .wg{grid-column:1/-1}
+  #wdraw > .wg[data-w="day"]{grid-column:span 7}
+  #wdraw > .wg[data-w="pad"]{grid-column:span 5}
+  #wdraw > .wg[data-w="waiting"]{grid-column:span 5}
+  #wdraw > .wg[data-w="chats"]{grid-column:span 7}
+  @media (max-width:860px){ #wdraw > .wg[data-w]{grid-column:1/-1} }
+
+  /* --- a widget, and the grey bar she picks it up by. The bar only exists while she is
+         arranging: the rest of the time the page has no furniture on it at all. --- */
+  .wg[hidden]{display:none}
+  .whandle{display:none}
+  body.arranging .whandle{display:flex;align-items:center;gap:2px;margin:0 0 8px;padding:4px 4px 4px 9px;
+        border-radius:9px;background:rgba(255,255,255,.07);border:1px solid var(--line);
+        cursor:grab;touch-action:none;font-size:12px;color:var(--muted);text-align:left}
+  body.arranging .whandle:active{cursor:grabbing}
+  .whandle .wname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  .whandle .wgrip{color:var(--faint);letter-spacing:-2px;margin-right:6px}
+  .whandle button{background:none;border:0;color:var(--faint);font:inherit;font-size:12px;
+        cursor:pointer;padding:3px 7px;border-radius:6px;flex:0 0 auto}
+  .whandle button:hover,.whandle button:focus-visible{color:var(--ink);background:var(--line);outline:none}
+  body.arranging .wg{outline:1px dashed rgba(255,255,255,.20);outline-offset:5px;border-radius:14px;
+        position:relative;max-height:220px;overflow:hidden}
+  /* A card is shown SHORT while she is arranging. The day's feed on its own is three screens
+     tall, and four places she cannot reach without a minute of scrolling is not something
+     anyone arranges twice. Nothing is lost: every card is whole again the moment she is done. */
+  body.arranging .wg.wtall::after{content:"";position:absolute;left:0;right:0;bottom:0;height:44px;
+        pointer-events:none;background:linear-gradient(to bottom,rgba(11,14,19,0),rgba(11,14,19,.92))}
+  body.arranging #wtop > .wg{max-width:none}
+  body.arranging #wdraw > .wg[data-w]{grid-column:1/-1}
+  /* The card being carried. It leaves a green slot behind it so she can see where it lands. */
+  .wg.wdrag{position:fixed;z-index:200;pointer-events:none;opacity:.95;cursor:grabbing;
+        border-radius:16px;padding:12px 13px;background:var(--surface-2);
+        backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+        box-shadow:0 22px 56px rgba(0,0,0,.55);outline:1px solid rgba(255,255,255,.22)}
+  .wgph{border:1px dashed rgba(84,200,143,.65);border-radius:14px;background:rgba(84,200,143,.08);min-height:52px}
+
+  /* --- the zones, only visible while she is arranging --- */
+  body.arranging .zone{outline:1px solid var(--line);border-radius:18px;
+        padding:30px 12px 12px;margin:0 0 16px;min-height:104px;position:relative}
+  body.arranging #wtop{min-height:104px;display:block;text-align:left}
+  body.arranging #wcorner{position:static;display:block}
+  body.arranging .zone::before{content:attr(data-label);position:absolute;top:9px;left:14px;
+        font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+  body.arranging .zone.wempty::after{content:"nothing here - drag a card in";display:block;
+        color:var(--faint);font-size:13px;padding:8px 2px}
+  body.arranging #wside:empty,body.arranging #wcorner:empty{display:block}
+
+  /* --- the bar along the bottom while arranging: what is hidden, and the way out --- */
+  .abar{position:fixed;left:0;right:0;top:0;z-index:60;display:none;gap:10px;align-items:center;
+        flex-wrap:wrap;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;
+        background:rgba(13,17,23,.96);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+        border-bottom:1px solid var(--line)}
+  body.arranging .abar{display:flex}
+  body.arranging{padding-top:calc(64px + env(safe-area-inset-top));padding-bottom:40px}
+  body.arranging .trigger,body.arranging .hint,body.arranging .scrim{display:none}
+  body.arranging .drawer{position:static;transform:none;max-height:none;overflow:visible;
+        border-radius:0;border-top:0;box-shadow:none;background:transparent;
+        backdrop-filter:none;-webkit-backdrop-filter:none;padding:0}
+  body.arranging .drawer .grab,body.arranging .drawer .dtop,body.arranging .drawer footer{display:none}
+  /* The first screen stops reserving a screenful while she is arranging: four zones have to
+     be reachable without a long scroll between each one. */
+  body.arranging #wtop{padding:30px 12px 12px}
+  body:not(.arranging) #wtop.wempty{min-height:0;padding:0}
+  .abar .alead{color:var(--muted);font-size:13px}
+  .abar .atray{display:flex;gap:6px;flex-wrap:wrap;align-items:center;color:var(--faint);font-size:12px}
+  .abar .aend{display:flex;gap:8px;margin-left:auto}
+  .abar button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:12.5px;
+        padding:4px 11px;border-radius:9px;cursor:pointer}
+  .abar button:hover,.abar button:focus-visible{color:var(--ink);border-color:rgba(255,255,255,.26);outline:none}
+  .abar button.prime{color:var(--ink);border-color:rgba(84,200,143,.55);background:rgba(84,200,143,.14)}
+
+  /* --- what one board can be. Her note, 20 Sep 07:03: "then the board comes up where i can
+         choose to write things down, scribble or to have the sticky notes". Three of those,
+         one board at a time, remembered per board. --- */
+  .bmodes{display:flex;flex-wrap:wrap;gap:3px;margin:0 0 9px}
+  .bmode{background:none;border:0;color:var(--faint);font:inherit;font-size:11.5px;letter-spacing:.04em;
+         text-transform:uppercase;padding:3px 7px;border-radius:999px;cursor:pointer;white-space:nowrap}
+  .bmode.on{color:var(--ink);background:var(--line)}
+  .wscribble{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:rgba(0,0,0,.24)}
+  .wscribble canvas{display:block;width:100%;height:230px;touch-action:none;cursor:crosshair}
+  .sctools{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 0}
+  .sctools button{background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-size:12px;
+        padding:3px 9px;border-radius:8px;cursor:pointer}
+  .sctools button.on{color:var(--ink);border-color:rgba(255,255,255,.26);background:var(--surface)}
+  .stickies{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+  .sticky{position:relative;border-radius:10px;padding:9px 9px 7px;min-height:108px;
+        box-shadow:0 7px 18px rgba(0,0,0,.30)}
+  /* The notes are paper colours, so the writing on them is near-black whatever the page does. */
+  .sticky textarea{width:100%;height:84px;resize:none;background:transparent;border:0;outline:none;
+        color:#181410;font:inherit;font-size:13px;line-height:1.38}
+  .sticky textarea::placeholder{color:rgba(24,20,16,.42)}
+  .sticky .sx,.sticky .sc{position:absolute;bottom:3px;background:none;border:0;color:rgba(24,20,16,.5);
+        font:inherit;font-size:12px;cursor:pointer;padding:2px 5px;border-radius:6px;opacity:0;
+        transition:opacity .12s ease}
+  .sticky .sx{right:4px} .sticky .sc{right:30px}
+  .sticky:hover .sx,.sticky:hover .sc,.sticky .sx:focus-visible,.sticky .sc:focus-visible{opacity:1;outline:none}
+  .sticky .sx:hover,.sticky .sc:hover{background:rgba(0,0,0,.10);color:#181410}
+  .snone{color:var(--faint);font-size:13px;padding:2px 0 8px}
 
   footer{color:var(--faint);font-size:12px;margin-top:28px;line-height:1.6}
   footer a{color:var(--muted)}
 
   @media (max-width:760px){
-    .grid{grid-template-columns:1fr}
     .hint{display:none}
   }
   @media (prefers-reduced-motion:reduce){ .big .sub .dot.beat{animation:none} .tile{transition:none} }
@@ -337,42 +470,97 @@
 <div id="startbg" aria-hidden="true"><i style="background-image:url(../tripshare/bg/korea-blossom.jpg)"></i><i style="background-image:url(../tripshare/bg/korea-hanok.jpg)"></i><i style="background-image:url(../tripshare/bg/europe-rooftops.jpg)"></i><i style="background-image:url(../tripshare/bg/europe-alps.jpg)"></i><i style="background-image:url(../tripshare/bg/sky-clouds.jpg)"></i><i style="background-image:url(../tripshare/bg/sky-aurora.jpg)"></i></div>
 <div id="startscrim" aria-hidden="true"></div>
 
-<!-- The weather sits at the edge and says one line. It is hidden until there is either a
-     saved reading or the word to tap, so a new tab never flashes an empty box. -->
-<button class="wx" id="wx" type="button" hidden>weather</button>
+<!-- THE CORNER. The weather sits at the edge and says one line. It is hidden until there is
+     either a saved reading or the word to tap, so a new tab never flashes an empty box.
+     It is a widget: this is only where it STARTS. -->
+<div class="zone" id="wcorner" data-zone="corner" data-label="the corner"></div>
 
-<!-- THE DEFAULT VIEW. Clock, greeting, one focus line. Nothing else, on purpose. -->
+<!-- THE DEFAULT VIEW. Clock, greeting, one focus line. Nothing else, on purpose.
+     Every card below is a widget, and the order they sit in is hers. -->
 <div class="wrap">
-<header class="hero">
-  <div class="clock" id="clock" aria-live="off">--:--</div>
-  <div class="greet" id="greet">Hello, Rachel.</div>
-  <div class="date" id="date"></div>
-  <div class="focus">
-    <label for="focus" id="focusLabel">Today</label>
-    <input id="focus" type="text" placeholder="one thing to finish today" autocomplete="off" spellcheck="false">
-    <button id="focusClear" type="button" title="Clear" aria-label="Clear today's focus" hidden>done</button>
-  </div>
-  <!-- The one thing that survives into the calm view, and only when it is actually wrong. -->
+<div class="zone" id="wtop" data-zone="screen" data-label="the first screen">
+
+  <section class="wg" data-w="clock">
+    <div class="clock" id="clock" aria-live="off">--:--</div>
+    <div class="greet" id="greet">Hello, Rachel.</div>
+    <div class="date" id="date"></div>
+  </section>
+
+  <section class="wg" data-w="focus">
+    <div class="focus">
+      <label for="focus" id="focusLabel">Today</label>
+      <input id="focus" type="text" placeholder="one thing to finish today" autocomplete="off" spellcheck="false">
+      <button id="focusClear" type="button" title="Clear" aria-label="Clear today's focus" hidden>done</button>
+    </div>
+  </section>
+
+  <!-- NOT a widget, on purpose: it cannot be hidden or moved. It is the one thing that
+       survives into the calm view, and only when something is actually wrong. The layout
+       code keeps it last in this zone however the cards above are shuffled. -->
   <div class="stale" id="stale"></div>
-</header>
+</div>
+
+<!-- THE WEATHER. One line, one tap. It starts in the corner and can be dragged anywhere. -->
+<section class="wg" data-w="weather" id="wxWidget">
+  <button class="wx" id="wx" type="button" hidden>weather</button>
+</section>
 
 <!-- THE BOARD. Her note, 19 Sep 2026: "actually can i have something like board that i can
      switch depending on the tasks i am up to on the right hand side". The names across the
      top are the boards; tapping one switches to it. It lives on this device, like the focus
      line above - the scratch pad in the drawer is the one that follows her between machines. -->
-<aside class="board" id="board" aria-label="Boards">
+<section class="wg board" id="board" data-w="boards" aria-label="Boards">
   <div class="btabs" id="btabs"></div>
-  <ul class="bitems" id="bitems"></ul>
-  <form class="badd" id="badd" autocomplete="off">
-    <input id="bnew" type="text" placeholder="add" aria-label="Add to this board" spellcheck="false">
-  </form>
+  <!-- Her note, 20 Sep 2026 07:03: "when unfold there are different projects i am in, so if i
+       click for example 'a' then the board comes up where i can choose to write things down,
+       scribble or to have the sticky notes". The names above are the projects; these three are
+       the choice. Which one a board is on is remembered per board, so the shopping list stays
+       a list and the one she draws on opens on the paper. -->
+  <div class="bmodes" id="bmodes" role="group" aria-label="What this board shows">
+    <button type="button" class="bmode" data-m="list">write</button>
+    <button type="button" class="bmode" data-m="draw">scribble</button>
+    <button type="button" class="bmode" data-m="notes">sticky notes</button>
+  </div>
+
+  <div id="bListWrap">
+    <ul class="bitems" id="bitems"></ul>
+    <form class="badd" id="badd" autocomplete="off">
+      <input id="bnew" type="text" placeholder="add" aria-label="Add to this board" spellcheck="false">
+    </form>
+  </div>
+
+  <!-- The same scratch paper the Desk has, one sheet per board. Strokes are kept as a
+       fraction of the sheet rather than in pixels, because this widget is 248px wide in
+       the right-hand rail and the full width of the phone: pixels drawn in one would be
+       drawn off the edge of the other. -->
+  <div id="bDrawWrap" hidden>
+    <div class="wscribble"><canvas id="bcanvas" aria-label="Scribble on this board with your finger"></canvas></div>
+    <div class="sctools">
+      <button type="button" data-pen="ink" class="on" aria-pressed="true">pen</button>
+      <button type="button" data-pen="accent" aria-pressed="false">green</button>
+      <button type="button" data-pen="erase" aria-pressed="false">rubber</button>
+      <button type="button" id="bUndo">undo</button>
+      <button type="button" id="bClear">clear</button>
+    </div>
+  </div>
+
+  <div id="bNotesWrap" hidden>
+    <div class="stickies" id="stickies"></div>
+    <div class="bfoot"><button id="sAdd" type="button">+ sticky note</button></div>
+  </div>
+
+  <div class="snone" id="bwarn" hidden></div>
   <div class="bfoot">
     <button id="bAdd" type="button">+ board</button>
     <button id="bRename" type="button">rename</button>
     <button id="bDel" type="button">remove</button>
   </div>
-</aside>
+</section>
 </div>
+
+<!-- THE SIDE. On a wide monitor this is the rail down the right, where the board has been;
+     on a phone it is simply the next thing under the clock. -->
+<div class="wrap"><div class="zone" id="wside" data-zone="side" data-label="the side"></div></div>
 
 <!-- ONE BUTTON. Everything else is behind it. -->
 <button class="trigger" id="trigger" type="button" aria-expanded="false" aria-controls="drawer"
@@ -395,19 +583,23 @@
         <div class="bar" aria-hidden="true"><i id="bar"></i></div>
         <div class="sub"><span class="dot beat" id="dot"></span><span id="pace">reading the day…</span></div>
       </div>
-      <button class="close" id="close" type="button">close ·  Esc</button>
+      <span>
+        <!-- Her answer, 20 Sep 2026: "keep both but can i adjust how it is structured like
+             widget board". This is the way in. The a key does the same thing. -->
+        <button class="close" id="arrange" type="button">arrange · a</button>
+        <button class="close" id="close" type="button">close ·  Esc</button>
+      </span>
     </div>
 
-    <div class="grid">
-      <section class="card" id="today">
+    <div class="zone" id="wdraw" data-zone="drawer" data-label="the drawer">
+      <section class="card wg" data-w="day" id="today">
         <h2>The day, streamed <a href="/day/" id="dayLink">open The Day →</a></h2>
         <ul id="events"><li class="empty">reading /day/stream.json…</li></ul>
       </section>
-      <div style="display:grid;gap:16px;align-content:start">
 
         <!-- THE ONE THING HERE THAT IS THE SAME ON EVERY DEVICE. Its text lives in Notion,
              not in this browser, so the Mac, the PC and the phone all open the same pad. -->
-        <section class="card pad" id="padCard">
+        <section class="card pad wg" data-w="pad" id="padCard">
           <h2>Scratch pad <span id="padWho">every device</span></h2>
           <textarea id="pad" placeholder="anything you want on every device" spellcheck="true"
                     aria-label="Scratch pad, shared across your devices"></textarea>
@@ -418,32 +610,45 @@
           <div class="clash" id="padClash" role="alert"></div>
         </section>
 
-        <section class="card" id="waiting">
+        <section class="card wg" data-w="waiting" id="waiting">
           <h2>Waiting on you <a href="/desk/">the Desk →</a></h2>
           <ul class="wait" id="wait"><li class="empty">reading /desk/progress.json…</li></ul>
         </section>
-        <section class="card" id="chatsCard">
+        <section class="card wg" data-w="chats" id="chatsCard">
           <h2>Chats running <span id="chatsWhen"></span></h2>
           <ul class="chats" id="chats"><li class="empty">reading…</li></ul>
         </section>
-      </div>
-    </div>
 
-    <div class="search">
-      <span class="ico" aria-hidden="true">⌕</span>
-      <input id="tileq" type="search" placeholder="search your sites" autocomplete="off" aria-label="Search the link tiles">
-      <span class="count" id="tilecount"></span>
+      <section class="wg" data-w="tiles">
+        <div class="search">
+          <span class="ico" aria-hidden="true">⌕</span>
+          <input id="tileq" type="search" placeholder="search your sites" autocomplete="off" aria-label="Search the link tiles">
+          <span class="count" id="tilecount"></span>
+        </div>
+        <div class="groups" id="groups"></div>
+      </section>
     </div>
-
-    <div class="groups" id="groups"></div>
 
     <footer>
       <span id="madeLine">The Day and the Desk are rebuilt by timers every 20 minutes, no AI. This page re-reads them every minute.</span>
       · <a href="/start/links.json">links.json</a> holds the tiles.
+      · <b>arrange</b> above, or the <b>a</b> key, lets you drag these cards anywhere on the
+      page and put away the ones you do not want. That arrangement is kept on this device.
       <button id="refresh" type="button" style="display:none" aria-hidden="true">refresh</button>
     </footer>
 
   </div>
+</div>
+
+<!-- Only on screen while she is arranging. Everything hidden is listed here, so a card she
+     put away is one tap from coming back and cannot be lost by forgetting where it went. -->
+<div class="abar" id="abar" role="group" aria-label="Arranging your widgets">
+  <span class="alead">Drag a card by its grey bar.</span>
+  <span class="atray" id="atray"></span>
+  <span class="aend">
+    <button id="aReset" type="button">put it all back</button>
+    <button id="aDone" type="button" class="prime">done</button>
+  </span>
 </div>
 
 <script>
@@ -563,8 +768,17 @@
      on THIS device, the same as the focus line and for the same reason - there is
      no server behind this page, and a board that pretends to follow her between
      machines and does not is worse than one that says where it lives. The scratch
-     pad in the drawer is the one that is the same everywhere. ================== */
-  var BKEY = "start.boards", bState = null;
+     pad in the drawer is the one that is the same everywhere.
+
+     Her note, 20 Sep 2026 07:03: "when unfold there are different projects i am in,
+     so if i click for example 'a' then the board comes up where i can choose to write
+     things down, scribble or to have the sticky notes". The names across the top are
+     the projects; each one can be a LIST, a SHEET SHE DRAWS ON, or STICKY NOTES, and
+     which one it is on is remembered per board. Nothing was taken away to add them:
+     a board opened before today is a list, because "list" is what a board with no
+     mode written on it reads as. ================== */
+  var BKEY = "start.boards", bState = null, BMODES = ["list","draw","notes"];
+  var SCOL = ["#F6E08A","#BFE3C4","#BBD8F3","#F3C6D2","#E9DCC8"];
   function bLoad(){
     try {
       var o = JSON.parse(localStorage.getItem(BKEY) || "null");
@@ -572,16 +786,40 @@
     } catch(e){}
     return { boards: [ { name: "Now", items: [] } ], at: 0 };
   }
-  function bKeep(){ try { localStorage.setItem(BKEY, JSON.stringify(bState)); } catch(e){} }
+  /* A list costs a few hundred bytes; a page of scribble costs tens of thousands, so this
+     is the first thing on this page that can genuinely fill the device's store. When it
+     does she is TOLD, rather than drawing onto a sheet that is not being kept. */
+  function bKeep(){
+    try { localStorage.setItem(BKEY, JSON.stringify(bState)); $("bwarn").hidden = true; }
+    catch(e){
+      $("bwarn").textContent = "This device will not store any more - the last change was not kept. " +
+        "Clearing a scribble you have finished with makes room.";
+      $("bwarn").hidden = false;
+    }
+  }
   function bNow(){ return bState.boards[bState.at]; }
+  function bMode(){ var m = bNow().mode; return BMODES.indexOf(m) < 0 ? "list" : m; }
   function bDraw(){
     if (!(bState.at >= 0 && bState.at < bState.boards.length)) bState.at = 0;
     $("btabs").innerHTML = bState.boards.map(function(b, i){
+      /* The number beside a board's name counts what is left on it, and only a LIST has
+         things left. A sheet of scribble has no such number, so it gets none. */
       var left = (b.items || []).filter(function(it){ return !it.done; }).length;
       return '<button type="button" class="btab' + (i === bState.at ? " on" : "") + '" data-i="' + i + '">' +
              esc(b.name) + (left ? "<i>" + left + "</i>" : "") + "</button>";
     }).join("");
-    var b = bNow(), items = b.items || [];
+    var b = bNow(), mode = bMode();
+    var modes = $("bmodes").querySelectorAll(".bmode");
+    for (var mi = 0; mi < modes.length; mi++){
+      var on = modes[mi].getAttribute("data-m") === mode;
+      modes[mi].classList.toggle("on", on);
+      modes[mi].setAttribute("aria-pressed", String(on));
+    }
+    $("bListWrap").hidden  = mode !== "list";
+    $("bDrawWrap").hidden  = mode !== "draw";
+    $("bNotesWrap").hidden = mode !== "notes";
+
+    var items = b.items || [];
     $("bitems").innerHTML = items.length
       ? items.map(function(it, i){
           return '<li class="' + (it.done ? "done" : "") + '">' +
@@ -590,11 +828,18 @@
         }).join("")
       : '<li class="bempty">nothing on this board yet</li>';
     $("bnew").placeholder = "add to " + b.name;
+    sDraw();
+    if (mode === "draw") bFit(); else bLive = null;
   }
   $("btabs").addEventListener("click", function(e){
     var t = e.target && e.target.closest ? e.target.closest(".btab") : null;
     if (!t) return;
     bState.at = parseInt(t.getAttribute("data-i"), 10); bKeep(); bDraw();
+  });
+  $("bmodes").addEventListener("click", function(e){
+    var t = e.target && e.target.closest ? e.target.closest(".bmode") : null;
+    if (!t) return;
+    bNow().mode = t.getAttribute("data-m"); bKeep(); bDraw();
   });
   $("bitems").addEventListener("click", function(e){
     var el = e.target, b = bNow();
@@ -623,6 +868,127 @@
     if (!window.confirm('Remove the board "' + bNow().name + '" and everything on it?')) return;
     bState.boards.splice(bState.at, 1); bState.at = 0; bKeep(); bDraw();
   });
+
+  /* ---- the sticky notes on a board ----
+     They are squares of paper, so the writing on them is near-black whatever the page is
+     doing. Typing does NOT redraw them: a redraw would take the caret out of the note she
+     is in the middle of writing. ---- */
+  function sDraw(){
+    var n = bNow().notes || [];
+    $("stickies").innerHTML = n.length ? n.map(function(o, i){
+      return '<div class="sticky" style="background:' + SCOL[(o.c || 0) % SCOL.length] + '">' +
+        '<textarea data-n="' + i + '" placeholder="note" aria-label="Sticky note ' + (i + 1) + '">' +
+        esc(o.t || "") + "</textarea>" +
+        '<button type="button" class="sc" data-c="' + i + '" aria-label="Change this note\'s colour">\u25D1</button>' +
+        '<button type="button" class="sx" data-s="' + i + '" aria-label="Remove this note">\u00D7</button></div>';
+    }).join("") : '<p class="snone">No notes on this board yet.</p>';
+  }
+  var sTimer = null;
+  $("stickies").addEventListener("input", function(e){
+    var t = e.target; if (!t || t.getAttribute("data-n") === null) return;
+    var b = bNow(); (b.notes = b.notes || [])[+t.getAttribute("data-n")].t = t.value;
+    clearTimeout(sTimer); sTimer = setTimeout(bKeep, 500);
+  });
+  $("stickies").addEventListener("click", function(e){
+    var t = e.target, b = bNow(); if (!t || !t.getAttribute) return;
+    b.notes = b.notes || [];
+    if (t.getAttribute("data-s") !== null){
+      if (!window.confirm("Remove this note?")) return;
+      b.notes.splice(+t.getAttribute("data-s"), 1);
+    } else if (t.getAttribute("data-c") !== null){
+      var i = +t.getAttribute("data-c"); b.notes[i].c = ((b.notes[i].c || 0) + 1) % SCOL.length;
+    } else return;
+    bKeep(); sDraw();
+  });
+  $("sAdd").addEventListener("click", function(){
+    var b = bNow(); b.notes = b.notes || [];
+    b.notes.push({ t: "", c: b.notes.length % SCOL.length });
+    bKeep(); sDraw();
+    var last = $("stickies").querySelectorAll("textarea");
+    if (last.length) last[last.length - 1].focus();
+  });
+
+  /* ---- the sheet she draws on. The Desk's scratch paper, one sheet per board.
+     THE POINTS ARE FRACTIONS OF THE SHEET, NOT PIXELS. This widget is 248px wide in the
+     right-hand rail and the full width of a phone, and she can drag it from one to the
+     other, so a stroke recorded in pixels would be drawn off the edge of the page the
+     next time she opened it. The rubber cuts a hole rather than painting over in the
+     paper colour, which is what makes it work on a dark page. ---- */
+  var bcv = $("bcanvas"), bctx = bcv.getContext("2d"), bPen = "ink", bLive = null;
+  function bStrokes(){ var b = bNow(); if (!b.strokes) b.strokes = []; return b.strokes; }
+  function bPaint(){
+    var w = bcv.clientWidth, h = bcv.clientHeight;
+    if (w < 2) return;
+    bctx.clearRect(0, 0, w, h);
+    bctx.lineCap = "round"; bctx.lineJoin = "round";
+    var all = bStrokes().concat(bLive ? [bLive] : []);
+    for (var i = 0; i < all.length; i++){
+      var pts = all[i].pts || [], pk = all[i].p || "ink";
+      if (pts.length < 2) continue;
+      bctx.globalCompositeOperation = pk === "erase" ? "destination-out" : "source-over";
+      bctx.lineWidth = pk === "erase" ? 18 : 2.2;
+      bctx.strokeStyle = pk === "accent" ? "#54C88F" : "#EDF1F6";
+      bctx.beginPath(); bctx.moveTo(pts[0][0] * w, pts[0][1] * h);
+      for (var j = 1; j < pts.length; j++) bctx.lineTo(pts[j][0] * w, pts[j][1] * h);
+      bctx.stroke();
+    }
+    bctx.globalCompositeOperation = "source-over";
+  }
+  function bFit(){
+    if (bcv.clientWidth < 2) return;          /* still hidden: there is nothing to size to */
+    var dpr = window.devicePixelRatio || 1;
+    bcv.width = Math.max(1, Math.round(bcv.clientWidth * dpr));
+    bcv.height = Math.max(1, Math.round(bcv.clientHeight * dpr));
+    bctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    bPaint();
+  }
+  function bAt(ev){
+    var r = bcv.getBoundingClientRect();
+    return [ Math.round((ev.clientX - r.left) / Math.max(1, r.width) * 1e4) / 1e4,
+             Math.round((ev.clientY - r.top)  / Math.max(1, r.height) * 1e4) / 1e4 ];
+  }
+  bcv.addEventListener("pointerdown", function(ev){
+    ev.preventDefault();
+    if (bcv.setPointerCapture) bcv.setPointerCapture(ev.pointerId);
+    bLive = { p: bPen, pts: [bAt(ev)] };
+  });
+  bcv.addEventListener("pointermove", function(ev){
+    if (!bLive) return;
+    ev.preventDefault();
+    var p = bAt(ev), last = bLive.pts[bLive.pts.length - 1];
+    /* One point every whole pixel or so. Recording every event would make a sheet several
+       times bigger for a line nobody can tell apart. */
+    if (Math.abs(p[0] - last[0]) < 0.004 && Math.abs(p[1] - last[1]) < 0.004) return;
+    bLive.pts.push(p); bPaint();
+  });
+  window.addEventListener("pointerup", function(){
+    if (!bLive) return;
+    if (bLive.pts.length > 1) bStrokes().push(bLive);
+    bLive = null; bKeep(); bPaint();
+  });
+  window.addEventListener("pointercancel", function(){ bLive = null; bPaint(); });
+  $("bDrawWrap").addEventListener("click", function(e){
+    var t = e.target; if (!t || !t.getAttribute) return;
+    var pen = t.getAttribute("data-pen");
+    if (pen){
+      bPen = pen;
+      var all = $("bDrawWrap").querySelectorAll("[data-pen]");
+      for (var i = 0; i < all.length; i++){
+        var on = all[i] === t;
+        all[i].classList.toggle("on", on); all[i].setAttribute("aria-pressed", String(on));
+      }
+      return;
+    }
+    if (t.id === "bUndo"){ bStrokes().pop(); bKeep(); bPaint(); }
+    if (t.id === "bClear"){
+      if (!bStrokes().length) return;
+      if (!window.confirm("Clear this board's scribble? This cannot be undone.")) return;
+      bNow().strokes = []; bKeep(); bPaint();
+    }
+  });
+  window.addEventListener("resize", bFit);
+  if (window.ResizeObserver) new ResizeObserver(bFit).observe(bcv);
+
   bState = bLoad(); bDraw();
 
   /* ---- The Day: the count and the stream ---- */
@@ -895,10 +1261,14 @@
   $("close").addEventListener("click", shut);
   $("scrim").addEventListener("click", shut);
   document.addEventListener("keydown", function(e){
+    if (e.key === "Escape" && document.body.classList.contains("arranging")){ e.preventDefault(); wArrange(false); return; }
     if (e.key === "Escape" && document.body.classList.contains("open")){ e.preventDefault(); shut(); return; }
     /* Nothing is typed into the focus field by accident: only when she is NOT in a field. */
     var t = e.target, typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
     if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "d" || e.key === "D")){ e.preventDefault(); toggle(); }
+    if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "a" || e.key === "A")){
+      e.preventDefault(); wArrange(!document.body.classList.contains("arranging"));
+    }
   });
   /* Six weeks from now she will not remember a corner button exists, so the first three
      times this page is opened the label sits beside it for four seconds, then stops for good. */
@@ -910,6 +1280,298 @@
       setTimeout(function(){ $("hint").classList.remove("show"); }, 4000);
     }
   } catch(e){}
+
+
+  /* ================= HER WIDGET BOARD =====================================
+     Her answer, 20 Sep 2026, word for word: "keep both but can i adjust how it is
+     structured like widget board". Both stayed - the boards panel and the drop-down -
+     and every piece of this page became a card she can pick up and put down somewhere
+     else. There are four places to put one, and they are the four places this page
+     already had, so the page she opens before she touches anything is the page she had
+     this morning: the weather in the corner, the clock centred on its own screen, the
+     boards down the right, the day and the links in the drawer.
+
+     WHAT IS SAVED, AND WHERE. One line in this browser's localStorage: which cards are
+     in which place, in what order, and which are put away. It is per device, like the
+     focus line and the boards themselves, and the arranging bar says so. Nothing about
+     the layout is sent anywhere.
+
+     WHY THERE IS NO SEPARATE PHONE LAYOUT. Nothing here is positioned - a zone is a
+     column or a grid, and a card's place in it IS its place in the markup. So the phone
+     gets one column in the order she chose, for free, and cannot fall out of step with
+     the desktop because there is only one order.
+
+     A CARD ADDED LATER IS NOT LOST. If this page grows a widget after she has arranged
+     it, her saved layout will not name it; it goes to the place it was built for rather
+     than vanishing. ==================================================== */
+  var WKEY = "start.layout.v1";
+  var WORDER = ["corner","screen","side","drawer"];
+  var WZONE  = { corner:"wcorner", screen:"wtop", side:"wside", drawer:"wdraw" };
+  var WHOME  = { weather:"corner", clock:"screen", focus:"screen", boards:"side",
+                 day:"drawer", pad:"drawer", waiting:"drawer", chats:"drawer", tiles:"drawer" };
+  var WNAME  = { weather:"Weather", clock:"Clock", focus:"Today", boards:"Boards",
+                 day:"The day", pad:"Scratch pad", waiting:"Waiting on you",
+                 chats:"Chats running", tiles:"Your sites" };
+  var wHidden = {}, wWasOpen = false, wPadPulled = false;
+
+  function wEl(id){ return document.querySelector('.wg[data-w="' + id + '"]'); }
+  function wZone(z){ return $(WZONE[z]); }
+  function wKids(zn){
+    return [].slice.call(zn.children).filter(function(c){
+      return c.classList && c.classList.contains("wg"); });
+  }
+  function wLoad(){
+    try { var o = JSON.parse(localStorage.getItem(WKEY) || "null"); if (o && o.zones) return o; }
+    catch(e){}
+    return null;
+  }
+  function wSave(){
+    var o = { zones: {}, hidden: [] };
+    WORDER.forEach(function(z){
+      o.zones[z] = wKids(wZone(z)).map(function(c){ return c.getAttribute("data-w"); });
+    });
+    Object.keys(WNAME).forEach(function(id){ if (wHidden[id]) o.hidden.push(id); });
+    try { localStorage.setItem(WKEY, JSON.stringify(o)); } catch(e){}
+  }
+  function wApply(saved){
+    var placed = {};
+    WORDER.forEach(function(z){
+      ((saved && saved.zones && saved.zones[z]) || []).forEach(function(id){
+        var el = wEl(id);
+        if (!el || placed[id]) return;
+        placed[id] = 1; wZone(z).appendChild(el);
+      });
+    });
+    Object.keys(WHOME).forEach(function(id){
+      if (placed[id]) return;
+      var el = wEl(id); if (el) wZone(WHOME[id]).appendChild(el);
+    });
+    wHidden = {};
+    ((saved && saved.hidden) || []).forEach(function(id){ if (wEl(id)) wHidden[id] = 1; });
+    wPaint();
+  }
+  function wPaint(){
+    Object.keys(WNAME).forEach(function(id){
+      var el = wEl(id); if (!el) return;
+      if (wHidden[id]) el.setAttribute("hidden", ""); else el.removeAttribute("hidden");
+    });
+    /* The stale-feed warning is not a card: it cannot be moved and it cannot be put away,
+       because it is the one thing that has to reach her in the calm view. It is pushed back
+       to the bottom of the first screen however the cards above it were shuffled. */
+    var st = $("stale"); if (st) $("wtop").appendChild(st);
+    WORDER.forEach(function(z){
+      var zn = wZone(z);
+      zn.classList.toggle("wempty", wKids(zn).filter(function(c){
+        return !c.hasAttribute("hidden"); }).length === 0);
+    });
+    /* Which cards are actually cut off by the height cap above, so only those get the fade. */
+    if (document.body.classList.contains("arranging")){
+      Object.keys(WNAME).forEach(function(id){
+        var el = wEl(id); if (!el) return;
+        el.classList.toggle("wtall", el.scrollHeight > el.clientHeight + 4);
+      });
+    }
+    wTray(); wLazy();
+  }
+  /* The links and the shared pad were built only when the drawer was opened, because a new
+     tab must paint at once. If she has dragged either OUT of the drawer it is on the page
+     from the first second, so it has to be filled now instead. */
+  function wLazy(){
+    var t = wEl("tiles");
+    if (t && !t.hasAttribute("hidden") && t.parentNode !== $("wdraw")) buildTiles();
+    var p = wEl("pad");
+    if (p && !p.hasAttribute("hidden") && p.parentNode !== $("wdraw") && !wPadPulled){
+      wPadPulled = true; padPull();
+    }
+  }
+  /* The grey bar she picks a card up by. It carries the card's name, two arrows for anyone
+     not using a mouse, and the way to put the card away. Built once, hidden until she is
+     arranging - the rest of the time this page has no furniture on it at all. */
+  function wHandles(){
+    Object.keys(WNAME).forEach(function(id){
+      var el = wEl(id); if (!el) return;
+      if (el.firstElementChild && el.firstElementChild.classList.contains("whandle")) return;
+      var h = document.createElement("div");
+      h.className = "whandle";
+      h.innerHTML = '<span class="wgrip" aria-hidden="true">\u22EE\u22EE</span>' +
+        '<span class="wname">' + esc(WNAME[id]) + "</span>" +
+        '<button type="button" data-mv="-1" aria-label="Move ' + esc(WNAME[id]) + ' earlier">\u2191</button>' +
+        '<button type="button" data-mv="1" aria-label="Move ' + esc(WNAME[id]) + ' later">\u2193</button>' +
+        '<button type="button" data-hide="1" aria-label="Put ' + esc(WNAME[id]) + ' away">hide</button>';
+      el.insertBefore(h, el.firstChild);
+    });
+  }
+  function wTray(){
+    var ids = Object.keys(WNAME).filter(function(id){ return wHidden[id]; });
+    $("atray").innerHTML = ids.length
+      ? "put away: " + ids.map(function(id){
+          return '<button type="button" data-show="' + id + '">' + esc(WNAME[id]) + " \u21A9</button>";
+        }).join("")
+      : "nothing is put away \u00B7 saved on this " + MACHINE + " only";
+  }
+  /* One step with the arrows. At the end of a zone it steps into the next one, so the
+     keyboard reaches every place a finger can reach - including out of the drawer. */
+  function wStep(el, d){
+    var zn = el.parentNode, zi = WORDER.indexOf(zn.getAttribute("data-zone"));
+    var sibs = wKids(zn), i = sibs.indexOf(el);
+    if (d < 0){
+      if (i > 0) zn.insertBefore(el, sibs[i - 1]);
+      else if (zi > 0) wZone(WORDER[zi - 1]).appendChild(el);
+      else return;
+    } else {
+      if (i < sibs.length - 1) zn.insertBefore(el, sibs[i + 1].nextSibling);
+      else if (zi < WORDER.length - 1){
+        var nz = wZone(WORDER[zi + 1]); nz.insertBefore(el, nz.firstChild);
+      } else return;
+    }
+    wSave(); wPaint(); bFit();
+  }
+  function wArrange(on){
+    if (on === document.body.classList.contains("arranging")) return;
+    if (on){
+      wWasOpen = document.body.classList.contains("open");
+      if (wWasOpen) shut();
+      wHandles();
+      buildTiles();                 /* she cannot arrange a card that has never been filled */
+      document.body.classList.add("arranging");
+      $("drawer").setAttribute("aria-modal", "false");
+      $("arrange").textContent = "done \u00B7 a";
+      wPaint(); bFit();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      $("aDone").focus();
+    } else {
+      document.body.classList.remove("arranging");
+      $("drawer").setAttribute("aria-modal", "true");
+      $("arrange").textContent = "arrange \u00B7 a";
+      wSave(); wPaint(); bFit();
+      if (wWasOpen) open();
+    }
+  }
+  $("arrange").addEventListener("click", function(){
+    wArrange(!document.body.classList.contains("arranging"));
+  });
+  $("aDone").addEventListener("click", function(){ wArrange(false); });
+  $("aReset").addEventListener("click", function(){
+    if (!window.confirm("Put every card back where it started? What is ON them - your boards, " +
+                        "notes, scribbles and the pad - is not touched.")) return;
+    try { localStorage.removeItem(WKEY); } catch(e){}
+    wApply(null); bFit();
+  });
+  document.addEventListener("click", function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var b = t.closest(".whandle button");
+    if (b){
+      var el = b.closest(".wg"); if (!el) return;
+      if (b.getAttribute("data-hide") !== null){
+        wHidden[el.getAttribute("data-w")] = 1; wSave(); wPaint();
+      } else wStep(el, parseInt(b.getAttribute("data-mv"), 10));
+      return;
+    }
+    var s2 = t.closest("#atray button[data-show]");
+    if (s2){ delete wHidden[s2.getAttribute("data-show")]; wSave(); wPaint(); bFit(); }
+  });
+
+  /* ---- carrying a card ----
+     Pointer events, so the same code is the mouse and the finger. The card goes to
+     position:fixed under the pointer and a green slot is left in the layout showing where
+     it will land; the slot is what actually moves, and on letting go the card takes its
+     place. Nothing is saved until she lets go. ---- */
+  var dEl = null, dPh = null, dId = null, dOn = false, dOffX = 0, dOffY = 0, dW = 0, dH = 0, dSX = 0, dSY = 0;
+  function dSlot(x, y){
+    var under = document.elementFromPoint(x, y);
+    var zn = under && under.closest ? under.closest(".zone") : null;
+    if (!zn){
+      /* Off every zone - over the photograph, or past the end of the page. The card goes to
+         whichever zone is nearest vertically rather than being stranded where it was. */
+      var best = null, bd = Infinity;
+      WORDER.forEach(function(z){
+        var n = wZone(z), r = n.getBoundingClientRect();
+        var d = Math.abs(y - (r.top + r.height / 2));
+        if (d < bd){ bd = d; best = n; }
+      });
+      zn = best;
+    }
+    if (!zn) return;
+    var kids = wKids(zn).filter(function(c){ return c !== dEl && !c.hasAttribute("hidden"); });
+    if (!kids.length){ zn.appendChild(dPh); return; }
+    var pick = null, pd = Infinity, after = false;
+    kids.forEach(function(k){
+      var r = k.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      /* Vertical distance decides, with a light nudge from the horizontal, because only the
+         drawer puts two cards side by side and everywhere else is a single column. */
+      var d = Math.abs(y - cy) + Math.abs(x - cx) * 0.35;
+      if (d < pd){
+        pd = d; pick = k;
+        after = Math.abs(y - cy) <= r.height / 2 ? x > cx : y > cy;
+      }
+    });
+    zn.insertBefore(dPh, after ? pick.nextSibling : pick);
+  }
+  function dMove(e){
+    if (!dEl || e.pointerId !== dId) return;
+    if (!dOn){
+      if (Math.abs(e.clientX - dSX) < 5 && Math.abs(e.clientY - dSY) < 5) return;
+      dOn = true;
+      dPh = document.createElement("div");
+      dPh.className = "wgph";
+      dPh.style.height = dH + "px";
+      dEl.parentNode.insertBefore(dPh, dEl);
+      dEl.style.width = dW + "px";
+      dEl.classList.add("wdrag");
+      document.body.style.userSelect = "none";
+    }
+    if (e.cancelable) e.preventDefault();
+    dEl.style.left = (e.clientX - dOffX) + "px";
+    dEl.style.top  = (e.clientY - dOffY) + "px";
+    dSlot(e.clientX, e.clientY);
+    /* The drawer is taller than the screen, so carrying a card to it means the page has to
+       come with her when she reaches the edge. */
+    if (e.clientY < 90) window.scrollBy(0, -16);
+    else if (e.clientY > window.innerHeight - 150) window.scrollBy(0, 16);
+  }
+  function dUp(){
+    document.removeEventListener("pointermove", dMove);
+    document.removeEventListener("pointerup", dUp);
+    document.removeEventListener("pointercancel", dUp);
+    var moved = dOn;
+    if (dEl && dOn && dPh && dPh.parentNode) dPh.parentNode.insertBefore(dEl, dPh);
+    if (dEl){
+      dEl.classList.remove("wdrag");
+      dEl.style.left = ""; dEl.style.top = ""; dEl.style.width = "";
+    }
+    if (dPh && dPh.parentNode) dPh.parentNode.removeChild(dPh);
+    document.body.style.userSelect = "";
+    dEl = null; dPh = null; dOn = false; dId = null;
+    if (moved){ wSave(); wPaint(); bFit(); }
+  }
+  document.addEventListener("pointerdown", function(e){
+    if (!document.body.classList.contains("arranging")) return;
+    var t = e.target; if (!t || !t.closest) return;
+    if (t.closest("button")) return;                    /* the arrows and hide still work */
+    var h = t.closest(".whandle"); if (!h) return;
+    var el = h.parentNode; if (!el || !el.classList.contains("wg")) return;
+    e.preventDefault();
+    var r = el.getBoundingClientRect();
+    dEl = el; dId = e.pointerId; dOn = false;
+    dSX = e.clientX; dSY = e.clientY;
+    dOffX = e.clientX - r.left; dOffY = e.clientY - r.top;
+    dW = r.width; dH = r.height;
+    document.addEventListener("pointermove", dMove, { passive: false });
+    document.addEventListener("pointerup", dUp);
+    document.addEventListener("pointercancel", dUp);
+  });
+  /* swipe.js and pull.js both listen for a touch on the document, and both would read a card
+     being carried, or a line being drawn, as a sideways swipe or a pull-to-refresh. Neither
+     file is edited here - they are the shared kit, loaded by every app on this site - so the
+     touch is stopped in the capture phase before it reaches them, and only while she is
+     arranging or drawing. Everything else on the page keeps both gestures. */
+  document.addEventListener("touchstart", function(e){
+    if (document.body.classList.contains("arranging") ||
+        (e.target && e.target.closest && e.target.closest(".wscribble"))) e.stopPropagation();
+  }, true);
+
+  wHandles();
+  wApply(wLoad());
 
   pull();
   setInterval(pull, POLL);
