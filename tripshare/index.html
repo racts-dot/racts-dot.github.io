@@ -366,7 +366,7 @@
     .card, .item { break-inside: avoid; }
   }
 </style>
-<script src="../textsize.js"></script><script src="../feedback.js" defer></script><script src="../notion-sync.js"></script><script src="../marks.js" defer></script>
+<script src="../textsize.js"></script><script src="../feedback.js" defer></script><script src="../notion-sync.js?v=20260920b"></script><script src="../marks.js" defer></script>
 <script src="../pull.js" defer></script><script src="../hearsel.js" defer></script>
 </head>
 <body>
@@ -2084,7 +2084,7 @@
 (function(){
   if (!/^(racts-dot\.github\.io|localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
   var s = document.createElement("script");
-  s.src = "../notion-sync.js"; document.head.appendChild(s);
+  s.src = "../notion-sync.js?v=20260920b"; document.head.appendChild(s);
   var nsTries = 0;
   function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
   var timer;

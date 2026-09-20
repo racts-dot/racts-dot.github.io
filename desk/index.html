@@ -4122,7 +4122,7 @@ if("serviceWorker" in navigator){
 (function(){
   if (!/^(racts-dot\.github\.io|localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
   var s = document.createElement("script");
-  s.src = "../notion-sync.js"; document.head.appendChild(s);
+  s.src = "../notion-sync.js?v=20260920b"; document.head.appendChild(s);
   var nsTries = 0;
   function nsLater(f){ if (++nsTries < 200) setTimeout(f, 300); }
   var SECTIONS = {
