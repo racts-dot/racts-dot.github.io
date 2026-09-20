@@ -106,7 +106,32 @@
     setTimeout(function () { location.href = list[next]; }, 120);
   }
 
-  var act = cfg.sections ? sections : cfg.select ? select : cfg.chips ? chips : cfg.pages ? pages : null;
+  /* data-links="#nav a[data-go]" - step through a list of links that swap what the page shows
+     WITHOUT leaving it. Added 21 Sep 2026 for the Rule Shelf, which loaded this file with no
+     data- attribute at all: with no mode `act` was null, the listeners below were never added,
+     and the page had NO swipe while app_kit_check.py scored it "Swipe: yes" (it was finding the
+     word touchstart inside pull.js). Measured in two browsers before and after.
+     The one that is on is marked class="on" (the Rule Shelf), aria-current="page", or .active. */
+  function links(d) {
+    var list = [].slice.call(document.querySelectorAll(cfg.links));
+    if (list.length < 2) return;
+    var cur = -1;
+    list.forEach(function (a, i) {
+      if (a.classList.contains("on") || a.classList.contains("active") ||
+          a.getAttribute("aria-current") === "page") cur = i;
+    });
+    if (cur < 0) cur = 0;
+    var next = cur + d;
+    if (next < 0) { say("First one"); return; }
+    if (next >= list.length) { say("Last one"); return; }
+    /* the count inside <em> is not the name - say the first line only */
+    say(String(list[next].textContent || "").replace(/\s+/g, " ").trim().split(/\s{2,}|·/)[0].slice(0, 40));
+    list[next].click();
+    if (scrollY > 5) scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  var act = cfg.sections ? sections : cfg.select ? select : cfg.chips ? chips
+          : cfg.pages ? pages : cfg.links ? links : null;
   if (!act) return;
 
   /* ---------- the gesture ---------- */
