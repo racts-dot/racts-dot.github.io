@@ -795,17 +795,23 @@ def upgrade_player(page):
 # the page from the top, a paragraph at a time, highlighting where it is. Free: no recording, no API.
 # Not stopped on leaving the page (her 15 Sep: play in the background).
 READ_MARK = "<!--read-aloud-->"
-READ_CSS = """
+# 20 Sep 2026, her "Better version of the listening": the bar's own CSS is fenced so a rebuild can
+# replace it. Before this it was only ever added to a page that had no reader yet, so every later
+# change to it reached a new page and no existing one.
+READ_CSS_BEGIN, READ_CSS_END = "/*read-aloud-css*/", "/*/read-aloud-css*/"
+READ_CSS = READ_CSS_BEGIN + """
 .readbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
 .readbar button,.readbar select{font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 14px;cursor:pointer}
 .readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
-.readbar .rs{font-size:12px;color:var(--muted)}
 .readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}
+.readbar button.word{font-size:13px;padding:9px 12px}
+.readbar .rs{font-size:12px;color:var(--muted);flex:1 1 100%;min-width:0;line-height:1.4;overflow-wrap:anywhere}
 .reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
-"""
+""" + READ_CSS_END
 READ_BAR = ('<div class="readbar" role="group" aria-label="Read aloud">'
             '<button type="button" class="primary icon" id="rdPlay" aria-label="Read aloud" title="Read aloud">&#128266;</button>'
             '<button type="button" class="icon" id="rdStop" aria-label="Stop" title="Stop" hidden>&#9632;</button>'
+            '<button type="button" class="word" id="rdTop" title="Start reading from the beginning" hidden>From the top</button>'
             '<select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option>'
             '<option value="1.15">Brisk</option><option value="1.3">Fast</option></select>'
             '<span class="rs" id="rdNow"></span></div>')
@@ -818,21 +824,30 @@ READ_JS = """<script>
     if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&!b.dataset.busy){ b.setAttribute('aria-label','Listen (natural voice)'); b.title='Listen (natural voice)'; }
   }).catch(function(){});
   var hasSS=('speechSynthesis' in window);
-  var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
-  var parts=[], i=0, on=false, paused=false, voice=null;
+  var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), fromTop=document.getElementById('rdTop'),
+      rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
+  var parts=[], i=0, on=false, paused=false, voice=null, resumeAt=0, recMap=null;
+  var SPOT='recipe.read.'+stem;   /* 20 Sep 2026, her "Better version of the listening": where she stopped, one key per recipe */
   function pickVoice(){
     var vs=speechSynthesis.getVoices(); if(!vs.length) return null;
     var good=/Siri|Natural|Premium|Enhanced|Karen|Lee|Catherine|Daniel|Serena/i;
     var by=function(lang){ var l=vs.filter(function(v){return v.lang&&v.lang.replace('_','-').indexOf(lang)===0;}); return l.filter(function(v){return good.test(v.name);})[0]||l[0]; };
     return by('en-AU')||by('en-GB')||by('en-US')||by('en')||vs[0];
   }
+  /* 20 Sep 2026, same note, "it reads the recipe rather than the furniture". The site's own way of saying
+     do-not-read-this-out-loud is data-speak-skip - speak.js and feedback.js both set it - and this reader
+     was the one place ignoring it. #doneBox, not .done: the checklist puts class "done" on every ticked row. */
+  var SKIP='pre,nav,button,select,option,label,figure,.player,.readbar,.sources,.ck,.bxg,#doneBox,.foot,.back,'
+          +'[data-speak-skip],[hidden],[aria-hidden="true"],table td table';
   function collect(){
     var wrap=document.querySelector('.wrap'), out=[];
     wrap.querySelectorAll('h1,h2,h3,p,li,blockquote,td').forEach(function(el){
-      if (el.closest('pre,.player,.readbar,.foot,.back,table td table')) return;
+      if (el.closest(SKIP)) return;
       if (el.tagName==='P' && el.closest('li,blockquote,td')) return;
+      if (!el.getClientRects().length) return;   /* nothing on the page to point at, so nothing to read */
       var t=(el.innerText||'').replace(/[\\u2B50\\u26A0\\u26D4\\u2705\\u274C]/g,'').replace(/\\s+/g,' ').trim();
       if (t.length<2) return;
+      if (/^\\d{1,2}:\\d{2}(:\\d{2})?$/.test(t)) return;   /* a cell holding only a video time: a place to tap, not a sentence */
       var bits=t.match(/[^.!?]+[.!?]*\\s*/g)||[t], buf='';
       bits.forEach(function(s){ if((buf+s).length>220 && buf){ out.push({el:el,text:buf}); buf=''; } buf+=s; });
       if (buf.trim()) out.push({el:el,text:buf});
@@ -840,29 +855,67 @@ READ_JS = """<script>
     return out;
   }
   function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); }   /* her 16 Sep: the page no longer scrolls along; the line is only highlighted */ }
+  /* 20 Sep 2026, "show what is being read as it goes": the sentence itself goes in the bar, which she can
+     drag anywhere on the page, so it is readable even when the highlighted line is scrolled off. */
+  function say(pct, txt){
+    var s=(txt||'').trim();
+    if(s.length>90) s=s.slice(0,90).replace(/\\s+\\S*$/,'')+'\\u2026';
+    now.textContent=Math.round(pct)+'% \\u00b7 '+s;
+  }
+  function remember(){
+    if(!parts.length || i<=0 || i>=parts.length){ return; }
+    try{ localStorage.setItem(SPOT, JSON.stringify({n:parts.length, i:i, t:(mode==='audio'&&audio)?audio.currentTime:0, k:parts[i].text.slice(0,60)})); }catch(e){}
+  }
+  function forget(){ try{ localStorage.removeItem(SPOT); }catch(e){} }
+  function spot(){
+    var s=null; try{ s=JSON.parse(localStorage.getItem(SPOT)||'null'); }catch(e){}
+    return (s && s.n>0 && s.i>0 && s.i<s.n) ? s : null;
+  }
   function step(){
     if(!on||mode==='audio') return;
-    if(i>=parts.length){ finish(); return; }
+    if(i>=parts.length){ forget(); finish(); return; }
     var p=parts[i], u=new SpeechSynthesisUtterance(p.text);
     voice=voice||pickVoice(); if(voice){ u.voice=voice; u.lang=voice.lang; }
     u.rate=parseFloat(rate.value)||1;
     u.onend=function(){ if(!on||paused) return; i++; step(); };
     u.onerror=function(){ if(!on||paused) return; i++; step(); };
-    mark(p.el); now.textContent=Math.round(i/parts.length*100)+'%';
+    mark(p.el); say(i/parts.length*100, p.text); remember();
     speechSynthesis.speak(u);
   }
-  function matches(ps){ if(!rec||rec.parts.length!==ps.length) return false; for(var k=0;k<ps.length;k++){ if(rec.parts[k].t!==ps[k].text) return false; } return true; }
+  /* The recording is made from the lines the page used to read, so a page that now skips a line (a bare
+     video time) no longer matches it line for line - and a strict comparison would throw away the natural
+     voice she paid for, on this page only, for the sake of that one skipped line. So line them up instead:
+     every line the page reads must still be in the recording, in the same order. The recording still SAYS
+     the skipped line until the page is recorded again; it is the phone voice that stops reading it. */
+  function align(ps){
+    if(!rec||!rec.parts) return null;
+    var map=[], k=0;
+    for(var j=0;j<ps.length;j++){
+      while(k<rec.parts.length && rec.parts[k].t!==ps[j].text) k++;
+      if(k>=rec.parts.length) return null;
+      map.push(k++);
+    }
+    return map;
+  }
   function label(){ play.setAttribute('aria-label', rec?'Listen (natural voice)':'Read aloud'); delete play.dataset.busy; return '&#128266;'; }
-  function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; now.textContent=''; }
+  function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; if(fromTop) fromTop.hidden=true; now.textContent=''; }
+  function seek(t){   /* the recording may not have its length yet on the first play */
+    if(!t||!audio) return;
+    if(audio.readyState>0){ try{ audio.currentTime=t; }catch(e){} return; }
+    audio.addEventListener('loadedmetadata', function(){ try{ audio.currentTime=t; }catch(e){} }, {once:true});
+  }
   function startAudio(){
     if(!audio){
       audio=new Audio('a/'+stem+'.mp3'); audio.preload='auto';
       audio.addEventListener('timeupdate', function(){
+        if(!on) return;   /* stopping rewinds the recording, and that rewind fires one more of these: without
+                             this the square left the last line highlighted and 0% in the bar */
         var t=audio.currentTime, k=0; while(k+1<rec.parts.length && rec.parts[k+1].s<=t) k++;
-        if(k!==i || !document.querySelector('.reading')){ i=k; mark(parts[k]&&parts[k].el); }
-        now.textContent=Math.round(t/(rec.dur||audio.duration||1)*100)+'%';
+        var j=0; while(j+1<recMap.length && recMap[j+1]<=k) j++;   /* recorded line -> the line on the page */
+        if(j!==i || !document.querySelector('.reading')){ i=j; mark(parts[j]&&parts[j].el); remember(); }
+        say(t/(rec.dur||audio.duration||1)*100, parts[j]&&parts[j].text);
       });
-      audio.addEventListener('ended', finish);
+      audio.addEventListener('ended', function(){ forget(); finish(); });
       if('mediaSession' in navigator){
         var h=document.querySelector('h1');
         navigator.mediaSession.metadata=new MediaMetadata({title:h?h.innerText:document.title, artist:'Recipes'});
@@ -872,31 +925,57 @@ READ_JS = """<script>
              navigator.mediaSession.setActionHandler('seekforward', function(){ audio.currentTime=audio.currentTime+15; }); }catch(e){}
       }
     }
+    seek(resumeAt || (i>0 && rec.parts[recMap[i]] ? rec.parts[recMap[i]].s : 0)); resumeAt=0;
     audio.playbackRate=parseFloat(rate.value)||1;
     return audio.play();
   }
   var mode='';
-  play.addEventListener('click', function(){
-    if(!on){
-      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1';
-      if(matches(parts)){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
-      mode='speech'; if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
-      speechSynthesis.cancel(); step(); return;
+  function start(fresh){
+    parts=collect(); i=0; resumeAt=0;
+    if(!fresh){   /* carry on only if the page still reads the same, so an edited recipe starts at the top */
+      var s=spot();
+      if(s && s.n===parts.length && parts[s.i] && parts[s.i].text.slice(0,60)===s.k){ i=s.i; resumeAt=s.t||0; }
     }
-    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654;'; play.setAttribute('aria-label','Resume'); return; }
+    on=true; paused=false; stop.hidden=false; if(fromTop) fromTop.hidden=(i<=0);
+    play.textContent='\\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1';
+    recMap=align(parts);
+    if(recMap){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
+    mode='speech';
+    if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
+    speechSynthesis.cancel(); step();
+  }
+  play.addEventListener('click', function(){
+    if(!on){ start(false); return; }
+    if(!paused){ paused=true; remember(); if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654;'; play.setAttribute('aria-label','Resume'); return; }
     paused=false; play.textContent='\\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1'; if(mode==='audio') audio.play(); else step();
   });
-  stop.addEventListener('click', finish);
+  stop.addEventListener('click', function(){ forget(); finish(); });   /* the square stops AND forgets the place; pausing keeps it */
+  if(fromTop) fromTop.addEventListener('click', function(){ forget(); if(on) finish(); start(true); });
   rate.addEventListener('change', function(){ if(mode==='audio'&&audio){ audio.playbackRate=parseFloat(rate.value)||1; return; } if(on&&!paused){ speechSynthesis.cancel(); step(); } });
   if (hasSS && speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
+  addEventListener('pagehide', function(){ if(on) remember(); });
+  document.addEventListener('visibilitychange', function(){ if(on&&document.hidden) remember(); });
+  (function(){   /* say so before she taps, rather than surprising her by starting in the middle */
+    var s=spot(); if(!s) return;
+    now.textContent='Carries on from '+Math.round(s.i/s.n*100)+'%';
+    if(fromTop) fromTop.hidden=false;
+  })();
 })();
 </script>"""
+
+def refresh_read_css(page):
+    """The bar's CSS, on a page that already has a reader. 20 Sep 2026: a style change used to reach only
+    brand-new pages, because the block was added once and never looked at again. The fresh block goes at the
+    end of the first stylesheet, which is where the old unfenced one sits, so it is the later rule and wins."""
+    if READ_CSS_BEGIN in page:
+        return re.sub(re.escape(READ_CSS_BEGIN) + r"[\s\S]*?" + re.escape(READ_CSS_END), lambda m: READ_CSS, page, count=1)
+    return page.replace("</style>", READ_CSS + "</style>", 1)
+
 
 def add_reader(page):
     if READ_MARK in page:
         page = re.sub(r'<div class="readbar" role="group" aria-label="Read aloud">.*?</div>', READ_BAR.replace("\\", "\\\\"), page, count=1, flags=re.S)
-        if ".readbar button.icon{" not in page:   # 16 Sep: icon-only buttons need their own size
-            page = page.replace("</style>", ".readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}</style>", 1)
+        page = refresh_read_css(page)   # 20 Sep: supersedes the one-off "icon buttons need their own size" patch
         b = page.find(READ_MARK)
         a = page.rfind("<script>\n(function(){", 0, b)   # the reader script sits right before the mark
         if a != -1 and b > a:   # replace an older reader script with the current one

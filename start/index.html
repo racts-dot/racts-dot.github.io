@@ -50,16 +50,64 @@
     color-scheme:dark;
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;min-height:100%;background:var(--ground);color:var(--ink);font-family:var(--body)}
-  body{padding:0 16px calc(96px + env(safe-area-inset-bottom));
-       background:
-         radial-gradient(1200px 700px at 12% -10%, rgba(84,200,143,.16), transparent 60%),
-         radial-gradient(900px 600px at 100% 0%, rgba(127,178,240,.14), transparent 55%),
-         radial-gradient(800px 500px at 50% 110%, rgba(182,155,232,.10), transparent 60%),
-         var(--ground);
-       background-attachment:fixed}
+  html,body{margin:0;min-height:100%;color:var(--ink);font-family:var(--body)}
+  /* The ground colour sits on <html>, not on <body>, and that split is load-bearing.
+     A body background paints ABOVE any z-index:-2 element, so with it here the photograph
+     below would be there in the markup and invisible on the screen. On <html> it paints the
+     canvas, underneath everything, which is how desk/index.html gets the same six photos up. */
+  html{background:var(--ground)}
+  body{padding:0 16px calc(96px + env(safe-area-inset-bottom))}
   a{color:inherit;text-decoration:none}
   .wrap{max-width:1180px;margin:0 auto}
+
+  /* ---- the photograph behind everything. Her note, 19 Sep 2026: "interface to match
+         momentum" - and a photograph behind the clock is the first thing Momentum is.
+         The six pictures are the ones already in this repo at /tripshare/bg/, referenced
+         where they lie rather than copied, so there is one set of files and not two.
+         Same machinery as desk/index.html, deliberately: one fade cycle, six delays.
+         The colour wash that used to be on <body> has moved onto the scrim, so it now
+         sits OVER the photograph instead of under it, and the page keeps the tint it had.
+         Reduced motion keeps the fade and drops the drift - the picture still changes,
+         nothing slides. ---- */
+  #startbg{position:fixed;inset:0;z-index:-2;overflow:hidden;background:var(--ground)}
+  #startbg i{position:absolute;inset:-6%;background-size:cover;background-position:center;opacity:0;
+    will-change:opacity,transform;animation:sbfade 96s linear infinite, sbdrift 48s ease-in-out infinite alternate}
+  #startbg i:nth-child(1){animation-delay:0s,0s}
+  #startbg i:nth-child(2){animation-delay:16s,-8s}
+  #startbg i:nth-child(3){animation-delay:32s,-16s}
+  #startbg i:nth-child(4){animation-delay:48s,-24s}
+  #startbg i:nth-child(5){animation-delay:64s,-32s}
+  #startbg i:nth-child(6){animation-delay:80s,-40s}
+  @keyframes sbfade{0%{opacity:0}3%{opacity:1}16%{opacity:1}19%{opacity:0}100%{opacity:0}}
+  @keyframes sbdrift{from{transform:scale(1.04) translate3d(0,0,0)}to{transform:scale(1.10) translate3d(-1.5%,-1%,0)}}
+  /* The scrim is DARKEST WHERE THE WORDS ARE and lets the picture through at the edges,
+     rather than being one flat sheet over the whole screen. A flat sheet has to be set
+     for the worst pixel of the worst photo, and that setting then dims the corners too,
+     where there is nothing to read. Measured over all six photos at 1440x900, worst pixel
+     behind the hero text, against a flat 82% sheet:
+         clock   #EDF1F6   14.4:1   was 10.5:1
+         date    #9AA7B6    6.7:1   was  4.9:1
+         labels  #6E7C8C    3.8:1   was  2.8:1
+     and 30-39% of the photograph survives at the corners instead of 18%. Better on both
+     counts, which is the only reason to prefer it.
+     The many stops are not fussiness. The first go at this was one flat core dropping
+     straight to nothing, and it MEASURED well and looked wrong - a dark oval sitting on
+     the picture with an edge you could trace. The stops are that drop turned into an
+     ease, so there is no edge to see. This is the bit a contrast number cannot tell you.
+     The radii are in vw/vh so the dark middle grows with the screen; at a fixed pixel
+     size the board at the right edge fell outside it on a wide monitor.
+     The three colour washes are the ones that used to be on <body>, unchanged. */
+  #startscrim{position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:
+      radial-gradient(1200px 700px at 12% -10%, rgba(84,200,143,.16), transparent 60%),
+      radial-gradient(900px 600px at 100% 0%, rgba(127,178,240,.14), transparent 55%),
+      radial-gradient(800px 500px at 50% 110%, rgba(182,155,232,.10), transparent 60%),
+      radial-gradient(max(420px,86vw) max(520px,86vh) at 50% 44%,
+        rgba(11,14,19,.86) 0 34%, rgba(11,14,19,.80) 48%, rgba(11,14,19,.62) 62%,
+        rgba(11,14,19,.38) 76%, rgba(11,14,19,.16) 88%, rgba(11,14,19,0) 100%),
+      rgba(11,14,19,.45)}
+  @media (prefers-reduced-motion:reduce){ #startbg i{animation:sbfade 96s linear infinite} }
+  @media print{ #startbg,#startscrim{display:none} }
 
   /* ---- the top: clock, greeting, focus. This is the WHOLE default view. ---- */
   .hero{min-height:100svh;display:flex;flex-direction:column;justify-content:center;
@@ -254,7 +302,15 @@
      morning is worse than a board she scrolls to. */
   @media (min-width:1240px){
     .board{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:20;
-           width:248px;max-width:none;margin:0;opacity:.62}
+           width:248px;max-width:none;margin:0;opacity:.62;
+           /* Only on this layout does the board float out at the right edge, past the dark
+              core of the scrim, where it would otherwise be words lying on a photograph.
+              Measured worst pixel of the six photos at 1440x900: the item text goes 9.4:1
+              to 13.6:1 and the small grey labels 2.5:1 to 3.6:1. Same glass as the cards in
+              the drawer, so it is the page's own material and not a new one. Below 1240px
+              the board sits centred in the flow, inside the dark core, and needs none. */
+           background:var(--surface);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+           border:1px solid var(--line);border-radius:16px;padding:12px 13px}
     .bitems{max-height:44svh;overflow-y:auto;overscroll-behavior:contain}
   }
 
@@ -275,6 +331,11 @@
 <script src="/notion-sync.js?v=20260920b" defer data-quiet></script>
 </head>
 <body>
+
+<!-- The photograph, and the dark wash over it that keeps the clock readable. Both are
+     decoration and neither is read out. The six files are the Desk's, referenced in place. -->
+<div id="startbg" aria-hidden="true"><i style="background-image:url(../tripshare/bg/korea-blossom.jpg)"></i><i style="background-image:url(../tripshare/bg/korea-hanok.jpg)"></i><i style="background-image:url(../tripshare/bg/europe-rooftops.jpg)"></i><i style="background-image:url(../tripshare/bg/europe-alps.jpg)"></i><i style="background-image:url(../tripshare/bg/sky-clouds.jpg)"></i><i style="background-image:url(../tripshare/bg/sky-aurora.jpg)"></i></div>
+<div id="startscrim" aria-hidden="true"></div>
 
 <!-- The weather sits at the edge and says one line. It is hidden until there is either a
      saved reading or the word to tap, so a new tab never flashes an empty box. -->

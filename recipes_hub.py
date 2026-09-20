@@ -149,6 +149,9 @@ def topic_cards(folder, src, label):
             title = txt(c.get("title"), 120)
             out.append({"src": src, "label": txt(t.get("name"), 40) or label, "title": title,
                         "desc": txt(c.get("gets"), 150), "href": f"../{folder}/#find=" + title,
+                        # 20 Sep, her "I'll want it like in the same app": the card's own key travels with
+                        # it, so opening it here finds the one card and never a title that merely matches
+                        "k": c.get("key", ""),
                         # 17 Sep, her "no thumbnail ... no video": the card's first source video, like the recipe cards
                         "thumb": (f"https://i.ytimg.com/vi/{c['src'][0]['id']}/mqdefault.jpg" if c.get("src") and c["src"][0].get("id") else ""),
                         "vid": (c["src"][0]["id"] if c.get("src") and c["src"][0].get("id") else ""),
@@ -160,7 +163,7 @@ def topic_cards(folder, src, label):
 def prompts():
     d = data_blob(SITE / "cookbook" / "index.html") or []
     out = []
-    for p in d:
+    for i, p in enumerate(d):
         tools = p.get("t")
         if isinstance(tools, str):
             tools = re.findall(r"'([^']+)'", tools) or [tools]
@@ -172,6 +175,8 @@ def prompts():
         vids = list(dict.fromkeys(vids))
         out.append({"src": "prompts", "label": ", ".join(tools or [])[:40] or "Prompt", "title": txt(p.get("n"), 120),
                     "desc": txt(p.get("p"), 150), "href": "../cookbook/#find=" + txt(p.get("n"), 120),
+                    # the cookbook's data is a plain list, so its place in that list is its key
+                    "k": i,
                     "thumb": (f"https://i.ytimg.com/vi/{vids[0]}/mqdefault.jpg" if vids else ""),
                     "vid": vids[0] if vids else "",
                     "meta": ("▶ %d video%s" % (len(vids), "" if len(vids) == 1 else "s")) if vids else "",
@@ -218,21 +223,45 @@ h1{font:600 clamp(32px,8vw,46px)/1.05 var(--serif);margin:0 0 6px;letter-spacing
 .card{display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
   text-decoration:none;color:inherit;transition:transform .12s ease}
 .card:active{transform:scale(.99)}
-.card img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--chip)}
+.th img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:var(--chip)}
 /* 19 Sep, her "no video engraved in it ... there is nothing": the picture is its own button now, not part
    of the link, so tapping it plays the video right here instead of leaving for the page. The words below
    still open the recipe. A button cannot sit inside a link, which is why the card stopped being one. */
-.card .th{all:unset;display:block;position:relative;width:100%;aspect-ratio:16/9;background:var(--chip)}
-.card button.th{cursor:pointer}
-.card .th::after{content:"\\25B6";position:absolute;left:10px;bottom:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:grid;place-items:center;font-size:14px;padding-left:2px;box-sizing:border-box}
-.card .th:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
-.card .th.playing{cursor:default}
-.card .th.playing::after{display:none}
-.card .th iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+.th{all:unset;display:block;position:relative;width:100%;aspect-ratio:16/9;background:var(--chip)}
+button.th{cursor:pointer}
+.th::after{content:"\\25B6";position:absolute;left:10px;bottom:10px;width:34px;height:34px;border-radius:50%;background:rgba(0,0,0,.65);color:#fff;display:grid;place-items:center;font-size:14px;padding-left:2px;box-sizing:border-box}
+.th:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.th.playing{cursor:default}
+.th.playing::after{display:none}
+.th iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
 /* top LEFT on purpose: YouTube puts its own share and title buttons in the top right of the embed */
-.card .th .x{all:unset;position:absolute;left:6px;top:6px;z-index:2;width:28px;height:28px;border-radius:50%;
+.th .x{all:unset;position:absolute;left:6px;top:6px;z-index:2;width:28px;height:28px;border-radius:50%;
   background:rgba(0,0,0,.72);color:#fff;display:grid;place-items:center;font-size:13px;cursor:pointer}
 .card .in{padding:12px 14px 14px;display:grid;gap:6px;text-decoration:none;color:inherit}
+/* 20 Sep, her "I don't want it in a separate links or some sort. I'll want it like in the same app":
+   tapping the words on a Hormozi, Doser or Prompt card opens what that card SAYS right here, under it,
+   instead of sending her to the other app. The words stay a real link, so a long press, a new tab and a
+   phone with the script blocked all still work, and the full card - the ticks, Notion, the read-aloud -
+   is one tap away at the bottom of the panel. The other apps are untouched. */
+.panel{grid-column:1/-1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:12px}
+.panel h2{font:600 clamp(20px,5vw,25px)/1.25 var(--serif);margin:0}
+.panel .label{font:700 11px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:6px}
+.panel p{margin:0}
+.panel q{color:var(--ink2)}
+.panel ol{margin:0;padding-left:20px;display:grid;gap:10px}
+.panel .sq{display:block;color:var(--ink2);font-size:14px;margin-top:3px}
+.panel .ai{font:400 10.5px/1.5 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em;color:var(--ink2);
+  border:1px dashed var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
+.panel pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.55 ui-monospace,Menlo,Consolas,monospace;
+  background:var(--chip);padding:12px 14px;border-radius:12px;margin:0}
+.panel .vids{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.panel .vids .th{border-radius:12px;overflow:hidden}
+.panel .vids .l{font-size:12px;color:var(--ink2);margin-top:5px}
+.panel .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.panel .btn{font:700 14px/1 var(--sans);padding:11px 14px;border-radius:10px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);cursor:pointer;text-decoration:none}
+.panel .btn.close{margin-left:auto}
+.panel .busy{color:var(--ink2)}
 .chip{justify-self:start;font:700 11px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:var(--chip)}
 .s-recipes .chip{color:var(--recipes)} .s-hormozi .chip{color:var(--hormozi)} .s-doser .chip{color:var(--doser)} .s-prompts .chip{color:var(--prompts)}
 .card .t{font:600 17px/1.3 var(--serif)}
@@ -297,12 +326,13 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
       return (cur === "all" || x.src === cur) && (!low || (x.title + " " + x.desc + " " + x.label).toLowerCase().indexOf(low) >= 0);
     });
     document.getElementById("count").textContent = rows.length + (rows.length === 1 ? " recipe" : " recipes") + (term ? " match “" + term + "”" : "");
-    stop();   // the rows are about to be thrown away, so nothing is playing any more
-    document.getElementById("grid").innerHTML = rows.length ? rows.map(function(x){
+    stop(); shut();   // the rows are about to be thrown away, so nothing is playing or open any more
+    SHOWN = rows;
+    document.getElementById("grid").innerHTML = rows.length ? rows.map(function(x, i){
       var pic = !x.thumb ? "" : (x.vid
         ? '<button type="button" class="th" data-v="' + esc(x.vid) + '" aria-label="Play the video for ' + esc(x.title) + '"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></button>'
         : '<div class="th"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></div>');
-      return '<div class="card s-' + x.src + '">' + pic +
+      return '<div class="card s-' + x.src + '" data-i="' + i + '">' + pic +
         '<a class="in" href="' + esc(x.href) + '"><span class="chip">' + esc(NAME[x.src]) + (x.label && x.src !== "prompts" ? " · " + esc(x.label) : "") + '</span>' +
         '<div class="t">' + mark(x.title, term) + '</div>' +
         (x.desc ? '<div class="d">' + mark(x.desc, term) + '</div>' : "") +
@@ -312,7 +342,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   /* 19 Sep, her "there is nothing, no video engraved in it": tapping a card's picture plays the video in
      that picture, the way the recipe pages already play theirs. One at a time - starting another, changing
      tab or searching puts the picture back. The words under it still open the recipe. */
-  var NOW = null;
+  var NOW = null, SHOWN = [], PANEL = null, DATA = {};
   function stop(){
     if(!NOW) return;
     if(NOW.isConnected){ NOW.innerHTML = NOW.dataset.pic; NOW.classList.remove("playing"); }
@@ -328,11 +358,113 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     th.classList.add("playing");
     NOW = th;
   }
+  /* 20 Sep, her "I don't want it in a separate links or some sort. I'll want it like in the same app":
+     a Hormozi, Doser or Prompt card opens what it actually says HERE, under the card. The other app's
+     page is fetched once and read for that one card, so the words stay in one place and nothing is
+     copied into this file. The ticks, the Notion button and the read-aloud still live on the full card,
+     one tap away at the bottom. If the fetch fails the link does what it always did. */
+  var WHERE = {hormozi:"../hormozi/", doser:"../workflows/", prompts:"../cookbook/"};
+  var FULL = {hormozi:"Open the full card in Hormozi", doser:"Open the full card in Doser workflows",
+              prompts:"Open in the Prompt Cookbook"};
+  function load(src){
+    if(!DATA[src]) DATA[src] = fetch(WHERE[src]).then(function(r){ return r.text(); }).then(function(t){
+      var i = t.indexOf('<script id="data"');
+      var a = i < 0 ? -1 : t.indexOf(">", i) + 1, b = a < 1 ? -1 : t.indexOf("</" + "script>", a);
+      if(b < 0) throw new Error("no data blob in " + src);
+      return JSON.parse(t.slice(a, b));   /* the other page escapes its closing tags, which JSON itself reads back */
+    });
+    return DATA[src];
+  }
+  function pick(d, x){
+    if(x.src === "prompts") return d[+x.k];
+    var hit = null;
+    (d.topics || []).forEach(function(t){ (t.cards || []).forEach(function(c){ if(!hit && c.key === x.k) hit = c; }); });
+    return hit;
+  }
+  function pic(id, name){
+    return '<button type="button" class="th" data-v="' + esc(id) + '" aria-label="Play ' + esc(name) + '">' +
+      '<img src="https://i.ytimg.com/vi/' + esc(id) + '/mqdefault.jpg" alt="" loading="lazy"></button>';
+  }
+  function shot(id, name, when){
+    return '<div>' + pic(id, name) + '<div class="l">' + esc(name) + (when ? " \u00B7 " + esc(when) : "") + '</div></div>';
+  }
+  function body(x, c){
+    var foot = '<div class="row"><a class="btn" href="' + esc(x.href) + '">' + esc(FULL[x.src]) + '</a>' +
+      '<button type="button" class="btn close">Close</button></div>';
+    if(x.src === "prompts"){
+      var seen = {}, films = (c.src || []).map(function(v){
+        var id = (String(v.u || "").match(/[?&]v=([A-Za-z0-9_-]{11})/) || [])[1];
+        if(!id || seen[id]) return ""; seen[id] = 1;
+        return shot(id, (v.v || "video").slice(0, 70), v.y || "");
+      }).join("");
+      return '<h2>' + esc(c.n) + '</h2>' +
+        '<div><span class="label">The prompt, word for word</span><pre>' + esc(c.p) + '</pre></div>' +
+        '<div class="row"><button type="button" class="btn copy">Copy</button>' +
+        (c.t || []).map(function(t){ return '<span class="chip">' + esc(t) + '</span>'; }).join("") + '</div>' +
+        (films ? '<div><span class="label">Where she said it</span><div class="vids">' + films + '</div></div>' : "") + foot;
+    }
+    var steps = (c.steps || []).map(function(v){
+      /* Both source pages mark which steps are his words and which the AI wrote, and a step must not
+         lose that mark by being read here. The wording is theirs. Measured 20 Sep over all 1,731 steps:
+         this one test reproduces both pages exactly - on Hormozi every quote-less step is already
+         sup "none" or "no", and on Doser sup is always empty so the missing quote is the whole test. */
+      var sup = (v.sup === "no" || v.sup === "none" || !v.q)
+        ? ' <span class="ai" title="Written by the AI; his words here do not say this">AI step, not his words</span>'
+        : v.sup === "partly"
+          ? ' <span class="ai" title="Goes a little beyond what he says">loosely from his words</span>' : "";
+      return '<li>' + esc(v.do) + sup + (v.q ? '<span class="sq"><q>' + esc(v.q) + '</q></span>' : "") + '</li>';
+    }).join("");
+    var vids = (c.src || []).map(function(v){ return shot(v.id, v.title || "video", v.date || ""); }).join("");
+    return '<h2>' + esc(c.title) + '</h2>' +
+      (c.gets ? '<p><b>What it can get you:</b> ' + esc(c.gets) + '</p>' : "") +
+      (c.claim ? '<div><span class="label">His words</span><p><q>' + esc(c.claim) + '</q></p></div>' : "") +
+      (steps ? '<div><span class="label">How to do it</span><ol>' + steps + '</ol></div>' : "") +
+      (c.warn ? '<div><span class="label">Watch out</span><p><q>' + esc(c.warn) + '</q></p></div>' : "") +
+      (vids ? '<div><span class="label">From</span><div class="vids">' + vids + '</div></div>' : "") + foot;
+  }
+  function shut(){
+    if(!PANEL) return;
+    if(NOW && PANEL.el.contains(NOW)) stop();   // the player is about to be thrown away with the panel
+    if(PANEL.el.parentNode) PANEL.el.parentNode.removeChild(PANEL.el);
+    PANEL = null;
+  }
+  function show(card, x){
+    var again = PANEL && PANEL.row === x;
+    shut();
+    if(again) return;   // a second tap on the same card closes it
+    var el = document.createElement("div");
+    el.className = "panel";
+    el.innerHTML = '<p class="busy">Opening\u2026</p>';
+    card.parentNode.insertBefore(el, card.nextSibling);
+    PANEL = {el: el, row: x};
+    load(x.src).then(function(d){
+      if(!PANEL || PANEL.el !== el) return;
+      var c = pick(d, x);
+      if(!c) throw new Error("no card " + x.k + " in " + x.src);
+      el.innerHTML = body(x, c);
+      var top = el.getBoundingClientRect().top;
+      if(top < 0 || top > window.innerHeight - 140) el.scrollIntoView({block:"center"});
+    }).catch(function(){ if(PANEL && PANEL.el === el) location.href = x.href; });
+  }
   document.getElementById("grid").addEventListener("click", function(e){
     if(e.target.closest(".th .x")){ stop(); return; }
     var th = e.target.closest("button.th[data-v]");
-    if(th && !th.classList.contains("playing")) play(th);
+    if(th && !th.classList.contains("playing")){ play(th); return; }
+    if(e.target.closest(".panel .close")){ shut(); return; }
+    var cp = e.target.closest(".panel .copy");
+    if(cp){
+      var pre = cp.closest(".panel").querySelector("pre");
+      if(pre && navigator.clipboard) navigator.clipboard.writeText(pre.textContent).then(function(){
+        cp.textContent = "Copied"; setTimeout(function(){ cp.textContent = "Copy"; }, 1500);
+      });
+      return;
+    }
+    var a = e.target.closest("a.in");
+    if(!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+    var card = a.closest(".card"), row = card && SHOWN[+card.dataset.i];
+    if(row && row.src !== "recipes" && row.k !== "" && row.k != null){ e.preventDefault(); show(card, row); }
   });
+  document.addEventListener("keydown", function(e){ if(e.key === "Escape") shut(); });
   document.getElementById("tabs").addEventListener("click", function(e){
     var b = e.target.closest(".tab"); if(!b) return;
     cur = b.dataset.t; try{ localStorage.setItem("recipesHub.tab", cur); }catch(err){}
@@ -418,10 +550,27 @@ def coach_catalogue():
     return len(out)
 
 
+def keep_cache_bust(new_html, old_html):
+    """Keep a ?v=... that somebody put on a kit script tag in the built page.
+
+    The site's script tags get a cache-busting ?v=<date> stamped on them page by page, outside this
+    script. That stamp lives only in the built file, so writing a fresh page drops it and the phones
+    keep yesterday's notion-sync.js. Measured 20 Sep 2026: the live /recipes/ carried
+    notion-sync.js?v=20260920b and a plain rebuild took it straight back off.
+    """
+    for src, q in re.findall(r'<script src="(\.\./[^"?]+\.js)(\?[^"]+)"', old_html):
+        new_html = new_html.replace('<script src="%s"' % src, '<script src="%s%s"' % (src, q))
+    return new_html
+
+
 def main():
     items = recipe_pages() + topic_cards("hormozi", "hormozi", "Hormozi") + topic_cards("workflows", "doser", "Doser") + prompts()
     blob = json.dumps(items, ensure_ascii=False).replace("</", "<\\/")
-    (SITE / "recipes" / "index.html").write_text(PAGE.replace("__DATA__", blob), encoding="utf-8")
+    home = SITE / "recipes" / "index.html"
+    page = PAGE.replace("__DATA__", blob)
+    if home.exists():
+        page = keep_cache_bust(page, home.read_text(encoding="utf-8"))
+    home.write_text(page, encoding="utf-8")
     for folder, name in (("hormozi", "Hormozi Marketing Recipes"), ("workflows", "Doser AI Marketing Workflows"),
                          ("cookbook", "Sabrina's Prompt Cookbook")):
         p = SITE / folder / "index.html"

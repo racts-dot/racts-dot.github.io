@@ -60,7 +60,15 @@ a.ts{white-space:nowrap}
 .readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
 .readbar .rs{font-size:12px;color:var(--muted)}
 .reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
-.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}/*player2*/
+.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}/*read-aloud-css*/
+.readbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 18px}
+.readbar button,.readbar select{font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 14px;cursor:pointer}
+.readbar button.primary{background:var(--accent);border-color:var(--accent);color:#0f1115}
+.readbar button.icon{font-size:20px;line-height:1;min-width:46px;padding:8px 12px}
+.readbar button.word{font-size:13px;padding:9px 12px}
+.readbar .rs{font-size:12px;color:var(--muted);flex:1 1 100%;min-width:0;line-height:1.4;overflow-wrap:anywhere}
+.reading{outline:2px solid var(--accent);outline-offset:4px;border-radius:6px}
+/*/read-aloud-css*//*player2*/
 .player{position:relative}
 .player>button{position:absolute;inset:0;z-index:2}
 .player>button[hidden]{display:none}
@@ -181,7 +189,7 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
 <a class="back" href="./">← all recipes</a>
 <h1>RECIPE 02 — Seven Claude commands most people never find</h1>
 <div class="player" data-id="rabGqnyd_Zw"><button type="button" data-id="rabGqnyd_Zw" aria-label="Play the video"><img src="https://i.ytimg.com/vi/rabGqnyd_Zw/hqdefault.jpg" alt="" loading="lazy"><span class="play"><span>&#9654;</span></span><span class="cap">Tap to play the video this recipe comes from</span></button></div>
-<div class="readbar" role="group" aria-label="Read aloud"><button type="button" class="primary icon" id="rdPlay" aria-label="Read aloud" title="Read aloud">&#128266;</button><button type="button" class="icon" id="rdStop" aria-label="Stop" title="Stop" hidden>&#9632;</button><select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.15">Brisk</option><option value="1.3">Fast</option></select><span class="rs" id="rdNow"></span></div>
+<div class="readbar" role="group" aria-label="Read aloud"><button type="button" class="primary icon" id="rdPlay" aria-label="Read aloud" title="Read aloud">&#128266;</button><button type="button" class="icon" id="rdStop" aria-label="Stop" title="Stop" hidden>&#9632;</button><button type="button" class="word" id="rdTop" title="Start reading from the beginning" hidden>From the top</button><select id="rdRate" aria-label="Speed"><option value="0.9">Slow</option><option value="1" selected>Normal</option><option value="1.15">Brisk</option><option value="1.3">Fast</option></select><span class="rs" id="rdNow"></span></div>
 <!--sources--><style>.sources{margin:0 0 18px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:var(--card);display:grid;grid-template-columns:minmax(0,1fr);gap:6px;font-size:14px}.sources>*{min-width:0}.sources .srow{display:flex;justify-content:space-between;gap:10px;color:var(--muted)}.sources .sk{font-weight:600;color:var(--text)}.sources .svid{display:flex;justify-content:space-between;gap:10px;text-decoration:none;color:var(--accent)}.sources .st{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.sources .sd{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}</style><div class="sources" aria-label="Listening time and source videos"><div class="srow"><span class="sk">&#127911; Listen</span><span>4 min</span></div><div class="srow"><span class="sk">Videos (1)</span><span>10:30 total</span></div><a class="svid" href="https://www.youtube.com/watch?v=rabGqnyd_Zw"><span class="st">&#9654; 7 Secret Prompts That Make Claude CODE 10x Better</span><span class="sd">10:30</span></a></div><!--/sources-->
 <p><strong>From:</strong> <em>7 Secret Prompts That Make Claude CODE 10x Better</em> · 25 Apr 2026 · 10:30 · <a href="https://www.youtube.com/watch?v=rabGqnyd_Zw" target="_blank" rel="noopener">watch</a></p>
 <p>⚠ <strong>Rewritten 12 Sep after the original was lost to a git operation by another session. Same source transcript, same content.</strong></p>
@@ -292,21 +300,30 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
     if(!j) return; rec=j; var b=document.getElementById('rdPlay'); if(b&&!b.dataset.busy){ b.setAttribute('aria-label','Listen (natural voice)'); b.title='Listen (natural voice)'; }
   }).catch(function(){});
   var hasSS=('speechSynthesis' in window);
-  var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
-  var parts=[], i=0, on=false, paused=false, voice=null;
+  var play=document.getElementById('rdPlay'), stop=document.getElementById('rdStop'), fromTop=document.getElementById('rdTop'),
+      rate=document.getElementById('rdRate'), now=document.getElementById('rdNow');
+  var parts=[], i=0, on=false, paused=false, voice=null, resumeAt=0, recMap=null;
+  var SPOT='recipe.read.'+stem;   /* 20 Sep 2026, her "Better version of the listening": where she stopped, one key per recipe */
   function pickVoice(){
     var vs=speechSynthesis.getVoices(); if(!vs.length) return null;
     var good=/Siri|Natural|Premium|Enhanced|Karen|Lee|Catherine|Daniel|Serena/i;
     var by=function(lang){ var l=vs.filter(function(v){return v.lang&&v.lang.replace('_','-').indexOf(lang)===0;}); return l.filter(function(v){return good.test(v.name);})[0]||l[0]; };
     return by('en-AU')||by('en-GB')||by('en-US')||by('en')||vs[0];
   }
+  /* 20 Sep 2026, same note, "it reads the recipe rather than the furniture". The site's own way of saying
+     do-not-read-this-out-loud is data-speak-skip - speak.js and feedback.js both set it - and this reader
+     was the one place ignoring it. #doneBox, not .done: the checklist puts class "done" on every ticked row. */
+  var SKIP='pre,nav,button,select,option,label,figure,.player,.readbar,.sources,.ck,.bxg,#doneBox,.foot,.back,'
+          +'[data-speak-skip],[hidden],[aria-hidden="true"],table td table';
   function collect(){
     var wrap=document.querySelector('.wrap'), out=[];
     wrap.querySelectorAll('h1,h2,h3,p,li,blockquote,td').forEach(function(el){
-      if (el.closest('pre,.player,.readbar,.foot,.back,table td table')) return;
+      if (el.closest(SKIP)) return;
       if (el.tagName==='P' && el.closest('li,blockquote,td')) return;
+      if (!el.getClientRects().length) return;   /* nothing on the page to point at, so nothing to read */
       var t=(el.innerText||'').replace(/[\u2B50\u26A0\u26D4\u2705\u274C]/g,'').replace(/\s+/g,' ').trim();
       if (t.length<2) return;
+      if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(t)) return;   /* a cell holding only a video time: a place to tap, not a sentence */
       var bits=t.match(/[^.!?]+[.!?]*\s*/g)||[t], buf='';
       bits.forEach(function(s){ if((buf+s).length>220 && buf){ out.push({el:el,text:buf}); buf=''; } buf+=s; });
       if (buf.trim()) out.push({el:el,text:buf});
@@ -314,29 +331,67 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
     return out;
   }
   function mark(el){ document.querySelectorAll('.reading').forEach(function(x){x.classList.remove('reading');}); if(el){ el.classList.add('reading'); }   /* her 16 Sep: the page no longer scrolls along; the line is only highlighted */ }
+  /* 20 Sep 2026, "show what is being read as it goes": the sentence itself goes in the bar, which she can
+     drag anywhere on the page, so it is readable even when the highlighted line is scrolled off. */
+  function say(pct, txt){
+    var s=(txt||'').trim();
+    if(s.length>90) s=s.slice(0,90).replace(/\s+\S*$/,'')+'\u2026';
+    now.textContent=Math.round(pct)+'% \u00b7 '+s;
+  }
+  function remember(){
+    if(!parts.length || i<=0 || i>=parts.length){ return; }
+    try{ localStorage.setItem(SPOT, JSON.stringify({n:parts.length, i:i, t:(mode==='audio'&&audio)?audio.currentTime:0, k:parts[i].text.slice(0,60)})); }catch(e){}
+  }
+  function forget(){ try{ localStorage.removeItem(SPOT); }catch(e){} }
+  function spot(){
+    var s=null; try{ s=JSON.parse(localStorage.getItem(SPOT)||'null'); }catch(e){}
+    return (s && s.n>0 && s.i>0 && s.i<s.n) ? s : null;
+  }
   function step(){
     if(!on||mode==='audio') return;
-    if(i>=parts.length){ finish(); return; }
+    if(i>=parts.length){ forget(); finish(); return; }
     var p=parts[i], u=new SpeechSynthesisUtterance(p.text);
     voice=voice||pickVoice(); if(voice){ u.voice=voice; u.lang=voice.lang; }
     u.rate=parseFloat(rate.value)||1;
     u.onend=function(){ if(!on||paused) return; i++; step(); };
     u.onerror=function(){ if(!on||paused) return; i++; step(); };
-    mark(p.el); now.textContent=Math.round(i/parts.length*100)+'%';
+    mark(p.el); say(i/parts.length*100, p.text); remember();
     speechSynthesis.speak(u);
   }
-  function matches(ps){ if(!rec||rec.parts.length!==ps.length) return false; for(var k=0;k<ps.length;k++){ if(rec.parts[k].t!==ps[k].text) return false; } return true; }
+  /* The recording is made from the lines the page used to read, so a page that now skips a line (a bare
+     video time) no longer matches it line for line - and a strict comparison would throw away the natural
+     voice she paid for, on this page only, for the sake of that one skipped line. So line them up instead:
+     every line the page reads must still be in the recording, in the same order. The recording still SAYS
+     the skipped line until the page is recorded again; it is the phone voice that stops reading it. */
+  function align(ps){
+    if(!rec||!rec.parts) return null;
+    var map=[], k=0;
+    for(var j=0;j<ps.length;j++){
+      while(k<rec.parts.length && rec.parts[k].t!==ps[j].text) k++;
+      if(k>=rec.parts.length) return null;
+      map.push(k++);
+    }
+    return map;
+  }
   function label(){ play.setAttribute('aria-label', rec?'Listen (natural voice)':'Read aloud'); delete play.dataset.busy; return '&#128266;'; }
-  function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; now.textContent=''; }
+  function finish(){ on=false; paused=false; i=0; if(hasSS) speechSynthesis.cancel(); if(audio){ audio.pause(); audio.currentTime=0; } mark(null); play.innerHTML=label(); stop.hidden=true; if(fromTop) fromTop.hidden=true; now.textContent=''; }
+  function seek(t){   /* the recording may not have its length yet on the first play */
+    if(!t||!audio) return;
+    if(audio.readyState>0){ try{ audio.currentTime=t; }catch(e){} return; }
+    audio.addEventListener('loadedmetadata', function(){ try{ audio.currentTime=t; }catch(e){} }, {once:true});
+  }
   function startAudio(){
     if(!audio){
       audio=new Audio('a/'+stem+'.mp3'); audio.preload='auto';
       audio.addEventListener('timeupdate', function(){
+        if(!on) return;   /* stopping rewinds the recording, and that rewind fires one more of these: without
+                             this the square left the last line highlighted and 0% in the bar */
         var t=audio.currentTime, k=0; while(k+1<rec.parts.length && rec.parts[k+1].s<=t) k++;
-        if(k!==i || !document.querySelector('.reading')){ i=k; mark(parts[k]&&parts[k].el); }
-        now.textContent=Math.round(t/(rec.dur||audio.duration||1)*100)+'%';
+        var j=0; while(j+1<recMap.length && recMap[j+1]<=k) j++;   /* recorded line -> the line on the page */
+        if(j!==i || !document.querySelector('.reading')){ i=j; mark(parts[j]&&parts[j].el); remember(); }
+        say(t/(rec.dur||audio.duration||1)*100, parts[j]&&parts[j].text);
       });
-      audio.addEventListener('ended', finish);
+      audio.addEventListener('ended', function(){ forget(); finish(); });
       if('mediaSession' in navigator){
         var h=document.querySelector('h1');
         navigator.mediaSession.metadata=new MediaMetadata({title:h?h.innerText:document.title, artist:'Recipes'});
@@ -346,23 +401,41 @@ a.ts.now{background:var(--accent);color:#fff;border-color:var(--accent)}
              navigator.mediaSession.setActionHandler('seekforward', function(){ audio.currentTime=audio.currentTime+15; }); }catch(e){}
       }
     }
+    seek(resumeAt || (i>0 && rec.parts[recMap[i]] ? rec.parts[recMap[i]].s : 0)); resumeAt=0;
     audio.playbackRate=parseFloat(rate.value)||1;
     return audio.play();
   }
   var mode='';
-  play.addEventListener('click', function(){
-    if(!on){
-      parts=collect(); i=0; on=true; paused=false; stop.hidden=false; play.textContent='\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1';
-      if(matches(parts)){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
-      mode='speech'; if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
-      speechSynthesis.cancel(); step(); return;
+  function start(fresh){
+    parts=collect(); i=0; resumeAt=0;
+    if(!fresh){   /* carry on only if the page still reads the same, so an edited recipe starts at the top */
+      var s=spot();
+      if(s && s.n===parts.length && parts[s.i] && parts[s.i].text.slice(0,60)===s.k){ i=s.i; resumeAt=s.t||0; }
     }
-    if(!paused){ paused=true; if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654;'; play.setAttribute('aria-label','Resume'); return; }
+    on=true; paused=false; stop.hidden=false; if(fromTop) fromTop.hidden=(i<=0);
+    play.textContent='\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1';
+    recMap=align(parts);
+    if(recMap){ mode='audio'; startAudio().catch(function(){ mode='speech'; if(hasSS){ step(); } }); return; }
+    mode='speech';
+    if(!hasSS){ finish(); now.textContent='Read aloud is not available on this browser'; return; }
+    speechSynthesis.cancel(); step();
+  }
+  play.addEventListener('click', function(){
+    if(!on){ start(false); return; }
+    if(!paused){ paused=true; remember(); if(mode==='audio') audio.pause(); else speechSynthesis.cancel(); play.innerHTML='&#9654;'; play.setAttribute('aria-label','Resume'); return; }
     paused=false; play.textContent='\u23F8'; play.setAttribute('aria-label','Pause'); play.dataset.busy='1'; if(mode==='audio') audio.play(); else step();
   });
-  stop.addEventListener('click', finish);
+  stop.addEventListener('click', function(){ forget(); finish(); });   /* the square stops AND forgets the place; pausing keeps it */
+  if(fromTop) fromTop.addEventListener('click', function(){ forget(); if(on) finish(); start(true); });
   rate.addEventListener('change', function(){ if(mode==='audio'&&audio){ audio.playbackRate=parseFloat(rate.value)||1; return; } if(on&&!paused){ speechSynthesis.cancel(); step(); } });
   if (hasSS && speechSynthesis.onvoiceschanged!==undefined) speechSynthesis.onvoiceschanged=function(){ voice=pickVoice(); };
+  addEventListener('pagehide', function(){ if(on) remember(); });
+  document.addEventListener('visibilitychange', function(){ if(on&&document.hidden) remember(); });
+  (function(){   /* say so before she taps, rather than surprising her by starting in the middle */
+    var s=spot(); if(!s) return;
+    now.textContent='Carries on from '+Math.round(s.i/s.n*100)+'%';
+    if(fromTop) fromTop.hidden=false;
+  })();
 })();
 </script><!--read-aloud-->
 <script src="../swipe.js" data-pages="./ recipe-01-ai-social-media-manager.html recipe-02-seven-claude-commands.html recipe-03-cowork-what-you-dont-use.html recipe-04-the-grader-pattern.html recipe-05-the-audience-playbook.html recipe-06-she-switched-away-from-claude.html recipe-07-microsoft-copilot.html recipe-08-her-whole-tool-stack.html recipe-09-plan-mode-and-quality-gates.html recipe-10-the-social-automation-family.html recipe-11-loop-engineering.html recipe-12-live-search-data-in-claude-code.html recipe-13-claude-and-canva-templates.html recipe-14-the-tiktok-30-day-sprint.html recipe-15-lovable-quiz-and-directory.html recipe-16-websites-simple-to-advanced.html recipe-17-notebooklm-slide-decks.html recipe-18-fact-check-skill.html recipe-19-notification-hook.html recipe-20-claude-md-by-interview.html recipe-21-promo-videos-in-code.html recipe-22-ai-avatar-videos.html" defer></script><!--swipe-->

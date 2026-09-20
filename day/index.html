@@ -193,6 +193,11 @@
     var h = d.getHours(), m = d.getMinutes();
     return (h<10?"0":"")+h+":"+(m<10?"0":"")+m;
   }
+  var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function stampOf(iso){
+    var d = new Date(iso); if(isNaN(d)) return "";
+    return d.getDate() + " " + MON[d.getMonth()] + " " + clock(iso);
+  }
   function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
 
@@ -272,6 +277,12 @@
         '</div></div>';
     }).join("") : '<div class="empty">No lane has an unfinished product in the queue table.</div>';
 
+    /* The other half of her note: "if i do, will need the task status." A queue event's
+       title IS the row's short name (the builder writes it that way), so the row it came
+       from can be found here without fetching anything - d.queue is already in the feed. */
+    var qByName = {}, qrows = d.queue || [];
+    for(var qi=0; qi<qrows.length; qi++) qByName[qrows[qi].name] = qrows[qi];
+
     var evs = d.events || [], today = d.day, out = [], splitDone = false;
     for(var i=0;i<evs.length;i++){
       var e = evs[i], isToday = (e.at||"").slice(0,10) === today;
@@ -285,11 +296,24 @@
          and the title; the rest opens underneath when she taps it. Nothing is removed,
          only folded, and the whole row is the target because a small chevron on a phone
          is a miss. */
-      var more = (e.detail ? '<div class="d">' + esc(e.detail) + '</div>' : "") +
+      var isQueue = e.kind==="queue-move" || e.kind==="queue-new";
+      /* Where it stands NOW, which is not what the event says: the event carries the stage
+         it had when the move was first seen, the queue row carries today's. "Live" is the
+         only word on this page that means a public page was read back, so the fold says
+         which of the two a product is, and never calls published live. */
+      var q = isQueue ? qByName[e.title] : null;
+      var standing = q ? '<div class="d">Now: ' + esc(q.stage) +
+        (q.lane ? " · lane " + esc(q.lane) : "") + " · " +
+        (q.stage === "live" ? "live on Etsy" + (q.listing ? ", listing " + esc(q.listing) : "")
+          : q.stage === "published" ? "Publish pressed, nobody has read the public page back yet"
+          : "not on Etsy yet") + '</div>' : "";
+      var more = (e.detail ? '<div class="d">' + esc(e.detail) + '</div>' : "") + standing +
         '<span class="src">' + esc(e.source) +
-        (e.kind==="queue-move"||e.kind==="queue-new" ? " · first seen" : " · activity, not a count") +
-        (e.lane ? " · lane " + esc(e.lane) : "") +
-        (e.stage ? " · " + esc(e.stage) : "") +
+        (isQueue ? " · first seen " + esc(stampOf(e.at)) : " · activity, not a count") +
+        /* Lane and stage only here when the Now line above did not already say them,
+           or the fold prints the same two things twice on a phone. */
+        (q ? "" : (e.lane ? " · lane " + esc(e.lane) : "") +
+                  (e.stage ? " · " + esc(e.stage) : "")) +
         '</span>';
       out.push('<li class="ev' + (fresh?" fresh":"") + '" data-kind="' + esc(e.kind) +
         '" data-stage="' + esc(e.stage||"") + '"><time>' + esc(clock(e.at)) + '</time>' +

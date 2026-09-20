@@ -101,7 +101,8 @@
    shows Tyndale's copyright line with it. The single-file build stays as it was: World English Bible and King
    James Version only, and no network request of any kind (check_app.py still proves that).
 
-   With no signal, or if the service does not answer, the verse stays in the translation underneath and says why.
+   With no signal, or if the service does not answer, the verse stays in the translation underneath and says so
+   in its own citation line, with a button to ask again.
 */
 (function () {
   "use strict";
@@ -169,18 +170,29 @@
   }
 
   var inflight = {};
-  function load(ref) {
-    if (mem[ref]) return Promise.resolve(mem[ref]);
-    if (inflight[ref]) return inflight[ref];
-    var r = apiRef(ref);
-    if (!r) return Promise.reject(new Error("reference not understood"));
+  function ask(r) {
     var url = "https://api.nlt.to/api/passages?ref=" + encodeURIComponent(r) + "&version=NLT&key=TEST";
-    inflight[ref] = fetch(url).then(function (res) {
+    return fetch(url).then(function (res) {
       if (!res.ok) throw new Error("HTTP " + res.status);
       return res.text();
     }).then(function (text) {
       var parts = parseVerses(text);
       if (!parts) throw new Error("no verse came back");
+      return parts;
+    });
+  }
+  /* The free key sometimes answers HTTP 200 with an empty body, and the very same reference comes back in full
+     when it is asked again. Measured from the published page, 20 Sep 2026: one empty answer in 24 asked at once,
+     and every one of those references full when asked one at a time. So a first miss is asked again, once. */
+  function load(ref) {
+    if (mem[ref]) return Promise.resolve(mem[ref]);
+    if (inflight[ref]) return inflight[ref];
+    var r = apiRef(ref);
+    if (!r) return Promise.reject(new Error("reference not understood"));
+    inflight[ref] = ask(r).catch(function (err) {
+      if (navigator.onLine === false) throw err;          /* no signal: asking again cannot help */
+      return new Promise(function (go) { setTimeout(go, 900); }).then(function () { return ask(r); });
+    }).then(function (parts) {
       remember(ref, parts);
       delete inflight[ref];
       return parts;
@@ -209,6 +221,7 @@
   }
   function restore(q) {
     if (q.__phKept) { q.innerHTML = q.__phKept; q.__phNlt = 0; }
+    q.__phFail = 0;
   }
   function note(q, words) {
     var p = D_.createElement("p");
@@ -237,10 +250,37 @@
     q.__phNlt = 1;
   }
 
+  /* Rachel, on this app: "Nlt not there? I need the scripture if I actually switch". It used to fall back to
+     WEB or KJV with one small grey line under the verse while the NLT button stayed lit, so the picker said NLT
+     and the words were not the NLT. Now the citation line itself says so, and she can ask again for that verse. */
+  function failed(q, ref) {
+    restore(q);
+    var cite = q.querySelector("cite");
+    if (cite) cite.textContent = cite.textContent + " \u2014 not the New Living Translation";
+    var p = D_.createElement("p");
+    p.className = "note";
+    p.style.cssText = "margin:.25rem 0 0;font-size:.8125rem;opacity:.8";
+    p.appendChild(D_.createTextNode(navigator.onLine === false
+      ? "The New Living Translation needs a signal. This is the translation underneath. "
+      : "The New Living Translation did not answer. This is the translation underneath. "));
+    if (navigator.onLine !== false) {
+      var b = D_.createElement("button");
+      b.type = "button";
+      b.textContent = "Ask again";
+      b.style.cssText = "font:inherit;padding:.15rem .5rem";
+      b.addEventListener("click", function () {
+        quiet(function () { restore(q); fill(q); });   /* like every other write in here: watcher off */
+      });
+      p.appendChild(b);
+    }
+    q.appendChild(p);
+    q.__phFail = ref;          /* so the card being rebuilt does not quietly ask over and over */
+  }
+
   function fill(q) {
     if (!on || q.hidden || q.__phNlt || q.__phBusy) return;
     var ref = refOf(q);
-    if (!ref) return;
+    if (!ref || q.__phFail === ref) return;
     keep(q);
     if (mem[ref]) { show(q, ref, mem[ref]); return; }
     var waiting = q.querySelector("cite");
@@ -251,12 +291,7 @@
       quiet(function () { if (on) show(q, ref, parts); else restore(q); });
     }).catch(function () {
       q.__phBusy = 0;
-      quiet(function () {
-        restore(q);
-        note(q, navigator.onLine === false
-          ? "The New Living Translation needs a signal. Showing the translation above instead."
-          : "The New Living Translation did not answer. Showing the translation above instead.");
-      });
+      quiet(function () { failed(q, ref); });
     });
   }
   function sweep() {
