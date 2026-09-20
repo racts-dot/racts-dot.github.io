@@ -174,12 +174,38 @@
 
   var pending = null, current = null, moved = false;
 
+  /* ⛔ THE BAR NO LONGER CHASES THE SELECTION. Her words, 20 Sep 2026: "can i also have
+     the highlights and the notes bar not following along as it follows where the thigns
+     are". It used to appear directly above the words she had just dragged - which is
+     EXACTLY where a phone puts its own Copy / Look Up bubble, so her tap landed on the
+     system menu instead of on Highlight. Measured the same day: at 375px the bar was
+     placed at top 214 on a selection at 270, right under the native callout.
+     It now parks in one predictable place, low on the screen and clear of that bubble,
+     and stays there. If she drags it somewhere she prefers, that spot is remembered. */
+  var POS = "marks.pos";
+  function savedPos() {
+    try { var v = JSON.parse(localStorage.getItem(POS) || "null");
+          return (v && typeof v.l === "number" && typeof v.t === "number") ? v : null; }
+    catch (e) { return null; }
+  }
+  function rememberPos() {
+    try { localStorage.setItem(POS, JSON.stringify({ l: bar.offsetLeft, t: bar.offsetTop })); }
+    catch (e) {}
+  }
+  /* x and y are still accepted so every caller keeps working, and deliberately ignored. */
   function place(x, y) {
     bar.hidden = false;
     var w = bar.offsetWidth || 220, h = bar.offsetHeight || 46;
-    var L = Math.max(8, Math.min(x - w / 2, innerWidth - w - 8));
-    var T = Math.max(8, Math.min(y - h - 12, innerHeight - h - 8));
-    bar.style.left = L + "px"; bar.style.top = T + "px";
+    var v = savedPos(), L, T;
+    if (v) { L = v.l; T = v.t; }
+    else {
+      L = (innerWidth - w) / 2;
+      /* Above the text-size bar, which reserves 120px at the foot of these pages. */
+      T = innerHeight - h - 132;
+    }
+    /* Clamp anyway: a remembered spot can be off-screen after a rotation. */
+    bar.style.left = Math.max(8, Math.min(L, innerWidth - w - 8)) + "px";
+    bar.style.top  = Math.max(8, Math.min(T, innerHeight - h - 8)) + "px";
   }
   function hideBar() { bar.hidden = true; pending = null; current = null; }
 
@@ -229,6 +255,8 @@
       on = false;
       document.removeEventListener("pointermove", move);
       document.removeEventListener("pointerup", up);
+      /* Where she put it is where it stays, on this page and the next. */
+      if (moved) rememberPos();
     }
     bar.querySelector(".am-grip").addEventListener("pointerdown", down);
   })();
