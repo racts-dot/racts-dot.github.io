@@ -120,6 +120,15 @@
   #refresh{position:absolute;left:-9999px;width:1px;height:1px;border:0;padding:0;background:none}
   .empty{color:var(--muted);font-size:14px;line-height:1.5;background:var(--surface);
          border:1px solid var(--line);border-radius:16px;padding:14px}
+
+  /* 20 Sep 2026: the row became a button so it can open. It must still look like a line
+     of the feed, so only the press and the open state show. */
+  .ev button.body{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;
+                  text-align:left;width:100%;cursor:pointer;display:block}
+  .ev button.body:active{opacity:.65}
+  .ev button.body[aria-expanded="true"] .t{color:var(--accent)}
+  .ev .more[hidden]{display:none}
+  .ev .more{padding-top:3px}
 </style>
 <script src="/textsize.js"></script>
 <script src="/speak.js" defer></script>
@@ -270,13 +279,23 @@
       var fresh = !first && !seen[e.id];
       if(fresh) pending++;
       seen[e.id] = 1;
-      out.push('<li class="ev' + (fresh?" fresh":"") + '" data-kind="' + esc(e.kind) +
-        '" data-stage="' + esc(e.stage||"") + '"><time>' + esc(clock(e.at)) + '</time><div class="body">' +
-        '<div class="t"><span class="pip"></span>' + esc(e.title) + '</div>' +
-        (e.detail ? '<div class="d">' + esc(e.detail) + '</div>' : "") +
+      /* Her note on the feedback board, 19 Sep 2026: "Just be brief for me to click on
+         that and if i do, will need the task status." Each row was three lines - title,
+         detail, source - so a day of them is a wall on a phone. The row is now the time
+         and the title; the rest opens underneath when she taps it. Nothing is removed,
+         only folded, and the whole row is the target because a small chevron on a phone
+         is a miss. */
+      var more = (e.detail ? '<div class="d">' + esc(e.detail) + '</div>' : "") +
         '<span class="src">' + esc(e.source) +
         (e.kind==="queue-move"||e.kind==="queue-new" ? " · first seen" : " · activity, not a count") +
-        '</span></div></li>');
+        (e.lane ? " · lane " + esc(e.lane) : "") +
+        (e.stage ? " · " + esc(e.stage) : "") +
+        '</span>';
+      out.push('<li class="ev' + (fresh?" fresh":"") + '" data-kind="' + esc(e.kind) +
+        '" data-stage="' + esc(e.stage||"") + '"><time>' + esc(clock(e.at)) + '</time>' +
+        '<button type="button" class="body" aria-expanded="false">' +
+        '<div class="t"><span class="pip"></span>' + esc(e.title) + '</div>' +
+        '<div class="more" hidden>' + more + '</div></button></li>');
     }
     $("feed").innerHTML = out.length ? out.join("") :
       '<li class="empty">Nothing has been recorded today yet.</li>';
@@ -335,7 +354,32 @@
 
   // The shared /pull.js clicks this when she drags down; it re-fetches the feed where
   // it stands. One pill (the kit's), no reload, no second implementation in this file.
-  $("refresh").addEventListener("click", function(){ pull(); });
+  /* Her second note, 19 Sep 2026: "Can it be checked as i refresh". A pull on a phone
+     gave no sign it had done anything - the built time only changes when the TIMER
+     rebuilds the feed, which is every 20 minutes, so refreshing twice in a row looked
+     identical and identical to broken. This says what happened, and says it honestly:
+     "checked, nothing new" is a real answer, not a failure. */
+  function saidChecked(ok, fresh){
+    var w = $("when"), was = w.textContent;
+    w.textContent = !ok ? "could not reach the feed - showing the last copy"
+      : fresh ? "checked just now, " + fresh + " new" : "checked just now, nothing new";
+    setTimeout(function(){ if(w.textContent.indexOf("checked just now") === 0
+      || w.textContent.indexOf("could not reach") === 0) w.textContent = was; }, 4000);
+  }
+  $("refresh").addEventListener("click", function(){
+    var before = pending;
+    pull().then(function(ok){ saidChecked(ok, Math.max(0, pending - before)); });
+  });
+
+  /* Tap a row to see the rest of it. Delegated, because the feed is rebuilt on every
+     poll and a listener bound to a row would die with it. */
+  $("feed").addEventListener("click", function(ev){
+    var b = ev.target.closest && ev.target.closest("li.ev > button.body");
+    if(!b) return;
+    var box = b.querySelector(".more"), open = !box.hidden;
+    box.hidden = open;
+    b.setAttribute("aria-expanded", open ? "false" : "true");
+  });
 
   pull();
   setInterval(pull, POLL);
