@@ -2143,7 +2143,15 @@
     var jump = document.querySelectorAll("#app .jump button");
     if (!bars.length || jump.length !== bars.length) {
       // Not the reading view. On the list, a swipe left opens the newest trip.
-      if (d === 1) press("Read");
+      // ⛔ 21 Sep 2026, MEASURED on the live page, not read off the source. The line above
+      // was added 19 Sep to answer her "There are no swipe", and it still did NOTHING on the
+      // first screen she sees: a "Read" button only exists on a card for a trip SAVED ON THIS
+      // DEVICE, and when there are none the list renders the Notion trip and returns early -
+      // so press("Read") found no button and swiped into silence. Measured by dispatching a
+      // real touchstart/touchend pair at 375px with HTMLElement.prototype.click instrumented:
+      // reading view logged click:"Day 1" and click:"All trips"; the list logged NOTHING either way.
+      // The button that is always there is the Notion trip's "Open calendar and plan".
+      if (d === 1) { if (!press("Read")) press("Open calendar and plan"); }
       return;
     }
     var cur = -1;
