@@ -17,7 +17,16 @@
    refresh, and nothing said so. Found by the cache serving a stale marks.js during a
    change to it. The list is now derived from what index.html actually loads; if a script
    is added to the page, add it here too, or it silently stops working offline. */
-const CACHE = "rule-shelf-v6";
+/* v7, 21 Sep 2026: TWO things, and the first is why a fix to a shared script would never have
+   reached her phone on its own. Everything below except index.html is served CACHE FIRST, so a
+   corrected ../swipe.js can sit on GitHub for ever while the installed shelf keeps running the
+   copy taken at install. MEASURED today: the swipe fix was live on the public URL and a browser
+   that had opened the shelf before was still running the OLD file - old script tag, swipe still
+   dead. A push is not a published page, and for anything in this list it is not even a served
+   file until this number moves. Second: hearsel.js is on the page and was NOT in the list - the
+   identical fault the v2 note above describes, back again, so with no signal she loses "hear the
+   bit you picked" and nothing says so. */
+const CACHE = "rule-shelf-v7";
 const SHELL = [
   "./",
   "./index.html",
@@ -31,7 +40,8 @@ const SHELL = [
   "../swipe.js",
   "../marks.js",
   "../notion-sync.js",
-  "../pull.js"
+  "../pull.js",
+  "../hearsel.js"
 ];
 
 self.addEventListener("install", function (event) {
