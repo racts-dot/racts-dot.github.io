@@ -1,3 +1,9 @@
+<meta charset="utf-8">
+<!-- 20 Sep 2026: this page never declared its encoding. GitHub Pages sends
+     charset=utf-8 in the header so the live page was fine, but served by anything
+     that does not - a plain local server, or opened from disk - every em-dash and
+     curly quote turned into mojibake. Measured, not guessed: python http.server
+     sends "text/html" with no charset and the page garbled. -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Rachel's Rule Shelf</title>
 <!-- [HUMAN 2026-09-19] "even though it is not app, I want app." The same wrapper
@@ -205,6 +211,18 @@ table.meas .warn{color:var(--muted)}
   .plain{padding:16px 13px;font-size:12px}
   .doc-body pre{font-size:12px;padding:11px 12px}
 }
+  /* Easy read: give every rule its own edges. Her note, 19 Sep 2026. */
+  .easybtn{background:none;border:1px solid currentColor;border-radius:8px;font:inherit;
+           font-size:12.5px;padding:3px 10px;cursor:pointer;opacity:.75}
+  .easybtn:hover{opacity:1}
+  .plain.easy{line-height:1.75}
+  .doc-body.easy > ul > li, .doc-body.easy > ol > li{
+      background:rgba(127,127,127,.06);border:1px solid rgba(127,127,127,.16);
+      border-radius:12px;padding:11px 14px;margin:0 0 9px;list-style:none}
+  .doc-body.easy > ul, .doc-body.easy > ol{padding-left:0}
+  .doc-body.easy > ul > li::marker, .doc-body.easy > ol > li::marker{content:""}
+  .doc-body.easy p{line-height:1.7}
+  .doc-body.easy h2, .doc-body.easy h3{margin-top:1.6em}
 </style>
 
 <div class="topbar"><b id="tbTitle">Rachel&rsquo;s Rule Shelf</b><button id="menuBtn">Books</button></div>
@@ -292,6 +310,89 @@ function renderHome(){
   main.innerHTML = h;
 }
 
+/* ================== EASY READ ==================================================
+   Her note on the feedback board, 19 Sep 2026: "Make the answer style easier to
+   read." The answer-style book is written in shouting capitals because that is how
+   she wrote it, and rule 55 says nobody changes the wording of a rule. So NOTHING
+   HERE TOUCHES THE FILE. This changes only how the page DRAWS it, and a switch puts
+   it back exactly as written. The footer says which of the two you are looking at,
+   because a page that quietly reshapes a rule book and still claims to be verbatim
+   is worse than one that never softened it.
+   What it does: a word in capitals becomes ordinary case unless it is a real
+   acronym, and each numbered rule gets its own card so the eye can find the edges. */
+var EASY_KEY = "ruleshelf.easy";
+function easyOn(){
+  try { var v = localStorage.getItem(EASY_KEY); return v === null ? true : v === "1"; }
+  catch(e){ return true; }
+}
+/* Words that are capitals because they ARE capitals, not because she was shouting. */
+var KEEP = ("AI GPT PDF HTML CSS JS SVG PNG JPEG ZIP URL API KDP SEN PECS ACCC "
+  + "ACST AEST UTC MV3 QA ELI5 NLT SQL CSV JSON XML TTS OCR USD AUD GST ABN NDIS "
+  + "SEO ROI CTA CTR SKU ISBN FAQ CEO CTO UI UX B2B B2C").split(" ");
+/* NOT in this list, deliberately: IT, OPEN, LIVE, TODO, DO, AS. They are ordinary
+   words she writes in capitals for emphasis, and keeping them up turned her pronoun
+   into "and IT settles every clash". */
+function softenWord(w){
+  if (KEEP.indexOf(w) >= 0) return w;
+  if (!/^[A-Z][A-Z''’-]{1,}$/.test(w)) return w;   // leave short tokens alone
+  /* The whole word goes down. Keeping the first letter gave Title Case On Every
+     Word, which is no easier to read - the sentence pass puts the capitals back. */
+  return w.toLowerCase();
+}
+function soften(text){
+  /* Only bother where she really was shouting: three or more capitalised words. */
+  if (!/(?:\b[A-Z]{3,}\b[^A-Za-z]+){3,}/.test(text)) return text;
+  var out = text.replace(/[A-Z][A-Z''’-]{1,}/g, softenWord);
+  /* A sentence must still start with a capital after the softening. */
+  out = out.replace(/(^|[.!?:]\s+|—\s+)([a-z])/g, function(_, a, b){ return a + b.toUpperCase(); });
+  /* Line-based book: the first letter of a LINE is a sentence start, even when the
+     line opens with an emoji, a dash or a bullet. Without this the rule that begins
+     with a no-entry sign kept its small t. */
+  /* ⛔ ONLY a line that opens with a MARKER - an emoji, a bullet, a dash, a number.
+     Capitalising every line start broke her wrapped prose into "the more cautious /
+     Wins" and "eight / Contradictions", which is worse than the fault it fixed. A line
+     that simply continues a sentence is left alone; the pass above already handles a
+     line that follows a full stop. */
+  return out.replace(/(^|\n)(\s*[^\sA-Za-z0-9\n][^A-Za-z\n]*)([a-z])/g,
+    function(_, a, b, c){ return a + b + c.toUpperCase(); });
+}
+function walkSoften(node){
+  for (var i = 0; i < node.childNodes.length; i++){
+    var c = node.childNodes[i];
+    if (c.nodeType === 3){ var t = soften(c.nodeValue); if (t !== c.nodeValue) c.nodeValue = t; }
+    else if (c.nodeType === 1 && c.tagName !== "CODE" && c.tagName !== "PRE") walkSoften(c);
+  }
+}
+function paintEasy(d){
+  var body = main.querySelector(".doc-body") || main.querySelector(".plain");
+  var btn = document.getElementById("easybtn"), foot = document.getElementById("docfoot");
+  if (!btn || !foot) return;
+  var on = easyOn();
+  if (on && body){
+    /* Kept so the switch back is the real text, not a second guess at it. */
+    if (!body.getAttribute("data-raw")) body.setAttribute("data-raw", body.innerHTML);
+    body.innerHTML = body.getAttribute("data-raw");
+    walkSoften(body);
+    body.classList.add("easy");
+  } else if (body && body.getAttribute("data-raw")){
+    body.innerHTML = body.getAttribute("data-raw");
+    body.classList.remove("easy");
+  }
+  btn.textContent = on ? "as written" : "easy read";
+  btn.setAttribute("aria-pressed", on ? "true" : "false");
+  foot.innerHTML = on
+    ? "Easy read: the capitals are softened and the rules are spaced out, so this is <b>not</b> " +
+      "how the file looks. Nothing in " + esc(d.path) + " was changed. Press " +
+      "<b>as written</b> above for the real text.<br>" +
+      "To change a line, say which one and what it should say instead."
+    : "Verbatim from " + esc(d.path) + ".<br>" +
+      "To change a line, say which one and what it should say instead.";
+  btn.onclick = function(){
+    try { localStorage.setItem(EASY_KEY, easyOn() ? "0" : "1"); } catch(e){}
+    paintEasy(d);
+  };
+}
+
 function renderDoc(d){
   tbTitle.textContent = d.title;
   var body = (d.kind === 'txt')
@@ -306,9 +407,10 @@ function renderDoc(d){
       '<span><b>' + fmt(d.chars) + '</b> characters</span>' +
       '<span>last changed <b>' + d.date + '</b></span>' +
       '<span>' + esc(d.path) + '</span>' +
+      '<button class="easybtn" id="easybtn" type="button"></button>' +
     '</div>' + body +
-    '<div class="foot">Verbatim from ' + esc(d.path) + '.<br>' +
-    'To change a line, say which one and what it should say instead.</div>';
+    '<div class="foot" id="docfoot"></div>';
+  paintEasy(d);
   var tables = main.querySelectorAll('.doc-body table');
   for (var i = 0; i < tables.length; i++){
     var t = tables[i], w = document.createElement('div');
