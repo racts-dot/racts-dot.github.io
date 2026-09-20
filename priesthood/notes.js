@@ -45,8 +45,8 @@
     "#phnotes .nopen>summary{cursor:pointer;font-size:.82rem;opacity:.85}" +
     "#phnotes .nh{margin:.7rem 0 .25rem;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;opacity:.8}" +
     "#phnotes .nh span{display:block;text-transform:none;letter-spacing:0;font-weight:500;opacity:.75}" +
-    "#phnotes .npts,#phnotes .nchk{margin:.2rem 0 0 1.1rem;padding:0}" +
-    "#phnotes .npts li,#phnotes .nchk li{margin:.25rem 0}" +
+    "#phnotes .npts,#phnotes .nchk,#phnotes .ndo{margin:.2rem 0 0 1.1rem;padding:0}" +
+    "#phnotes .npts li,#phnotes .nchk li,#phnotes .ndo li{margin:.25rem 0}" +
     "#phnotes .nq{margin:.35rem 0;padding-left:.7rem;border-left:3px solid var(--line,#d9cebd);font-style:italic}";
   document.head.appendChild(css);
 
@@ -67,7 +67,7 @@
   function matches(n) {
     if (!q) return true;
     var hay = (n.t + " " + n.w + " " + n.s + " " + n.r + " " + n.c + " " +
-               (n.pts || []).join(" ") + " " + (n.qs || []).join(" ")).toLowerCase();
+               (n.pts || []).join(" ") + " " + (n.qs || []).join(" ") + " " + (n["do"] || []).join(" ")).toLowerCase();
     return hay.indexOf(q) >= 0;
   }
   function paint() {
@@ -82,7 +82,7 @@
       if (n.v) bits.push('<a href="' + esc(n.v) + '" target="_blank" rel="noopener">the video</a>');
       var body = "";
       if ((n.pts && n.pts.length) || (n.qs && n.qs.length) || (n.chk && n.chk.length)) {
-        body += '<details class="nopen"><summary>The teaching, the quotes, and what to check</summary>';
+        body += '<details class="nopen"><summary>The teaching, the quotes, what to do and what to check</summary>';
         if (n.pts && n.pts.length) {
           body += '<p class="nh">The teaching, in order <span>summary, written by Gemini</span></p><ol class="npts">' +
             n.pts.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ol>";
@@ -90,6 +90,10 @@
         if (n.qs && n.qs.length) {
           body += '<p class="nh">Worth keeping, word for word <span>the speaker&rsquo;s own words</span></p>' +
             n.qs.map(function (x) { return '<blockquote class="nq">' + esc(x) + "</blockquote>"; }).join("");
+        }
+        if (n["do"] && n["do"].length) {
+          body += '<p class="nh">What to do <span>the steps her note lists</span></p><ul class="ndo">' +
+            n["do"].map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>";
         }
         if (n.chk && n.chk.length) {
           body += '<p class="nh">Check before you act on it <span>claims, not facts</span></p><ul class="nchk">' +
