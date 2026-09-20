@@ -453,7 +453,26 @@ go(start);
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () {
-    navigator.serviceWorker.register("sw.js").catch(function () {});
+    /* ⛔ WHY THIS IS NOT JUST register(). Everything except this page is served
+       CACHE-FIRST, so a fix reaches the server and never reaches her device: she
+       reported "it does not change" through four separate corrections. The worker
+       only notices a new version when something asks it to look.
+       updateViaCache:"none" stops the browser answering from its own 10-minute
+       copy of sw.js; update() asks on every load and whenever she reopens the app
+       from her home screen; and when a new worker takes over we reload once so she
+       sees the fix instead of the copy she already had. */
+    navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then(function (reg) {
+      reg.update();
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) reg.update();
+      });
+      var reloaded = false;
+      navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (reloaded) return;          /* once only - never a reload loop */
+        reloaded = true;
+        location.reload();
+      });
+    }).catch(function () {});
   });
 }
 </script>
