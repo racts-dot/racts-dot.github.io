@@ -230,7 +230,12 @@
     if (!pass) {
       if (!document.body) return;
       status("Notion · " + q.length + " waiting", "wait", true);
-      if (!declined) askPassword().then(function (p) { if (p) flush(); });
+      /* 20 Sep 2026. Her word, on opening her own rule book and being asked for a
+         password: "Nooooooo". This used to raise the modal OVER whatever page she
+         had just opened, on all twelve apps that load this file. It never asks by
+         itself now: it shows the Connect chip and waits to be tapped. The modal is
+         raised only by NotionSync.connect(), which is her own tap. */
+      paintConnect();
       return;
     }
     if (navigator.onLine === false) {
@@ -250,8 +255,11 @@
         if (r.status === 401) {
           store(PASS_KEY, null);
           finish();
-          if (QUIET) { status("Notion · password needed - tap Connect", "wait", true); paintConnect(); }
-          else askPassword("That password didn't work. Try again.").then(function (p) { if (p) flush(); });
+          /* Same rule on a rejected password: say so in the status line and put the
+             chip back. Re-opening the box over her page was the other half of the
+             fault - a wrong password used to mean a modal on every load after it. */
+          status("Notion · password needed - tap Connect", "wait", true);
+          paintConnect();
           return;
         }
         var k = keyOf(item.body.app, item.body.id);
