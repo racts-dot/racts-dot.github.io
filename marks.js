@@ -100,12 +100,37 @@
      Measured 19 Sep 2026 in her own saved marks: "Run", "⛔ Run B", "highest in intellig".
      So: flatten the readable text once, find the phrase in THAT, then wrap each text node the phrase
      touches in its own <mark>. Several <mark> elements, one mark id. */
+  /* ⛔ 21 Sep 2026, her note the day before: "Still the highlight does not work." MEASURED on the
+     live Rule Shelf rather than guessed. The words the browser HANDS YOU when she drags are the
+     words as RENDERED, and CSS text-transform makes those different from the words in the page:
+     getSelection() returned "BUILT 20 SEP 2026, 23:20 " while the text node held
+     "Built 20 Sep 2026, 23:20 from the live f...". indexOf found nothing, paintOne found nothing,
+     so the mark was SAVED and SENT TO NOTION and nothing on the page turned yellow - which from
+     where she is sitting is a highlight button that does nothing. Six blocks on that one page are
+     transformed. Control: the same test on a block with text-transform:none painted 1 mark and
+     said "Highlighted", so it was the transform and not the marking.
+     The fix is to search the text as she SEES it. uppercase, lowercase and capitalize all keep the
+     character count, so offsets stay valid - and where a transform would change the length (ß -> SS)
+     the raw value is used instead, because a wrong offset is worse than a missed highlight. */
+  function shown(n, cache) {
+    var pe = n.parentElement;
+    if (!pe) return n.nodeValue;
+    var t = cache.get(pe);
+    if (t === undefined) { t = getComputedStyle(pe).textTransform; cache.set(pe, t); }
+    var v = n.nodeValue, out = v;
+    if (t === "uppercase") out = v.toUpperCase();
+    else if (t === "lowercase") out = v.toLowerCase();
+    else if (t === "capitalize") out = v.replace(/(^|[\s"'(\[])([a-zà-þ])/g,
+      function (_, pre, c) { return pre + c.toUpperCase(); });
+    return out.length === v.length ? out : v;
+  }
+
   function flat() {
-    var nodes = [], str = "", wk = walker(), n;
+    var nodes = [], str = "", wk = walker(), n, cache = new Map();
     while ((n = wk.nextNode())) {
       if (n.parentElement && n.parentElement.closest("mark.am")) continue;
       nodes.push({ node: n, start: str.length, len: n.nodeValue.length });
-      str += n.nodeValue;
+      str += shown(n, cache);
     }
     return { nodes: nodes, str: str };
   }
@@ -114,6 +139,13 @@
   function walk_collect(text) {
     var f = flat(), out = [], i = f.str.indexOf(text);
     while (i >= 0) { out.push({ at: i, flat: f }); i = f.str.indexOf(text, i + 1); }
+    /* Last resort for a transform this does not model, and for marks saved before it existed:
+       look again ignoring case. It only runs when the exact search found NOTHING, so the choice
+       is between this and showing her nothing at all. */
+    if (!out.length && text) {
+      var lo = f.str.toLowerCase(), t = text.toLowerCase(), j = lo.indexOf(t);
+      while (j >= 0) { out.push({ at: j, flat: f }); j = lo.indexOf(t, j + 1); }
+    }
     return out;
   }
 
