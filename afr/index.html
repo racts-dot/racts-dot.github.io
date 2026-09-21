@@ -1,0 +1,529 @@
+<title>AFR Summary</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="AFR Summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,650&family=Public+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --ground:#F6F7F9; --paper:#FFFFFF; --ink:#16212E; --muted:#5B6878; --rule:#DDE2E8;
+  --accent:#1D4F91; --eli:#EEF3FA; --why:#F3F5F7;
+  --news:#2E6B4E; --research:#1D4F91; --opinion:#9A5A12; --whisper:#7B3C6E; --gossip:#8A4B4B; --mixed:#44505E;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif; --sans:"Public Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ground:#0E141B; --paper:#151D26; --ink:#E5EAF0; --muted:#98A5B4; --rule:#26313D;
+  --accent:#8CB4EC; --eli:#18263A; --why:#1A222C;
+  --news:#7FC3A0; --research:#8CB4EC; --opinion:#E0A95E; --whisper:#D38CC4; --gossip:#D99A9A; --mixed:#A9B4C0;
+}}
+:root[data-theme="dark"]{
+  --ground:#0E141B; --paper:#151D26; --ink:#E5EAF0; --muted:#98A5B4; --rule:#26313D;
+  --accent:#8CB4EC; --eli:#18263A; --why:#1A222C;
+  --news:#7FC3A0; --research:#8CB4EC; --opinion:#E0A95E; --whisper:#D38CC4; --gossip:#D99A9A; --mixed:#A9B4C0;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font:16px/1.6 var(--sans);padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:680px;margin:0 auto}
+header.mast{padding-block:28px 18px;border-bottom:2px solid var(--ink)}
+.mast .name{font:600 13px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.mast h1{font:650 clamp(30px,7vw,42px)/1.08 var(--serif);margin:.35em 0 .2em;text-wrap:balance}
+.mast .sub{color:var(--muted);font-size:14px;margin:0}
+.counts{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:12px;font:500 12px/1.4 var(--mono);color:var(--muted)}
+nav.jump{display:flex;gap:8px;flex-wrap:wrap;padding-block:14px}
+nav.jump a{font:600 13px/1 var(--sans);color:var(--accent);text-decoration:none;border:1px solid var(--rule);background:var(--paper);padding:8px 12px;border-radius:999px}
+h2.band{font:600 12px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:34px 0 12px}
+.story{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:22px 20px;margin-bottom:16px;display:grid;gap:12px}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.sec{font:500 12px/1 var(--mono);color:var(--muted);letter-spacing:.04em}
+.story h2{font:650 24px/1.2 var(--serif);margin:0;text-wrap:balance}
+.body{margin:0;max-width:65ch}
+.why,.eli5{border-radius:4px;padding:12px 14px}
+.why{background:var(--why)}
+.eli5{background:var(--eli)}
+.why h3,.eli5 h3{font:600 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;margin:0 0 6px;color:var(--muted)}
+.eli5 h3{color:var(--accent)}
+.why p,.eli5 p{margin:0}
+.eli5 p{font:500 17px/1.5 var(--serif)}
+.chip{display:inline-block;font:600 11px/1 var(--sans);letter-spacing:.02em;padding:5px 8px;border-radius:3px;border:1px solid currentColor;white-space:nowrap}
+.k-news{color:var(--news)} .k-research{color:var(--research)} .k-opinion{color:var(--opinion)}
+.k-whisper{color:var(--whisper)} .k-gossip{color:var(--gossip)} .k-mixed{color:var(--mixed)}
+details.src summary{cursor:pointer;font-size:14px;color:var(--accent)}
+details.src ul,.also-sec ul,.legend ul{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:8px}
+details.src li,.also-sec li,.legend li{display:flex;gap:10px;align-items:baseline;font-size:15px}
+a{color:var(--ink)} a:focus-visible,button:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{border-top:1px dashed var(--rule);padding-top:12px;display:grid;gap:6px}
+.note label{font:600 12px/1 var(--sans);color:var(--muted)}
+.note textarea{width:100%;font:15px/1.5 var(--sans);color:var(--ink);background:var(--ground);border:1px solid var(--rule);border-radius:4px;padding:8px 10px;resize:vertical}
+.noterow{display:flex;gap:10px;align-items:center}
+.note button{font:600 14px/1 var(--sans);background:var(--accent);color:var(--paper);border:0;border-radius:4px;padding:9px 14px;cursor:pointer}
+.status{font-size:13px;color:var(--muted)}
+.also-sec{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:14px 18px;margin-bottom:10px}
+.also-sec h3{font:600 12px/1 var(--mono);letter-spacing:.06em;margin:0;color:var(--muted)}
+.also-sec a{text-decoration:none} .also-sec a:hover{text-decoration:underline}
+.legend,.words{background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:16px 18px}
+.words ul{padding-left:18px;margin:8px 0 0;display:grid;gap:8px}
+.words b{font-family:var(--serif);font-size:17px;margin-right:6px}
+footer{color:var(--muted);font-size:13px;margin-top:28px}
+@media (max-width:420px){.story{padding:18px 14px} .story h2{font-size:21px} details.src li,.also-sec li,.legend li{flex-direction:column;gap:4px}}
+</style>
+<div class="wrap">
+<header class="mast">
+  <div class="name">AFR Summary</div>
+  <h1>Sunday 20 September 2026</h1>
+  <p class="sub">Stories AFR published on Saturday 19 and Sunday 20 September. Read off afr.com 20 Sep 2026, 16:30 ACST. Written fresh in plain English; tap any headline for the full article.</p>
+  <div class="counts"><span>35 stories in the paper</span><span>8 in full</span><span>24 as headlines</span></div>
+</header>
+<div class="listen"><button type="button" id="afrListen">&#9654; Listen (natural voice) &middot; 7 min</button><span id="afrNow" aria-live="polite"></span></div>
+<nav class="jump" aria-label="Jump to"><a href="#full">The ones that count</a><a href="#also">Also in the paper</a><a href="#legend">How credible</a><a href="#words">Words</a></nav>
+<h2 class="band" id="full">The ones that count</h2>
+
+<article class="story" id="s-rates">
+  <div class="meta"><span class="sec">Markets · Policy</span><span class="chip k-mixed">Several sources</span></div>
+  <h2>Interest rates are going up, not down, and shares are falling on it</h2>
+  <p class="body">Futures point to the ASX 200 opening 0.7 per cent lower on Monday, after a sell-off that has already taken the index down nearly 4 per cent this month and wiped out its gain for the year. Traders are positioning for three more rate rises from the Reserve Bank. In the US, Bank of America economists reaffirmed that the Federal Reserve will lift rates again in October and December, and its strategists said investors should be ready for the Fed to go above 5 per cent. The Fed&#x27;s chair, Kevin Warsh, raised rates last week and said inflation has been too high for too long.</p>
+  <div class="why"><h3>Why it counts</h3><p>Higher rates mean mortgage payments rise and households cut the small discretionary buys first, which is exactly where printables and second-hand goods sit. Two of the three sources are forecasts or one columnist&#x27;s argument, so treat the number of rises as expectation, not fact.</p></div>
+  <div class="eli5"><h3>ELI5</h3><p>Borrowing money is getting dearer, so people will have less spare cash for little treats.</p></div>
+  <details class="src"><summary>Sources (3)</summary><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/markets/equity-markets/asx-to-resume-sell-off-as-traders-eye-three-rba-rate-rises-20260920-p60ylb" target="_blank" rel="noopener">ASX to fall as traders eye three more RBA rises</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/markets/equity-markets/wall-st-edges-higher-in-afternoon-trade-oil-slips-bitcoin-rallies-20260919-p60yqd" target="_blank" rel="noopener">Wall Street: BofA sees Fed rises in October and December</a></li><li><span class="chip k-opinion">Opinion column</span><a href="https://www.afr.com/policy/economy/fed-s-rate-rise-shows-up-chalmers-heroic-belief-in-ai-productivity-20260920-p60yrc" target="_blank" rel="noopener">Chalmers&#x27; AI productivity assumptions called heroic</a></li></ul></details>
+  <div class="note" data-nid="rates" data-head="Interest rates are going up, not down, and shares are falling on it">
+    <label for="n-rates">My note</label>
+    <textarea id="n-rates" rows="2" placeholder="What I think, or what to try"></textarea>
+    <div class="noterow"><button type="button">Save note</button><span class="status" aria-live="polite"></span></div>
+  </div>
+</article>
+<article class="story" id="s-p60xk9">
+  <div class="meta"><span class="sec">Markets</span><span class="chip k-opinion">Opinion</span></div>
+  <h2>The case that AI lifts the economy&#x27;s speed limit</h2>
+  <p class="body">A markets columnist argues the rules investors have used since the financial crisis are being rewritten. For years the accepted view was secular stagnation, with about 2 per cent growth the best a mature economy could expect. The piece says a serious case is now emerging that AI could deliver a sustained acceleration in US productivity, and that investors sticking to the old playbook risk being left behind.</p>
+  <div class="why"><h3>Why it counts</h3><p>This is the optimistic half of the same argument the rates story attacks: whether AI actually makes work cheaper and faster, or just costs a lot to build. It matters to you because your whole operation is one person plus AI tools. This is an opinion column making a case, not a measurement.</p></div>
+  <div class="eli5"><h3>ELI5</h3><p>Some people think robots will make everyone&#x27;s work much faster, so the whole country earns more.</p></div>
+  <details class="src"><summary>Sources (1)</summary><ul><li><span class="chip k-opinion">Opinion column</span><a href="https://www.afr.com/markets/equity-markets/ai-could-change-the-speed-limit-of-economic-growth-20260920-p60xk9" target="_blank" rel="noopener">AI could change the speed limit of growth</a></li></ul></details>
+  <div class="note" data-nid="p60xk9" data-head="The case that AI lifts the economy&#x27;s speed limit">
+    <label for="n-p60xk9">My note</label>
+    <textarea id="n-p60xk9" rows="2" placeholder="What I think, or what to try"></textarea>
+    <div class="noterow"><button type="button">Save note</button><span class="status" aria-live="polite"></span></div>
+  </div>
+</article>
+<article class="story" id="s-p60y8y">
+  <div class="meta"><span class="sec">Technology</span><span class="chip k-news">News report</span></div>
+  <h2>Anthropic is putting its first Australian data centre in regional Queensland</h2>
+  <p class="body">Anthropic, the San Francisco company that makes Claude, has signed a long-term lease at the Western Downs Digital Park, north-west of Brisbane. Singapore&#x27;s Zerra DC is proposing to build a $30 billion data centre on the site. The local reception has been cautious, with the region weighing jobs against the use of farming land.</p>
+  <div class="why"><h3>Why it counts</h3><p>The AI tool you work with every day is buying Australian capacity, which usually means faster and more reliable service here. It is also the concrete version of the data-centre building boom that economists say keeps interest rates high, so the two lead stories above are linked.</p></div>
+  <div class="eli5"><h3>ELI5</h3><p>The company that makes Claude is building a huge computer shed on a Queensland farm.</p></div>
+  <details class="src"><summary>Sources (1)</summary><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/technology/you-can-t-eat-data-cautious-local-welcome-to-anthropic-plan-20260920-p60y8y" target="_blank" rel="noopener">What the Anthropic data centre deal means locally</a></li></ul></details>
+  <div class="note" data-nid="p60y8y" data-head="Anthropic is putting its first Australian data centre in regional Queensland">
+    <label for="n-p60y8y">My note</label>
+    <textarea id="n-p60y8y" rows="2" placeholder="What I think, or what to try"></textarea>
+    <div class="noterow"><button type="button">Save note</button><span class="status" aria-live="polite"></span></div>
+  </div>
+</article>
+<article class="story" id="s-albanese-ai">
+  <div class="meta"><span class="sec">Politics</span><span class="chip k-mixed">Several sources</span></div>
+  <h2>Albanese wants global AI rules, and says copyright can be settled</h2>
+  <p class="body">The Prime Minister, speaking at Apple&#x27;s California headquarters, said Australia would join like-minded countries pushing for a global framework that keeps people in control of AI. That puts him at odds with Donald Trump, who has rejected regulating it. He said he is confident a way through can be found on copyright, and is taking the under-16s social media ban and a digital duty of care proposal to the United Nations General Assembly in New York.</p>
+  <div class="why"><h3>Why it counts</h3><p>Copyright rules decide whether AI-generated artwork and text can be sold, which is the ground your listings stand on. The under-16s ban reshapes which social platforms are worth marketing on. Nothing here is law yet; it is a position being argued overseas.</p></div>
+  <div class="eli5"><h3>ELI5</h3><p>Australia&#x27;s leader wants countries to agree rules so people, not computers, stay in charge.</p></div>
+  <details class="src"><summary>Sources (2)</summary><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/politics/federal/keep-humans-in-control-pm-flags-global-ai-alliance-20260920-p60yug" target="_blank" rel="noopener">PM flags a global AI alliance</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/politics/federal/we-need-to-shape-ai-rather-than-allow-it-to-shape-us-albanese-20260919-p60yrs" target="_blank" rel="noopener">Albanese&#x27;s US visit opens on AI and online safety</a></li></ul></details>
+  <div class="note" data-nid="albanese-ai" data-head="Albanese wants global AI rules, and says copyright can be settled">
+    <label for="n-albanese-ai">My note</label>
+    <textarea id="n-albanese-ai" rows="2" placeholder="What I think, or what to try"></textarea>
+    <div class="noterow"><button type="button">Save note</button><span class="status" aria-live="polite"></span></div>
+  </div>
+</article>
+<article class="story" id="s-p60ytx">
+  <div class="meta"><span class="sec">Property</span><span class="chip k-news">News report</span></div>
+  <h2>More homes went to auction, but fewer of them sold</h2>
+  <p class="body">Scheduled auctions in the week to Saturday rose to 1832 from 1585 the week before, according to Cotality data released on Sunday. The preliminary clearance rate across the combined capital cities slipped to 54 per cent from 58.5 per cent. In Melbourne and Sydney, buyers who can see prices have weakened are still competing hard for the better homes.</p>
+  <div class="why"><h3>Why it counts</h3><p>A clearance rate in the mid-50s means roughly half the homes offered did not sell, which is a weak market. When house prices fall and rates rise together, households feel poorer and spend less on non-essentials. This is one week&#x27;s preliminary figure and it is usually revised.</p></div>
+  <div class="eli5"><h3>ELI5</h3><p>More houses were up for sale, and fewer people bought them.</p></div>
+  <details class="src"><summary>Sources (1)</summary><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/property/residential/buyers-take-advantage-of-falling-prices-even-as-rates-threat-grows-20260920-p60ytx" target="_blank" rel="noopener">Spring auction volumes rise, clearance rate dips</a></li></ul></details>
+  <div class="note" data-nid="p60ytx" data-head="More homes went to auction, but fewer of them sold">
+    <label for="n-p60ytx">My note</label>
+    <textarea id="n-p60ytx" rows="2" placeholder="What I think, or what to try"></textarea>
+    <div class="noterow"><button type="button">Save note</button><span class="status" aria-live="polite"></span></div>
+  </div>
+</article>
+<article class="story" id="s-p60xyc">
+  <div class="meta"><span class="sec">Companies</span><span class="chip k-news">News report</span></div>
+  <h2>BYD cut $7000 off its cheapest electric car and denies starting a price war</h2>
+  <p class="body">BYD dropped the price of its Atto 1 electric vehicle by nearly $7000, to $19,900. The company&#x27;s Australian chief operating officer, Stephen Collins, said it was a normal campaign to lift sales of that model rather than a price war. Beijing has warned Chinese carmakers against price wars.</p>
+  <div class="why"><h3>Why it counts</h3><p>It is a clear reading of how Chinese manufacturers behave when demand softens: they cut hard and fast on price. That is the same pressure that sits under cheap goods on eBay and Temu, and it is why competing on price against them rarely works. Discounting on this scale is also a sign consumers are not spending freely.</p></div>
+  <div class="eli5"><h3>ELI5</h3><p>A car company made its cheapest car much cheaper to get people buying again.</p></div>
+  <details class="src"><summary>Sources (1)</summary><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/companies/transport/byd-slashes-ev-prices-despite-beijing-s-warning-to-avoid-price-war-20260920-p60xyc" target="_blank" rel="noopener">BYD defends its $7000 Atto 1 price cut</a></li></ul></details>
+  <div class="note" data-nid="p60xyc" data-head="BYD cut $7000 off its cheapest electric car and denies starting a price war">
+    <label for="n-p60xyc">My note</label>
+    <textarea id="n-p60xyc" rows="2" placeholder="What I think, or what to try"></textarea>
+    <div class="noterow"><button type="button">Save note</button><span class="status" aria-live="polite"></span></div>
+  </div>
+</article>
+<article class="story" id="s-p60ydp">
+  <div class="meta"><span class="sec">Politics</span><span class="chip k-news">News report</span></div>
+  <h2>Regional exporters say migration cuts would hit them hardest</h2>
+  <p class="body">Big employers outside the cities say they depend on foreign workers and reject One Nation&#x27;s claim that unemployed Australians would take those jobs instead. Among them is Roger Fletcher, 80, who built Fletcher International, a large meat exporter, around his works at Dubbo. The concern covers both Labor&#x27;s immigration cuts and One Nation&#x27;s larger proposals.</p>
+  <div class="why"><h3>Why it counts</h3><p>This is last week&#x27;s migration fight seen from the employers&#x27; side. Fewer workers in food and export businesses means higher costs and fewer customers in country towns. The article reports what those employers say, so it is one interested group&#x27;s case.</p></div>
+  <div class="eli5"><h3>ELI5</h3><p>Farms and meatworks say that without workers from overseas, the work does not get done.</p></div>
+  <details class="src"><summary>Sources (1)</summary><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/politics/federal/a-squeeze-on-migrants-could-be-disastrous-for-the-bush-20260919-p60ydp" target="_blank" rel="noopener">Migration cuts alarm regional exporters</a></li></ul></details>
+  <div class="note" data-nid="p60ydp" data-head="Regional exporters say migration cuts would hit them hardest">
+    <label for="n-p60ydp">My note</label>
+    <textarea id="n-p60ydp" rows="2" placeholder="What I think, or what to try"></textarea>
+    <div class="noterow"><button type="button">Save note</button><span class="status" aria-live="polite"></span></div>
+  </div>
+</article>
+<article class="story" id="s-p60yqc">
+  <div class="meta"><span class="sec">World</span><span class="chip k-news">News report</span></div>
+  <h2>Trump and Xi meet this week, with trade and AI on the table</h2>
+  <p class="body">The US and Chinese presidents meet for the second time this year. Reporters expect stability rather than any big breakthrough, with trade disputes, Taiwan and the war in Iran all unresolved. Trade, global conflicts and AI are on the agenda.</p>
+  <div class="why"><h3>Why it counts</h3><p>What these two agree on sets tariffs and shipping costs for Chinese-made goods, which is the supply side of anything sourced cheaply online. A quiet summit means no sudden change; a bad one would move prices within weeks. This is a preview of a meeting that has not happened yet.</p></div>
+  <div class="eli5"><h3>ELI5</h3><p>The leaders of America and China are meeting to talk about what things cost between them.</p></div>
+  <details class="src"><summary>Sources (1)</summary><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/world/north-america/two-strongmen-in-the-playground-what-to-watch-when-trump-meets-xi-20260920-p60yqc" target="_blank" rel="noopener">What to watch when Trump meets Xi</a></li></ul></details>
+  <div class="note" data-nid="p60yqc" data-head="Trump and Xi meet this week, with trade and AI on the table">
+    <label for="n-p60yqc">My note</label>
+    <textarea id="n-p60yqc" rows="2" placeholder="What I think, or what to try"></textarea>
+    <div class="noterow"><button type="button">Save note</button><span class="status" aria-live="polite"></span></div>
+  </div>
+</article>
+<h2 class="band" id="also">Also in the paper</h2>
+<section class="also-sec"><h3>Technology</h3><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/technology/nearmap-s-pe-owner-ponders-multibillion-dollar-return-to-the-asx-20260920-p60ykw" target="_blank" rel="noopener">Private equity owner Thoma Bravo is preparing to float aerial imaging company Nearmap back onto the ASX, four years after buying it for $1.06 billion.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/technology/court-warns-blackmagic-to-stay-neutral-in-co-founder-legal-stoush-20260920-p60yns" target="_blank" rel="noopener">A court has warned video software maker BlackMagic to stay neutral as two co-founders are sued by a third who says he is blocked from selling his stake.</a></li><li><span class="chip k-opinion">Opinion</span><a href="https://www.afr.com/technology/the-good-the-bad-and-the-ugly-of-apple-s-iphone-18-pro-20260920-p60yk4" target="_blank" rel="noopener">A reviewer calls the iPhone 18 Pro a small-change year, with a new variable aperture camera and a burgundy colour they dislike.</a></li></ul></section><section class="also-sec"><h3>Markets</h3><ul><li><span class="chip k-opinion">Opinion</span><a href="https://www.afr.com/world/north-america/how-should-investors-position-for-the-robot-apocalypse-20260920-p60yuy" target="_blank" rel="noopener">A columnist asks, half seriously, how fund managers should invest if AI really does end human civilisation.</a></li></ul></section><section class="also-sec"><h3>Policy</h3><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/policy/economy/new-push-to-axe-public-holiday-after-victorian-teams-miss-grand-final-20260920-p60yv3" target="_blank" rel="noopener">Business groups want Victoria&#x27;s AFL grand final eve public holiday reviewed, saying it costs the state economy, especially with no Victorian team playing.</a></li></ul></section><section class="also-sec"><h3>Property</h3><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/property/residential/lj-hooker-heir-wants-to-tap-suburban-landbank-his-grandfather-created-20260920-p60xla" target="_blank" rel="noopener">LJ Hooker heir Janusz Hooker is selling factory-built two-bedroom homes at about $250,000, delivered within 150 days, to tackle the rental shortage.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/property/residential/lower-north-shore-mansion-sells-for-downturn-defying-33m-20260920-p60ykk" target="_blank" rel="noopener">A heritage-listed Longueville mansion sold off-market for $33 million, $13.75 million more than its 2023 price, setting a suburb record despite the downturn.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/property/commercial/liberman-backed-consortium-endorses-struggling-melbourne-office-market-20260920-p60yhu" target="_blank" rel="noopener">Investors including Moose Toys&#x27; Paul Solomon bought a nine-level East Melbourne office building for under $20 million as big institutions stay away.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/property/commercial/the-chance-meeting-that-linked-mary-fairfax-to-a-pub-empire-20260920-p60vq2" target="_blank" rel="noopener">A profile of how a former lawyer built the Solotel pub group in the 1980s, now run by his son Elliot.</a></li></ul></section><section class="also-sec"><h3>Street Talk</h3><ul><li><span class="chip k-whisper">Market whisper</span><a href="https://www.afr.com/street-talk/ingenia-board-sits-on-revised-3b-proposal-from-pe-suitor-20260920-p60y3y" target="_blank" rel="noopener">Ingenia Communities&#x27; board has appointed an independent adviser to look at Warburg Pincus&#x27; improved $3 billion takeover proposal after shareholder pressure.</a></li></ul></section><section class="also-sec"><h3>Chanticleer</h3><ul><li><span class="chip k-opinion">Opinion</span><a href="https://www.afr.com/chanticleer/fundies-prepare-for-the-bizarre-arrival-of-ramsay-s-unwanted-euro-baby-20260920-p60yog" target="_blank" rel="noopener">Columnist: Ramsay Health Care is about to list a French and Nordic hospitals business on the ASX that has no Australian operations at all.</a></li></ul></section><section class="also-sec"><h3>World</h3><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/world/north-america/facing-mounting-losses-trump-kicks-a-familiar-foe-20260920-p60yy4" target="_blank" rel="noopener">Donald Trump banned three media outlets from the White House, which reporters read as a pattern of using government power against critics before the midterms.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/world/europe/spectacular-defeat-trump-mocked-for-status-quo-greenland-deal-20260920-p60yvc" target="_blank" rel="noopener">Trump&#x27;s Greenland agreement was mocked as changing nothing, with Danish and Greenlandic leaders saying they are comfortable with it.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/world/middle-east/houthis-claim-attack-on-saudi-capital-in-fresh-oil-supply-fears-20260920-p60yvg" target="_blank" rel="noopener">Houthi rebels claimed a missile attack on Riyadh, which Saudi forces say they intercepted, raising fresh worries about oil supply.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/world/asia/how-glencore-became-entangled-in-2-8b-battle-with-an-iron-ore-trader-20260920-p60ymr" target="_blank" rel="noopener">Commodities giant Glencore is in a $2.8 billion legal fight in Singapore with iron ore trader Radiant World over a bet on falling prices that went wrong.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/world/europe/we-won-two-world-wars-billionaires-lament-broken-britain-20260920-p60yuu" target="_blank" rel="noopener">British billionaires Jim Ratcliffe and Fred Done publicly criticised Britain over immigration and its attitude to wealth.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/world/north-america/i-m-so-sorry-ed-sheeran-in-tears-on-stage-over-palestine-row-20260920-p60ywy" target="_blank" rel="noopener">Ed Sheeran cried on stage in Philadelphia while addressing criticism over dropping rapper Macklemore from his tour after a Free Palestine chant.</a></li></ul></section><section class="also-sec"><h3>Rear Window</h3><ul><li><span class="chip k-gossip">Gossip column</span><a href="https://www.afr.com/rear-window/the-most-unlikely-photo-from-the-qantas-chairman-s-lounge-20260920-p60ywm" target="_blank" rel="noopener">Senator Lidia Thorpe posted a selfie from the Qantas Chairman&#x27;s Lounge, joining a growing line of politicians doing the same.</a></li></ul></section><section class="also-sec"><h3>Life &amp; Luxury</h3><ul><li><span class="chip k-news">News report</span><a href="https://www.afr.com/life-and-luxury/food-and-wine/shrinking-pub-empire-hangs-onto-the-royal-but-others-hit-the-market-20260920-p60yvu" target="_blank" rel="noopener">Perth publican John Parker kept his flagship venue The Royal after creditors approved an $850,000 rescue plan.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/life-and-luxury/health-and-wellness/why-30g-of-protein-in-one-meal-isn-t-your-upper-limit-20260919-p60wou" target="_blank" rel="noopener">Scientists have found no upper limit to how much protein the body can absorb from one meal, so the familiar 30 gram rule is wrong.</a></li><li><span class="chip k-opinion">Opinion</span><a href="https://www.afr.com/life-and-luxury/cars-bikes-and-boats/lexus-new-84k-flagship-electric-sedan-goes-all-in-on-quiet-luxury-20260920-p60udr" target="_blank" rel="noopener">A review of Lexus&#x27; new $84,000 electric sedan, the ES550e, which drops the brand&#x27;s sharp-edged styling for a calmer look.</a></li><li><span class="chip k-opinion">Opinion</span><a href="https://www.afr.com/life-and-luxury/arts-and-culture/mobland-s-second-season-is-pure-television-crack-20260919-p60yo5" target="_blank" rel="noopener">A review says the second season of gangster drama MobLand, with Pierce Brosnan and Helen Mirren, is ridiculous and hard to stop watching.</a></li><li><span class="chip k-opinion">Opinion</span><a href="https://www.afr.com/life-and-luxury/arts-and-culture/four-hours-of-musk-is-oddly-compelling-20260919-p60x9a" target="_blank" rel="noopener">A review of Alex Gibney&#x27;s four-hour Elon Musk documentary, which paints him as a power-hungry con man and which Musk has objected to.</a></li><li><span class="chip k-news">News report</span><a href="https://www.afr.com/life-and-luxury/fashion-and-style/leather-up-with-a-new-bottega-veneta-jacket-and-a-covetable-cartier-bag-20260919-p60v4t" target="_blank" rel="noopener">A shopping roundup of leather pieces, a new fragrance, a wearable watch and a suit.</a></li></ul></section>
+<h2 class="band" id="legend">How credible is each label</h2>
+<div class="legend"><ul><li><span class="chip k-news">News report</span>Reporters writing down what happened. The most reliable kind.</li><li><span class="chip k-research">Bank forecast</span>A prediction from economists. Useful, but a guess about the future.</li><li><span class="chip k-opinion">Opinion</span>One writer&#x27;s argument. Read it as one side.</li><li><span class="chip k-whisper">Market whisper</span>What insiders are saying before anything is announced. Likely, not confirmed.</li><li><span class="chip k-gossip">Gossip column</span>Rear Window: insider gossip about powerful people. Entertaining, lightly sourced.</li></ul></div>
+<h2 class="band" id="words">Words in today's paper</h2>
+<div class="words"><ul><li><b>Futures</b> A bet made today on what a price will be later, which is why traders can guess tomorrow&#x27;s market.</li><li><b>Clearance rate</b> Out of all the houses put up for auction, how many actually sold.</li><li><b>Secular stagnation</b> The gloomy idea that a rich country&#x27;s economy is stuck growing very slowly forever.</li><li><b>Productivity</b> How much work one person can get done in an hour.</li><li><b>Intergenerational Report</b> A government guess, made every few years, about how the country&#x27;s money will look in forty years.</li><li><b>Take-private</b> When investors buy every share of a listed company so it stops being owned by the public.</li></ul></div>
+<footer>Edition 2026-09-20. Summaries are Claude's own words from the opening paragraphs AFR shows publicly; no AFR sentences are copied. Notes save to this page for you, and get copied to Notion when you ask.</footer>
+</div>
+<script>
+(function(){
+  var EDITION="2026-09-20";
+  var db=null;
+  document.querySelectorAll(".note").forEach(function(box){
+    var ta=box.querySelector("textarea"), st=box.querySelector(".status"), btn=box.querySelector("button");
+    var key="afrnote:"+EDITION+":"+box.dataset.nid;
+    try{ var local=localStorage.getItem(key); if(local) ta.value=local; }catch(e){}
+    btn.addEventListener("click",function(){
+      var text=ta.value.trim();
+      try{ localStorage.setItem(key,text); }catch(e){}
+      if(!db){ st.textContent="Saved on this device"; return; }
+      st.textContent="Saving…";
+      db.doc("notes/"+EDITION+"_"+box.dataset.nid).set({edition:EDITION,story:box.dataset.nid,headline:box.dataset.head,text:text,at:new Date().toISOString(),inNotion:false})
+        .then(function(){ st.textContent="Saved. Goes to Notion at the next sync."; })
+        .catch(function(){ st.textContent="Saved on this device only"; });
+    });
+  });
+  if(window.claude&&window.claude.use){
+    window.claude.use("db").then(function(d){
+      if(!d) return; db=d;
+      document.querySelectorAll(".note").forEach(function(box){
+        d.doc("notes/"+EDITION+"_"+box.dataset.nid).get().then(function(snap){
+          var v=snap&&(snap.data?snap.data():snap);
+          if(v&&v.text&&!box.querySelector("textarea").value) box.querySelector("textarea").value=v.text;
+        }).catch(function(){});
+      });
+    });
+  }
+})();
+</script>
+
+<style>
+.listen{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding-top:14px}
+.listen button{font:600 15px/1 var(--sans);background:var(--accent);color:var(--paper);border:0;border-radius:999px;padding:11px 16px;cursor:pointer}
+.listen span{font:500 12px/1.4 var(--mono);color:var(--muted)}
+.story.playing{outline:3px solid var(--accent);outline-offset:3px}
+</style>
+<script>
+(function(){
+  var V={"parts": [{"id": "intro", "s": 0.0}, {"id": "rates", "s": 5.18}, {"id": "p60xk9", "s": 65.95}, {"id": "p60y8y", "s": 118.68}, {"id": "albanese-ai", "s": 166.08}, {"id": "p60ytx", "s": 220.75}, {"id": "p60xyc", "s": 269.16}, {"id": "p60ydp", "s": 320.86}, {"id": "p60yqc", "s": 369.48}], "dur": 413.4}, btn=document.getElementById("afrListen"), now=document.getElementById("afrNow"), au=null, cur="";
+  var label=btn.innerHTML;
+  function mark(id){
+    if(id===cur) return; cur=id;
+    document.querySelectorAll(".story.playing").forEach(function(x){x.classList.remove("playing");});
+    var el=document.getElementById("s-"+id); if(el){ el.classList.add("playing"); el.scrollIntoView({behavior:"smooth",block:"start"}); }
+  }
+  btn.addEventListener("click", function(){
+    if(!au){
+      au=new Audio("afr.mp3?v=2026-09-20"); au.preload="auto";
+      au.addEventListener("timeupdate", function(){
+        var t=au.currentTime, k=0; while(k+1<V.parts.length && V.parts[k+1].s<=t) k++;
+        mark(V.parts[k].id); now.textContent=Math.floor(t/60)+":"+("0"+Math.floor(t%60)).slice(-2)+" / "+Math.round(V.dur/60)+" min";
+      });
+      au.addEventListener("pause", function(){ btn.innerHTML="&#9654; Resume"; });
+      au.addEventListener("play", function(){ btn.innerHTML="&#9208; Pause"; });
+      au.addEventListener("ended", function(){ btn.innerHTML=label; mark(""); now.textContent=""; au.currentTime=0; });
+      au.addEventListener("error", function(){ now.textContent="The recording did not load; use Read aloud below."; });
+      if("mediaSession" in navigator){
+        navigator.mediaSession.metadata=new MediaMetadata({title:"AFR Summary", artist:document.querySelector("h1").innerText});
+        try{ navigator.mediaSession.setActionHandler("seekbackward", function(){ au.currentTime=Math.max(0,au.currentTime-15); });
+             navigator.mediaSession.setActionHandler("seekforward", function(){ au.currentTime=au.currentTime+15; }); }catch(e){}
+      }
+    }
+    if(au.paused) au.play().catch(function(){ now.textContent="Tap again to play."; }); else au.pause();
+  });
+  document.querySelectorAll(".story").forEach(function(a){   // tap a headline's section label to jump the recording there
+    var id=a.id.slice(2), part=V.parts.filter(function(p){return p.id===id;})[0]; if(!part) return;
+    var b=document.createElement("button"); b.type="button"; b.className="chip k-mixed"; b.style.cursor="pointer"; b.style.background="transparent";
+    b.innerHTML="&#9654; Listen from here";
+    b.addEventListener("click", function(){ if(!au) btn.click(); au.currentTime=part.s; if(au.paused) au.play(); });
+    a.querySelector(".meta").appendChild(b);
+  });
+})();
+</script>
+
+<script>
+/* speak.js - a "Read aloud" button for every app on this site that has none.
+ *
+ * Her words, 15 Sep 2026: "everything that doesn't have the read aloud button, it has to be there"
+ * and "Make sure they're good quality."
+ *
+ * Quality, concretely:
+ *  - picks the best voice on the device (Siri / Enhanced / Premium / Natural first), Australian
+ *    English first, then British, then American; Korean text is read with a Korean voice;
+ *  - reads in sentence-sized pieces, so phones never cut a long paragraph off half way;
+ *  - highlights what it is reading and keeps it on screen;
+ *  - reads only what is visible on the page you are looking at - no menus, buttons or hidden screens;
+ *  - you can pick the voice and speed once; both are remembered on this device;
+ *  - it is not stopped when you leave the app (her 15 Sep: "I can have it play in the background");
+ *    the phone itself may pause the robot voice in the background - only a recorded voice gets round that.
+ * Free: it is the phone's own voice. Nothing is recorded or sent anywhere.
+ */
+(function () {
+  "use strict";
+  if (window.SpeakAloud || !("speechSynthesis" in window)) return;
+  var SS = window.speechSynthesis;
+  /* her 16 Sep ask: on the recipe apps the bubble is the speaker icon only (script tag has data-icon-only) */
+  // 16 Sep 2026, her second ask ("still have text for read aloud"): the icon only, on every app. data-with-label brings the words back.
+  var ICON_ONLY = !(document.currentScript && document.currentScript.hasAttribute("data-with-label"));
+  var K_VOICE = "speak.voice", K_RATE = "speak.rate";
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+
+  var css = document.createElement("style");
+  css.textContent =
+    ".sa-fab{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483644;" +
+    "display:flex;align-items:center;gap:6px;font:600 13px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;" +
+    "padding:10px 14px;border-radius:999px;border:0;background:#1c1c1e;color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.25);cursor:pointer}" +
+    ".sa-fab:focus-visible,.sa-panel button:focus-visible,.sa-panel select:focus-visible{outline:2px solid #6c8cff;outline-offset:2px}" +
+    ".sa-panel{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:2147483645;max-width:420px;" +
+    "background:#fff;color:#1c1c1e;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.3);padding:14px;" +
+    "font:14px/1.4 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;gap:10px}" +
+    ".sa-panel[hidden]{display:none}" +
+    ".sa-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}" +
+    ".sa-panel button{font:600 14px/1 inherit;border:0;border-radius:10px;padding:11px 14px;background:#f2f2f7;color:#1c1c1e;cursor:pointer}" +
+    ".sa-panel button.sa-main{background:#1c1c1e;color:#fff;flex:1}" +
+    ".sa-panel select{font:14px inherit;padding:8px;border-radius:10px;border:1px solid #d1d1d6;background:#fff;color:#1c1c1e;max-width:100%}" +
+    ".sa-bar{height:4px;background:#e5e5ea;border-radius:4px;overflow:hidden}.sa-bar i{display:block;height:100%;width:0;background:#1c1c1e}" +
+    ".sa-now{font-size:12.5px;color:#636366;min-height:1.2em}" +
+    ".sa-reading{outline:3px solid #6c8cff !important;outline-offset:3px;border-radius:6px;background-color:rgba(108,140,255,.10) !important}" +
+    "@media (prefers-color-scheme: dark){.sa-panel{background:#1c1c1e;color:#f2f2f7}.sa-panel button{background:#2c2c2e;color:#f2f2f7}" +
+    ".sa-panel button.sa-main{background:#f2f2f7;color:#1c1c1e}.sa-panel select{background:#2c2c2e;color:#f2f2f7;border-color:#3a3a3c}" +
+    ".sa-bar{background:#3a3a3c}.sa-bar i{background:#f2f2f7}.sa-now{color:#aeaeb2}}";
+
+  var fab, panel, mainBtn, stopBtn, rateSel, voiceSel, nowEl, barEl;
+  var parts = [], idx = 0, playing = false, paused = false, voices = [];
+
+  /* ---------- voices ---------- */
+  var GOOD = /(Siri|Enhanced|Premium|Natural|Neural|Wavenet|Google)/i;
+  function score(v) {
+    var s = 0, lang = (v.lang || "").replace("_", "-");
+    if (/^en-AU/i.test(lang)) s += 40; else if (/^en-GB/i.test(lang)) s += 30; else if (/^en-US/i.test(lang)) s += 20; else if (/^en/i.test(lang)) s += 10;
+    if (GOOD.test(v.name)) s += 25;
+    if (v.localService) s += 3;
+    if (/(Compact|eSpeak|Zarvox|Bells|Bad News|Bubbles|Cellos|Organ|Trinoids|Whisper|Jester|Superstar|Boing|Wobble)/i.test(v.name)) s -= 60;
+    return s;
+  }
+  function englishVoices() {
+    return SS.getVoices().filter(function (v) { return /^en/i.test(v.lang || ""); }).sort(function (a, b) { return score(b) - score(a); });
+  }
+  function koreanVoice() {
+    var k = SS.getVoices().filter(function (v) { return /^ko/i.test(v.lang || ""); });
+    return k.sort(function (a, b) { return (GOOD.test(b.name) ? 1 : 0) - (GOOD.test(a.name) ? 1 : 0); })[0] || null;
+  }
+  function chosenVoice() {
+    var want = store.get(K_VOICE), list = englishVoices();
+    return list.filter(function (v) { return v.voiceURI === want; })[0] || list[0] || null;
+  }
+  function fillVoices() {
+    if (!voiceSel) return;
+    voices = englishVoices();
+    var cur = chosenVoice();
+    voiceSel.innerHTML = voices.slice(0, 25).map(function (v) {
+      var tag = GOOD.test(v.name) ? " \u2605" : "";
+      return '<option value="' + v.voiceURI.replace(/"/g, "&quot;") + '"' + (cur && v.voiceURI === cur.voiceURI ? " selected" : "") + ">" +
+        v.name.replace(/</g, "") + " (" + v.lang + ")" + tag + "</option>";
+    }).join("") || "<option>Default voice</option>";
+  }
+
+  /* ---------- what to read ---------- */
+  var BLOCKS = "h1,h2,h3,h4,h5,h6,p,li,blockquote,figcaption,dt,dd,th,td,summary,caption,legend";
+  function visible(el) {
+    if (!el.getClientRects().length) return false;
+    var r = el.getBoundingClientRect();   // swiped aside: a card moved off the side of the screen is not read
+    if (r.right <= 0 || r.left >= innerWidth) return false;
+    var st = getComputedStyle(el);
+    return st.visibility !== "hidden" && st.display !== "none" && Number(st.opacity) !== 0;
+  }
+  function skip(el) {
+    return !!el.closest("script,style,template,noscript,nav,button,select,option,input,textarea,svg,[aria-hidden='true'],[hidden],.sa-panel,.sa-fab,[data-speak-skip]");
+  }
+  function clean(t) {
+    return String(t || "").replace(/[\u{2190}-\u{21FF}\u{2300}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{1F000}-\u{1FAFF}]/gu, " ")
+      .replace(/\s*[|\u00B7\u2022]\s*/g, ", ").replace(/\s+/g, " ").trim();
+  }
+  function collect() {
+    var roots = Array.prototype.filter.call(document.querySelectorAll("[data-speak-root]"), visible);
+    var root = roots[0] || document.querySelector("main") || document.body;   // the open reader wins when one is showing
+    var picked = [];
+    root.querySelectorAll(BLOCKS).forEach(function (el) {
+      if (skip(el) || !visible(el)) return;
+      if (el.querySelector(BLOCKS)) return;                       // keep the innermost block only
+      picked.push(el);
+    });
+    // text sitting in plain divs/spans that no block above covers (cards, tiles, list rows)
+    root.querySelectorAll("div,span,a,strong,b,em,small,time,label").forEach(function (el) {
+      if (skip(el) || el.closest(BLOCKS)) return;
+      if (el.querySelector("div,p,li,ul,ol,table," + BLOCKS)) return;
+      var own = Array.prototype.some.call(el.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim(); });
+      if (!own || !visible(el)) return;
+      if (el.parentElement && picked.indexOf(el.parentElement) !== -1) return;
+      picked.push(el);
+    });
+    // form fields she has filled in are part of the page too
+    root.querySelectorAll("textarea,input[type=text],input:not([type])").forEach(function (el) {
+      if (el.closest(".sa-panel,[data-speak-skip]") || !visible(el) || !String(el.value || "").trim()) return;
+      picked.push(el);
+    });
+    picked.sort(function (a, b) { return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1; });
+    var out = [], seen = "";
+    picked.forEach(function (el) {
+      var t = el.matches("textarea,input") ? clean(el.value) : clean(el.innerText);
+      if (t.length < 2 || t === seen) return;
+      seen = t;
+      var bits = t.match(/[^.!?\u3002\uFF01\uFF1F\n]+[.!?\u3002\uFF01\uFF1F]*\s*/g) || [t], buf = "";
+      bits.forEach(function (s) {
+        if ((buf + s).length > 200 && buf) { out.push({ el: el, text: buf.trim() }); buf = ""; }
+        buf += s;
+      });
+      if (buf.trim()) out.push({ el: el, text: buf.trim() });
+    });
+    return out;
+  }
+
+  /* ---------- playing ---------- */
+  function mark(el) {
+    document.querySelectorAll(".sa-reading").forEach(function (x) { x.classList.remove("sa-reading"); });
+    if (!el) return;
+    el.classList.add("sa-reading");
+    var r = el.getBoundingClientRect();
+    if (r.top < 60 || r.bottom > innerHeight - 160) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  function paint() {
+    if (!mainBtn) return;
+    mainBtn.textContent = !playing ? "\u25B6 Read this page" : paused ? "\u25B6 Resume" : "\u23F8 Pause";
+    stopBtn.hidden = !playing;
+    fab.textContent = playing && !paused ? (ICON_ONLY ? "\u23F8" : "\u23F8 Reading\u2026") : (ICON_ONLY ? "\uD83D\uDD0A" : "\uD83D\uDD0A Read aloud");
+    barEl.style.width = parts.length ? Math.round(idx / parts.length * 100) + "%" : "0";
+  }
+  function step() {
+    if (!playing || paused) return;
+    if (idx >= parts.length) { finish("Finished."); return; }
+    var p = parts[idx], u = new SpeechSynthesisUtterance(p.text);
+    var v = /[\uAC00-\uD7A3]/.test(p.text) ? (koreanVoice() || chosenVoice()) : chosenVoice();
+    if (v) { u.voice = v; u.lang = v.lang; }
+    u.rate = parseFloat(store.get(K_RATE) || "1") || 1;
+    u.onend = function () { if (playing && !paused) { idx++; step(); } };
+    u.onerror = function (e) { if (playing && !paused && e.error !== "interrupted" && e.error !== "canceled") { idx++; step(); } };
+    mark(p.el);
+    nowEl.textContent = p.text.length > 90 ? p.text.slice(0, 88) + "\u2026" : p.text;
+    paint();
+    SS.speak(u);
+  }
+  function start() {
+    SS.cancel();
+    parts = collect(); idx = 0; paused = false;
+    if (!parts.length) { nowEl.textContent = "Nothing to read on this screen."; return; }
+    playing = true; step();
+  }
+  function finish(msg) {
+    playing = false; paused = false; SS.cancel(); mark(null);
+    if (nowEl) nowEl.textContent = msg || "";
+    idx = 0; paint();
+  }
+
+  /* ---------- drag the bubble anywhere (her 16 Sep ask), position kept per device ---------- */
+  function makeDraggable(el, key) {
+    var sx = 0, sy = 0, ox = 0, oy = 0, moved = false, down = false, pid = null;
+    function place(x, y) {
+      var w = el.offsetWidth, h = el.offsetHeight;
+      x = Math.max(4, Math.min(window.innerWidth - w - 4, x));
+      y = Math.max(4, Math.min(window.innerHeight - h - 4, y));
+      el.style.setProperty("left", x + "px", "important"); el.style.setProperty("top", y + "px", "important");
+      el.style.setProperty("right", "auto", "important"); el.style.setProperty("bottom", "auto", "important");
+    }
+    function restore() {
+      var v = store.get(key); if (!v) return;
+      try { var p = JSON.parse(v); place(p[0] * window.innerWidth, p[1] * window.innerHeight); } catch (e) {}
+    }
+    el.style.touchAction = "none";
+    el.addEventListener("pointerdown", function (e) {
+      if (e.button > 0) return;
+      down = true; moved = false; pid = e.pointerId;
+      var r = el.getBoundingClientRect(); sx = e.clientX; sy = e.clientY; ox = r.left; oy = r.top;
+    });
+    el.addEventListener("pointermove", function (e) {
+      if (!down || e.pointerId !== pid) return;
+      var dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!moved && Math.abs(dx) + Math.abs(dy) < 8) return;
+      if (!moved) { moved = true; try { el.setPointerCapture(pid); } catch (x) {} }
+      place(ox + dx, oy + dy); e.preventDefault();
+    });
+    function up() {
+      if (!down) return; down = false;
+      if (moved) { var r = el.getBoundingClientRect(); store.set(key, JSON.stringify([r.left / window.innerWidth, r.top / window.innerHeight])); }
+    }
+    el.addEventListener("pointerup", up); el.addEventListener("pointercancel", up);
+    el.addEventListener("click", function (e) { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
+    window.addEventListener("resize", restore);
+    restore(); setTimeout(restore, 300);   /* not requestAnimationFrame: it never fires in a hidden tab */
+  }
+
+  /* ---------- the button and panel ---------- */
+  function build() {
+    document.head.appendChild(css);
+    fab = document.createElement("button");
+    fab.type = "button"; fab.className = "sa-fab"; fab.setAttribute("aria-haspopup", "dialog");
+    fab.textContent = ICON_ONLY ? "\uD83D\uDD0A" : "\uD83D\uDD0A Read aloud";
+    fab.setAttribute("aria-label", "Read aloud"); fab.title = "Read aloud";
+    panel = document.createElement("div");
+    panel.className = "sa-panel"; panel.hidden = true; panel.setAttribute("role", "dialog"); panel.setAttribute("aria-label", "Read aloud");
+    panel.innerHTML =
+      '<div class="sa-row"><button type="button" class="sa-main">\u25B6 Read this page</button>' +
+      '<button type="button" class="sa-stop" hidden>\u25A0 Stop</button><button type="button" class="sa-close" aria-label="Close">\u2715</button></div>' +
+      '<div class="sa-bar"><i></i></div><div class="sa-now" aria-live="polite"></div>' +
+      '<div class="sa-row"><label>Speed <select class="sa-rate"><option value="0.85">Slow</option><option value="1">Normal</option>' +
+      '<option value="1.15">Brisk</option><option value="1.3">Fast</option></select></label></div>' +
+      '<div class="sa-row"><label style="flex:1">Voice <select class="sa-voice" style="width:100%"></select></label></div>' +
+      '<div class="sa-now">\u2605 = a higher-quality voice. On iPhone, more voices: Settings \u2192 Accessibility \u2192 Spoken Content \u2192 Voices \u2192 English.</div>';
+    document.body.appendChild(fab); document.body.appendChild(panel);
+    makeDraggable(fab, "speak.pos");
+    mainBtn = panel.querySelector(".sa-main"); stopBtn = panel.querySelector(".sa-stop");
+    rateSel = panel.querySelector(".sa-rate"); voiceSel = panel.querySelector(".sa-voice");
+    nowEl = panel.querySelector(".sa-now"); barEl = panel.querySelector(".sa-bar i");
+    rateSel.value = store.get(K_RATE) || "1";
+    fillVoices();
+    fab.addEventListener("click", function () { panel.hidden = !panel.hidden; if (!panel.hidden) fillVoices(); });
+    panel.querySelector(".sa-close").addEventListener("click", function () { panel.hidden = true; });
+    mainBtn.addEventListener("click", function () {
+      if (!playing) { start(); return; }
+      if (!paused) { paused = true; SS.cancel(); paint(); return; }
+      paused = false; step();
+    });
+    stopBtn.addEventListener("click", function () { finish(""); });
+    rateSel.addEventListener("change", function () { store.set(K_RATE, rateSel.value); if (playing && !paused) { SS.cancel(); step(); } });
+    voiceSel.addEventListener("change", function () { store.set(K_VOICE, voiceSel.value); if (playing && !paused) { SS.cancel(); step(); } });
+    if ("onvoiceschanged" in SS) SS.addEventListener("voiceschanged", fillVoices);
+    paint();
+  }
+
+  window.SpeakAloud = { start: function () { start(); }, stop: function () { finish(""); }, draggable: makeDraggable };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", build); else build();
+})();
+
+</script>
