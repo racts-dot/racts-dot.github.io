@@ -330,7 +330,13 @@
       "border:0;border-radius:10px;padding:0 12px;background:#f2f2f7;color:#1c1c1e;cursor:pointer;box-shadow:none}" +
       ".fb-panel button:disabled{opacity:.35;cursor:default}" +
       ".fb-panel button.fb-close{flex:0 0 44px;background:transparent;font-size:18px}" +
-      ".fb-panel button.fb-mic{min-height:64px;font-size:16px}.fb-panel .fb-big{font-size:26px;line-height:1}" +
+      // Her feedback, 20 Sep 2026: "The tap to speak takes too much spacr as well as
+      // the feedback for this app is like 1/5. Too big", and her pick 21 Sep of
+      // "Shrink it and the feedback button together".
+      // 64 -> 44 and the icon 26 -> 18. It stops at 44 and does not go lower: that is
+      // the minimum touch target on a phone, and the two floating buttons are already
+      // 44x44, so anything smaller here would be smaller than the buttons beside it.
+      ".fb-panel button.fb-mic{min-height:44px;font-size:15px}.fb-panel .fb-big{font-size:18px;line-height:1}" +
       ".fb-panel button.fb-mic.fb-on{background:#ff3b30;color:#fff}" +
       ".fb-panel button.fb-send{background:#1c1c1e;color:#fff}" +
       ".fb-panel textarea{display:block;width:100%;box-sizing:border-box;min-height:96px;max-height:40vh;resize:vertical;margin:0;" +

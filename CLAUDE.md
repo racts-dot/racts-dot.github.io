@@ -124,9 +124,25 @@ natural voice, pull-to-refresh, highlights and notes, boxes that drag and resize
 
 ## Deploying
 
-- racts-dot.github.io: commit, push, wait for Pages, then the served-bytes check. Public - so her word first.
+- `[HUMAN 2026-09-21]` ⭐ **SHIPPING THE WEBSITE AND THE APPS NO LONGER NEEDS HER WORD FIRST.** Her words,
+  asked directly after the collision below was put to her: *"Its ok change so that you dont need my word"*.
+  Commit, push, wait for Pages, then the served-bytes check - and say in the reply what went live.
+  ~~racts-dot.github.io: commit, push, wait for Pages, then the served-bytes check. Public - so her word first.~~
+  ⛔ **WHY IT CHANGED, and it is not a relaxation - it is admitting what was already true.** Rule 59's
+  save-as-you-go Stop hook commits and pushes EVERY tracked repo at the end of every turn, and
+  `.site-publish` is a tracked repo like any other. Measured 21 Sep 2026: a session held four app-kit fixes
+  back for her word and the hook pushed them public at 11:00 regardless, as
+  "Save as you go (rule 59): 5 file(s)". **A rule her own mechanism bypasses on every single website edit
+  is not a safeguard, it is a thing sessions report after the fact.** One of the two had to give, she was
+  shown both, and she chose this one.
+  ⛔ **WHAT THIS DOES NOT TOUCH, and none of it moved:** the global book's rule 7 stands unchanged -
+  **money, Etsy listings, anything bought, sold or hard to reverse still comes to her.** This covers
+  pushing and deploying CODE to racts-dot.github.io and the pages.dev / workers apps. Nothing else.
+  ⚠ **It removes the ASKING, not the CHECKING.** Every deploy still ends with the served-bytes check and
+  a line saying what is now live. Shipping unasked and shipping unverified are different things.
 - The pages.dev apps deploy with wrangler **from the Mac only** (Windows wrangler is not logged in). Windows
-  commits; a Mac chat runs `npx wrangler pages deploy`, on her word, and reports the URL; Windows checks the bytes.
+  commits; a Mac chat runs `npx wrangler pages deploy` ~~on her word~~ (no longer needed, 21 Sep) and reports
+  the URL; Windows checks the bytes.
 - Never relay her "go" to another session as authorisation for something she was not shown. If a session
   needs her yes, it asks her. (18 Sep, the Mac was right to refuse.)
 
