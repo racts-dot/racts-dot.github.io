@@ -142,47 +142,16 @@
   if (!act) return;
 
   /* ---------- a hint, once ----------
-     Her words, 21 Sep 2026, looking at four apps that had just been given swipe: "Where is the buttons".
-     Swipe has nothing on screen, so she could not tell it was there. Now each app says so ONCE per
-     device, on a touch screen only, and the hint is gone at the first touch or after 3.5 s.
-     ⛔ ITS WORDS COME FROM CSS content:, NOT FROM TEXT IN THE PAGE, AND THAT IS THE WHOLE POINT.
-     status/app_kit_behave.py decides a swipe WORKED by whether document.body.innerText changed, and
-     generated content is not part of innerText. A hint written as real text would appear by itself,
-     change the text, and score "Swipe: yes" on an app whose swipe does nothing - a false pass on every
-     app at once, which is the exact fault that check was built to catch. Control-tested 21 Sep 2026:
-     a page whose swipe does nothing still reads MISSING with this hint showing. */
+     Lives in swipe-hint.js beside this file - ONE copy, shared with the pages whose swipe is their
+     own (todo, tripshare, the Notion Reader). Why its words come from CSS and not from the page is
+     written there, and it matters: text would fake a pass in app_kit_behave.py. 21 Sep 2026. */
   (function () {
-    var key = "swipeHint:" + location.pathname;
-    try { if (localStorage.getItem(key)) return; } catch (e) { return; }
-    if (!(window.matchMedia && matchMedia("(pointer: coarse)").matches)) return;
-    var st = document.createElement("style");
-    st.textContent =
-      ".sw-hint{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);" +
-      "z-index:2147483645;padding:9px 16px;border-radius:999px;background:#1c1c1e;" +
-      "box-shadow:0 4px 14px rgba(0,0,0,.28);" +   /* solid: at .92 the page text showed THROUGH the words (looked at, 21 Sep) */
-      "pointer-events:none;opacity:0;transition:opacity .3s}" +
-      ".sw-hint::after{content:attr(data-hint);color:#fff;white-space:nowrap;" +
-      "font:600 13px/1.3 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}" +
-      ".sw-hint.on{opacity:1}";
-    var h = document.createElement("div");
-    h.className = "sw-hint";
-    h.setAttribute("aria-hidden", "true");
-    h.setAttribute("data-hint", "Swipe \u2190 \u2192 to move");
-    function gone() {
-      removeEventListener("touchstart", gone, true);
-      h.classList.remove("on");
-      setTimeout(function () { h.remove(); st.remove(); }, 400);
-    }
-    function show() {
-      document.head.appendChild(st);
-      document.body.appendChild(h);
-      requestAnimationFrame(function () { h.classList.add("on"); });
-      try { localStorage.setItem(key, "1"); } catch (e) {}
-      addEventListener("touchstart", gone, true);
-      setTimeout(gone, 3500);
-    }
-    if (document.body) setTimeout(show, 700);
-    else addEventListener("DOMContentLoaded", function () { setTimeout(show, 700); });
+    try {
+      var s = document.createElement("script");
+      s.src = new URL("swipe-hint.js", me.src).href;
+      s.defer = true;
+      document.head.appendChild(s);
+    } catch (e) {}
   })();
 
   /* ---------- the gesture ---------- */
