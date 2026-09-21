@@ -59,7 +59,16 @@
       "top:auto !important;bottom:auto !important;margin:0 !important;flex:0 0 auto}" +
       // The chip is wider than the round buttons; let it shrink before they do.
       "#" + DOCK_ID + ">button[aria-label='Connect this app to Notion']{flex:0 1 auto;" +
-      "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46vw}";
+      "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46vw}" +
+      // FOLDED - `[HUMAN 2026-09-21]` her words: "Make it foldable. It is
+      // obstructing things." Folded is the DEFAULT: the dock shrinks to one
+      // small tab in the bottom-right corner; tapping it opens the controls.
+      ".kd-toggle{width:34px;height:34px;border-radius:17px;border:1px solid rgba(0,0,0,.15);" +
+      "background:rgba(255,255,255,.94);color:#333;font:600 18px/1 system-ui,sans-serif;" +
+      "padding:0;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.18)}" +
+      "#" + DOCK_ID + ".kd-folded{left:auto;right:10px;bottom:10px;padding:0;background:none;" +
+      "border:0;-webkit-backdrop-filter:none;backdrop-filter:none}" +
+      "#" + DOCK_ID + ".kd-folded>*:not(.kd-toggle){display:none !important}";
     (document.head || document.documentElement).appendChild(s);
   }
 
@@ -70,9 +79,36 @@
       d.id = DOCK_ID;
       d.setAttribute("role", "toolbar");
       d.setAttribute("aria-label", "App controls");
+      var tg = document.createElement("button");
+      tg.type = "button";
+      tg.className = "kd-toggle";
+      tg.addEventListener("click", function () { setFolded(!isFolded()); });
+      d.appendChild(tg);
       document.body.appendChild(d);
+      var open = false;
+      try { open = localStorage.getItem("kitDockOpen") === "1"; } catch (e) {}
+      setFolded(!open);
     }
     return d;
+  }
+
+  function isFolded() {
+    var d = document.getElementById(DOCK_ID);
+    return !!(d && d.classList.contains("kd-folded"));
+  }
+
+  function setFolded(f) {
+    var d = document.getElementById(DOCK_ID);
+    if (!d) return;
+    d.classList.toggle("kd-folded", f);
+    var tg = d.querySelector(".kd-toggle");
+    if (tg) {
+      tg.textContent = f ? "⋯" : "×";   // ⋯ folded, × open
+      tg.setAttribute("aria-label", f ? "Show app controls" : "Hide app controls");
+      tg.setAttribute("aria-expanded", f ? "false" : "true");
+    }
+    try { localStorage.setItem("kitDockOpen", f ? "0" : "1"); } catch (e) {}
+    clearance();
   }
 
   /* Keep the page scrollable clear of the dock. Both reviewers named the
@@ -134,7 +170,9 @@
   window.KitDock = {
     controls: function () {
       var d = document.getElementById(DOCK_ID);
-      return d ? Array.prototype.slice.call(d.children) : [];
+      return d ? Array.prototype.filter.call(d.children, function (c) {
+        return !c.classList.contains("kd-toggle");
+      }) : [];
     },
     overlaps: function (textSelector) {
       var d = document.getElementById(DOCK_ID);
