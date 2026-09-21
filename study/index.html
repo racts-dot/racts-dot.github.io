@@ -568,6 +568,10 @@ route();
 })();
 </script>
 <script src="https://racts-dot.github.io/speak.js" data-icon-only defer></script>
+<!-- Swipe, 21 Sep 2026: a real flick did NOTHING here. On the chapter list a flick opens the
+     next or previous chapter. Inside a chapter there are no .chap buttons, so it stays out of
+     the way rather than hijacking the Back and Quiz buttons. -->
+<script src="../swipe.js" data-links="button.chap" defer></script>
 <script>if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");</script>
 </body>
 </html>

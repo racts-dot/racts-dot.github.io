@@ -118,9 +118,11 @@
     var cur = -1;
     list.forEach(function (a, i) {
       if (a.classList.contains("on") || a.classList.contains("active") ||
-          a.getAttribute("aria-current") === "page") cur = i;
+          a.getAttribute("aria-current") === "page" ||
+          a.getAttribute("aria-selected") === "true") cur = i;   /* a tablist says it this way - added 21 Sep 2026 for Ledgers */
     });
-    if (cur < 0) cur = 0;
+    /* left at -1 on purpose when nothing is marked current: the first left swipe then opens
+       item ONE rather than skipping to item two. 21 Sep 2026, for Study's chapter list. */
     var next = cur + d;
     if (next < 0) { say("First one"); return; }
     if (next >= list.length) { say("Last one"); return; }
