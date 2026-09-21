@@ -364,9 +364,29 @@
     });
   }
 
+  /* THE iPHONE FAULT, 21 Sep 2026. Her words, 19 Sep: "it cannot highlight more than a
+     word", and 21 Sep: "the rule app does not work the highlights etc".
+     This function read the selection LIVE at the moment Highlight was tapped. On an
+     iPhone a real tap on a button clears the text selection BEFORE the click fires, so
+     it found nothing selected and painted nothing. And nothing listened for
+     `selectionchange` - the only event iOS sends while the blue handles are dragged - so
+     the bar stayed on the one word a long-press selects.
+     Every earlier test pressed the button with element.click(), which moves no focus and
+     clears no selection. That is why it passed on a desktop and failed on her phone.
+     Now: the last real selection is remembered as it changes, and used here whenever the
+     tap has cleared the live one. When the live selection is intact (a desktop mouse),
+     nothing about the old behaviour changes. */
+  function useLastIfCleared(sel) {
+    if (sel && !sel.isCollapsed && String(sel).trim()) return sel;
+    if (!lastRange) return sel;
+    try { sel.removeAllRanges(); sel.addRange(lastRange); } catch (e) { return sel; }
+    return sel;
+  }
+
   function addFromSelection(note) {
-    var sel = getSelection();
+    var sel = useLastIfCleared(getSelection());
     if (!sel || sel.isCollapsed) return null;
+    lastRange = null;                       // used once; a new selection sets it again
     var text = String(sel).trim();
     if (!text) return null;
     // which occurrence of these words this is, counted the same way paintOne counts
@@ -466,6 +486,27 @@
   }
   document.addEventListener("mouseup", afterSelect);
   document.addEventListener("touchend", afterSelect);
+
+  /* Follow the selection while the iPhone's blue handles are dragged. iOS sends NO
+     touchend for a handle drag - selectionchange is the only event - so without this the
+     bar and the saved selection stayed on the single word a long-press picks.
+     Remembers the last real selection so addFromSelection can use it after a tap on the
+     bar has cleared the live one. Debounced: it fires on every character of a drag. */
+  var lastRange = null, selT = null;
+  document.addEventListener("selectionchange", function () {
+    clearTimeout(selT);
+    selT = setTimeout(function () {
+      var sel = getSelection();
+      if (!sel || !sel.rangeCount || sel.isCollapsed || !String(sel).trim()) return;
+      var an = sel.anchorNode;
+      if (an && an.nodeType !== 1) an = an.parentElement;
+      if (an && an.closest && an.closest("input,textarea,[contenteditable],.am-bar,.am-note")) return;
+      lastRange = sel.getRangeAt(0).cloneRange();
+      current = null; pending = true; show("sel");
+      var r = lastRange.getBoundingClientRect();
+      place(r.left + r.width / 2, r.top);
+    }, 150);
+  });
 
   function start() {
     paintAll();

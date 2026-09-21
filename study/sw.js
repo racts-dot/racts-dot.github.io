@@ -1,7 +1,7 @@
 /* Study app service worker (written by publish_site.py).
    The page is fetched fresh first and kept for when there is no signal; the icons and shared bubbles are served from
    the cache first. CACHE changes whenever the page changes (it carries the page's hash), so phones pick up new cards. */
-const CACHE = "study-92835598ee-n3";
+const CACHE = "study-92835598ee-n4";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest",
                "../textsize.js", "../feedback.js", "../speak.js", "../notion-sync.js"];
 

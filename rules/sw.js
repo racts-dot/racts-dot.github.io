@@ -26,7 +26,7 @@
    file until this number moves. Second: hearsel.js is on the page and was NOT in the list - the
    identical fault the v2 note above describes, back again, so with no signal she loses "hear the
    bit you picked" and nothing says so. */
-const CACHE = "rule-shelf-v7";
+const CACHE = "rule-shelf-v8";
 const SHELL = [
   "./",
   "./index.html",
