@@ -2936,6 +2936,31 @@ function pageParts(){
 
 let VOICES=[], voiceURI=null, rate=0.95;
 let queue=[], qi=0, playing=false, gapTimer=null;
+/* natural-voice Desk player 23 Sep 2026 */
+const NV_URL = "https://apps-notion-relay.apps-notion-relay.workers.dev/tts";
+const NVOICES = [["aoede","Aoede"],["achernar","Achernar"],["kore","Kore"],["charon","Charon"],["puck","Puck"]];
+const nvAudio = new Audio(); nvAudio.setAttribute("playsinline", "");
+let nvToken = 0; const nvCache = {};
+function nvPass(){ try { const raw = localStorage.getItem("notionSync.pass"); if(!raw) return null;
+  try { const q = JSON.parse(raw); if(typeof q === "string" && q) return q; } catch(e){}
+  return raw[0] !== "{" && raw[0] !== "[" ? raw : null; } catch(e){ return null; } }
+function nvVoice(){ try { return localStorage.getItem("speak.nvoice") || "aoede"; } catch(e){ return "aoede"; } }
+function nvClip(text){
+  const k = nvVoice()+"|"+text; if(nvCache[k]) return nvCache[k];
+  const pw = nvPass();
+  if(!pw) return Promise.reject(new Error("The natural voice needs this device connected once - tap Connect to Notion."));
+  const pr = fetch(NV_URL, { method:"POST", headers:{ "Content-Type":"application/json", "X-Pass": pw },
+      body: JSON.stringify({ text, voice: nvVoice() }) })
+    .then(r => r.ok ? r.blob() : r.json().catch(()=>({})).then(j => { throw new Error(j.error || "The natural voice could not be reached just now."); }))
+    .then(b => URL.createObjectURL(b));
+  pr.catch(()=>{ delete nvCache[k]; }); nvCache[k] = pr; return pr;
+}
+function nvChunks(t){ t = String(t||"").trim(); const out = []; let buf = "";
+  (t.match(/[^.!?\n]+[.!?]*\s*/g) || [t]).forEach(s=>{
+    while(s.length > 1400){ if(buf){ out.push(buf); buf = ""; } out.push(s.slice(0,1400)); s = s.slice(1400); }
+    if((buf+s).length > 1400 && buf){ out.push(buf); buf = ""; } buf += s; });
+  if(buf.trim()) out.push(buf); return out; }
+function nvCancel(){ nvToken++; try { nvAudio.onended = null; nvAudio.pause(); } catch(e){} try { window.speechSynthesis && speechSynthesis.cancel(); } catch(e){} }
 function voiceScore(v){ let n=0; const nm=(v.name||"")+" "+(v.voiceURI||"");
   if(/premium|enhanced|natural|neural|siri/i.test(nm)) n+=100;
   if(/google/i.test(nm)) n+=40;
@@ -2945,23 +2970,12 @@ function voiceScore(v){ let n=0; const nm=(v.name||"")+" "+(v.voiceURI||"");
   if(/compact|eloquence|novelty|whisper|bells|bubbles|zarvox|trinoids|bahh/i.test(nm)) n-=140;
   return n; }
 function fillVoices(){
-  if(!("speechSynthesis" in window)) return;
-  const all = speechSynthesis.getVoices()||[];
-  VOICES = all.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a));
-  if(!VOICES.length) VOICES = all.slice();
-  const opts = VOICES.map(v=>{
-    const up = /premium|enhanced|natural|neural|siri/i.test(v.name) ? " · better" : "";
-    return `<option value="${esc(v.voiceURI)}">${esc(v.name)} (${esc(v.lang)})${up}</option>`;
-  }).join("") || `<option value="">Only the built-in voice</option>`;
-  ["#voiceSel","#setVoice"].forEach(sel=>{ const el=$(sel); if(!el) return; el.innerHTML=opts;
-    if(voiceURI && VOICES.some(v=>v.voiceURI===voiceURI)) el.value=voiceURI;
-    else if(VOICES.length) el.value=VOICES[0].voiceURI; });
-  if(!voiceURI && VOICES.length) voiceURI=VOICES[0].voiceURI;
-  const best = VOICES[0] && /premium|enhanced|natural|neural|siri/i.test(VOICES[0].name);
+  const cur = nvVoice();
+  const opts = NVOICES.map(v=>`<option value="${v[0]}">${v[1]} (natural)</option>`).join("");
+  ["#voiceSel","#setVoice"].forEach(sel=>{ const el=$(sel); if(!el) return; el.innerHTML=opts; el.value=cur; });
   $("#pNote").textContent = (AUDIO && AUDIO.url)
-    ? "This is the fallback voice, for a day with no recording. The recording above keeps playing when your screen locks."
-    : best ? "Using the best voice on this device. On a phone it still stops when the screen locks — that is the browser, not the app."
-    : "This device only has the plain robot voice. On iPhone: Settings, Accessibility, Spoken Content, Voices — download an English voice marked Enhanced or Premium, then reopen this.";
+    ? "Days with a recording play the recording above; the rest are read in this natural voice. Both keep playing when your screen locks."
+    : "Read in the natural voice. It keeps playing when your screen locks.";
 }
 const currentVoice = () => VOICES.find(v=>v.voiceURI===voiceURI) || null;
 function paintPlaying(){
@@ -2982,7 +2996,7 @@ function restoreReadBar(){
 function stopSpeaking(){
   restoreReadBar();
   clearTimeout(gapTimer); gapTimer=null; playing=false; queue=[]; qi=0;
-  if(window.speechSynthesis) speechSynthesis.cancel();
+  nvCancel();
   $("#stopBtn").hidden=true; $("#playBrief").textContent="▶ Play the brief";
   $("#player").classList.remove("on"); $("#pFill").style.width="0"; $("#pNow").textContent="Ready";
   paintPlaying();
@@ -3010,7 +3024,7 @@ function jump(dir){
   if(dir>0) target = heads.find(i=>i>qi);
   else { const before=heads.filter(i=>i<qi-1); target = before.length?before[before.length-1]:0; }
   if(target===undefined){ stopSpeaking(); return; }
-  clearTimeout(gapTimer); speechSynthesis.cancel(); qi=target; step();
+  clearTimeout(gapTimer); nvCancel(); qi=target; step();
 }
 function step(){
   if(!playing) return;
@@ -3019,16 +3033,23 @@ function step(){
   $("#pFill").style.width = Math.round((qi/queue.length)*100)+"%";
   const heads=headIdx(); $("#pNow").textContent = "Part "+(heads.filter(i=>i<=qi).length||1)+" of "+(heads.length||1);
   paintPlaying();
-  const u=new SpeechSynthesisUtterance(part.t);
-  const v=currentVoice(); if(v){ u.voice=v; u.lang=v.lang; }
-  u.rate=rate;
-  u.onend=()=>{ if(!playing) return; qi++;
-    gapTimer=setTimeout(step, queue[qi] && queue[qi].head ? 620 : 190); };
-  u.onerror=()=>{ if(!playing) return; qi++; gapTimer=setTimeout(step,120); };
-  speechSynthesis.speak(u);
+  const chunks = nvChunks(part.t), tok = ++nvToken; let ci = 0;
+  const next = () => { if(!playing || tok !== nvToken) return; qi++;
+    gapTimer = setTimeout(step, queue[qi] && queue[qi].head ? 620 : 190); };
+  const play = () => {
+    if(!playing || tok !== nvToken) return;
+    if(ci >= chunks.length){ next(); return; }
+    nvClip(chunks[ci]).then(url => {
+      if(!playing || tok !== nvToken) return;
+      nvAudio.src = url; nvAudio.playbackRate = rate || 1;
+      nvAudio.onended = () => { if(tok !== nvToken) return; ci++; play(); };
+      nvAudio.play().catch(()=>{ if(tok !== nvToken) return; stopSpeaking(); toast("Tap play again to start reading."); });
+      const ahead = chunks[ci+1] || (queue[qi+1] && nvChunks(queue[qi+1].t)[0]); if(ahead) nvClip(ahead).catch(()=>{});
+    }, e => { if(tok !== nvToken) return; stopSpeaking(); toast(e.message); });
+  };
+  play();
 }
 function say(parts, isBrief){
-  if(!("speechSynthesis" in window)){ toast("This browser cannot read aloud."); return; }
   stopSpeaking();
   queue = parts.filter(p=>p && p.t && p.t.trim()); qi=0; playing=true;
   $("#stopBtn").hidden=false; $("#player").classList.add("on");
@@ -3756,11 +3777,9 @@ document.getElementById("playBrief").addEventListener("click", ()=>{ const c=doc
   document.getElementById("briefMore").textContent = "Hide ⌄"; });
 
 
-function onVoice(v){ voiceURI=v; const el=currentVoice(); saveSettings(); saveVoicePref();
-  if(playing){ clearTimeout(gapTimer); speechSynthesis.cancel(); step(); return; }
-  if(el && "speechSynthesis" in window){
-    const u=new SpeechSynthesisUtterance("This is how I will read your morning.");
-    u.voice=el; u.lang=el.lang; u.rate=rate; speechSynthesis.speak(u); }
+function onVoice(v){ voiceURI=v; try { localStorage.setItem("speak.nvoice", v); } catch(e){} saveSettings(); saveVoicePref();
+  if(playing){ clearTimeout(gapTimer); nvCancel(); step(); return; }
+  nvCancel(); nvClip("This is how I will read your morning.").then(url=>{ nvAudio.src=url; nvAudio.playbackRate=rate||1; nvAudio.play().catch(()=>{}); }, e=>toast(e.message));
   ["#voiceSel","#setVoice"].forEach(s=>{ if($(s)) $(s).value=v; }); }
 const saveVoicePref = () => save("state/voice", {voiceURI, rate}, 1);
 $("#voiceSel").addEventListener("change", e=>onVoice(e.target.value));
@@ -3774,7 +3793,7 @@ function paintRateChips(){
 function onRate(v){ rate=parseFloat(v)||0.95; saveVoicePref();
   ["#rateSel"].forEach(s=>{ if($(s)) $(s).value=String(rate); });
   paintRateChips();
-  if(playing){ clearTimeout(gapTimer); speechSynthesis.cancel(); step(); } }
+  if(playing){ clearTimeout(gapTimer); nvCancel(); step(); } }
 $("#rateSel").addEventListener("change", e=>onRate(e.target.value));
 document.querySelectorAll(".ratechips [data-rate]").forEach(b=>{
   b.addEventListener("click", ()=>onRate(b.dataset.rate));
@@ -4251,7 +4270,7 @@ async function connect(){
 
 /* ---------------- go ---------------- */
 applySky();
-if("speechSynthesis" in window){ fillVoices(); speechSynthesis.addEventListener("voiceschanged", fillVoices); }
+fillVoices();
 renderAll(); go(startPage());
 connect();
 </script>
