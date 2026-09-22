@@ -96,6 +96,8 @@ header{padding:34px 0 18px}
 .kick{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline}
 h1{font-size:clamp(34px,6vw,64px);font-weight:880;font-stretch:118%;letter-spacing:-.02em;line-height:.98;margin:10px 0 12px}
 h1 span{display:inline-block;background:linear-gradient(transparent 58%,var(--hi) 58%,var(--hi) 92%,transparent 92%);color:inherit;padding:0 .06em}
+.goal{max-width:64ch;color:var(--ink);font-size:19.5px;line-height:1.35;margin:0 0 10px;font-weight:600}
+.goal .label{display:block;margin-bottom:2px}
 .lede{max-width:64ch;color:var(--ink2);font-size:17px;margin:0}
 .lede b{color:var(--ink)}
 
@@ -225,6 +227,10 @@ html.ts-big .yn{justify-self:start}
 <header class="wrap">
   <div class="kick"><span class="label">Marketing cookbook</span><span class="label" id="countline"></span></div>
   <h1>Doser <span>AI Marketing</span> Workflows</h1>
+  <!-- 20 Sep 2026, her words: "So the terminal of how the goal will be should be at the front."
+       Where the trip ends was only the grey label at the right-hand end of the map, under the
+       how-to. It is said in words here instead, first thing, before any of the mechanics. -->
+  <p class="goal"><span class="label">Where this ends up</span>A stranger becomes a customer who comes back. Every stop below is one leg of that trip, in the order a buyer meets them.</p>
   <p class="lede">How to do each thing, step by step, starting with what acts on your own listings. Begin at stop 1; the automation stops come last on purpose. <b>His words are shown as he said them</b>, matched to the video captions, with a link to the exact second. Tick <b>Already doing this?</b> and the map shows what's left.</p>
   <div class="map" id="map" role="navigation" aria-label="Topics in customer order"></div>
   <p class="maphint">Green bar: recipes you've marked as already doing. Tap a stop to jump to it.</p>
@@ -263,7 +269,7 @@ html.ts-big .yn{justify-self:start}
 .vbox a.vp{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);
   color:var(--marker);text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap}
 .vbox a.vp:hover{border-color:var(--marker)}
-#vdock{position:fixed;z-index:70;top:8px;right:8px;width:min(420px,calc(100vw - 16px));background:var(--card);
+#vdock{position:fixed;z-index:2147483600;top:52px;right:8px;width:min(420px,calc(100vw - 16px));background:var(--card);
   border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
 #vdock .vdbar{cursor:grab;user-select:none;-webkit-user-select:none;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;font-size:13px;color:var(--muted)}
 #vdock .vdname{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -334,7 +340,7 @@ window.vbox = function(c){
     grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
     grip.addEventListener('click', function(e){ e.stopPropagation(); e.preventDefault(); }, true);
   }
-var dock, yt, ytReady = false, pending = null;
+var dock, yt, ytReady = false, pending = null, apiReady = false;
 function makeDock(){
   dock = document.createElement('div'); dock.id = 'vdock'; dock.hidden = true;
   dock.innerHTML = '<div class="vdbar" title="Drag to move"><span class="grip" aria-hidden="true">⠿</span><span class="vdname"></span><button type="button" aria-label="Close video">✕</button></div><div class="vdframe"><div id="vdplayer"></div><div class="rsz" title="Drag to resize" aria-label="Resize the video"></div></div>';
@@ -344,11 +350,15 @@ function makeDock(){
   dock.querySelector('button').addEventListener('click', function(){ try { yt && yt.pauseVideo(); } catch(e){} dock.hidden = true; });
   var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
   var prev = window.onYouTubeIframeAPIReady;
-  window.onYouTubeIframeAPIReady = function(){ prev && prev();
-    yt = new YT.Player('vdplayer', { playerVars:{ playsinline:1, rel:0 }, events:{ onReady:function(){ ytReady = true; if (pending){ play(pending[0], pending[1]); pending = null; } } } });
+  window.onYouTubeIframeAPIReady = function(){ prev && prev(); apiReady = true;
+    if (pending){ var p = pending; pending = null; play(p[0], p[1]); }
   };
 }
 function play(id, s){
+  /* video dock fixed 23 Sep 2026 */  /* the player is MADE with the video, not made empty and told later */
+  if (!apiReady){ pending = [id, s]; return; }
+  if (!yt){ yt = new YT.Player('vdplayer', { videoId:id, playerVars:{ playsinline:1, rel:0, autoplay:1, start:s || 0 },
+      events:{ onReady:function(e){ ytReady = true; try { e.target.playVideo(); } catch(x){} } } }); return; }
   if (!ytReady){ pending = [id, s]; return; }
   yt.loadVideoById({ videoId:id, startSeconds:s });
 }
@@ -776,7 +786,7 @@ render();
 </script>
 
 
-<script src="/notion-sync.js"></script>
+<script src="/notion-sync.js?v=20260920b"></script>
 <script src="/marketing-notion.js" data-app="workflows" data-notion="https://app.notion.com/p/20c2e1e5f76440dd83e8bf0eb411863e"></script>
 <!-- kept from the site page (site_tags.carry) -->
 <script src="../pull.js" defer></script>
