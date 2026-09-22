@@ -66,26 +66,49 @@
                            .filter(Boolean);
 
   var state = { version: VERSION, base: base, loaded: [], failed: [],
-                skipped: [], omitted: omit.slice() };
+                skipped: [], mixed: [], omitted: omit.slice() };
   window.APP_FRAME = state;
 
   function already(file) {
     // A tag for this piece is on the page already — the app loads it itself.
-    return !!document.querySelector('script[src*="' + file + '"]:not([src*="frame.js"])');
+    return document.querySelector('script[src*="' + file +
+                                  '"]:not([src*="frame.js"])');
+  }
+
+  // A skipped piece is not a harmless skip: the page's own tag may carry an OLD
+  // cache stamp (?v=fold1, ?v=20260920d, or none at all), so a half-migrated page
+  // can run one piece from September beside another from today. The 23 Sep 2026
+  // review called that the real risk in this design, and it is right. Nothing here
+  // can fix it — only finishing the migration can — so it is made LOUD instead of
+  // silent, and state.mixed is what a check can read.
+  function noteMixed(file, tag) {
+    var src = tag.getAttribute("src") || "";
+    var v = (src.match(/[?&]v=([^&]*)/) || [])[1] || "(no version)";
+    if (v === VERSION) return;
+    state.mixed.push({ file: file, pageVersion: v, frameVersion: VERSION });
+    if (window.console) {
+      console.warn("[frame.js] " + file + " is loaded by the page itself at " +
+                   v + ", not by the frame at " + VERSION +
+                   " — finish this page's migration.");
+    }
   }
 
   // ORDER IS DELIBERATE, and the dock is last on purpose: kit-dock.js adopts the
   // buttons the other pieces make, and re-measures whenever one more appears.
+  // There is NO defer flag here on purpose. A first draft carried one, and the
+  // 23 Sep 2026 review was right that it would have been dead code: `defer` has
+  // no effect on a script made with createElement, only on one the parser found.
+  // The thing that actually holds the order below is `async = false`.
   var pieces = [
-    { key: "textsize",  file: "textsize.js",    defer: false, attrs: {} },
-    { key: "speak",     file: "speak.js",       defer: true,  attrs: {} },
-    { key: "hearsel",   file: "hearsel.js",     defer: true,  attrs: {} },
-    { key: "feedback",  file: "feedback.js",    defer: true,  attrs: {} },
-    { key: "notion",    file: "notion-sync.js", defer: true,  attrs: {} },
-    { key: "marks",     file: "marks.js",       defer: true,  attrs: {} },
-    { key: "pull",      file: "pull.js",        defer: true,  attrs: {} },
-    { key: "swipe",     file: "swipe.js",       defer: true,  attrs: {} },
-    { key: "dock",      file: "kit-dock.js",    defer: true,  attrs: {} }
+    { key: "textsize",  file: "textsize.js",    attrs: {} },
+    { key: "speak",     file: "speak.js",       attrs: {} },
+    { key: "hearsel",   file: "hearsel.js",     attrs: {} },
+    { key: "feedback",  file: "feedback.js",    attrs: {} },
+    { key: "notion",    file: "notion-sync.js", attrs: {} },
+    { key: "marks",     file: "marks.js",       attrs: {} },
+    { key: "pull",      file: "pull.js",        attrs: {} },
+    { key: "swipe",     file: "swipe.js",       attrs: {} },
+    { key: "dock",      file: "kit-dock.js",    attrs: {} }
   ];
 
   // --- per-app settings, read off our one tag -------------------------------
@@ -125,12 +148,12 @@
   // --- load, in order, and write down what actually happened ----------------
   pieces.forEach(function (p) {
     if (omit.indexOf(p.key) !== -1) return;              // left out on purpose
-    if (already(p.file)) { state.skipped.push(p.file); return; }
+    var own = already(p.file);
+    if (own) { state.skipped.push(p.file); noteMixed(p.file, own); return; }
 
     var s = document.createElement("script");
     s.src = base + p.file + "?v=" + VERSION;
     s.async = false;                 // keeps them in the order written above
-    if (p.defer) s.defer = true;
     Object.keys(p.attrs).forEach(function (a) { s.setAttribute(a, p.attrs[a]); });
     s.onload  = function () { state.loaded.push(p.file); };
     s.onerror = function () {
