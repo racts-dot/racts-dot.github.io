@@ -25,6 +25,7 @@
     "border-radius:.7rem;background:#fff;color:#15181e;border:1px solid rgba(0,0,0,.18);" +
     "box-shadow:0 6px 20px rgba(0,0,0,.22);font:600 .9rem/1 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}" +
     "@media (prefers-color-scheme:dark){.am-bar{background:#22242a;color:#f2f4f8;border-color:rgba(255,255,255,.22)}}" +
+    ".am-bar[hidden]{display:none}" +
     ".am-bar button{font:inherit;padding:.5rem .7rem;border:0;border-radius:.5rem;background:transparent;color:inherit;cursor:pointer;min-height:44px}" +
     ".am-bar button:active{background:rgba(127,127,127,.25)}" +
     ".am-grip{width:1.1rem;height:2.2rem;cursor:grab;touch-action:none;display:flex;align-items:center;justify-content:center;opacity:.5}" +
