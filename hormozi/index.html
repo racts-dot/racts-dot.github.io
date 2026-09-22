@@ -763,16 +763,38 @@ async function toNotion(c, btn){
   sel.addEventListener('change', () => { try { localStorage.setItem('hmr-rate', sel.value); } catch(e){} });
 })();
 
-const synth = window.speechSynthesis; let voices = []; let queue = []; let playing = false;
-function loadVoices(){
-  if (!synth) return; voices = synth.getVoices().filter(v=>/^en/i.test(v.lang));
-  const pref = v => (/(natural|neural|premium|enhanced|google)/i.test(v.name)?0:1) + (/en-AU/i.test(v.lang)?0:.5);
-  voices.sort((a,b)=>pref(a)-pref(b));
-  let saved = ''; try { saved = localStorage.getItem('hmr-voice')||''; } catch(e){}
-  $('#voice').innerHTML = voices.map((v,i)=>`<option value="${i}" ${v.name===saved?'selected':''}>${esc(v.name)} (${esc(v.lang)})</option>`).join('');
+/* natural-voice card player 23 Sep 2026 */
+const NV_URL = 'https://apps-notion-relay.apps-notion-relay.workers.dev/tts';
+const NVOICES = [['aoede','Aoede'],['achernar','Achernar'],['kore','Kore'],['charon','Charon'],['puck','Puck']];
+const nvAudio = new Audio(); nvAudio.setAttribute('playsinline', '');
+let nvToken = 0; const nvCache = {};
+function nvPass(){ try { const raw = localStorage.getItem('notionSync.pass'); if (!raw) return null;
+  try { const p = JSON.parse(raw); if (typeof p === 'string' && p) return p; } catch(e){}
+  return raw[0] !== '{' && raw[0] !== '[' ? raw : null; } catch(e){ return null; } }
+function nvVoice(){ try { return localStorage.getItem('speak.nvoice') || 'aoede'; } catch(e){ return 'aoede'; } }
+function nvClip(text){
+  const k = nvVoice() + '|' + text; if (nvCache[k]) return nvCache[k];
+  const pw = nvPass();
+  if (!pw) return Promise.reject(new Error('The natural voice needs this device connected once - tap Connect to Notion.'));
+  const pr = fetch(NV_URL, { method:'POST', headers:{ 'Content-Type':'application/json', 'X-Pass': pw },
+      body: JSON.stringify({ text, voice: nvVoice() }) })
+    .then(r => r.ok ? r.blob() : r.json().catch(()=>({})).then(j => { throw new Error(j.error || 'The natural voice could not be reached just now.'); }))
+    .then(b => URL.createObjectURL(b));
+  pr.catch(() => { delete nvCache[k]; }); nvCache[k] = pr; return pr;
 }
-if (synth){ loadVoices(); synth.onvoiceschanged = loadVoices; } else { $('#playall').disabled = true; $('#now').textContent = 'This browser has no read-aloud voice.'; }
-$('#voice').addEventListener('change', e=>{ try { localStorage.setItem('hmr-voice', voices[+e.target.value]?.name||''); } catch(err){} });
+function nvStop(){ nvToken++; try { nvAudio.onended = null; nvAudio.pause(); } catch(e){} try { window.speechSynthesis && speechSynthesis.cancel(); } catch(e){} }
+function nvTake(){                       // the next lines of this card, joined up to 1,400 characters
+  let t = ''; while (lineQ.length && (t + ' ' + lineQ[0]).length <= 1400) t += (t ? ' ' : '') + lineQ.shift();
+  if (!t && lineQ.length) t = lineQ.shift().slice(0, 1400);
+  return t;
+}
+const synth = { cancel: nvStop }; let voices = []; let queue = []; let playing = false;
+function loadVoices(){
+  const cur = nvVoice();
+  $('#voice').innerHTML = NVOICES.map(v => `<option value="${v[0]}" ${v[0]===cur?'selected':''}>${v[1]} (natural)</option>`).join('');
+}
+loadVoices();
+$('#voice').addEventListener('change', e=>{ try { localStorage.setItem('speak.nvoice', e.target.value); } catch(err){} });
 function scriptFor(c){
   const parts = [c.title + '.', 'What it can get you: ' + c.gets];
   if (c.fit === 'no') parts.push('Not for your shop. ' + c.why);
@@ -794,7 +816,7 @@ async function keepAwake(on){
 document.addEventListener('visibilitychange', ()=>{ if (playing && document.visibilityState === 'visible') keepAwake(true); });
 function topicOf(c){ return D.topics.find(t=>t.cards.includes(c)); }
 function speakCards(cards, startAt=0){
-  if (!synth || !cards.length) return; synth.cancel();
+  if (!cards.length) return; nvStop();
   cardList = cards; playing = true; paused = false; $('#player').hidden = false; $('#pause').textContent = 'Pause';
   keepAwake(true); startCard(Math.max(0, Math.min(startAt, cards.length-1)));
 }
@@ -812,9 +834,15 @@ function startCard(i){
 function speakLine(){
   if (!playing || paused) return;
   if (!lineQ.length){ startCard(cardIdx + 1); return; }
-  const u = new SpeechSynthesisUtterance(lineQ.shift());
-  const v = voices[+$('#voice').value]; if (v) u.voice = v;
-  u.rate = +$('#rate').value; u.onend = speakLine; u.onerror = speakLine; synth.speak(u);
+  const text = nvTake(), tok = ++nvToken;
+  nvClip(text).then(url => {
+    if (tok !== nvToken || !playing || paused) return;
+    nvAudio.src = url; nvAudio.playbackRate = +$('#rate').value || 1;
+    nvAudio.onended = () => { if (tok === nvToken) speakLine(); };
+    nvAudio.play().catch(() => { if (tok !== nvToken) return; paused = true; $('#pause').textContent = 'Resume'; $('#now').textContent = 'Tap Resume to start reading.'; });
+    const ahead = lineQ.slice(0); let nx = ''; while (ahead.length && (nx + ' ' + ahead[0]).length <= 1400) nx += (nx ? ' ' : '') + ahead.shift();
+    if (nx) nvClip(nx).catch(()=>{});
+  }, e => { if (tok !== nvToken) return; stopAll(); $('#now').textContent = e.message; });
 }
 function stopAll(){
   playing = false; paused = false; lineQ = []; synth && synth.cancel(); keepAwake(false);
