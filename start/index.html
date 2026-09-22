@@ -611,7 +611,7 @@
         </section>
 
         <section class="card wg" data-w="waiting" id="waiting">
-          <h2>Waiting on you <a href="/desk/">the Desk →</a></h2>
+          <h2>Waiting on you <a href="/desk/?board">the Board →</a></h2>
           <ul class="wait" id="wait"><li class="empty">reading /desk/progress.json…</li></ul>
         </section>
         <section class="card wg" data-w="chats" id="chatsCard">
@@ -1050,8 +1050,46 @@
   }
 
   /* ---- the Desk: what is waiting on her ---- */
-  function renderDesk(d){
-    var all = (d.items || []).filter(function(i){ return !/^j_/.test(i.id || ""); });
+  /* 23 Sep 2026, her words: "combine with the desk app" / "and also start app". The plan board's
+     'Only you can do these' cards lead this panel. They live in Notion (desk table, board: keys), so
+     they need the apps password; without it, or offline, the Desk's saved copy on this device is used,
+     and with neither the panel shows progress.json exactly as before. */
+  var deskCard = null, boardHer = null;
+  var BW_RISK = {money:"money at risk", customer:"customer at risk", data:"data at risk"};
+  function boardWait(rows){
+    var her = (rows || []).filter(function(r){ return r && r.status === "her"; });
+    her.sort(function(a,b){ return ((BW_RISK[a.urgency]?0:1)-(BW_RISK[b.urgency]?0:1)) || ((a.order||99)-(b.order||99)); });
+    boardHer = her; paintWait();
+  }
+  function boardPull(){
+    try { var c = JSON.parse(localStorage.getItem("desk.bdCache") || "null"); if (c && c.cards) boardWait(c.cards); } catch(e) {}
+    if (!window.NotionSync || !NotionSync.connected || !NotionSync.connected()) return;
+    NotionSync.list("desk").then(function(o){
+      var cards = ((o && o.rows) || []).filter(function(r){ return /^board:/.test(r.id || "") && r.id !== "board:_summary"; })
+        .map(function(r){ var c = r.data || {}; c.id = r.id.slice(6); c.title = c.title || r.title; return c; });
+      if (cards.length) boardWait(cards);
+    }).catch(function(){});
+  }
+  function paintWait(){
+    var reg = deskCard ? (deskCard.items || []).filter(function(i){ return !/^j_/.test(i.id || ""); }) : [];
+    var her = boardHer || [];
+    var n = her.length || reg.length;
+    $("trigger").classList.toggle("has", n > 0);
+    $("trigger").setAttribute("aria-label", n
+      ? n + " thing(s) waiting on you. Show the day, what is waiting, and every link"
+      : "Show the day, what is waiting, and every link");
+    if (her.length){
+      $("wait").innerHTML = her.slice(0, 6).map(function(c){
+        var risk = BW_RISK[c.urgency] ? ' <b style="color:#b3261e;font-weight:600">· ' + BW_RISK[c.urgency] + "</b>" : "";
+        return "<li>" + esc(c.title || "") + risk + (c.next ? '<div class="d">' + esc(String(c.next).slice(0, 170)) + "</div>" : "") + "</li>";
+      }).join("") + '<li class="empty" style="border-top:1px solid var(--line)">' + (her.length > 6 ? (her.length - 6) + " more on " : "All on ") +
+        '<a href="/desk/?board">the Board</a>' + (reg.length ? " · " + reg.length + " register notes on the Desk" : "") + "</li>";
+      return;
+    }
+    renderDeskList(reg, deskCard || {});
+  }
+  function renderDesk(d){ deskCard = d; paintWait(); }
+  function renderDeskList(all, d){
     /* THE ONE THING THE REVIEW INSISTED ON. Hiding the list is fine; hiding the NOTICE is not,
        or a decision waiting on her is never seen again. The dot is the notice; the list stays behind
        the button. Gemini 3.1 Pro, 19 Sep 2026: "decouple the notification from the information". */
@@ -1223,6 +1261,7 @@
       $("pace").textContent = "The Day feed could not be read (" + e.message + ")"; $("dot").className = "dot cold";
       $("events").innerHTML = '<li class="empty">/day/stream.json did not load.</li>';
     });
+    boardPull();
     get("/desk/progress.json", renderDesk, function(e){
       $("wait").innerHTML = '<li class="empty">/desk/progress.json did not load (' + esc(e.message) + ").</li>";
     });

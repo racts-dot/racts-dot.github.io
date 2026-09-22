@@ -666,6 +666,42 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   text-transform:uppercase;color:var(--accent);text-decoration:none;
   border-bottom:1px solid var(--line)}
 .storysrc a:hover{border-bottom-color:var(--accent)}
+/* ---- Board (23 Sep 2026): her six-month plan board, joined into the Desk. Rows live in
+   Notion's desk table as "board:<id>", read with NotionSync.list("desk"). ---- */
+.bd-chips{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 6px}
+.bd-chip{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:999px;
+  padding:6px 11px;font:500 13px/1.1 inherit;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.bd-chip[aria-pressed="true"]{background:var(--ink);color:var(--ground);border-color:var(--ink)}
+.bd-chip i{width:9px;height:9px;border-radius:3px;display:inline-block}
+.bd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.bd-card{background:var(--surface);border:1px solid var(--line-soft);border-left:4px solid var(--lane,var(--ink-faint));
+  border-radius:10px;padding:11px 12px 9px 13px;display:grid;gap:6px;min-width:0}
+.bd-card.risk{box-shadow:inset 0 0 0 1px #b3261e}
+.bd-top{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.bd-lane{font:600 10.5px/1 "IBM Plex Mono",ui-monospace,monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--lane)}
+.bd-pill{font:500 10.5px/1 "IBM Plex Mono",ui-monospace,monospace;padding:4px 7px;border-radius:999px;background:var(--surface-2);color:var(--ink-soft)}
+.bd-pill.risk{background:#f9e3e0;color:#b3261e}
+.bd-pill.old{background:#fbefd6;color:#8a5a00}
+.bd-card h4{margin:0;font-size:15px;line-height:1.3}
+.bd-next{font-size:13.5px;color:var(--ink-soft);margin:0;overflow-wrap:anywhere}
+.bd-next b{color:var(--ink)}
+.bd-card details{font-size:13px;color:var(--ink-soft);overflow-wrap:anywhere}
+.bd-card summary{cursor:pointer;color:var(--ink-faint);font-size:12.5px}
+.bd-foot{display:flex;gap:8px;align-items:center;justify-content:space-between}
+.bd-foot select{font:13px inherit;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);border-radius:7px;padding:5px 6px}
+.bd-foot button{font:500 13px inherit;border:0;border-radius:7px;padding:6px 11px;background:#ddefe3;color:#246b45;cursor:pointer}
+.bd-saved{font:11px "IBM Plex Mono",monospace;color:var(--ink-faint)}
+.bd-alert{background:var(--accent-soft);border-radius:10px;padding:11px 13px;font-size:14px;line-height:1.45;margin:0 0 6px}
+.bd-alert button{margin-left:6px;font:600 13px inherit;border:0;border-radius:7px;padding:6px 11px;background:var(--accent);color:#fff;cursor:pointer}
+.bd-tl li{margin:0 0 6px;font-size:14px;line-height:1.4}
+.bd-tl h3{font-size:14px;margin:14px 0 6px}
+.bd-nums{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.bd-num{background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:10px 12px}
+.bd-num b{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.bd-num span{font-size:12.5px;color:var(--ink-soft)}
+.bd-more{background:var(--surface);border:1px solid var(--line-soft);border-radius:10px;padding:10px 12px;margin-top:10px}
+.bd-more > summary{cursor:pointer;font-weight:600}
+@media (prefers-color-scheme: dark){ .bd-pill.risk{background:#3a1f1c;color:#ff8a80} .bd-pill.old{background:#352a14;color:#f0be5a} .bd-foot button{background:#1b3226;color:#7fd3a2} }
 </style>
 <script src="../textsize.js"></script><script src="../feedback.js" defer></script>
 <script src="../kit-dock.js?v=fold1" defer></script>
@@ -866,6 +902,32 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <button id="statGo">Add</button>
       </div>
     </div>
+  </section>
+
+  <!-- BOARD - 23 Sep 2026, her words: "combine with the desk app". The six-month plan board:
+       every open job, sorted by who has to act. Rows come from Notion (desk table, "board:" keys),
+       written by status/plan_board/push_to_notion.py in home-notes, and by this page when she moves a card. -->
+  <section class="page" id="p-board">
+    <p class="bd-alert" id="bdAlert">Reading the board from Notion…</p>
+    <div class="bd-chips" id="bdChips" role="group" aria-label="Show one kind of work"></div>
+    <div class="block" style="margin-top:14px">
+      <div class="sec-head"><h2>Only you can do these</h2><span class="count" id="bdHerN"></span></div>
+      <p class="sec-note">Your login, your card, your eyes, or a money / public / can't-undo call. Everything else is Claude's.</p>
+      <div class="bd-grid" id="bdHer"></div>
+    </div>
+    <div class="block"><div class="sec-head"><h2>Now</h2><span class="count" id="bdNowN"></span></div>
+      <p class="sec-note">Claude is on it, or starts next.</p><div class="bd-grid" id="bdNow"></div></div>
+    <div class="block"><div class="sec-head"><h2>Blocked</h2><span class="count" id="bdBlockedN"></span></div>
+      <p class="sec-note">Stuck on something outside Claude's reach.</p><div class="bd-grid" id="bdBlocked"></div></div>
+    <div class="block"><div class="sec-head"><h2>Next</h2><span class="count" id="bdNextN"></span></div>
+      <p class="sec-note">Queued, in this order.</p><div class="bd-grid" id="bdNext"></div></div>
+    <div class="block"><div class="sec-head"><h2>Later</h2><span class="count" id="bdLaterN"></span></div>
+      <p class="sec-note">Parked on purpose.</p><div class="bd-grid" id="bdLater"></div></div>
+    <details class="bd-more"><summary id="bdDoneSum">Done</summary><ul id="bdDone"></ul></details>
+    <details class="bd-more"><summary>Six months, month by month</summary><p class="sec-note" id="bdTlSub"></p><div class="bd-tl" id="bdTl"></div></details>
+    <details class="bd-more"><summary>The numbers, with the day each was read</summary><div class="bd-nums" id="bdNums" style="margin-top:8px"></div></details>
+    <details class="bd-more"><summary>Already decided, and tried and dropped</summary><ul id="bdDecided"></ul><ul id="bdDead"></ul></details>
+    <p class="stamp" id="bdStamp"></p>
   </section>
 
   <!-- 4 MONEY -->
@@ -1391,6 +1453,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
        under More, nothing was deleted. eBay takes the free slot - it was already a page, it
        had just never been in the bar. -->
   <button data-go="status"><span class="g">◎</span>Status<span class="dot hide" id="statDot"></span></button>
+  <button data-go="board"><span class="g">▦</span>Board<span class="dot hide" id="boardDot"></span></button>
   <button data-more><span class="g">⋯</span>More</button>
 </nav>
 
@@ -1440,6 +1503,7 @@ const PAGES = [
   {id:"today",   name:"Today",              why:"Your to-do first. It rolls over until you tick it, and every line keeps its date and time.", nav:1},
   {id:"ideas",   name:"Ideas",              why:"Say it however it comes out. Nothing is asked of you here.", nav:1},
   {id:"status",  name:"Status",             why:"One tile per thing. Which stage it is at, and what is blocking it."},
+  {id:"board",   name:"Board",              why:"Every open job from the last six months, sorted by who has to act. Move a card and it saves to Notion.", nav:1},
   {id:"money",   name:"Money",              why:"Only figures somebody actually read off a real account."},
   {id:"paper",   name:"The Paper",          why:"The AFR, in plain words, with what it means for you."},
   {id:"cast",    name:"The cast",           why:"The five of them, and which part of this desk each one keeps."},
@@ -1467,6 +1531,7 @@ const PAGES = [
 const PAGE = id => PAGES.find(p=>p.id===id) || PAGES[0];
 /* where to open: the page she left, if it is still a real page */
 function startPage(){
+  if(/[?&]board(=|&|$)/.test(location.search)) return "board";   /* Start's "Waiting on you" opens here (?board, not #board: # is the load-link channel) */
   /* build 22: her 15 Sep ruling makes the to-do the first page. Once per device, so a page she
      picks afterwards is still remembered. */
   if(!LS.get("b22home")){ LS.set("b22home", 1); settings.home="today"; LS.set("lastPage","today"); return "today"; }
@@ -2383,6 +2448,92 @@ async function loadProgress(){
 }
 document.addEventListener("click", e=>{ if(e.target.closest('[data-go="admin"]')) setTimeout(loadProgress, 60); });
 loadProgress();
+
+/* ---------------- Board (23 Sep 2026) ----------------
+   Her six-month plan board inside the Desk. Rows: Notion desk table, Key "board:<id>", written by
+   status/plan_board/push_to_notion.py (home-notes) and by this page when she moves a card.
+   The last good copy is kept on this device so the page paints at once and works offline. */
+const BD_LANES = {Etsy:["Etsy","#c2522b"],Ecom:["eBay","#2c66ae"],App:["Apps","#6a4db3"],Sys:["Sys","#3f6b5a"],
+  Video:["Video library","#a67812"],Money:["Money","#8e3a5f"],Personal:["Personal","#5d6b73"]};
+const BD_STATUS = [["her","Needs you"],["now","Now"],["blocked","Blocked"],["next","Next"],["later","Later"],["done","Done"]];
+const BD_RISK = {money:"Money at risk",customer:"Customer at risk",data:"Data at risk"};
+const BD = {cards:[], meta:null, lane:(LS.get("bdLane")||"All"), loaded:false};
+function bdAge(d){ const t=Date.parse(d||""); return isNaN(t)?null:Math.floor((Date.now()-t)/DAY); }
+function bdCard(c){
+  const L = BD_LANES[c.lane] || [c.lane||"Other","#7c8a96"], age = bdAge(c.checked);
+  const opts = BD_STATUS.map(([k,t])=>`<option value="${k}"${k===c.status?" selected":""}>${t}</option>`).join("");
+  return `<article class="bd-card${BD_RISK[c.urgency]?" risk":""}" style="--lane:${L[1]}">
+    <div class="bd-top"><span class="bd-lane">${esc(L[0])}</span>
+      ${BD_RISK[c.urgency]?`<span class="bd-pill risk">${BD_RISK[c.urgency]}</span>`:""}
+      ${c.who?`<span class="bd-pill">${esc(c.who)}</span>`:""}
+      ${age!=null&&age>7?`<span class="bd-pill old">checked ${age}d ago</span>`:""}</div>
+    <h4>${esc(c.title||"")}</h4>
+    ${c.next?`<p class="bd-next"><b>Next:</b> ${esc(c.next)}</p>`:""}
+    ${(c.why||c.evidence)?`<details><summary>Why, and where it's from</summary>${c.why?`<p>${esc(c.why)}</p>`:""}
+      ${c.evidence?`<p class="stamp">${esc(c.evidence)}${c.checked?" · checked "+esc(c.checked):""}</p>`:""}</details>`:""}
+    <div class="bd-foot"><select aria-label="Move: ${esc(c.title||"")}" data-bdmove="${esc(c.id)}">${opts}</select>
+      ${c.status!=="done"?`<button type="button" data-bddone="${esc(c.id)}">Done</button>`:""}
+      <span class="bd-saved" data-bdsaved="${esc(c.id)}"></span></div></article>`;
+}
+function bdSort(a,b){ return ((BD_RISK[a.urgency]?0:1)-(BD_RISK[b.urgency]?0:1)) || ((a.order??99)-(b.order??99)) || String(a.title).localeCompare(String(b.title)); }
+function bdPaint(){
+  const vis = c => BD.lane==="All" || c.lane===BD.lane;
+  const open = BD.cards.filter(c=>c.status!=="done");
+  const lanes = ["All", ...Object.keys(BD_LANES).filter(k=>BD.cards.some(c=>c.lane===k))];
+  $("#bdChips").innerHTML = lanes.map(k=>{ const n=open.filter(c=>k==="All"||c.lane===k).length, L=BD_LANES[k];
+    return `<button type="button" class="bd-chip" data-bdlane="${k}" aria-pressed="${BD.lane===k}">${L?`<i style="background:${L[1]}"></i>`:""}${k==="All"?"Everything":L[0]} · ${n}</button>`; }).join("");
+  [["her","#bdHer","#bdHerN"],["now","#bdNow","#bdNowN"],["blocked","#bdBlocked","#bdBlockedN"],["next","#bdNext","#bdNextN"],["later","#bdLater","#bdLaterN"]].forEach(([s,box,cnt])=>{
+    const l = BD.cards.filter(c=>c.status===s && vis(c)).sort(bdSort);
+    $(cnt).textContent = l.length || "";
+    $(box).innerHTML = l.length ? l.map(bdCard).join("") : '<p class="none">Nothing here.</p>';
+  });
+  const done = BD.cards.filter(c=>c.status==="done" && vis(c));
+  $("#bdDoneSum").textContent = "Done · " + done.length;
+  $("#bdDone").innerHTML = done.map(c=>`<li>${esc((BD_LANES[c.lane]||[c.lane])[0])} - ${esc(c.title)}${c.movedAt?` <span class="stamp">${esc(c.movedAt)}</span>`:""}</li>`).join("");
+  const her = BD.cards.filter(c=>c.status==="her").length, dot=$("#boardDot"); if(dot) dot.classList.toggle("hide", !her);
+  const m = BD.meta; if(!m) return;
+  $("#bdAlert").textContent = m.alert || m.headline || "";
+  $("#bdTlSub").textContent = m.timelineSub || "";
+  $("#bdTl").innerHTML = (m.timeline||[]).map(t=>`<h3>${esc(t.month)}${t.sub?` <span class="stamp">${esc(t.sub)}</span>`:""}</h3><ul>${(t.items||[]).map(i=>{
+      const L=BD_LANES[i.lane]; return `<li>${L?`<span class="bd-lane" style="--lane:${L[1]}">${L[0]}</span> `:""}${esc(i.t)}</li>`; }).join("")}</ul>`).join("");
+  $("#bdNums").innerHTML = (m.numbers||[]).map(n=>{ const a=bdAge(n.read);
+    return `<div class="bd-num"><b>${esc(n.v)}</b><span>${esc(n.l)}</span><p class="stamp"${a!=null&&a>7?' style="color:#b07400"':""}>read ${esc(n.read||"?")} · ${esc(n.src||"")}</p></div>`; }).join("");
+  $("#bdDecided").innerHTML = (m.decided||[]).map(t=>`<li>${esc(t)}</li>`).join("");
+  $("#bdDead").innerHTML = (m.deadEnds||[]).map(t=>`<li>${esc(t)}</li>`).join("");
+}
+function bdTake(rows){
+  const cards=[]; let meta=null;
+  (rows||[]).forEach(r=>{ const id=String(r&&r.id||""); if(!id.startsWith("board:")) return;
+    if(id==="board:_summary"){ meta=r.data; return; }
+    const c = Object.assign({}, r.data||{}, {id:id.slice(6)}); if(!c.title) c.title=r.title; cards.push(c); });
+  if(cards.length){ BD.cards=cards; BD.meta=meta||BD.meta; LS.set("bdCache", {cards:BD.cards, meta:BD.meta, at:Date.now()}); }
+  return cards.length;
+}
+async function loadBoard(){
+  if(!BD.loaded){ const c=LS.get("bdCache"); if(c&&c.cards){ BD.cards=c.cards; BD.meta=c.meta; bdPaint();
+    $("#bdStamp").textContent = "Showing the copy saved on this device, "+new Date(c.at).toLocaleString()+". Checking Notion…"; } }
+  if(!window.NotionSync || !NotionSync.connected()){
+    $("#bdAlert").innerHTML = 'The board lives in your Notion, behind your apps password.<button type="button" id="bdConnect">Connect to Notion</button>';
+    const b=$("#bdConnect"); if(b) b.onclick=()=>NotionSync.connect().then(ok=>{ if(ok) loadBoard(); });
+    return;
+  }
+  try{ const out = await NotionSync.list("desk"); const n = bdTake(out&&out.rows); BD.loaded=true; bdPaint();
+    $("#bdStamp").textContent = n ? `${n} cards, read from Notion at ${new Date().toLocaleTimeString()}.` : "Notion has no board cards yet.";
+  }catch(e){ $("#bdStamp").textContent = "Notion did not answer ("+(e&&e.message||e)+"). Showing the saved copy."; }
+}
+function bdMove(id, status){
+  const c = BD.cards.find(x=>x.id===id); if(!c || c.status===status) return;
+  c.status=status; c.movedAt=new Date().toISOString().slice(0,16).replace("T"," "); c.movedBy="app";
+  if(window.NotionSync) NotionSync.save("desk", "board:"+id, {title:c.title, detail:c.next||"", when:c.checked||null, data:c});
+  LS.set("bdCache", {cards:BD.cards, meta:BD.meta, at:Date.now()});
+  bdPaint(); const s=document.querySelector('[data-bdsaved="'+CSS.escape(id)+'"]'); if(s) s.textContent="saved";
+}
+$("#p-board").addEventListener("change", e=>{ const s=e.target.closest("[data-bdmove]"); if(s) bdMove(s.dataset.bdmove, s.value); });
+$("#p-board").addEventListener("click", e=>{
+  const d=e.target.closest("[data-bddone]"); if(d){ bdMove(d.dataset.bddone,"done"); return; }
+  const l=e.target.closest("[data-bdlane]"); if(l){ BD.lane=l.dataset.bdlane; LS.set("bdLane",BD.lane); bdPaint(); } });
+document.addEventListener("click", e=>{ if(e.target.closest('[data-go="board"]')) setTimeout(loadBoard, 60); });
+setTimeout(loadBoard, 400);
 
 let EBAY = null;
 async function loadEbay(){
