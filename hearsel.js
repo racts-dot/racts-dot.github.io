@@ -47,11 +47,16 @@
 
   function hide() { b.style.display = "none"; }
 
+  /* 23 Sep 2026: a page with NONE of those containers used to get no Hear button anywhere - the file
+     loaded, the word check scored it present, and selecting did nothing. Measured on recipes, todo and
+     tripshare (app_kit_behave's new Hear piece). Such a page is read as one whole: listen on its body.
+     A page that does mark a reading area keeps its boundary exactly as before. */
   function inReading(node) {
+    var whole = !document.querySelector(ROOTS);
     for (; node && node !== document; node = node.parentNode || node.host) {
       if (node.nodeType !== 1) continue;
       if (node.matches("input,textarea,select,button,[contenteditable]")) return false;
-      if (node.matches(ROOTS)) return true;
+      if (node.matches(ROOTS) || (whole && node === document.body)) return true;
     }
     return false;
   }
