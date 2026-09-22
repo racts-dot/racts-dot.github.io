@@ -26,7 +26,13 @@
    file until this number moves. Second: hearsel.js is on the page and was NOT in the list - the
    identical fault the v2 note above describes, back again, so with no signal she loses "hear the
    bit you picked" and nothing says so. */
-const CACHE = "rule-shelf-v8";
+/* v9, 23 Sep 2026: marks.js gained ".am-bar[hidden]{display:none}" - without it the author
+   rule display:flex beat the browser's own [hidden] rule, so the Highlight/Note bar sat on
+   screen with nothing selected. MEASURED on the live shelf the same day: the corrected
+   marks.js was already being served (fetch with a cache-buster returned it) while the OPEN
+   page still drew the bar 216x56, because this cache serves it first. Bumping the version is
+   what actually reaches a phone. */
+const CACHE = "rule-shelf-v9";
 const SHELL = [
   "./",
   "./index.html",
