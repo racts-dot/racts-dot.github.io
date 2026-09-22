@@ -28,7 +28,7 @@ CSS = """<style>
 .vbox a.vp{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);
   color:var(--marker);text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap}
 .vbox a.vp:hover{border-color:var(--marker)}
-#vdock{position:fixed;z-index:70;top:8px;right:8px;width:min(420px,calc(100vw - 16px));background:var(--card);
+#vdock{position:fixed;z-index:2147483600;top:52px;right:8px;width:min(420px,calc(100vw - 16px));background:var(--card);
   border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
 #vdock .vdbar{cursor:grab;user-select:none;-webkit-user-select:none;display:flex;align-items:center;gap:8px;padding:6px 8px 6px 12px;font-size:13px;color:var(--muted)}
 #vdock .vdname{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -100,7 +100,7 @@ window.vbox = function(c){
     grip.addEventListener('pointerup', end); grip.addEventListener('pointercancel', end);
     grip.addEventListener('click', function(e){ e.stopPropagation(); e.preventDefault(); }, true);
   }
-var dock, yt, ytReady = false, pending = null;
+var dock, yt, ytReady = false, pending = null, apiReady = false;
 function makeDock(){
   dock = document.createElement('div'); dock.id = 'vdock'; dock.hidden = true;
   dock.innerHTML = '<div class="vdbar" title="Drag to move"><span class="grip" aria-hidden="true">⠿</span><span class="vdname"></span><button type="button" aria-label="Close video">✕</button></div><div class="vdframe"><div id="vdplayer"></div><div class="rsz" title="Drag to resize" aria-label="Resize the video"></div></div>';
@@ -110,11 +110,15 @@ function makeDock(){
   dock.querySelector('button').addEventListener('click', function(){ try { yt && yt.pauseVideo(); } catch(e){} dock.hidden = true; });
   var s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s);
   var prev = window.onYouTubeIframeAPIReady;
-  window.onYouTubeIframeAPIReady = function(){ prev && prev();
-    yt = new YT.Player('vdplayer', { playerVars:{ playsinline:1, rel:0 }, events:{ onReady:function(){ ytReady = true; if (pending){ play(pending[0], pending[1]); pending = null; } } } });
+  window.onYouTubeIframeAPIReady = function(){ prev && prev(); apiReady = true;
+    if (pending){ var p = pending; pending = null; play(p[0], p[1]); }
   };
 }
 function play(id, s){
+  /* video dock fixed 23 Sep 2026 */  /* the player is MADE with the video, not made empty and told later */
+  if (!apiReady){ pending = [id, s]; return; }
+  if (!yt){ yt = new YT.Player('vdplayer', { videoId:id, playerVars:{ playsinline:1, rel:0, autoplay:1, start:s || 0 },
+      events:{ onReady:function(e){ ytReady = true; try { e.target.playVideo(); } catch(x){} } } }); return; }
   if (!ytReady){ pending = [id, s]; return; }
   yt.loadVideoById({ videoId:id, startSeconds:s });
 }
