@@ -20,6 +20,7 @@ import re
 import subprocess
 import sys
 
+import site_tags
 import video_box
 
 SITE = pathlib.Path(__file__).resolve().parent
@@ -58,6 +59,16 @@ def git_list(folder):
 def write(rel, data):
     dest = SITE / rel
     dest.parent.mkdir(parents=True, exist_ok=True)
+    # 23 Sep 2026: the site is where her approved icons live (her 17 Sep pick). A rebuild never replaces one.
+    if rel.endswith(".png") and dest.exists():
+        if dest.read_bytes() != data:
+            print(f"  {rel}  KEPT the site's icon (the source copy differs)")
+        return
+    # 23 Sep 2026: keep every kit script / icon link that was added to the site page and not to the source.
+    if rel.endswith(".html") and isinstance(data, str) and dest.exists():
+        data, carried = site_tags.carry(data, dest.read_text(encoding="utf-8"))
+        if carried:
+            print(f"  {rel}: kept from the site page: {', '.join(carried)}")
     if isinstance(data, str):
         data = data.encode("utf-8")
     dest.write_bytes(data)
@@ -141,10 +152,16 @@ def main():
     for path in git_list("sabrina_cookbook"):
         name = path.split("/", 1)[1]
         if name == "index.html":
-            page = use_site_textsize(git_bytes(path).decode("utf-8"), "cookbook")
-            # the source loads its own speak.js (Cloudflare copy); this site's one lives at the root
-            page = page.replace('<script src="speak.js" defer></script>', '<script src="../speak.js" defer></script>')
-            write("cookbook/index.html", add_swipe(page, 'data-select="#tool"', "cookbook swipe"))
+            page = git_bytes(path).decode("utf-8")
+            if 'src="https://racts-dot.github.io/textsize.js"' in page:
+                # 23 Sep 2026: the source now loads this site's shared kit itself (its local copies had gone
+                # stale - speak.js read in the phone voice), swipe included. Here they are same-origin.
+                write("cookbook/index.html", page.replace('src="https://racts-dot.github.io/', 'src="/'))
+            else:
+                page = use_site_textsize(page, "cookbook")
+                # the source loads its own speak.js (Cloudflare copy); this site's one lives at the root
+                page = page.replace('<script src="speak.js" defer></script>', '<script src="../speak.js" defer></script>')
+                write("cookbook/index.html", add_swipe(page, 'data-select="#tool"', "cookbook swipe"))
         elif name in {"favicon.png", "icon-180.png", "icon-192.png", "icon-512.png", "og.png"}:
             write(f"cookbook/{name}", git_bytes(path))
     manifest = git_bytes("sabrina_cookbook/manifest.webmanifest").decode("utf-8")
@@ -155,9 +172,11 @@ def main():
     for path in git_list("apps/video_search_site/public"):
         name = path.rsplit("/", 1)[1]
         if name == "index.html":
-            write("videos/index.html", add_swipe(use_site_textsize(git_bytes(path).decode("utf-8"), "videos"),
+            # 23 Sep 2026: the site's shared reader (natural voice, Korean voice); the source's own speak.js is phone voice
+            vpage = git_bytes(path).decode("utf-8").replace('<script src="speak.js" defer></script>', '<script src="/speak.js" defer></script>')
+            write("videos/index.html", add_swipe(use_site_textsize(vpage, "videos"),
                                                  'data-chips="#chips .chip" data-input="#q"', "videos swipe"))
-        elif name not in {"_headers", "textsize.js", "feedback.js"}:  # _headers is Cloudflare-only; textsize.js: the site's root copy
+        elif name not in {"_headers", "textsize.js", "feedback.js", "speak.js"}:  # speak.js: the site's root copy (23 Sep)  # _headers is Cloudflare-only; textsize.js: the site's root copy
             write(f"videos/{name}", git_bytes(path))
 
     print("hormozi/")
