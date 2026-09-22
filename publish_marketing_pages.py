@@ -145,8 +145,30 @@ def use_site_textsize(html, label):
     return html.replace('<script src="feedback.js" defer></script>', '<script src="/feedback.js" defer></script>')
 
 
+GOAL_CSS = (".goal{max-width:64ch;color:var(--ink);font-size:19.5px;line-height:1.35;margin:0 0 10px;font-weight:600}\n"
+            ".goal .label{display:block;margin-bottom:2px}\n")
+GOAL = (
+    '  <!-- 20 Sep 2026, her words: "So the terminal of how the goal will be should be at the front."\n'
+    "       Where the trip ends was only the grey label at the right-hand end of the map, under the\n"
+    "       how-to. It is said in words here instead, first thing, before any of the mechanics. -->\n"
+    '  <p class="goal"><span class="label">Where this ends up</span>A stranger becomes a customer who comes back. '
+    "Every stop below is one leg of that trip, in the order a buyer meets them.</p>\n"
+)
+
+
+def add_goal(html):
+    """20 Sep 2026: the goal line was added to the live /workflows/ page by hand and never went back to
+    printables doser_cookbook, so a rebuild dropped it (measured 23 Sep). The site adds it here instead."""
+    if 'class="goal"' in html:
+        return html  # the source has it now
+    html = replace_once(html, ".lede{", GOAL_CSS + ".lede{", "workflows goal css")
+    return replace_once(html, '  <p class="lede">', GOAL + '  <p class="lede">', "workflows goal line")
+
+
 def main():
     subprocess.run(["git", "-C", str(PRINTABLES), "fetch", "-q", "origin"], check=True)
+    folders = ["cookbook", "videos", "hormozi", "workflows", "recipes"]
+    guard = site_tags.Guard(SITE, [f"{f}/index.html" for f in folders], folders)
 
     print("cookbook/")
     for path in git_list("sabrina_cookbook"):
@@ -194,11 +216,12 @@ def main():
 
     print("workflows/")
     html = git_bytes("doser_cookbook/index.html").decode("utf-8")
-    html = video_box.add_videos(html, "workflows")
+    html = add_goal(video_box.add_videos(html, "workflows"))
     write("workflows/index.html", add_notion(as_document(strip_shop(use_site_textsize(html, "workflows"), "workflows")), "workflows"))
 
     import recipes_hub   # 15 Sep: the combined Recipes home, and its "All recipes" bar on these pages
     recipes_hub.main()
+    guard.check()   # 23 Sep 2026: refuses, and puts the pages back, if any kit tag, icon link or icon file was lost
 
 
 if __name__ == "__main__":
