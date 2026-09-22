@@ -62,6 +62,11 @@
   // Do not describe it to her as her pick until she has actually made one.
   var NATURAL = [["aoede", "Aoede - the one in use today"], ["achernar", "Achernar"], ["kore", "Kore"],
                  ["charon", "Charon"], ["puck", "Puck"]];
+  /* 23 Sep 2026: mostly-Hangul text goes to the relay's Korean voice - the chosen voice is English (en-AU) and read Korean pages in an English accent. */
+  function natVoiceFor(t) {
+    var ko = (String(t).match(/[\uAC00-\uD7A3]/g) || []).length, la = (String(t).match(/[A-Za-z]/g) || []).length;
+    return ko > la ? "korean" : (store.get(K_NVOICE) || "aoede");
+  }
   function pass() {
     // notion-sync.js writes it JSON-encoded; tolerate a raw string too, because guessing wrong
     // here would silently drop back to the robot voice and look like the feature never shipped.
@@ -252,7 +257,7 @@
     p.pending = fetch(RELAY + "/tts", {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-Pass": pw },
-      body: JSON.stringify({ text: p.text, voice: store.get(K_NVOICE) || "aoede" })
+      body: JSON.stringify({ text: p.text, voice: natVoiceFor(p.text) })
     }).then(function (r) {
       if (!r.ok) return r.json()["catch"](function () { return {}; }).then(function (j) {
         // 404 = the relay has not been redeployed with /tts yet; 503 = no Google key in Cloudflare.

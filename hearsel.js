@@ -122,7 +122,7 @@
       var r = await fetch(RELAY + "/tts", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-Pass": pw },
-        body: JSON.stringify({ text: text.slice(0, 1500), voice: get("speak.nvoice") || "aoede" })
+        body: JSON.stringify({ text: text.slice(0, 1500), voice: ((text.match(/[\uAC00-\uD7A3]/g) || []).length > (text.match(/[A-Za-z]/g) || []).length) ? "korean" : (get("speak.nvoice") || "aoede") })   // 23 Sep: Korean selections to the Korean voice
       });
       if (!r.ok) { note(r.status === 401 ? "The saved apps password is out of date — enter it again in Read aloud." : "The natural voice could not be reached just now. Try again in a moment."); return; }
       var blob = await r.blob();
