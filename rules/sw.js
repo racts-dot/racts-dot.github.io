@@ -32,7 +32,7 @@
    marks.js was already being served (fetch with a cache-buster returned it) while the OPEN
    page still drew the bar 216x56, because this cache serves it first. Bumping the version is
    what actually reaches a phone. */
-const CACHE = "rule-shelf-v9";
+const CACHE = "rule-shelf-v10";
 const SHELL = [
   "./",
   "./index.html",
@@ -57,7 +57,14 @@ self.addEventListener("install", function (event) {
       // a level up where a path can drift. Add them one at a time so a missing
       // script costs that script, not the entire offline copy.
       return Promise.all(SHELL.map(function (u) {
-        return c.add(u).catch(function () {});
+        // cache:"reload" or the fetch behind c.add can be answered from the BROWSER's
+        // own HTTP cache, which is how v9 first installed carrying the OLD marks.js
+        // even though the corrected file was already being served. MEASURED 23 Sep 2026:
+        // cache rule-shelf-v9 held marks.js WITHOUT the fix while a no-store fetch of the
+        // same URL returned it WITH the fix. Bumping the version is not enough on its own.
+        return c.add(new Request(u, { cache: "reload" })).catch(function () {
+          return c.add(u).catch(function () {});
+        });
       }));
     }).then(function () { return self.skipWaiting(); })
   );
