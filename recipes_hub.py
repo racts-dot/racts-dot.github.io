@@ -687,6 +687,10 @@ def main():
     page = PAGE.replace("__DATA__", blob).replace("__LOCAL__", json.dumps(mine, ensure_ascii=False))
     if home.exists():
         page = keep_cache_bust(page, home.read_text(encoding="utf-8"))
+        import site_tags   # 23 Sep 2026: keep kit pieces added on the site (marks.js, the dock) - see site_tags.py
+        page, carried = site_tags.carry(page, home.read_text(encoding="utf-8"))
+        if carried:
+            print("  recipes/index.html: kept from the site page:", ", ".join(carried))
     home.write_text(page, encoding="utf-8")
     for folder, name in (("hormozi", "Hormozi Marketing Recipes"), ("workflows", "Doser AI Marketing Workflows"),
                          ("cookbook", "Sabrina's Prompt Cookbook")):
