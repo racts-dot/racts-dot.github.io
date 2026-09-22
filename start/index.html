@@ -1080,7 +1080,7 @@
       : "Show the day, what is waiting, and every link");
     if (her.length){
       $("wait").innerHTML = her.slice(0, 6).map(function(c){
-        var risk = BW_RISK[c.urgency] ? ' <b style="color:#b3261e;font-weight:600">· ' + BW_RISK[c.urgency] + "</b>" : "";
+        var risk = BW_RISK[c.urgency] ? ' <b style="color:#d9483b;font-weight:600">· ' + BW_RISK[c.urgency] + "</b>" : "";
         return "<li>" + esc(c.title || "") + risk + (c.next ? '<div class="d">' + esc(String(c.next).slice(0, 170)) + "</div>" : "") + "</li>";
       }).join("") + '<li class="empty" style="border-top:1px solid var(--line)">' + (her.length > 6 ? (her.length - 6) + " more on " : "All on ") +
         '<a href="/desk/?board">the Board</a>' + (reg.length ? " · " + reg.length + " register notes on the Desk" : "") + "</li>";
