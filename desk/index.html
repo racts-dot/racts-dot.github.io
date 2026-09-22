@@ -430,6 +430,8 @@ h2{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:22px;margin:
 .story ul{margin:0;padding-left:18px}
 .story li{font-size:14.5px;color:var(--ink-soft);margin-bottom:6px;max-width:62ch}
 /* ---- the paper, set like a paper ---- */
+.afr-full{margin-left:auto;font-size:13px;text-decoration:underline;color:inherit;opacity:.85}
+.afr-full:hover{opacity:1}
 .edition{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;border-bottom:2px solid var(--ink);
   padding-bottom:9px;margin-top:4px}
 .edition .ed-name{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:26px;
@@ -951,10 +953,14 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
   <!-- 5 PAPER -->
   <section class="page" id="p-paper">
     <div id="paperEmpty" class="off"><h3>No paper yet</h3>
-      <p>The daily digest lands here once it has run.</p></div>
+      <p>The daily digest lands here once it has run.</p>
+      <p><a class="afr-full" href="https://racts-dot.github.io/afr/">Read the last full edition &rsaquo;</a></p></div>
     <div id="paperBody" class="hide">
       <div class="edition"><span class="ed-name">The Paper</span>
-        <span class="ed-when" id="edWhen"></span></div>
+        <span class="ed-when" id="edWhen"></span>
+        <!-- 23 Sep 2026, her words: the AFR "needs to be as part of the desk and the start". The full
+             edition (every story, its own read-aloud) lives at /afr/; this is the way into it from here. -->
+        <a class="afr-full" href="https://racts-dot.github.io/afr/">Full edition &rsaquo;</a></div>
       <div id="newsCaveat"></div>
       <div id="leadStory"></div>
       <div class="paper-cols" id="stories"></div>
