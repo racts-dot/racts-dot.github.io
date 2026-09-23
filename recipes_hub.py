@@ -247,7 +247,9 @@ def topic_cards(folder, src, label, cards):
     for key, c in cards.items():
         title = txt(c.get("title"), 120)
         out.append({"src": src, "label": txt(c.get("topic"), 40) or label, "title": title,
-                    "desc": txt(c.get("gets"), 150), "href": f"../{folder}/#find=" + title,
+                    "desc": txt(c.get("gets"), 150),
+                    # 23 Sep 2026, her "no links": the card opens here from our own copy, so it no longer
+                    # carries a way out to the old app it came from
                     # 20 Sep, her "I'll want it like in the same app": the card's own key travels with
                     # it, so opening it here finds the one card and never a title that merely matches
                     "k": key,
@@ -270,7 +272,7 @@ def prompts(items):
                                      for s in (p.get("src") or [])) if m]
         vids = list(dict.fromkeys(vids))
         out.append({"src": "prompts", "label": ", ".join(tools)[:40] or "Prompt", "title": txt(p.get("n"), 120),
-                    "desc": txt(p.get("p"), 150), "href": "../cookbook/#find=" + txt(p.get("n"), 120),
+                    "desc": txt(p.get("p"), 150),   # no link out to /cookbook/, same reason as topic_cards
                     # the cookbook's data is a plain list, so its place in that list is its key
                     "k": i,
                     "thumb": (f"https://i.ytimg.com/vi/{vids[0]}/mqdefault.jpg" if vids else ""),
@@ -429,7 +431,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
         ? '<button type="button" class="th" data-v="' + esc(x.vid) + '" aria-label="Play the video for ' + esc(x.title) + '"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></button>'
         : '<div class="th"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></div>');
       return '<div class="card s-' + x.src + '" data-i="' + i + '">' + pic +
-        '<a class="in" href="' + esc(x.href) + '"><span class="chip">' + esc(NAME[x.src]) + (x.label && x.src !== "prompts" ? " · " + esc(x.label) : "") + '</span>' +
+        '<a class="in" href="' + esc(x.href || "#") + '"><span class="chip">' + esc(NAME[x.src]) + (x.label && x.src !== "prompts" ? " · " + esc(x.label) : "") + '</span>' +
         '<div class="t">' + mark(x.title, term) + '</div>' +
         (x.desc ? '<div class="d">' + mark(x.desc, term) + '</div>' : "") +
         (x.meta ? '<div class="l">' + esc(x.meta) + '</div>' : (x.listen ? '<div class="l">🎙 Natural voice</div>' : "")) + '</a></div>';
@@ -456,29 +458,19 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   }
   /* 20 Sep, her "I don't want it in a separate links or some sort. I'll want it like in the same app":
      a Hormozi, Doser or Prompt card opens what it actually says HERE, under the card. The ticks, the
-     Notion button and the read-aloud still live on the full card, one tap away at the bottom.
+     Notion button and the read-aloud lived on the full card in the old app; since 23 Sep there is no link to it.
 
      20 Sep, her pick on retiring /cookbook/ and /hormozi/: "Not yet - move data first". So this app
      now carries those cards itself, in cards-*.json beside this page, and reads its own copy first.
-     Fetching the other app's page is only the fallback now, for the moment before a rebuild has
-     written the copy. When the old apps go, MINE is all that is left and nothing here changes. */
-  var WHERE = {hormozi:"../hormozi/", doser:"../workflows/", prompts:"../cookbook/"};
+     23 Sep 2026, her "no links": the fallback fetch from the other app's page, the "Open the full
+     card in ..." button and the card links out are all gone. MINE is the only source. */
   var MINE = __LOCAL__;
-  var FULL = {hormozi:"Open the full card in Hormozi", doser:"Open the full card in Doser workflows",
-              prompts:"Open in the Prompt Cookbook"};
-  function far(src){   /* the old way: pull the other app's whole page and read its data blob out */
-    return fetch(WHERE[src]).then(function(r){ return r.text(); }).then(function(t){
-      var i = t.indexOf('<script id="data"');
-      var a = i < 0 ? -1 : t.indexOf(">", i) + 1, b = a < 1 ? -1 : t.indexOf("</" + "script>", a);
-      if(b < 0) throw new Error("no data blob in " + src);
-      return JSON.parse(t.slice(a, b));   /* the other page escapes its closing tags, which JSON itself reads back */
-    });
-  }
   function load(src){
     if(!DATA[src]) DATA[src] = fetch(MINE[src]).then(function(r){
       if(!r.ok) throw new Error("no copy of " + src + " here yet");
       return r.json();
-    }).catch(function(){ return far(src); });
+    }).catch(function(e){ delete DATA[src]; throw e; });   /* 23 Sep 2026, her "no links": our own copy only, no
+       quiet fetch from the old apps any more - and a failed load is forgotten, so tapping again retries */
     return DATA[src];
   }
   function pick(d, x){
@@ -498,8 +490,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     return '<div>' + pic(id, name) + '<div class="l">' + esc(name) + (when ? " \u00B7 " + esc(when) : "") + '</div></div>';
   }
   function body(x, c){
-    var foot = '<div class="row"><a class="btn" href="' + esc(x.href) + '">' + esc(FULL[x.src]) + '</a>' +
-      '<button type="button" class="btn close">Close</button></div>';
+    var foot = '<div class="row"><button type="button" class="btn close">Close</button></div>';
     if(x.src === "prompts"){
       var seen = {}, films = (c.src || []).map(function(v){
         var id = (String(v.u || "").match(/[?&]v=([A-Za-z0-9_-]{11})/) || [])[1];
@@ -553,7 +544,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
       el.innerHTML = body(x, c);
       var top = el.getBoundingClientRect().top;
       if(top < 0 || top > window.innerHeight - 140) el.scrollIntoView({block:"center"});
-    }).catch(function(){ if(PANEL && PANEL.el === el) location.href = x.href; });
+    }).catch(function(){ if(PANEL && PANEL.el === el) el.innerHTML = '<p class="busy">This card did not open. Check the connection and tap it again.</p>'; });
   }
   document.getElementById("grid").addEventListener("click", function(e){
     if(e.target.closest(".th .x")){ stop(); return; }
