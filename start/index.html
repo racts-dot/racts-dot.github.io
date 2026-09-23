@@ -573,6 +573,37 @@
     .hint{display:none}
   }
   @media (prefers-reduced-motion:reduce){ .big .sub .dot.beat{animation:none} .tile{transition:none} }
+
+  /* ================= HER ROUND TOOLBAR, 23 Sep 2026 ==========================
+     Her notes: "can i only have the creators reading room, recipes, priesthood, waple diary in a
+     draggable round tool bar" · "The fold out bar that contains this mic- they are too long and
+     too tall". One small circle. Tap it and her four apps fan out around it, plus the float
+     switch - which is the reason float has a button she can SEE: inside her new tab the f key
+     never reaches this page, because Chrome keeps typing focus in the address bar (measured
+     23 Sep). Drag the circle anywhere; it stays there. ===================== */
+  #orb{position:fixed;z-index:48;left:20px;bottom:calc(20px + env(safe-area-inset-bottom) + var(--dock-clear,0px));
+       width:50px;height:50px;border-radius:50%;border:1px solid rgba(255,255,255,.22);
+       background:rgba(22,27,36,.78);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+       box-shadow:0 10px 26px rgba(0,0,0,.45);cursor:grab;touch-action:none;padding:0;
+       display:flex;align-items:center;justify-content:center;color:var(--ink)}
+  #orb svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;
+       transition:transform .2s}
+  #orb.on svg{transform:rotate(45deg)}
+  #orb.odrag{cursor:grabbing;box-shadow:0 18px 40px rgba(0,0,0,.6)}
+  #orb:focus-visible{outline:2px solid rgba(255,255,255,.5);outline-offset:2px}
+  .orbi{position:fixed;z-index:47;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;
+       display:flex;align-items:center;justify-content:center;text-decoration:none;
+       background:rgba(22,27,36,.88);border:1px solid rgba(255,255,255,.2);color:var(--ink);
+       box-shadow:0 8px 20px rgba(0,0,0,.45);opacity:0;transform:scale(.4);pointer-events:none;
+       transition:opacity .16s,transform .16s;font:600 11px/1 inherit;cursor:pointer;padding:0}
+  .orbi img{width:30px;height:30px;border-radius:8px;display:block}
+  .orbi.show{opacity:1;transform:scale(1);pointer-events:auto}
+  .orbi:hover,.orbi:focus-visible{border-color:rgba(255,255,255,.5);outline:none}
+  .orbi[data-orb="float"].live{border-color:rgba(84,200,143,.8);background:rgba(84,200,143,.25)}
+  .orbi .ol{position:absolute;top:50%;right:100%;margin-right:9px;transform:translateY(-50%);white-space:nowrap;
+       font-size:12px;font-weight:600;color:var(--ink);background:rgba(22,27,36,.88);border:1px solid var(--line);
+       padding:4px 8px;border-radius:8px;pointer-events:none}
+  .orbi.lr .ol{right:auto;left:100%;margin:0 0 0 9px}
 </style>
 <script src="/textsize.js"></script>
 <script src="/speak.js" defer></script>
@@ -787,6 +818,21 @@
     <button id="fDone" type="button" class="prime">done</button>
   </span>
 </div>
+
+<!-- Her round toolbar: four apps and the float switch, around one circle she can drag. -->
+<button id="orb" type="button" aria-expanded="false" aria-label="Your apps: Reading Room, Recipes, Priesthood, Waple Diary, float and arrange">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+<a class="orbi" data-orb="rr" href="https://creator-reading-room.pages.dev/" aria-label="Creator Reading Room" title="Creator Reading Room"><img src="https://creator-reading-room.pages.dev/icon-192.png" alt=""><span class="ol">Reading</span></a>
+<a class="orbi" data-orb="recipes" href="https://racts-dot.github.io/recipes/" aria-label="Recipes" title="Recipes"><img src="/recipes/icon-192.png" alt=""><span class="ol">Recipes</span></a>
+<a class="orbi" data-orb="priest" href="https://racts-dot.github.io/priesthood/" aria-label="Priesthood" title="Priesthood"><img src="/priesthood/icon-192.png" alt=""><span class="ol">Priesthood</span></a>
+<a class="orbi" data-orb="waple" href="https://waple-diary.pages.dev/" aria-label="Waple Diary" title="Waple Diary"><img src="https://waple-diary.pages.dev/apple-touch-icon.png" alt=""><span class="ol">Waple</span></a>
+<button class="orbi" data-orb="float" type="button" aria-label="Float the cards" title="Float the cards: drag, resize, fold">
+  <svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><rect x="3.5" y="4.5" width="10" height="8" rx="2"/><rect x="10.5" y="11.5" width="10" height="8" rx="2"/></svg><span class="ol">float · f</span>
+</button>
+<button class="orbi" data-orb="arrange" type="button" aria-label="Arrange the cards into places" title="Arrange: drop cards into places">
+  <svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="16" height="7" rx="1.5"/></svg><span class="ol">arrange · a</span>
+</button>
 
 <script>
 (function(){
@@ -2511,6 +2557,100 @@
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) pull(); });
   /* The shared /pull.js clicks #refresh on a drag-down; this is what it triggers. */
   $("refresh").addEventListener("click", pull);
+  /* ================= HER ROUND TOOLBAR (see the CSS for her words) ===========
+     Tap: the five fan out on the side that faces the middle of the screen, so they never open
+     off the edge. Drag (past 6px): the circle moves and the fan follows; where she leaves it is
+     kept on this device as a fraction of the screen, so a different-sized window still has it
+     in the same corner. Esc, a tap elsewhere, or opening an app closes the fan. */
+  var ORBKEY = "start.orb.v1", orbOpen = false, orbD = null, orbMoved = false;
+  function orbItems(){ return Array.prototype.slice.call(document.querySelectorAll(".orbi")); }
+  function orbPlace(){
+    var o = $("orb"), p = null;
+    try { p = JSON.parse(localStorage.getItem(ORBKEY) || "null"); } catch(e){}
+    if (!p || typeof p.fx !== "number") return;
+    var w = window.innerWidth, h = window.innerHeight, sz = o.offsetWidth || 50;
+    var x = Math.max(6, Math.min(w - sz - 6, p.fx * w)), y = Math.max(6, Math.min(h - sz - 6, p.fy * h));
+    o.style.left = x + "px"; o.style.top = y + "px"; o.style.bottom = "auto";
+  }
+  /* A column, not a ring: a ring pushed into a corner squashes its buttons and their names on
+     top of each other (seen 23 Sep at 1440 and 390 wide). The column opens toward the middle
+     of the screen, and each name sits on the side with room. */
+  function orbFan(){
+    var o = $("orb").getBoundingClientRect(), cx = o.left + o.width / 2, cy = o.top + o.height / 2;
+    var items = orbItems(), n = items.length, STEP = 56, i;
+    var up = cy > window.innerHeight / 2, right = cx < window.innerWidth / 2;
+    for (i = 0; i < n; i++){
+      var y = cy + (up ? -1 : 1) * STEP * (i + 1);
+      y = Math.max(28, Math.min(window.innerHeight - 28, y));
+      items[i].style.left = cx + "px"; items[i].style.top = y + "px";
+      items[i].classList.toggle("lr", right);
+    }
+  }
+  function orbShow(on){
+    orbOpen = !!on;
+    $("orb").classList.toggle("on", orbOpen);
+    $("orb").setAttribute("aria-expanded", orbOpen ? "true" : "false");
+    var fl = document.querySelector('.orbi[data-orb="float"]');
+    fl.classList.toggle("live", fOn);
+    fl.querySelector(".ol").textContent = fOn ? "done · f" : "float · f";
+    fl.setAttribute("aria-label", fOn ? "Put the cards back" : "Float the cards");
+    if (orbOpen) orbFan();
+    orbItems().forEach(function(it){ it.classList.toggle("show", orbOpen); it.tabIndex = orbOpen ? 0 : -1; });
+  }
+  $("orb").addEventListener("pointerdown", function(e){
+    if (e.button > 0) return;
+    var r = $("orb").getBoundingClientRect();
+    orbD = { pid: e.pointerId, sx: e.clientX, sy: e.clientY, gx: e.clientX - r.left, gy: e.clientY - r.top };
+    orbMoved = false;
+  });
+  document.addEventListener("pointermove", function(e){
+    if (!orbD || e.pointerId !== orbD.pid) return;
+    if (!orbMoved){
+      if (Math.abs(e.clientX - orbD.sx) + Math.abs(e.clientY - orbD.sy) < 6) return;
+      orbMoved = true; $("orb").classList.add("odrag");
+      try { $("orb").setPointerCapture(orbD.pid); } catch(x){}
+    }
+    if (e.cancelable) e.preventDefault();
+    var o = $("orb"), sz = o.offsetWidth || 50;
+    var x = Math.max(6, Math.min(window.innerWidth - sz - 6, e.clientX - orbD.gx));
+    var y = Math.max(6, Math.min(window.innerHeight - sz - 6, e.clientY - orbD.gy));
+    o.style.left = x + "px"; o.style.top = y + "px"; o.style.bottom = "auto";
+    if (orbOpen) orbFan();
+  }, { passive: false });
+  function orbEnd(e){
+    if (!orbD || (e && e.pointerId !== orbD.pid)) return;
+    var o = $("orb");
+    try { o.releasePointerCapture(orbD.pid); } catch(x){}
+    o.classList.remove("odrag");
+    orbD = null;
+    if (orbMoved){
+      var r = o.getBoundingClientRect();
+      try { localStorage.setItem(ORBKEY, JSON.stringify({ fx: r.left / window.innerWidth, fy: r.top / window.innerHeight })); } catch(x){}
+    }
+  }
+  document.addEventListener("pointerup", orbEnd);
+  document.addEventListener("pointercancel", orbEnd);
+  $("orb").addEventListener("click", function(e){
+    if (orbMoved){ orbMoved = false; e.preventDefault(); return; }   /* a drag is not a tap */
+    orbShow(!orbOpen);
+  });
+  document.querySelector('.orbi[data-orb="float"]').addEventListener("click", function(){
+    orbShow(false); fMode(!fOn);
+  });
+  document.querySelector('.orbi[data-orb="arrange"]').addEventListener("click", function(){
+    orbShow(false); wArrange(!document.body.classList.contains("arranging"));
+  });
+  orbItems().forEach(function(it){ if (it.tagName === "A") it.addEventListener("click", function(){ orbShow(false); }); });
+  document.addEventListener("pointerdown", function(e){
+    if (!orbOpen) return;
+    var t = e.target;
+    if (t && t.closest && (t.closest("#orb") || t.closest(".orbi"))) return;
+    orbShow(false);
+  }, true);
+  document.addEventListener("keydown", function(e){ if (e.key === "Escape" && orbOpen){ orbShow(false); } });
+  window.addEventListener("resize", function(){ orbPlace(); if (orbOpen) orbFan(); });
+  orbItems().forEach(function(it){ it.tabIndex = -1; });
+  orbPlace();
 })();
 </script>
 <script src="/feedback.js" defer data-app="Start"></script>
