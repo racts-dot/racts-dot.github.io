@@ -164,7 +164,8 @@ def recipe_pages():
 #
 # Only the fields the home card and the panel read are copied. Nothing else travels.
 
-LOCAL = {"hormozi": "cards-hormozi.json", "doser": "cards-doser.json", "prompts": "cards-prompts.json"}
+LOCAL = {"hormozi": "cards-hormozi.json", "doser": "cards-doser.json", "prompts": "cards-prompts.json",
+         "molly": "cards-molly.json"}   # 23 Sep 2026: Molly Keyser's playbook, see recipes_molly.py
 
 
 def slim_card(topic, c, full=False):
@@ -339,6 +340,14 @@ def topic_cards(folder, src, label, cards):
     return out
 
 
+def molly_cards(cards):
+    """23 Sep 2026, her pick "Molly into Recipes": one card per section of Molly Keyser's playbook, in its order.
+    No picture and no video: the playbook cites its videos by Notion summary, not by YouTube link."""
+    return [{"src": "molly", "label": txt(c.get("topic"), 40) or "Playbook", "title": txt(c.get("title"), 120),
+             "desc": txt(c.get("gets"), 150), "k": key, "a": recorded("molly", key), "thumb": "", "vid": "",
+             "meta": "Molly Keyser's playbook", "listen": False} for key, c in cards.items()]
+
+
 def prompts(items):
     out = []
     for i, p in enumerate(items):
@@ -375,12 +384,12 @@ PAGE = """<!doctype html>
 <title>Recipes</title>
 <style>
 :root{--bg:#f6f3ee;--card:#fff;--ink:#1a1a1a;--ink2:#5d5a55;--line:#e6e0d6;--accent:#b4541e;--chip:#efe9df;
-  --recipes:#b4541e;--hormozi:#1d5b8f;--doser:#2f7a4f;--prompts:#7a3f8f;--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --recipes:#b4541e;--hormozi:#1d5b8f;--doser:#2f7a4f;--prompts:#7a3f8f;--molly:#9b3d62;--serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0f1115;--card:#171a20;--ink:#f2efe8;--ink2:#a8a39a;
-  --line:#262a31;--accent:#e08a4e;--chip:#20242b;--recipes:#e08a4e;--hormozi:#6fa8dc;--doser:#6cc08e;--prompts:#c38fd6}}
+  --line:#262a31;--accent:#e08a4e;--chip:#20242b;--recipes:#e08a4e;--hormozi:#6fa8dc;--doser:#6cc08e;--prompts:#c38fd6;--molly:#e59ab8}}
 :root[data-theme="dark"]{--bg:#0f1115;--card:#171a20;--ink:#f2efe8;--ink2:#a8a39a;--line:#262a31;--accent:#e08a4e;--chip:#20242b;
-  --recipes:#e08a4e;--hormozi:#6fa8dc;--doser:#6cc08e;--prompts:#c38fd6}
+  --recipes:#e08a4e;--hormozi:#6fa8dc;--doser:#6cc08e;--prompts:#c38fd6;--molly:#e59ab8}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 var(--sans);padding-inline:16px;padding-block:0 60px}
 .wrap{max-width:900px;margin:0 auto}
@@ -524,7 +533,26 @@ html.ts-big .panel .yn{justify-self:start}
 .card .rp{justify-self:start;font:600 12px/1 var(--sans);padding:4px 8px;border-radius:999px;border:1px solid var(--line);color:var(--ink2)}
 .card.reading{outline:3px solid var(--doser);outline-offset:2px}
 .chip{justify-self:start;font:700 11px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:var(--chip)}
-.s-recipes .chip{color:var(--recipes)} .s-hormozi .chip{color:var(--hormozi)} .s-doser .chip{color:var(--doser)} .s-prompts .chip{color:var(--prompts)}
+.s-recipes .chip{color:var(--recipes)} .s-hormozi .chip{color:var(--hormozi)} .s-doser .chip{color:var(--doser)} .s-prompts .chip{color:var(--prompts)} .s-molly .chip{color:var(--molly)}
+/* 23 Sep 2026: a Molly Keyser card shows its playbook section as written - lists, tables, links, struck-out corrections */
+.panel .md{display:grid;gap:10px;min-width:0}
+.panel .md p,.panel .md ul,.panel .md ol{margin:0}
+.panel .md ul,.panel .md ol{padding-left:22px;display:grid;gap:6px}
+.panel .md a{color:var(--molly)}
+.panel .md code{font:13px ui-monospace,Menlo,Consolas,monospace;background:var(--chip);padding:1px 5px;border-radius:5px;overflow-wrap:anywhere}
+.panel .md .tw{max-width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.panel .md table{border-collapse:collapse;font-size:14px;line-height:1.4;min-width:100%}
+.panel .md th,.panel .md td{border-bottom:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top;min-width:9em}
+.panel .md th{background:var(--chip);font-weight:700}
+/* on a phone a five-column table is unreadable, so each row stacks, every cell under its own column name.
+   The header row stays in the page, only out of sight, so nothing in it is lost to a reader or a screen reader. */
+@media (max-width:640px){
+  .panel .md table,.panel .md tbody,.panel .md tr,.panel .md td{display:block;min-width:0}
+  .panel .md thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .panel .md tr{border-bottom:1px solid var(--line);padding:6px 0}
+  .panel .md td{border:0;padding:3px 10px;min-width:0}
+  .panel .md td[data-h]::before{content:attr(data-h);display:block;font:700 11px/1.3 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--ink2)}
+}
 .card .t{font:600 17px/1.3 var(--serif)}
 .card .d{font-size:14px;color:var(--ink2)}
 .card .l{font-size:12px;color:var(--ink2)}
@@ -595,8 +623,8 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
 <script>
 (function(){
   var ALL = JSON.parse(document.getElementById("hub").textContent);
-  var TABS = [["all","All"],["recipes","Recipes"],["hormozi","Hormozi"],["doser","Doser workflows"],["prompts","Prompts"]];
-  var NAME = {recipes:"Recipe", hormozi:"Hormozi", doser:"Doser", prompts:"Prompt"};
+  var TABS = [["all","All"],["recipes","Recipes"],["hormozi","Hormozi"],["doser","Doser workflows"],["prompts","Prompts"],["molly","Molly Keyser"]];
+  var NAME = {recipes:"Recipe", hormozi:"Hormozi", doser:"Doser", prompts:"Prompt", molly:"Molly"};
   var cur = "all", q = document.getElementById("q");
   try{ var s = localStorage.getItem("recipesHub.tab"); if(s) cur = s; }catch(e){}
   function esc(s){ return String(s||"").replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
@@ -1141,6 +1169,9 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   function body(x, c){
     var foot = '<div class="row"><button type="button" class="btn close">Close</button></div>';
     var lis = x.a ? '<div class="row"><button type="button" class="btn listen">\u25B6 Listen</button></div>' : "";
+    if(x.src === "molly"){   /* 23 Sep 2026: the playbook section, whole, as recipes_molly.py wrote it from the source */
+      return '<h2>' + esc(c.title) + '</h2>' + lis + '<div class="md">' + (c.html || "") + '</div>' + foot;
+    }
     if(x.src === "prompts"){
       var seen = {}, films = (c.src || []).map(function(v){
         var id = (String(v.u || "").match(/[?&]v=([A-Za-z0-9_-]{11})/) || [])[1];
@@ -1255,7 +1286,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     cur = TABS[i][0]; try{ localStorage.setItem("recipesHub.tab", cur); }catch(err){}
     tabs(); draw(); window.scrollTo(0, 0);
   }, {passive:true});
-  document.getElementById("sub").textContent = n("recipes") + " recipes, " + n("hormozi") + " Hormozi, " + n("doser") + " Doser workflows and " + n("prompts") + " prompts, in one place.";
+  document.getElementById("sub").textContent = n("recipes") + " recipes, " + n("hormozi") + " Hormozi, " + n("doser") + " Doser workflows, " + n("prompts") + " prompts and Molly Keyser's playbook, in one place.";
   tabs(); draw();
   /* 23 Sep 2026: an old /workflows/#find=<title> (or #c-<card key>) link forwards here with its hash, and
      lands on that card, opened - not just on the tab. */
@@ -1409,12 +1440,14 @@ def main(sources=None):
     horm, horm_from = own_cards("hormozi", "hormozi", sources.get("hormozi"))
     dose, dose_from = own_cards("workflows", "doser", sources.get("workflows"))
     prom, prom_from = own_prompts()
+    import recipes_molly   # 23 Sep 2026: Molly Keyser's playbook, from recipes_src/ or our own copy
+    moll, moll_from = recipes_molly.load()
     # this folder's own copy is written before the page that reads it, so a rebuild can never leave
     # the page pointing at a file that is not there
     mine = {"hormozi": write_local("hormozi", horm), "doser": write_local("doser", dose),
-            "prompts": write_local("prompts", prom)}
+            "prompts": write_local("prompts", prom), "molly": write_local("molly", moll)}
     items = (recipe_pages() + topic_cards("hormozi", "hormozi", "Hormozi", horm)
-             + topic_cards("workflows", "doser", "Doser", dose) + prompts(prom))
+             + topic_cards("workflows", "doser", "Doser", dose) + prompts(prom) + molly_cards(moll))
     blob = json.dumps(items, ensure_ascii=False).replace("</", "<\\/")
     home = SITE / "recipes" / "index.html"
     page = (PAGE.replace("__DATA__", blob).replace("__LOCAL__", json.dumps(mine, ensure_ascii=False))
@@ -1438,7 +1471,7 @@ def main(sources=None):
             if t != s:
                 p.write_text(t, encoding="utf-8")
     print("coach catalogue:", coach_catalogue(), "recipes")
-    for src, where in (("hormozi", horm_from), ("doser", dose_from), ("prompts", prom_from)):
+    for src, where in (("hormozi", horm_from), ("doser", dose_from), ("prompts", prom_from), ("molly", moll_from)):
         f = SITE / "recipes" / LOCAL[src]
         print("  %-8s <- %-28s %s, %d KB" % (src, where, LOCAL[src], round(f.stat().st_size / 1024)))
     counts = {}
