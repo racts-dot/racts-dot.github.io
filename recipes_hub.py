@@ -242,6 +242,12 @@ def write_local(src, data):
     return LOCAL[src] + "?v=" + hashlib.sha256(body.encode("utf-8")).hexdigest()[:10]
 
 
+def recorded(src, key):
+    """23 Sep 2026, her "i want the recorded good quality read": tools/record_cards.py writes one natural-voice
+    mp3 per card, and only a card that has one gets the Listen button."""
+    return 1 if (SITE / "recipes" / "a" / "c" / src / ("%s.mp3" % key)).exists() else 0
+
+
 def topic_cards(folder, src, label, cards):
     out = []
     for key, c in cards.items():
@@ -252,7 +258,7 @@ def topic_cards(folder, src, label, cards):
                     # carries a way out to the old app it came from
                     # 20 Sep, her "I'll want it like in the same app": the card's own key travels with
                     # it, so opening it here finds the one card and never a title that merely matches
-                    "k": key,
+                    "k": key, "a": recorded(src, key),
                     # 17 Sep, her "no thumbnail ... no video": the card's first source video, like the recipe cards
                     "thumb": (f"https://i.ytimg.com/vi/{c['src'][0]['id']}/mqdefault.jpg" if c.get("src") and c["src"][0].get("id") else ""),
                     "vid": (c["src"][0]["id"] if c.get("src") and c["src"][0].get("id") else ""),
@@ -274,7 +280,7 @@ def prompts(items):
         out.append({"src": "prompts", "label": ", ".join(tools)[:40] or "Prompt", "title": txt(p.get("n"), 120),
                     "desc": txt(p.get("p"), 150),   # no link out to /cookbook/, same reason as topic_cards
                     # the cookbook's data is a plain list, so its place in that list is its key
-                    "k": i,
+                    "k": i, "a": recorded("prompts", i),
                     "thumb": (f"https://i.ytimg.com/vi/{vids[0]}/mqdefault.jpg" if vids else ""),
                     "vid": vids[0] if vids else "",
                     "meta": ("\u25B6 %d video%s" % (len(vids), "" if len(vids) == 1 else "s")) if vids else "",
@@ -359,6 +365,7 @@ button.th{cursor:pointer}
 .panel .btn{font:700 14px/1 var(--sans);padding:11px 14px;border-radius:10px;border:1px solid var(--line);
   background:var(--bg);color:var(--ink);cursor:pointer;text-decoration:none}
 .panel .btn.close{margin-left:auto}
+.panel .btn.listen{background:var(--accent);border-color:var(--accent);color:#fff}
 .panel .busy{color:var(--ink2)}
 .chip{justify-self:start;font:700 11px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:var(--chip)}
 .s-recipes .chip{color:var(--recipes)} .s-hormozi .chip{color:var(--hormozi)} .s-doser .chip{color:var(--doser)} .s-prompts .chip{color:var(--prompts)}
@@ -440,7 +447,23 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   /* 19 Sep, her "there is nothing, no video engraved in it": tapping a card's picture plays the video in
      that picture, the way the recipe pages already play theirs. One at a time - starting another, changing
      tab or searching puts the picture back. The words under it still open the recipe. */
-  var NOW = null, SHOWN = [], PANEL = null, DATA = {};
+  var NOW = null, SHOWN = [], PANEL = null, DATA = {}, AU = null, AUBTN = null;
+  /* 23 Sep 2026, her "i want the recorded good quality read": a card recorded by tools/record_cards.py
+     plays its own mp3 - the natural voice, and it keeps going with the phone locked. One voice at a time:
+     a video, another card or closing the panel stops it. */
+  function hush(){
+    if(AU){ AU.pause(); }
+    if(AUBTN){ AUBTN.textContent = "\u25B6 Listen"; AUBTN = null; }
+  }
+  function listen(btn, x){
+    if(AUBTN === btn && AU && !AU.paused){ AU.pause(); btn.textContent = "\u25B6 Listen"; return; }
+    var src = "a/c/" + x.src + "/" + encodeURIComponent(x.k) + ".mp3";
+    if(!AU){ AU = new Audio(); AU.preload = "auto"; AU.addEventListener("ended", hush); }
+    if(AUBTN !== btn){ hush(); AU.src = src; }
+    AUBTN = btn; stop();
+    btn.textContent = "\u275A\u275A Pause";
+    AU.play().catch(function(){ btn.textContent = "Did not play - tap again"; AUBTN = null; });
+  }
   function stop(){
     if(!NOW) return;
     if(NOW.isConnected){ NOW.innerHTML = NOW.dataset.pic; NOW.classList.remove("playing"); }
@@ -448,7 +471,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   }
   function play(th){
     if(th === NOW) return;
-    stop();
+    stop(); hush();
     th.dataset.pic = th.innerHTML;
     th.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(th.dataset.v) +
       '?autoplay=1&playsinline=1&rel=0" title="Video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>' +
@@ -491,13 +514,14 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   }
   function body(x, c){
     var foot = '<div class="row"><button type="button" class="btn close">Close</button></div>';
+    var lis = x.a ? '<div class="row"><button type="button" class="btn listen">\u25B6 Listen</button></div>' : "";
     if(x.src === "prompts"){
       var seen = {}, films = (c.src || []).map(function(v){
         var id = (String(v.u || "").match(/[?&]v=([A-Za-z0-9_-]{11})/) || [])[1];
         if(!id || seen[id]) return ""; seen[id] = 1;
         return shot(id, (v.v || "video").slice(0, 70), v.y || "");
       }).join("");
-      return '<h2>' + esc(c.n) + '</h2>' +
+      return '<h2>' + esc(c.n) + '</h2>' + lis +
         '<div><span class="label">The prompt, word for word</span><pre>' + esc(c.p) + '</pre></div>' +
         '<div class="row"><button type="button" class="btn copy">Copy</button>' +
         (c.t || []).map(function(t){ return '<span class="chip">' + esc(t) + '</span>'; }).join("") + '</div>' +
@@ -515,7 +539,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
       return '<li>' + esc(v.do) + sup + (v.q ? '<span class="sq"><q>' + esc(v.q) + '</q></span>' : "") + '</li>';
     }).join("");
     var vids = (c.src || []).map(function(v){ return shot(v.id, v.title || "video", v.date || ""); }).join("");
-    return '<h2>' + esc(c.title) + '</h2>' +
+    return '<h2>' + esc(c.title) + '</h2>' + lis +
       (c.gets ? '<p><b>What it can get you:</b> ' + esc(c.gets) + '</p>' : "") +
       (c.claim ? '<div><span class="label">His words</span><p><q>' + esc(c.claim) + '</q></p></div>' : "") +
       (steps ? '<div><span class="label">How to do it</span><ol>' + steps + '</ol></div>' : "") +
@@ -525,6 +549,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   function shut(){
     if(!PANEL) return;
     if(NOW && PANEL.el.contains(NOW)) stop();   // the player is about to be thrown away with the panel
+    hush();
     if(PANEL.el.parentNode) PANEL.el.parentNode.removeChild(PANEL.el);
     PANEL = null;
   }
@@ -551,6 +576,8 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     var th = e.target.closest("button.th[data-v]");
     if(th && !th.classList.contains("playing")){ play(th); return; }
     if(e.target.closest(".panel .close")){ shut(); return; }
+    var lb = e.target.closest(".panel .listen");
+    if(lb){ if(PANEL) listen(lb, PANEL.row); return; }
     var cp = e.target.closest(".panel .copy");
     if(cp){
       var pre = cp.closest(".panel").querySelector("pre");
