@@ -24,26 +24,23 @@ SOURCE = SITE / "recipes_src" / "molly_keyser_playbook.md"
 
 def inline(s):
     """One line of the playbook's markdown to HTML. Text is escaped first; only the marks it uses are turned
-    into tags: `code`, **bold**, *italic*, ~~struck~~ and [text](link)."""
-    out, pos = [], 0
-    for m in re.finditer(r"`([^`]+)`", s):   # code first, so nothing inside it is read as a mark
-        out.append(("t", s[pos:m.start()]))
-        out.append(("c", m.group(1)))
-        pos = m.end()
-    out.append(("t", s[pos:]))
-    res = []
-    for kind, part in out:
-        if kind == "c":
-            res.append("<code>" + html.escape(part, quote=False) + "</code>")
-            continue
-        t = html.escape(part, quote=False)
-        t = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)",
-                   lambda m: '<a href="%s" target="_blank" rel="noopener">%s</a>' % (html.escape(m.group(2)), m.group(1)), t)
-        t = re.sub(r"~~(.+?)~~", r"<s>\1</s>", t)
-        t = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
-        t = re.sub(r"(?<![*\w])\*(?!\s)(.+?)(?<!\s)\*(?![*\w])", r"<i>\1</i>", t)
-        res.append(t)
-    return "".join(res)
+    into tags: `code`, **bold**, *italic*, ~~struck~~ and [text](link).
+
+    Code is set aside first (so nothing inside it is read as a mark) and put back last, so a mark can wrap
+    code: **`cat_*.txt` and ...** is bold with code inside it. Found by the independent check, 23 Sep 2026:
+    splitting the line at the code left those two ** showing on the page."""
+    codes = []
+
+    def keep(m):
+        codes.append("<code>" + html.escape(m.group(1), quote=False) + "</code>")
+        return "\x00%d\x00" % (len(codes) - 1)
+    t = html.escape(re.sub(r"`([^`]+)`", keep, s), quote=False)
+    t = re.sub(r"\[([^\]]+)\]\((https?://[^)\s]+)\)",
+               lambda m: '<a href="%s" target="_blank" rel="noopener">%s</a>' % (html.escape(m.group(2)), m.group(1)), t)
+    t = re.sub(r"~~(.+?)~~", r"<s>\1</s>", t)
+    t = re.sub(r"\*\*(.+?)\*\*", r"<b>\1</b>", t)
+    t = re.sub(r"(?<![*\w])\*(?!\s)(.+?)(?<!\s)\*(?![*\w])", r"<i>\1</i>", t)
+    return re.sub("\x00(\\d+)\x00", lambda m: codes[int(m.group(1))], t)
 
 
 def plain(s):

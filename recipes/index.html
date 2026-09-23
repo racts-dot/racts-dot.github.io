@@ -338,7 +338,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
      now carries those cards itself, in cards-*.json beside this page, and reads its own copy first.
      23 Sep 2026, her "no links": the fallback fetch from the other app's page, the "Open the full
      card in ..." button and the card links out are all gone. MINE is the only source. */
-  var MINE = {"hormozi": "cards-hormozi.json?v=8599c18ef9", "doser": "cards-doser.json?v=e352458b1b", "prompts": "cards-prompts.json?v=b5e5b4f73d", "molly": "cards-molly.json?v=d0f6a8bd26"};
+  var MINE = {"hormozi": "cards-hormozi.json?v=8599c18ef9", "doser": "cards-doser.json?v=e352458b1b", "prompts": "cards-prompts.json?v=b5e5b4f73d", "molly": "cards-molly.json?v=0d5390000f"};
   function load(src){
     if(!DATA[src]) DATA[src] = fetch(MINE[src]).then(function(r){
       if(!r.ok) throw new Error("no copy of " + src + " here yet");
