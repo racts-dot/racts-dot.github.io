@@ -270,13 +270,11 @@ footer{color:var(--muted);font-size:13px;margin-top:28px}
      against her rule READ ALOUD USES A NATURAL VOICE, and the page had no Aa, 🎙, Notion, swipe, pull or icon.
      ⛔ WHEN A NEW EDITION IS PUBLISHED, KEEP THESE TAGS - this page is copied in by hand, and the old copy is what
      let it fall behind. -->
-<script src="../textsize.js"></script>
-<script src="../notion-sync.js" defer></script>
-<script src="../feedback.js" data-app="AFR Summary" defer></script>
-<script src="../speak.js" defer></script>
-<script src="../pull.js" defer></script>
-<script src="../swipe.js" data-sections="article.story, section.also-sec" defer></script>
-<script src="../kit-dock.js?v=fold1" defer></script>
 <!-- Select to hear. Her note, 21 Sep 2026 (Recipes): "Introduce the read out loud that i can select where
      to read it needs to apply for all the apps why not done?" - this app was one of the 7 without it. -->
-<script src="../hearsel.js" defer></script>
+<!-- The whole kit, in one tag. Migrated 23 Sep 2026 as the first app on the
+     frame: a frozen dated edition, so nothing live breaks if it is wrong.
+     data-omit="marks" keeps this page exactly as it was - it has never
+     carried highlights-and-notes, and adding a component while proving a
+     migration would make "is it as good as before" unanswerable. -->
+<script src="/frame.js" data-app="AFR Summary" data-swipe-sections="article.story, section.also-sec" data-omit="marks" defer></script>
