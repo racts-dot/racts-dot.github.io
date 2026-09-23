@@ -1,7 +1,7 @@
 /* The Day — offline shell only. The FEED is never served from the cache, because a
  * stale number looks exactly like a fresh one and that mistake is in the lessons file.
  * The page itself, its icons and the shared scripts are cached so it opens on a train. */
-var CACHE = "day-v1";
+var CACHE = "day-v2";
 var SHELL = ["/day/", "/day/index.html", "/day/manifest.webmanifest",
              "/day/icon-192.png", "/textsize.js", "/feedback.js", "/pull.js", "/speak.js"];
 self.addEventListener("install", function(e){
@@ -10,7 +10,7 @@ self.addEventListener("install", function(e){
 });
 self.addEventListener("activate", function(e){
   e.waitUntil(caches.keys().then(function(ks){
-    return Promise.all(ks.map(function(k){ return k === CACHE ? null : caches.delete(k); }));
+    return Promise.all(ks.map(function(k){ return (k.indexOf("day-") === 0 && k !== CACHE) ? caches.delete(k) : null; }));
   }).then(function(){ return self.clients.claim(); }));
 });
 self.addEventListener("fetch", function(e){
