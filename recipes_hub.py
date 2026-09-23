@@ -225,6 +225,39 @@ def slim_prompt(p):
     return out
 
 
+# 23 Sep 2026, the last sentence sweep: every video's running time and each card's listening time were on /workflows/
+# (video_box.py put them there from ~/yt-transcripts/metadata.csv) and nowhere in Recipes' card data. The publisher
+# now runs video_box on the Doser source before handing it over, so they are read here from the very same line.
+BOX = re.compile(r"var VDUR = (\{[^{}]*\}), RECDUR = (\{[^{}]*\}), WORDS = (\{[^{}]*\});")
+
+
+def add_lengths(cards, text):
+    """Put each video's length in seconds (d) on its source entry, and each card's word count (nw) on the card.
+
+    From the videos box in the page handed over (text); a video or card it does not cover keeps what our own
+    copy already had, so a rebuild never drops a length. Nothing is estimated: without a number, none is shown.
+    """
+    m = BOX.search(text or "")
+    vdur, words = (json.loads(m.group(1)), json.loads(m.group(3))) if m else ({}, {})
+    kept = SITE / "recipes" / LOCAL["doser"]
+    old = json.loads(kept.read_text(encoding="utf-8")) if kept.exists() else {}
+    olddur = {v["id"]: v["d"] for c in old.values() for v in c.get("src") or [] if v.get("id") and v.get("d")}
+    for key, c in cards.items():
+        for v in c.get("src") or []:
+            d = vdur.get(v.get("id")) or olddur.get(v.get("id"))
+            if d:
+                v["d"] = d
+        nw = words.get(key) or (old.get(key) or {}).get("nw")
+        if nw:
+            c["nw"] = nw
+    ids = {v.get("id") for c in cards.values() for v in c.get("src") or []}
+    have = {v.get("id") for c in cards.values() for v in c.get("src") or [] if v.get("d")}
+    print("  doser: lengths for %d of %d videos (%s), listening time for %d of %d cards" % (
+        len(have), len(ids), "from the videos box" if m else "our own copy only - no videos box handed over",
+        sum(1 for c in cards.values() if c.get("nw")), len(cards)))
+    return cards
+
+
 def own_cards(folder, src, text=None):
     """Hormozi/Doser cards: from the other app while it is still there, from our copy once it is not.
 
@@ -234,14 +267,16 @@ def own_cards(folder, src, text=None):
     """
     # 23 Sep 2026: text is the page the publisher built from its source but no longer writes to the site
     # (/workflows/ only forwards now), so the cards keep following their source instead of freezing
-    if text is not None:
-        d = data_blob(None, text)
+    if text is None and (SITE / folder / "index.html").exists():
+        text = (SITE / folder / "index.html").read_text(encoding="utf-8")
+        where = folder
     else:
-        d = data_blob(SITE / folder / "index.html") if (SITE / folder / "index.html").exists() else None
+        where = folder + " source"
+    d = data_blob(None, text) if text is not None else None
     if d:
-        return ({c.get("key", ""): slim_card(t.get("name"), c, full=(src == "doser"))
-                 for t in d.get("topics", []) for c in t.get("cards", [])},
-                folder if text is None else folder + " source")
+        cards = {c.get("key", ""): slim_card(t.get("name"), c, full=(src == "doser"))
+                 for t in d.get("topics", []) for c in t.get("cards", [])}
+        return (add_lengths(cards, text) if src == "doser" else cards), where
     kept = SITE / "recipes" / LOCAL[src]
     if kept.exists():
         return (json.loads(kept.read_text(encoding="utf-8")), "our own copy, /%s/ is gone" % folder)
@@ -440,8 +475,13 @@ html.ts-big .panel .yn{justify-self:start}
    do", "Only ones he repeats" and fit filters, "Listen to all shown" and "Listen to this stop", a card's other videos
    from the start, and the "already doing" badge on the card itself. Everything here is .dx-, .stop- or .hv-scoped,
    so the other tabs do not change. */
-.panel .vstart{display:grid;gap:6px;margin-top:8px}
-.panel .vstart div{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:13px;color:var(--ink2)}
+.panel .vbox{border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;gap:8px;min-width:0;background:var(--bg)}
+.panel .vhead{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--ink2);font-weight:600}
+.panel .vrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:baseline;min-width:0}
+.panel .vrow+.vrow{border-top:1px dashed var(--line);padding-top:8px}
+.panel .vtitle{min-width:0;overflow-wrap:anywhere;font-size:14px}
+.panel .vlen{font-variant-numeric:tabular-nums;color:var(--ink2);font-size:13px}
+.panel .vrow .moments{grid-column:1/-1}
 .dx{display:grid;gap:10px;margin:2px 0 4px}
 .dx[hidden]{display:none}
 .dx .map{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 10px 8px;overflow-x:auto}
@@ -481,6 +521,7 @@ html.ts-big .panel .yn{justify-self:start}
 .grid .dxe{grid-column:1/-1;padding:4px 4px 8px;margin:0}
 .card .hv{justify-self:start;font:700 12px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--chip);color:var(--doser)}
 .card .hv.part{color:var(--ink2)}
+.card .rp{justify-self:start;font:600 12px/1 var(--sans);padding:4px 8px;border-radius:999px;border:1px solid var(--line);color:var(--ink2)}
 .card.reading{outline:3px solid var(--doser);outline-offset:2px}
 .chip{justify-self:start;font:700 11px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:var(--chip)}
 .s-recipes .chip{color:var(--recipes)} .s-hormozi .chip{color:var(--hormozi)} .s-doser .chip{color:var(--doser)} .s-prompts .chip{color:var(--prompts)}
@@ -493,6 +534,10 @@ html.ts-big .panel .yn{justify-self:start}
 .dxh{display:grid;gap:10px;margin:0 0 16px}
 .dxh[hidden],.dxf[hidden]{display:none}
 .dxh .label{display:block;margin-bottom:2px;font:11.5px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.dxh .kick{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline}
+.dxh .kick .label{margin:0}
+.dxh .dxt{font:600 clamp(26px,6vw,36px)/1.05 var(--serif);margin:0;letter-spacing:-.01em}
+.dxh .dxt span{color:var(--doser)}
 .dxh .goal{max-width:64ch;color:var(--ink);font-size:19.5px;line-height:1.35;margin:0;font-weight:600}
 .dxh .lede{max-width:64ch;color:var(--ink2);font-size:17px;margin:0}
 .dxh .lede b{color:var(--ink)}
@@ -524,8 +569,11 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   <div class="tabs" role="group" aria-label="Collections" id="tabs"></div>
 </div>
 <!-- 20 Sep 2026, her words: "So the terminal of how the goal will be should be at the front." It was the first thing
-     on /workflows/ under its title; since 23 Sep that page forwards here, so it is the first thing on the Doser tab. -->
+     on /workflows/ under its title; since 23 Sep that page forwards here, so it is the first thing on the Doser tab
+     after that same title, its "Marketing cookbook" label and its counts, as /workflows/ opened. -->
 <div class="dxh" id="dxhead" hidden>
+  <div class="kick"><span class="label">Marketing cookbook</span>__DXCOUNT__</div>
+  <h2 class="dxt">Doser <span>AI Marketing</span> Workflows</h2>
   <p class="goal"><span class="label">Where this ends up</span>A stranger becomes a customer who comes back. Every stop below is one leg of that trip, in the order a buyer meets them.</p>
   <p class="lede">How to do each thing, step by step, starting with what acts on your own listings. Begin at stop 1; the automation stops come last on purpose. <b>His words are shown as he said them</b>, matched to the video captions, with a link to the exact second. Tick <b>Already doing this?</b> and the map shows what's left.</p>
 </div>
@@ -581,7 +629,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
         : '<div class="th"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></div>');
       return '<div class="card s-' + x.src + '" data-i="' + i + '">' + pic +
         '<a class="in" href="' + esc(x.href || "#") + '"><span class="chip">' + esc(NAME[x.src]) + (x.label && x.src !== "prompts" ? " · " + esc(x.label) : "") + '</span>' +
-        (cur === "doser" ? dxBadge(x) : "") +
+        (cur === "doser" ? dxRepeat(x) + dxBadge(x) : "") +
         '<div class="t">' + mark(x.title, term) + '</div>' +
         (x.desc ? '<div class="d">' + mark(x.desc, term) + '</div>' : "") +
         (x.meta ? '<div class="l">' + esc(x.meta) + '</div>' : (x.listen ? '<div class="l">🎙 Natural voice</div>' : "")) + '</a></div>';
@@ -685,6 +733,21 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     (c.steps || []).forEach(function(s, i){ if(s.q && s.t != null) first.push([+s.t, "Step " + (i + 1)]); });
     if(c.warn && c.warn_t != null) first.push([+c.warn_t, "Watch out"]);
     return first.sort(function(a, b){ return a[0] - b[0]; });
+  }
+  function vbox(c){   /* /workflows/' videos box (video_box.py), in its words and numbers: the listening time, every video
+       with its running time and the total, a Start for each, and the first video's moments; they play in the panel */
+    var src = (c.src || []).filter(function(v){ return v.id; }), total = 0, mo = moments(c);
+    if(!src.length) return "";
+    src.forEach(function(v){ total += +v.d || 0; });
+    var head = (c.nw ? '<span>🎧 ~' + Math.max(1, Math.round(c.nw / 160)) + ' min listen</span>' : "") +
+      '<span>▶ Videos (' + src.length + ')' + (total ? ' · ' + mmss(total) + ' total' : '') + '</span>';
+    return '<div class="vbox"><div class="vhead">' + head + '</div>' + src.map(function(v, k){
+      var pills = '<button type="button" class="vp" data-v="' + esc(v.id) + '" data-s="0" aria-label="Play from the start">▶ Start</button>';
+      if(k === 0) pills += mo.map(function(p){
+        return '<button type="button" class="vp" data-v="' + esc(v.id) + '" data-s="' + p[0] + '" aria-label="Play ' + esc(p[1]) + ' at ' + mmss(p[0]) + '">▶ ' + mmss(p[0]) + ' ' + esc(p[1]) + '</button>';
+      }).join("");
+      return '<div class="vrow"><span class="vtitle">' + esc(v.title || "video") + '</span><span class="vlen">' + (v.d ? mmss(v.d) : "") + '</span><div class="moments">' + pills + '</div></div>';
+    }).join("") + '</div>';
   }
   function checksHTML(k, c){
     var a = answers()[k] || {};
@@ -852,6 +915,10 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     });
     return out;
   }
+  function dxRepeat(x){   /* /workflows/' badge beside the stop name, in its words and with its caution */
+    var n = +x.ns || 0;
+    return n ? '<span class="rp" title="How often it comes up in his videos, not proof it works">repeated in ' + n + ' video' + (n > 1 ? 's' : '') + '</span>' : "";
+  }
   function dxBadge(x){
     if(!x.nq) return "";
     var st = dxState(x);
@@ -908,7 +975,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     var fits = [["fits","For my shop now"],["start","Start here"],["later","Later, once I have sales"],["no","Not for my shop"],["all","All recipes"]];
     var dx = document.getElementById("dx");
     dx.innerHTML = '<div class="map" id="dxmap" role="navigation" aria-label="Stops in customer order"></div>' +
-      '<p class="hint">Green bar: workflows you&#39;ve marked as already doing. Tap a stop to jump to it.</p>' +
+      '<p class="hint">Green bar: recipes you&#39;ve marked as already doing. Tap a stop to jump to it.</p>' +
       '<div id="dxstart"></div>' +
       '<div class="ctl">' +
         '<select id="dxfit" aria-label="Which recipes to show"' + (DXFIT ? "" : " hidden") + '>' + fits.map(function(f){
@@ -958,7 +1025,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     var cardEl = P.el.previousElementSibling, inn = cardEl && cardEl.querySelector("a.in");
     if(inn){
       var old = inn.querySelector(".hv"); if(old) old.parentNode.removeChild(old);
-      var h = dxBadge(P.row); if(h) inn.querySelector(".chip").insertAdjacentHTML("afterend", h);
+      var h = dxBadge(P.row); if(h) (inn.querySelector(".rp") || inn.querySelector(".chip")).insertAdjacentHTML("afterend", h);
     }
     dxMap();
     dxTopics().forEach(function(t, ti){ var s = document.querySelector('[data-sh="' + ti + '"]'); if(s) s.textContent = dxMeta(t); });
@@ -1095,9 +1162,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     var vids = (c.src || []).map(function(v){ return shot(v.id, v.title || "video", v.date || ""); }).join("");
     /* 23 Sep 2026: the Doser card's own features from /workflows/ - a card without them draws as before */
     var have = c.checks && c.checks.length ? haveText(haveState(x.k, c)) : null;
-    var mo = moments(c), v0 = (c.src || [])[0];
-    /* 23 Sep 2026: /workflows/ gave each of a card's other videos a "Start" of its own; here they play in the panel */
-    var more = x.src === "doser" ? (c.src || []).slice(1).filter(function(v){ return v.id; }) : [];
+    var box = x.src === "doser" ? vbox(c) : "";
     return '<h2>' + esc(c.title) + '</h2>' +
       (have === null ? "" : '<span class="have" data-have' + (have ? "" : " hidden") + '>' + esc(have) + '</span>') + lis +
       (c.gets ? '<p><b>What it can get you:</b> ' + esc(c.gets) + '</p>' : "") +
@@ -1108,11 +1173,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
       (c.warn ? '<div><span class="label">Watch out</span><p><q>' + esc(c.warn) + '</q>' + tbtn(c.warn_t, "watch out") + '</p></div>' : "") +
       (c.dia ? '<div><span class="label">At a glance</span><div class="dia">' + DIAGRAM(c) + '</div></div>' : "") +
       (c.checks && c.checks.length ? '<div><span class="label">Ask yourself: already doing this?</span><div class="check">' + checksHTML(x.k, c) + '</div></div>' : "") +
-      (mo.length || more.length ? '<div><span class="label">Play from this moment</span>' + (mo.length ? '<div class="moments">' + mo.map(function(p){
-        return '<button type="button" class="vp" data-v="' + esc(v0.id) + '" data-s="' + p[0] + '" aria-label="Play ' + esc(p[1]) + ' at ' + mmss(p[0]) + '">▶ ' + mmss(p[0]) + ' ' + esc(p[1]) + '</button>';
-      }).join("") + '</div>' : "") + (more.length ? '<div class="vstart">' + more.map(function(v){
-        return '<div><button type="button" class="vp" data-v="' + esc(v.id) + '" data-s="0" aria-label="Play ' + esc(v.title || "video") + ' from the start">▶ Start</button><span>' + esc(v.title || "video") + '</span></div>';
-      }).join("") + '</div>' : "") + '</div>' : "") +
+      (box ? '<div><span class="label">Play from this moment</span>' + box + '</div>' : "") +
       (vids ? '<div><span class="label">From</span><div class="vids">' + vids + '</div></div>' : "") + foot;
   }
   function shut(){
@@ -1305,6 +1366,25 @@ def doser_made(text):
     return ""
 
 
+# 23 Sep 2026: /workflows/' count line under "Marketing cookbook", from its data blob (n_cards, n_videos_used: 75 and 62)
+COUNT = '<span class="label">%d recipes · %d videos</span>'
+
+
+def doser_count(text):
+    """The "75 recipes · 62 videos" label for the Doser tab, found the same way round as doser_made()."""
+    d = data_blob(None, text) if text is not None else (
+        data_blob(SITE / "workflows" / "index.html") if (SITE / "workflows" / "index.html").exists() else None)
+    if d and isinstance(d.get("n_cards"), int) and isinstance(d.get("n_videos_used"), int):
+        return COUNT % (d["n_cards"], d["n_videos_used"])
+    home = SITE / "recipes" / "index.html"
+    rx = re.escape(COUNT).replace("%d", r"(\d+)")
+    m = re.search(rx, home.read_text(encoding="utf-8")) if home.exists() else None
+    if m:
+        return COUNT % (int(m.group(1)), int(m.group(2)))
+    print("  WARNING: no Doser recipe/video counts found; the Doser tab's count label is left out")
+    return ""
+
+
 def keep_cache_bust(new_html, old_html):
     """Keep a ?v=... that somebody put on a kit script tag in the built page.
 
@@ -1333,7 +1413,8 @@ def main(sources=None):
     blob = json.dumps(items, ensure_ascii=False).replace("</", "<\\/")
     home = SITE / "recipes" / "index.html"
     page = (PAGE.replace("__DATA__", blob).replace("__LOCAL__", json.dumps(mine, ensure_ascii=False))
-            .replace("__DXMADE__", doser_made(sources.get("workflows"))))
+            .replace("__DXMADE__", doser_made(sources.get("workflows")))
+            .replace("__DXCOUNT__", doser_count(sources.get("workflows"))))
     if home.exists():
         page = keep_cache_bust(page, home.read_text(encoding="utf-8"))
         import site_tags   # 23 Sep 2026: keep kit pieces added on the site (marks.js, the dock) - see site_tags.py

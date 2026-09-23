@@ -219,7 +219,9 @@ def main():
     # written here any more. The source is still read, with the shop layer stripped as before, and handed
     # straight to recipes_hub so the Doser cards in Recipes keep following printables doser_cookbook.
     print("workflows/ (forwards to Recipes; its cards go to recipes_hub)")
-    doser = strip_shop(git_bytes("doser_cookbook/index.html").decode("utf-8"), "workflows")
+    # 23 Sep 2026: video_box runs on it first, as it did for the old page, so each video's running time and each
+    # card's listening time (from ~/yt-transcripts/metadata.csv) reach the Doser cards in Recipes too
+    doser = strip_shop(video_box.add_videos(git_bytes("doser_cookbook/index.html").decode("utf-8"), "workflows"), "workflows")
 
     import recipes_hub   # 15 Sep: the combined Recipes home, and its "All recipes" bar on these pages
     recipes_hub.main({"workflows": doser})
