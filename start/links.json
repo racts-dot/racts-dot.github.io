@@ -150,18 +150,8 @@
      "hint": "the reference app"
     },
     {
-     "name": "Hormozi Recipes",
-     "url": "https://racts-dot.github.io/hormozi/",
-     "hint": ""
-    },
-    {
      "name": "Doser Workflows",
      "url": "https://racts-dot.github.io/workflows/",
-     "hint": ""
-    },
-    {
-     "name": "Prompt Cookbook",
-     "url": "https://racts-dot.github.io/cookbook/",
      "hint": ""
     },
     {
