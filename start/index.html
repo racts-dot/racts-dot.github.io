@@ -219,6 +219,9 @@
 
   .chats li{display:flex;gap:10px;align-items:baseline;padding:7px 0;font-size:14px}
   .chats li+li{border-top:1px solid var(--line)}
+  /* A message, not a chat row: as a flex row its three pieces became three squashed columns
+     in any card narrower than the drawer (seen floating, 23 Sep). */
+  .chats li.empty{display:block}
   .chats .m{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
             border:1px solid var(--line);border-radius:6px;padding:2px 6px;flex:0 0 auto}
   .chats .m.mac{color:var(--published)} .chats .m.windows{color:var(--ready)}
@@ -454,6 +457,87 @@
   .abar button:hover,.abar button:focus-visible{color:var(--ink);border-color:rgba(255,255,255,.26);outline:none}
   .abar button.prime{color:var(--ink);border-color:rgba(84,200,143,.55);background:rgba(84,200,143,.14)}
 
+  /* ================= HER FLOATING BOARD, 23 Sep 2026 =======================
+     Her words on the App feedback board, kept whole because they are the brief:
+       "the board needs t be ble to ove around and also to be resizable"
+       "I need the things to be able to be folded can i actually make things float so i can
+        do use other apps on this app"
+       "possibly cna i have some sot yof like the pages websites just floating and draggable
+        so i can have multiple open at the same time. possibly that could be saved and
+        syncronised?"
+       "the ones that you can move around like sticky notes on Google Keep, I want to really
+        borrow the concept ... but I want to tweak it so it is so tailor made for myself"
+     And her standing rule, 17 Sep: EVERY BOX MOVES AND RESIZES, AND IT DRAGS FROM ANYWHERE
+     ON IT.
+
+     WHAT THIS IS, AND WHAT IT IS NOT. Arranging (the `a` key) is unchanged: it drops a card
+     into one of four ZONES and the page lays it out. Floating (the `f` key) is the other
+     thing she asked for: every card comes out onto one board and sits exactly where she puts
+     it, at exactly the size she pulls it to, folded to its title bar if she says so. The two
+     are mutually exclusive on purpose - a card cannot be both in a column and at x=418 - and
+     turning one on turns the other off. NOTHING in the arrange-mode carry code is touched.
+
+     WHY THE CARD IS THE SCROLLER'S PARENT AND NOT THE SCROLLER. Every widget's own contents
+     went into a `.wfin` wrapper, which is `display:contents` until she floats - so when she
+     is not floating the page lays out byte for byte as it did before, because a
+     display:contents box is not a box. Floating, `.wfin` becomes the scrolling body and the
+     title bar and the corner grip sit OUTSIDE it, so they cannot scroll away from her.
+     ===================================================================== */
+  .wbar,.wrsz{display:none}
+  .wfin{display:contents}
+
+  #wfloat{position:relative;z-index:1;margin:0 0 24px}
+  #wfloat[hidden]{display:none}
+  body.floating{padding-top:calc(64px + env(safe-area-inset-top))}
+  body.floating #wtop{min-height:0;padding:0;display:block}
+  body.floating #fbar{display:flex}
+  /* Arranging and floating never run together, but #fbar is an .abar and `body.arranging .abar`
+     would draw it across the top of the cards and swallow the arrange drag on a phone
+     (measured 23 Sep: the weather handle hit #fbar, not the card). */
+  body.arranging #fbar{display:none}
+  /* A cross-origin frame swallows pointer events and the drag dies mid-carry. One line,
+     the same cure video_box.py:39 uses. Nothing on this page is an iframe today; a widget
+     added later might be. */
+  body.wfdragging iframe{pointer-events:none}
+  body.wfdragging{cursor:grabbing}
+
+  body.floating .wg.wfl{position:absolute;margin:0;max-width:none;display:flex;flex-direction:column;
+        background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:0;
+        overflow:hidden;touch-action:none;
+        backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+        box-shadow:0 14px 34px rgba(0,0,0,.42)}
+  body.floating .wg.wfl > .wfin{display:block;flex:1 1 auto;min-height:0;overflow:auto;
+        overscroll-behavior:contain;padding:10px 13px 13px;text-align:left}
+  body.floating .wg.wfl > .wbar{display:flex;align-items:center;gap:2px;flex:0 0 auto;
+        padding:7px 5px 7px 11px;border-bottom:1px solid var(--line);
+        background:rgba(255,255,255,.05);cursor:grab;font-size:12px;color:var(--muted)}
+  body.floating .wg.wfl.wfdrag{cursor:grabbing;opacity:.97;
+        box-shadow:0 24px 60px rgba(0,0,0,.6);outline:1px solid rgba(255,255,255,.22)}
+  /* `.wg[hidden]` is only (0,2,0) and the rule above is (0,3,1), so a card she has put away
+     would still be drawn if it kept its .wfl. The code strips the class; this makes sure. */
+  body.floating .wg.wfl[hidden]{display:none}
+  body.floating .wg.wfl.wfold{height:auto !important}
+  body.floating .wg.wfl.wfold > .wfin,body.floating .wg.wfl.wfold > .wrsz{display:none}
+  body.floating .wg.wfl > .wrsz{display:block;position:absolute;right:0;bottom:0;width:24px;height:24px;
+        cursor:nwse-resize;touch-action:none;z-index:2}
+  body.floating .wg.wfl > .wrsz::after{content:"";position:absolute;right:6px;bottom:6px;width:9px;height:9px;
+        border-right:2px solid rgba(255,255,255,.36);border-bottom:2px solid rgba(255,255,255,.36);
+        border-radius:0 0 3px 0}
+  /* Typing still works: only the card is told not to pan. */
+  body.floating .wg.wfl textarea,body.floating .wg.wfl input{touch-action:auto}
+  /* The clock is the one card that reads wrong shrunk to a column, so it keeps its own scale
+     and stops trying to fill a screen it is no longer on. */
+  body.floating .wg.wfl[data-w="clock"] .clock{font-size:clamp(34px,7vw,54px)}
+  body.floating .wg.wfl[data-w="clock"],body.floating .wg.wfl[data-w="focus"]{text-align:left}
+  .wbar .wname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+        font-weight:600;color:var(--ink)}
+  .wbar .wgrip{color:var(--faint);letter-spacing:-2px;margin-right:7px}
+  .wbar button{background:none;border:0;color:var(--faint);font:inherit;font-size:12px;cursor:pointer;
+        padding:4px 7px;border-radius:6px;flex:0 0 auto;touch-action:none}
+  .wbar button:hover,.wbar button:focus-visible{color:var(--ink);background:var(--line);outline:none}
+  #fbar .fsay{color:var(--faint);font-size:12px}
+  #fbar .atray button{padding:3px 8px}
+
   /* --- what one board can be. Her note, 20 Sep 07:03: "then the board comes up where i can
          choose to write things down, scribble or to have the sticky notes". Three of those,
          one board at a time, remembered per board. --- */
@@ -596,6 +680,10 @@
      on a phone it is simply the next thing under the clock. -->
 <div class="wrap"><div class="zone" id="wside" data-zone="side" data-label="the side"></div></div>
 
+<!-- Her floating board. Empty and hidden until she presses float; every card comes here when
+     she does, and goes back to its zone when she presses done. -->
+<div class="wrap"><div id="wfloat" hidden></div></div>
+
 <!-- ONE BUTTON. Everything else is behind it. -->
 <button class="trigger" id="trigger" type="button" aria-expanded="false" aria-controls="drawer"
         aria-label="Show the day, what is waiting, and every link">
@@ -621,6 +709,9 @@
         <!-- Her answer, 20 Sep 2026: "keep both but can i adjust how it is structured like
              widget board". This is the way in. The a key does the same thing. -->
         <button class="close" id="arrange" type="button">arrange · a</button>
+        <!-- Her ask, 23 Sep 2026: cards that float, move, resize and fold, open together,
+             and come back the same on the other computer. The f key does the same thing. -->
+        <button class="close" id="floatBtn" type="button">float · f</button>
         <button class="close" id="close" type="button">close ·  Esc</button>
       </span>
     </div>
@@ -682,6 +773,18 @@
   <span class="aend">
     <button id="aReset" type="button">put it all back</button>
     <button id="aDone" type="button" class="prime">done</button>
+  </span>
+</div>
+
+<!-- Only on screen while her cards are floating. It says what she can do, lists anything she
+     has put away, and says plainly whether this layout is travelling to her other computer. -->
+<div class="abar" id="fbar" role="group" aria-label="Your floating board">
+  <span class="alead">Drag a card from anywhere on it. Pull the corner to resize. Fold to the title.</span>
+  <span class="atray" id="ftray"></span>
+  <span class="fsay" id="fsay"></span>
+  <span class="aend">
+    <button id="fTidy" type="button">tidy up</button>
+    <button id="fDone" type="button" class="prime">done</button>
   </span>
 </div>
 
@@ -1335,12 +1438,16 @@
   $("scrim").addEventListener("click", shut);
   document.addEventListener("keydown", function(e){
     if (e.key === "Escape" && document.body.classList.contains("arranging")){ e.preventDefault(); wArrange(false); return; }
+    if (e.key === "Escape" && fOn){ e.preventDefault(); fMode(false); return; }
     if (e.key === "Escape" && document.body.classList.contains("open")){ e.preventDefault(); shut(); return; }
     /* Nothing is typed into the focus field by accident: only when she is NOT in a field. */
     var t = e.target, typing = t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable);
     if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "d" || e.key === "D")){ e.preventDefault(); toggle(); }
     if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "a" || e.key === "A")){
       e.preventDefault(); wArrange(!document.body.classList.contains("arranging"));
+    }
+    if (!typing && !e.metaKey && !e.ctrlKey && !e.altKey && (e.key === "f" || e.key === "F")){
+      e.preventDefault(); fMode(!fOn);
     }
   });
   /* Six weeks from now she will not remember a corner button exists, so the first three
@@ -1399,6 +1506,10 @@
     return null;
   }
   function wSave(){
+    /* While her cards are floating they are all in #wfloat and NO zone holds anything, so
+       reading the zones here would write an empty layout over the one she arranged. The
+       float code saves the zone layout itself, once, before it lifts anything out. */
+    if (fOn) return;
     var o = { zones: {}, hidden: [] };
     WORDER.forEach(function(z){
       o.zones[z] = wKids(wZone(z)).map(function(c){ return c.getAttribute("data-w"); });
@@ -1501,6 +1612,9 @@
   }
   function wArrange(on){
     if (on === document.body.classList.contains("arranging")) return;
+    /* A card cannot be in a column and at x=418 at the same time. Arranging wins the moment
+       she asks for it, and floating is put away first rather than half-applied. */
+    if (on && fOn) fMode(false);
     if (on){
       wWasOpen = document.body.classList.contains("open");
       if (wWasOpen) shut();
@@ -1818,8 +1932,579 @@
   window.addEventListener("orientationchange", wDockClear);
   (function(){ var n = 0, t = setInterval(function(){ wDockClear(); if (++n > 40) clearInterval(t); }, 500); })();
 
+  /* ================= HER FLOATING BOARD ==================================
+     Her words, App feedback board, 23 Sep 2026: "possibly cna i have some sot yof like the
+     pages websites just floating and draggable so i can have multiple open at the same
+     time. possibly that could be saved and syncronised?" · "I need the things to be able to
+     be folded" · "i woul probably need soemthing so i can resize th widgets" · "the ones
+     that you can move around like sticky notes on Google Keep, I want to really borrow the
+     concept ... but I want to tweak it so it is so tailor made for myself".
+     And her standing rule, 17 Sep: EVERY BOX MOVES AND RESIZES, AND IT DRAGS FROM ANYWHERE
+     ON IT.
+
+     NOTHING HERE IS NEW MACHINERY. Every part of it is a piece of this site that already
+     works, copied rather than reinvented:
+       - the drag-from-anywhere guard is speak.js's one line, verbatim:
+           var hit = e.target.closest("button,select,input,textarea,a,canvas,.wrsz");
+           if (hit && hit !== el) return;
+       - the clamp-and-pin (left/top !important, right/bottom back to auto), the 8px
+         threshold before anything moves, the pointerId check on move AND on end, and the
+         capture-phase click suppressor are textsize.js's movablePanel;
+       - the restore guard is speak.js's: nothing is placed on an element with no width, and
+         it is run again on a 300ms timer rather than requestAnimationFrame, which never
+         fires in a background tab;
+       - the edge auto-scroll is this page's own, on a wall clock at 420 px/s capped at 14px
+         a frame, so a still finger scrolls at a speed somebody chose;
+       - the cross-device road is the scratch pad's, to the same relay and the same app key
+         "scratch", under the id "start:layout" - so NOTHING new has to be created in Notion.
+
+     WHERE IT IS SAVED, AND WHAT HAPPENS WITH NO PASSWORD. localStorage first, always: the
+     board works fully on a device that has never seen the apps password. The relay copy is
+     an extra, and when it cannot be reached the bar SAYS SO in one quiet line and nothing
+     else changes. A layout is not worth blocking a page for. ======================== */
+  var FKEY = "start.float.v1";
+  var FAPP = "scratch", FID = "start:layout";   /* an app the relay already has; the id is the new part */
+  var F_MINW = 148, F_MINH = 46, F_GAP = 12, F_MAXH0 = 330;
+  var fOn = false, fPos = {}, fZ = 10, fAt = 0, fWasOpen = false;
+  var fD = null, fJustMoved = false, fTimer = null, fPulling = false;
+  var fDir = 0, fRaf = 0, fLastT = 0, fAcc = 0, fLX = 0, fLY = 0;
+
+  function fBoard(){ return $("wfloat"); }
+  function fSay(m){ var s = $("fsay"); if (s) s.textContent = m || ""; if (fOn) fRoom(); }
+  function fVisible(){
+    return Object.keys(WNAME).filter(function(id){ return !wHidden[id] && wEl(id); });
+  }
+  /* The order cards are laid out in the first time: the order they are in on the page now,
+     zone by zone, so the board she gets is the page she already knows read top to bottom. */
+  function fOrder(){
+    var out = [];
+    WORDER.forEach(function(z){
+      wKids(wZone(z)).forEach(function(c){
+        var id = c.getAttribute("data-w");
+        if (id && WNAME[id] && !wHidden[id] && out.indexOf(id) < 0) out.push(id);
+      });
+    });
+    fVisible().forEach(function(id){ if (out.indexOf(id) < 0) out.push(id); });
+    return out;
+  }
+  /* Each widget's own contents move into one .wfin wrapper. It is display:contents until she
+     floats, so a page that is not floating lays out exactly as it did before this existed. */
+  function fWrap(el){
+    var i, kids = [], inner = null;
+    for (i = 0; i < el.children.length; i++)
+      if (el.children[i].classList.contains("wfin")) { inner = el.children[i]; break; }
+    if (inner) return inner;
+    inner = document.createElement("div");
+    inner.className = "wfin";
+    for (i = 0; i < el.children.length; i++){
+      var c = el.children[i];
+      if (!c.classList.contains("whandle") && !c.classList.contains("wbar") &&
+          !c.classList.contains("wrsz")) kids.push(c);
+    }
+    el.appendChild(inner);
+    kids.forEach(function(k){ inner.appendChild(k); });
+    return inner;
+  }
+  /* The title bar and the corner grip. Built once, hidden by CSS unless she is floating, so
+     the page she opens still has no furniture on it. */
+  function fBars(){
+    wHandles();                                  /* the arrange handle stays the first child */
+    Object.keys(WNAME).forEach(function(id){
+      var el = wEl(id); if (!el) return;
+      fWrap(el);
+      if (!el.querySelector(".wbar")){
+        var b = document.createElement("div");
+        b.className = "wbar";
+        b.innerHTML = '<span class="wgrip" aria-hidden="true">⋮⋮</span>' +
+          '<span class="wname">' + esc(WNAME[id]) + "</span>" +
+          '<button type="button" data-fold="1" aria-label="Fold ' + esc(WNAME[id]) +
+            ' down to its title">fold</button>' +
+          '<button type="button" data-away="1" aria-label="Put ' + esc(WNAME[id]) +
+            ' away">×</button>';
+        var first = el.firstElementChild;
+        el.insertBefore(b, first && first.classList.contains("whandle") ? first.nextSibling : first);
+      }
+      if (!el.querySelector(".wrsz")){
+        var g = document.createElement("div");
+        g.className = "wrsz"; g.setAttribute("aria-hidden", "true");
+        g.title = "Drag to resize";
+        el.appendChild(g);
+      }
+    });
+  }
+  function fStrip(el){
+    el.classList.remove("wfl", "wfold", "wfdrag");
+    ["left","top","right","bottom","width","height"].forEach(function(k){ el.style.removeProperty(k); });
+    el.style.zIndex = "";
+  }
+
+  /* ---- where a card sits ----
+     fPos holds what SHE chose. fPlace clamps that to the screen it is being drawn on and
+     does NOT write the clamp back, so opening the board on a 390px phone cannot quietly
+     shrink the layout she built on a 1440px monitor. Only a drag changes fPos. */
+  function fPlace(el, id){
+    var p = fPos[id]; if (!el || !p) return;
+    if (!el.offsetWidth && !fOn) return;                /* speak.js's restore guard */
+    var bw = Math.max(120, fBoard().clientWidth);
+    var w = Math.max(F_MINW, Math.min(p.w, bw - 4));
+    var x = Math.max(0, Math.min(p.x, Math.max(0, bw - w)));
+    var y = Math.max(0, p.y);
+    el.style.setProperty("width", w + "px", "important");
+    if (p.fold) el.style.removeProperty("height");
+    else el.style.setProperty("height", Math.max(F_MINH, p.h) + "px", "important");
+    el.style.setProperty("left", x + "px", "important");
+    el.style.setProperty("top", y + "px", "important");
+    el.style.setProperty("right", "auto", "important");
+    el.style.setProperty("bottom", "auto", "important");
+    el.style.zIndex = String(p.z || 10);
+    el.classList.toggle("wfold", !!p.fold);
+    var fb = el.querySelector('.wbar button[data-fold]');
+    if (fb) fb.textContent = p.fold ? "open" : "fold";
+  }
+  /* The board is as tall as the lowest card, plus room to drag one lower. */
+  function fGrow(){
+    var b = fBoard(), max = 0, i;
+    for (i = 0; i < b.children.length; i++){
+      var c = b.children[i];
+      if (!c.classList.contains("wfl") || c.hasAttribute("hidden")) continue;
+      var bot = c.offsetTop + c.offsetHeight;
+      if (bot > max) max = bot;
+    }
+    b.style.height = (max + 120) + "px";
+  }
+  /* The first layout: columns as wide as the screen allows, shortest column next, which is
+     the shape Keep uses and the reason nothing lands on top of anything else. */
+  function fCascade(ids){
+    var bw = Math.max(200, fBoard().clientWidth);
+    var cols = Math.max(1, Math.floor((bw + F_GAP) / (320 + F_GAP)));
+    var cw = Math.floor((bw - (cols - 1) * F_GAP) / cols) - 2;
+    if (cw > 360) cw = 360;
+    if (cw < F_MINW){ cols = 1; cw = Math.max(F_MINW, bw - 4); }
+    var tops = [], i;
+    for (i = 0; i < cols; i++) tops.push(0);
+    ids.forEach(function(id){
+      var el = wEl(id); if (!el) return;
+      var c = 0;
+      for (var k = 1; k < cols; k++) if (tops[k] < tops[c]) c = k;
+      el.style.setProperty("width", cw + "px", "important");
+      el.style.removeProperty("height");
+      el.classList.remove("wfold");
+      var h = Math.max(F_MINH, Math.min(el.offsetHeight || 160, F_MAXH0));
+      fPos[id] = { x: c * (cw + F_GAP), y: tops[c], w: cw, h: h, fold: 0, z: ++fZ };
+      tops[c] = tops[c] + h + F_GAP;
+    });
+  }
+  /* A card she has never floated, or one this page grows later: under everything, not lost. */
+  function fNewPos(id){
+    var el = wEl(id); if (!el) return;
+    var bw = Math.max(200, fBoard().clientWidth), y = 0;
+    var w = Math.min(340, Math.max(F_MINW, bw - 4));
+    Object.keys(fPos).forEach(function(k){
+      var p = fPos[k]; if (p) y = Math.max(y, p.y + p.h + F_GAP);
+    });
+    el.style.setProperty("width", w + "px", "important");
+    el.style.removeProperty("height");
+    fPos[id] = { x: 0, y: y, w: w, h: Math.max(F_MINH, Math.min(el.offsetHeight || 160, F_MAXH0)),
+                 fold: 0, z: ++fZ };
+  }
+  function fLayoutAll(){
+    if (!fOn) return;
+    var b = fBoard();
+    fVisible().forEach(function(id){
+      var el = wEl(id); if (!el) return;
+      el.removeAttribute("hidden");
+      if (el.parentNode !== b) b.appendChild(el);
+      el.classList.add("wfl");
+      if (!fPos[id]) fNewPos(id);
+      fPlace(el, id);
+    });
+    Object.keys(WNAME).forEach(function(id){
+      var el = wEl(id); if (!el) return;
+      if (wHidden[id]){ el.setAttribute("hidden", ""); if (el.parentNode === b) fStrip(el); }
+    });
+    fGrow(); fTray(); bFit();
+  }
+  function fTray(){
+    var t = $("ftray"); if (!t) return;
+    var ids = Object.keys(WNAME).filter(function(id){ return wHidden[id]; });
+    t.innerHTML = ids.length
+      ? "put away: " + ids.map(function(id){
+          return '<button type="button" data-fshow="' + id + '">' + esc(WNAME[id]) + " ↩</button>";
+        }).join("")
+      : "";
+  }
+
+  /* ---- on and off ---- */
+  /* The bar wraps to two or three lines on a phone, so the room left for it is measured,
+     not guessed - a fixed 64px let it sit over the top card (seen at 390px, 23 Sep). */
+  function fRoom(){
+    if (!fOn){ document.body.style.paddingTop = ""; return; }
+    var h = $("fbar").offsetHeight;
+    if (h) document.body.style.paddingTop = (h + 12) + "px";
+  }
+  function fEnter(){
+    var b = fBoard();
+    b.hidden = false;
+    document.body.classList.add("floating");
+    fOn = true;
+    fRoom();
+    fVisible().forEach(function(id){
+      var el = wEl(id); if (!el) return;
+      b.appendChild(el); el.classList.add("wfl");
+    });
+    var missing = fVisible().filter(function(id){ return !fPos[id]; });
+    if (missing.length === fVisible().length) fCascade(fOrder());   /* the very first time */
+    else missing.forEach(fNewPos);
+    fLayoutAll();
+  }
+  function fExit(){
+    fOn = false;
+    document.body.classList.remove("floating");
+    fRoom();
+    Object.keys(WNAME).forEach(function(id){ var el = wEl(id); if (el) fStrip(el); });
+    fBoard().hidden = true;
+    fBoard().style.height = "";
+    /* Her zone layout comes back exactly as it was - but what she PUT AWAY while floating is
+       her decision and travels with her, so it is carried over and written down. */
+    var hid = wHidden;
+    wApply(wLoad());
+    wHidden = hid;
+    wSave(); wPaint(); bFit();
+  }
+  function fMode(on, quiet){
+    on = !!on;
+    if (on === fOn) return;
+    if (on){
+      if (document.body.classList.contains("arranging")) wArrange(false);
+      wSave();                        /* her zone layout, written down before anything is lifted out */
+      fWasOpen = document.body.classList.contains("open");
+      if (fWasOpen) shut();
+      fBars();
+      buildTiles();                   /* a card that was never filled cannot be floated */
+      if (!wPadPulled){ wPadPulled = true; padPull(); }
+      fEnter();
+      $("floatBtn").textContent = "done · f";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      /* Run again on a timer, not requestAnimationFrame: a background tab never fires one. */
+      setTimeout(function(){
+        if (!fOn) return;
+        fVisible().forEach(function(id){ var el = wEl(id); if (el && el.offsetWidth) fPlace(el, id); });
+        fGrow(); bFit();
+      }, 300);
+    } else {
+      fExit();
+      $("floatBtn").textContent = "float · f";
+    }
+    if (quiet) fKeepLocal(); else fKeep();
+  }
+
+  /* ---- saved here first, then shared ---- */
+  function fRecord(){
+    var o = { on: fOn ? 1 : 0, at: new Date(fAt || Date.now()).toISOString(), pos: {}, hidden: [] };
+    Object.keys(fPos).forEach(function(id){
+      var p = fPos[id]; if (!p || !WNAME[id]) return;
+      o.pos[id] = { x: Math.round(p.x), y: Math.round(p.y), w: Math.round(p.w),
+                    h: Math.round(p.h), fold: p.fold ? 1 : 0, z: p.z || 10 };
+    });
+    Object.keys(WNAME).forEach(function(id){ if (wHidden[id]) o.hidden.push(id); });
+    return o;
+  }
+  function fKeepLocal(){
+    try { localStorage.setItem(FKEY, JSON.stringify(fRecord())); } catch(e){}
+  }
+  function fKeep(){
+    fAt = Date.now();
+    fKeepLocal();
+    clearTimeout(fTimer);
+    fTimer = setTimeout(fSend, 1200);
+  }
+  function fRead(o){
+    if (!o || !o.pos) return false;
+    fPos = {};
+    Object.keys(o.pos).forEach(function(id){
+      if (!WNAME[id]) return;
+      var p = o.pos[id] || {};
+      fPos[id] = { x: +p.x || 0, y: +p.y || 0, w: +p.w || 300, h: +p.h || 200,
+                   fold: p.fold ? 1 : 0, z: +p.z || 10 };
+      if (fPos[id].z > fZ) fZ = fPos[id].z;
+    });
+    if (o.hidden){
+      wHidden = {};
+      o.hidden.forEach(function(id){ if (wEl(id)) wHidden[id] = 1; });
+    }
+    return true;
+  }
+  function fSend(){
+    if (!window.NotionSync || !NotionSync.save){
+      fSay("on this device only · the sync script did not load"); return;
+    }
+    if (!NotionSync.connected || !NotionSync.connected()){
+      fSay("on this device only · no apps password here yet"); return;
+    }
+    var now = new Date(fAt || Date.now()).toISOString();
+    try {
+      NotionSync.save(FAPP, FID, {
+        title: "Start page layout",
+        detail: "Where Rachel's Start cards sit, how big they are and which are folded. " +
+                "Written by the Start page itself - editing this row by hand will be overwritten.",
+        when: now,
+        data: { layout: fRecord(), machine: MACHINE, at: now }
+      });
+      fSay("saved to every device · " + new Date().toLocaleTimeString("en-AU",
+        { hour: "2-digit", minute: "2-digit" }));
+    } catch(e){ fSay("could not share the layout: " + (e.message || e)); }
+  }
+  function fPull(){
+    if (fPulling) return;
+    if (!window.NotionSync || !NotionSync.list){ fSay("on this device only"); return; }
+    fPulling = true;
+    NotionSync.list(FAPP).then(function(rows){
+      fPulling = false;
+      var row = (rows || []).filter(function(r){ return r.id === FID; })[0];
+      if (!row || !row.data || !row.data.layout){
+        fSay("not shared yet · move a card and it will travel"); return;
+      }
+      var at = Date.parse((row.data && row.data.at) || row.when || "") || 0;
+      if (fD) return;                       /* never move a card out from under her finger */
+      if (at <= fAt + 1500){ fSay("in step everywhere"); return; }
+      var want = !!(row.data.layout.on), was = fOn;
+      fRead(row.data.layout);
+      fAt = at; fKeepLocal();
+      if (was && want) fLayoutAll();
+      else if (want !== was) fMode(want, true);
+      fSay("picked up from " + ((row.data && row.data.machine) || "your other device") +
+           (row.when ? " " + ago(row.when) : ""));
+    }).catch(function(e){
+      fPulling = false;
+      fSay(/password/i.test((e && e.message) || "")
+        ? "on this device only · no apps password here yet"
+        : "could not read the shared layout");
+    });
+  }
+
+  /* ---- moving, resizing, and scrolling inside a card ----
+     One pointer gesture, three outcomes, decided once at the 8px threshold:
+       on the corner grip          -> resize
+       inside a card body that has more in it than fits, moving mostly up or down -> scroll it
+       anywhere else on the card   -> move it
+     The middle one is why a tall card is still readable on a phone. It is decided ONCE, so a
+     drag never changes its mind halfway. */
+  function fRaise(el, id){
+    var p = fPos[id]; if (!p) return;
+    if (p.z === fZ) return;
+    p.z = ++fZ; el.style.zIndex = String(p.z);
+  }
+  function fApplyDrag(){
+    if (!fD) return;
+    var p = fPos[fD.id], el = fD.el;
+    if (!p) return;
+    var py = fLY + window.pageYOffset;
+    var bw = Math.max(120, fBoard().clientWidth);
+    if (fD.mode === "size"){
+      var w = Math.max(F_MINW, Math.min(fD.ow + (fLX - fD.sx), bw - el.offsetLeft - 2));
+      var h = Math.max(F_MINH, fD.oh + (py - fD.spy));
+      p.w = w; p.h = h;
+      if (p.fold){                      /* pulling a folded card open is the same as unfolding it */
+        p.fold = 0; el.classList.remove("wfold");
+        var fb = el.querySelector('.wbar button[data-fold]'); if (fb) fb.textContent = "fold";
+      }
+      el.style.setProperty("width", w + "px", "important");
+      el.style.setProperty("height", h + "px", "important");
+    } else {
+      var x = Math.max(0, Math.min(fLX - fD.gx - fD.bl, Math.max(0, bw - el.offsetWidth)));
+      var y = Math.max(0, py - fD.gy - fD.bt);
+      p.x = x; p.y = y;
+      el.style.setProperty("left", x + "px", "important");
+      el.style.setProperty("top", y + "px", "important");
+      el.style.setProperty("right", "auto", "important");
+      el.style.setProperty("bottom", "auto", "important");
+    }
+    fGrow();
+  }
+  /* The same wall-clock edge scroll the carry code uses, and the same four numbers, so a card
+     dragged to the bottom of the screen brings the board with it at a speed somebody chose
+     rather than at whatever rate this device fires pointer events. */
+  function fScrollStep(ts){
+    fRaf = 0;
+    if (!fD || !fD.moved || fD.mode === "scroll" || !fDir){ fLastT = 0; fAcc = 0; return; }
+    if (!fLastT) fLastT = ts;
+    var dt = (ts - fLastT) / 1000; fLastT = ts;
+    if (dt < 0) dt = 0;
+    if (dt > 0.05) dt = 0.05;
+    fAcc += fDir * EDGE_SPEED * dt;
+    var step = fAcc > 0 ? Math.floor(fAcc) : Math.ceil(fAcc);
+    if (step > EDGE_STEP_CAP) step = EDGE_STEP_CAP;
+    if (step < -EDGE_STEP_CAP) step = -EDGE_STEP_CAP;
+    if (step){
+      fAcc -= step;
+      var was = window.pageYOffset;
+      window.scrollBy(0, step);
+      if (window.pageYOffset === was){ fEdge(0); return; }
+      fApplyDrag();
+    }
+    fRaf = requestAnimationFrame(fScrollStep);
+  }
+  function fEdge(dir){
+    if (dir === fDir) return;
+    fDir = dir;
+    if (!dir){
+      if (fRaf) cancelAnimationFrame(fRaf);
+      fRaf = 0; fLastT = 0; fAcc = 0; return;
+    }
+    fLastT = 0; fAcc = 0;
+    if (!fRaf) fRaf = requestAnimationFrame(fScrollStep);
+  }
+  function fMove(e){
+    if (!fD || e.pointerId !== fD.pid) return;
+    var dx = e.clientX - fD.sx, dy = e.clientY - fD.sy;
+    if (!fD.moved){
+      if (Math.abs(dx) + Math.abs(dy) < 8) return;   /* movablePanel's threshold */
+      fD.moved = true;
+      if (fD.mode === "move" && fD.sc && Math.abs(dy) > Math.abs(dx)) fD.mode = "scroll";
+      if (fD.mode !== "scroll"){
+        document.body.classList.add("wfdragging");
+        fD.el.classList.add("wfdrag");
+        document.body.style.userSelect = "none";
+        try { fD.el.setPointerCapture(fD.pid); } catch(x){}
+      }
+    }
+    if (e.cancelable) e.preventDefault();
+    fLX = e.clientX; fLY = e.clientY;
+    if (fD.mode === "scroll"){ fD.sc.scrollTop = fD.st - dy; return; }
+    fApplyDrag();
+    if (e.clientY < EDGE_TOP) fEdge(-1);
+    else if (e.clientY > window.innerHeight - EDGE_BOT) fEdge(1);
+    else fEdge(0);
+  }
+  /* The pointerId is checked here as well as in fMove: a second thumb lifting, or a stray
+     mouse release, must not end a carry somebody else is in the middle of. */
+  function fUp(e){
+    if (e && fD && e.pointerId !== undefined && e.pointerId !== fD.pid) return;
+    fEdge(0);
+    document.removeEventListener("pointermove", fMove);
+    document.removeEventListener("pointerup", fUp);
+    document.removeEventListener("pointercancel", fUp);
+    if (!fD) return;
+    var moved = fD.moved, el = fD.el, mode = fD.mode, id = fD.id;
+    try { el.releasePointerCapture(fD.pid); } catch(x){}
+    el.classList.remove("wfdrag");
+    document.body.classList.remove("wfdragging");
+    document.body.style.userSelect = "";
+    fD = null;
+    if (!moved) return;
+    fJustMoved = true;
+    setTimeout(function(){ fJustMoved = false; }, 400);
+    if (mode === "scroll") return;
+    fGrow(); fKeep();
+    if (id === "boards") bFit();
+  }
+  fBoard().addEventListener("pointerdown", function(e){
+    if (!fOn || e.button > 0) return;
+    /* A new touch means the click from the last carry has already been and gone, so a quick
+       tap on fold straight after a resize is hers and must land (measured on a phone: a tap
+       0.12s after a resize was swallowed by the 400ms guard). */
+    fJustMoved = false;
+    var t = e.target; if (!t || !t.closest) return;
+    var el = t.closest(".wg.wfl");
+    if (!el || el.parentNode !== fBoard()) return;
+    var id = el.getAttribute("data-w");
+    if (!id || !fPos[id]) return;
+    fRaise(el, id);
+    var onGrip = !!t.closest(".wrsz");
+    if (!onGrip){
+      /* speak.js's line, verbatim: the whole card is the handle, so the controls inside it
+         are the only thing that opts out. */
+      /* Her rule is "drags from ANYWHERE on it", so a button or a link starts a carry too:
+         nothing moves until 8px, and a carry that happens swallows the click (the capture
+         suppressor below). Only the things she types or draws in opt out. */
+      var hit = t.closest("select,input,textarea,canvas,[contenteditable]");
+      if (hit && hit !== el) return;
+    }
+    var sc = t.closest(".wfin");
+    if (sc && !(sc.scrollHeight > sc.clientHeight + 4)) sc = null;
+    var r = el.getBoundingClientRect(), br = fBoard().getBoundingClientRect();
+    fD = { el: el, id: id, pid: e.pointerId, mode: onGrip ? "size" : "move", moved: false,
+           sx: e.clientX, sy: e.clientY, spy: e.clientY + window.pageYOffset,
+           gx: e.clientX - r.left, gy: e.clientY - r.top,
+           ow: r.width, oh: r.height,
+           bl: br.left, bt: br.top + window.pageYOffset,
+           sc: sc, st: sc ? sc.scrollTop : 0 };
+    fLX = e.clientX; fLY = e.clientY;
+    document.addEventListener("pointermove", fMove, { passive: false });
+    document.addEventListener("pointerup", fUp);
+    document.addEventListener("pointercancel", fUp);
+  });
+  /* A drag must never fire the thing under it. Capture phase, before anything else sees the
+     click - movablePanel's suppressor. */
+  fBoard().addEventListener("click", function(e){
+    if (fJustMoved){ e.stopImmediatePropagation(); e.preventDefault(); fJustMoved = false; }
+  }, true);
+  fBoard().addEventListener("click", function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var b = t.closest(".wbar button"); if (!b) return;
+    var el = b.closest(".wg"); if (!el) return;
+    var id = el.getAttribute("data-w"); if (!id) return;
+    if (b.getAttribute("data-fold") !== null){
+      var p = fPos[id]; if (!p) return;
+      p.fold = p.fold ? 0 : 1;
+      el.classList.toggle("wfold", !!p.fold);
+      if (p.fold) el.style.removeProperty("height");
+      else el.style.setProperty("height", Math.max(F_MINH, p.h) + "px", "important");
+      b.textContent = p.fold ? "open" : "fold";
+      fGrow(); fKeep();
+    } else {
+      wHidden[id] = 1;
+      fStrip(el); el.setAttribute("hidden", "");
+      fGrow(); fTray(); fKeep();
+    }
+  });
+  $("fbar").addEventListener("click", function(e){
+    var t = e.target; if (!t || !t.closest) return;
+    var s = t.closest("button[data-fshow]"); if (!s) return;
+    var id = s.getAttribute("data-fshow");
+    delete wHidden[id];
+    var el = wEl(id);
+    if (el){
+      el.removeAttribute("hidden");
+      fBoard().appendChild(el); el.classList.add("wfl");
+      if (!fPos[id]) fNewPos(id);
+      fRaise(el, id); fPlace(el, id);
+    }
+    fGrow(); fTray(); fKeep();
+  });
+  $("floatBtn").addEventListener("click", function(){ fMode(!fOn); });
+  $("fDone").addEventListener("click", function(){ fMode(false); });
+  $("fTidy").addEventListener("click", function(){
+    if (!fOn) return;
+    fCascade(fOrder());
+    fVisible().forEach(function(id){ fPlace(wEl(id), id); });
+    fGrow(); bFit(); fKeep();
+  });
+  /* A narrower screen only CLAMPS what is drawn; fPos is untouched, so her monitor layout
+     survives a look at the same page on the phone. */
+  function fReclamp(){
+    if (!fOn) return;
+    fRoom();
+    fVisible().forEach(function(id){ var el = wEl(id); if (el && el.offsetWidth) fPlace(el, id); });
+    fGrow();
+  }
+  window.addEventListener("resize", fReclamp);
+  window.addEventListener("orientationchange", function(){ setTimeout(fReclamp, 120); });
+
   wHandles();
   wApply(wLoad());
+
+  /* Her floating board, restored. localStorage first so it is right before any network call,
+     and the shared copy is asked for a moment later - if it never answers, nothing changes. */
+  (function(){
+    var o = null;
+    try { o = JSON.parse(localStorage.getItem(FKEY) || "null"); } catch(e){}
+    if (o){ fRead(o); fAt = Date.parse(o.at || "") || 0; fTray(); }
+    if (o && o.on) fMode(true, true);
+    setTimeout(fPull, 1800);
+    document.addEventListener("visibilitychange", function(){ if (!document.hidden) fPull(); });
+    window.addEventListener("pagehide", function(){ if (fTimer){ clearTimeout(fTimer); fTimer = null; fSend(); } });
+  })();
 
   pull();
   setInterval(pull, POLL);
