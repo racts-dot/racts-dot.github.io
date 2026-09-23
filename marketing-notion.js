@@ -19,6 +19,10 @@
   var CHECKS = "hmr-checks";
 
   function cardTitle(key) {
+    // 23 Sep 2026: Recipes now answers the Doser cards and does not draw them all, so it names them itself
+    if (typeof window.MN_TITLE === "function") {
+      try { var named = window.MN_TITLE(key); if (named) return named; } catch (e) {}
+    }
     var h = document.querySelector('.card[data-key="' + key + '"] h3');
     return h ? h.textContent.trim() : key;
   }
