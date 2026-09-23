@@ -132,8 +132,17 @@
   .stale{margin-top:20px;color:var(--warn);font-size:13.5px;display:none}
   .stale.on{display:block}
 
-  /* ---- the one thing she clicks: bottom right, 30% until looked at ---- */
-  .trigger{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom));z-index:40;
+  /* ---- the one thing she clicks: bottom right, 30% until looked at ----
+     MEASURED 23 Sep 2026 on the live page: the shared kit dock, folded, sits at right:10px
+     bottom:10px and is 34px square, so it covered the bottom-right 31% of this button -
+     INCLUDING its exact centre. 25 of 81 points sampled inside the button hit <div id="kit-dock">
+     instead, and a real click on the centre of #trigger was swallowed for a full 30s. Her tiles
+     button. Fixed HERE and not in kit-dock.js, because that file is shared by 20 apps: this page
+     lifts its own button clear of whatever the dock is currently occupying (--dock-clear, set by
+     wDockClear() below). The 44px default is the folded dock measured, so the button is still
+     clear if the script never runs; wDockClear() sets it to 0 when there is no dock at all. */
+  :root{--dock-clear:44px}
+  .trigger{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom) + var(--dock-clear,0px));z-index:40;
            width:46px;height:46px;border-radius:14px;border:1px solid var(--line);
            background:var(--surface);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
            display:grid;place-items:center;cursor:pointer;opacity:.3;
@@ -144,7 +153,8 @@
                 background:var(--warn);border:2px solid var(--ground);display:none}
   .trigger.has .pip{display:block}
   .trigger.has{opacity:.72}
-  .hint{position:fixed;right:76px;bottom:calc(33px + env(safe-area-inset-bottom));z-index:40;
+  /* the hint rides with the button, or it ends up labelling nothing (23 Sep 2026) */
+  .hint{position:fixed;right:76px;bottom:calc(33px + env(safe-area-inset-bottom) + var(--dock-clear,0px));z-index:40;
         color:var(--faint);font-size:12.5px;opacity:0;transition:opacity .18s ease;pointer-events:none}
   .trigger:hover + .hint,.trigger:focus-visible + .hint,.hint.show{opacity:1}
 
@@ -378,12 +388,36 @@
         pointer-events:none;background:linear-gradient(to bottom,rgba(11,14,19,0),rgba(11,14,19,.92))}
   body.arranging #wtop > .wg{max-width:none}
   body.arranging #wdraw > .wg[data-w]{grid-column:1/-1}
-  /* The card being carried. It leaves a green slot behind it so she can see where it lands. */
-  .wg.wdrag{position:fixed;z-index:200;pointer-events:none;opacity:.95;cursor:grabbing;
+  /* The card being carried. It leaves a green slot behind it so she can see where it lands.
+     MEASURED 23 Sep 2026 on the live page: this rule was written as `.wg.wdrag` (0-2-0) and the
+     arranging rule above it, `body.arranging .wg` (0-2-1), was winning - so position:relative
+     stayed and position:fixed NEVER applied, because .wdrag only exists while body.arranging.
+     The carry code writes VIEWPORT coordinates into it, so the card drew 643px away from my
+     finger and jumped 234px mid-drag when the placeholder moved the flow. Forcing fixed at
+     runtime took that error to 0px on all 6 samples. The fix is the selector, not !important:
+     `body.arranging .wg.wdrag` is (0-3-1) and wins honestly, and it is the same set of
+     elements this rule always meant - a carried card only ever exists while she is arranging. */
+  body.arranging .wg.wdrag{position:fixed;z-index:200;pointer-events:none;opacity:.95;cursor:grabbing;
         border-radius:16px;padding:12px 13px;background:var(--surface-2);
         backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
         box-shadow:0 22px 56px rgba(0,0,0,.55);outline:1px solid rgba(255,255,255,.22)}
   .wgph{border:1px dashed rgba(84,200,143,.65);border-radius:14px;background:rgba(84,200,143,.08);min-height:52px}
+  /* The drawer is a 12-column grid and every card in it spans the whole row, but the green slot
+     is not a .wg, so it was picking up the grid default of ONE column - a 27px sliver standing in
+     for a full-width card, and a row height that changes the moment the card actually lands.
+     MEASURED 23 Sep 2026: moving the slot between zones changed document scrollHeight by 14px and
+     then 62px mid-carry. The slot has to occupy the footprint the card will occupy, or it is not
+     showing her where the card goes. */
+  #wdraw > .wgph{grid-column:1/-1}
+  /* ⛔ There WAS an `overflow-anchor:none` rule here and it has been taken out again, because a
+     three-way A/B said it was doing nothing. Chrome's scroll anchoring really was adding 56, 55
+     and -69px to scrollY in single frames - but only because the slot was being re-inserted ABOVE
+     the viewport. Once dPlace stops that happening there is nothing left for anchoring to
+     compensate for. Measured, same lens, same input, top band: fixed-with-the-rule and
+     fixed-without-it agreed on every number (0 scroll jumps over the 14px cap on both, worst slot
+     top -6 against -1, 0 of 180 frames with less than 56px of green on either). A rule that
+     changes no measurement does not get to sit in the file with a comment claiming it fixed
+     something. */
 
   /* --- the zones, only visible while she is arranging --- */
   body.arranging .zone{outline:1px solid var(--line);border-radius:18px;
@@ -1516,6 +1550,80 @@
      it will land; the slot is what actually moves, and on letting go the card takes its
      place. Nothing is saved until she lets go. ---- */
   var dEl = null, dPh = null, dId = null, dOn = false, dOffX = 0, dOffY = 0, dW = 0, dH = 0, dSX = 0, dSY = 0;
+
+  /* ---- the edge auto-scroll, rebuilt 23 Sep 2026 ----
+     MEASURED on the live page: the old version called window.scrollBy(0,±16) inside pointermove,
+     once per event, with no clock and no cap. Holding my finger STILL inside the band fired 119
+     scrollBy calls and ran the page 917px on a phone and 975px on a desktop; the same hold in the
+     middle of the screen fired none. So the speed was whatever the device's pointer rate happened
+     to be, not a speed anyone chose. Worse, dSlot() only ran on a pointermove, so a still finger
+     meant the green landing slot FROZE while the page tore past underneath - the card landed
+     somewhere she never aimed at.
+     Three things are different now:
+       - it runs off requestAnimationFrame and scrolls SPEED x elapsed-seconds, so it moves the
+         same distance per second on any device, and a burst of events cannot make it faster;
+       - it asks for at most STEP_CAP px in any one frame (so a stalled tab cannot resume with one
+         huge jump) and it stops itself the moment the page has nothing left to scroll;
+       - dPlace() is re-run against the last pointer position on every frame that actually moved, so
+         the green slot keeps tracking what is now under her finger while the page scrolls.
+     The bands are smaller too. The bottom one was 150px - 17.8% of a 390x844 phone, a dead strip
+     along the edge she cannot drop a card into. 72px is 8.5%, and still a comfortable thumb's
+     width; the top band is the same 72px, because 56 was the narrower band on the edge that is
+     harder to hold, which is backwards.
+
+     ---- WHAT IS AND IS NOT BOUNDED. Read this before trusting STEP_CAP. ----
+     MEASURED 23 Sep 2026, 390x844, CDP touch, finger held in the top band 3s: STEP_CAP bounds the
+     NUMBER HANDED TO scrollBy. It never bounded the page. Two other things move the page:
+       1. Chrome's scroll anchoring, when the slot is re-inserted ABOVE the viewport. It was adding
+          56, 55 and -69px to scrollY in single frames. FIXED, but not here and not by a cap: the
+          slot is no longer allowed off the top of the screen (dPlace below), so there is nothing
+          above the viewport changing height and anchoring never fires. Same hold after the fix:
+          no scroll jump over 14px at all.
+       2. The slot moving. A placeholder changing places reflows the cards it moves past, and that
+          is visible: 84, 70, 70 and 55px in one frame on the fixed build, 71, 55 and 21 before it.
+          It went UP, and honestly so - the slot used to do this off the top of the screen where
+          she could not see it. This is the layout doing exactly what a drop placeholder is for and
+          no cap can bound it; if it ever needs to be gentler it wants a transition, not a clamp.
+     So: the cap bounds what this loop ASKS for. Nothing bounds what the layout does. */
+  var EDGE_TOP = 72, EDGE_BOT = 72;   /* px from each edge that starts the scroll */
+  var EDGE_SPEED = 420;               /* px per SECOND, wall clock - not per event */
+  var EDGE_STEP_CAP = 14;             /* px, the most any single frame may ASK scrollBy for */
+  var SLOT_SEE = 56;                  /* px of the green slot that must stay on screen */
+  var dDir = 0, dRaf = 0, dLast = 0, dAcc = 0, dLX = 0, dLY = 0;
+
+  function dScrollStep(ts){
+    dRaf = 0;
+    if (!dEl || !dOn || !dDir) { dLast = 0; dAcc = 0; return; }
+    if (!dLast) dLast = ts;
+    var dt = (ts - dLast) / 1000; dLast = ts;
+    if (dt < 0) dt = 0;
+    if (dt > 0.05) dt = 0.05;                       /* a backgrounded tab does not bank distance */
+    dAcc += dDir * EDGE_SPEED * dt;
+    var step = dAcc > 0 ? Math.floor(dAcc) : Math.ceil(dAcc);
+    if (step > EDGE_STEP_CAP) step = EDGE_STEP_CAP;
+    if (step < -EDGE_STEP_CAP) step = -EDGE_STEP_CAP;
+    if (step){
+      dAcc -= step;
+      var was = window.pageYOffset;
+      window.scrollBy(0, step);
+      var ran = window.pageYOffset - was;
+      if (!ran){ dEdge(0); return; }               /* top or bottom of the page: stop, do not spin */
+      /* The page moved, so what is under her finger changed. Keep the slot honest. */
+      dPlace(dLX, dLY);
+    }
+    dRaf = requestAnimationFrame(dScrollStep);
+  }
+  function dEdge(dir){
+    if (dir === dDir) return;
+    dDir = dir;
+    if (!dir){
+      if (dRaf) cancelAnimationFrame(dRaf);
+      dRaf = 0; dLast = 0; dAcc = 0;
+      return;
+    }
+    dLast = 0; dAcc = 0;
+    if (!dRaf) dRaf = requestAnimationFrame(dScrollStep);
+  }
   function dSlot(x, y){
     var under = document.elementFromPoint(x, y);
     var zn = under && under.closest ? under.closest(".zone") : null;
@@ -1546,6 +1654,55 @@
     });
     zn.insertBefore(dPh, after ? pick.nextSibling : pick);
   }
+  /* ---- the slot has to be somewhere she can SEE, or she is aiming blind ----
+     MEASURED 23 Sep 2026, 390x844: holding the finger in the top band, dSlot put the green slot at
+     a viewport top of -189px. It was tracking perfectly - five different positions over the carry -
+     and every one of them was off the top of the screen. "The slot keeps up" and "she can watch it"
+     are two different claims and only the first was true going up.
+     Why it happens: her finger is at y=20 and the slot is inserted BEFORE the card nearest it, so
+     the slot's top lands at about 20 minus its own height. The aim is right; the slot does not fit
+     above it.
+     ⛔ THE OBVIOUS FIX DOES NOT WORK, and I built it before measuring it. Nudging the y handed to
+     dSlot and re-placing left the slot at an IDENTICAL -55px on all three tries, 48 frames of a
+     3s hold. Two measured reasons: #abar, the arranging toolbar, is fixed across the top of the
+     screen, so elementFromPoint(x,20) returns the TOOLBAR, never a zone, and dSlot falls to its
+     nearest-zone-by-distance branch; and once |y - card centre| is inside that card's half-height,
+     dSlot's before/after tie-break switches to the HORIZONTAL comparison, which no amount of
+     vertical nudging can move. Steering a heuristic from outside it is guesswork.
+     So this moves the slot ONE DOM POSITION at a time until it is visible, which cannot be
+     defeated by a tie-break, and it judges by the slot's real rectangle rather than predicting one
+     from the card height - zones lay cards out differently and a prediction would be wrong in the
+     drawer. Bounded to three steps: this runs every frame, and a loop that can spin is worse than
+     a slot sitting a little high.
+     When she is NOT at an edge - dDir 0, the page still - nothing is touched and her finger is the
+     aim exactly as before. */
+  /* One position later (step 1) or earlier (step -1), carrying on into the next zone at a zone's
+     end. MEASURED 23 Sep 2026: stopping at the boundary stranded the slot as the last child of
+     #wcorner - above the viewport, nothing after it to step to - on 31 frames of a 3s hold, and
+     those 31 were the ONLY frames left with less than 56px of green on screen. WORDER is the
+     document order of the four zones (corner, screen, side, drawer - checked against the markup),
+     so +1 really is down the page. */
+  function dStep(step){
+    var sib = step > 0 ? dPh.nextSibling : dPh.previousSibling;
+    while (sib && (sib.nodeType !== 1 || sib === dEl || sib.hasAttribute("hidden")))
+      sib = step > 0 ? sib.nextSibling : sib.previousSibling;
+    if (sib){ dPh.parentNode.insertBefore(dPh, step > 0 ? sib.nextSibling : sib); return true; }
+    var zi = WORDER.indexOf(dPh.parentNode.getAttribute("data-zone")) + step;
+    if (zi < 0 || zi >= WORDER.length) return false;
+    var nz = wZone(WORDER[zi]);
+    if (!nz) return false;
+    if (step > 0) nz.insertBefore(dPh, nz.firstChild); else nz.appendChild(dPh);
+    return true;
+  }
+  function dPlace(x, y){
+    dSlot(x, y);
+    if (!dDir || !dPh) return;
+    for (var i = 0; i < 3; i++){
+      var r = dPh.getBoundingClientRect(), see = Math.min(SLOT_SEE, r.height);
+      if (r.bottom >= see && r.top <= window.innerHeight - see) return;
+      if (!dStep(r.bottom < see ? 1 : -1)) return;   /* nowhere left to put it: leave it be */
+    }
+  }
   function dMove(e){
     if (!dEl || e.pointerId !== dId) return;
     if (!dOn){
@@ -1562,13 +1719,25 @@
     if (e.cancelable) e.preventDefault();
     dEl.style.left = (e.clientX - dOffX) + "px";
     dEl.style.top  = (e.clientY - dOffY) + "px";
-    dSlot(e.clientX, e.clientY);
+    dLX = e.clientX; dLY = e.clientY;
     /* The drawer is taller than the screen, so carrying a card to it means the page has to
-       come with her when she reaches the edge. */
-    if (e.clientY < 90) window.scrollBy(0, -16);
-    else if (e.clientY > window.innerHeight - 150) window.scrollBy(0, 16);
+       come with her when she reaches the edge. This only says WHICH WAY; dScrollStep owns the
+       speed, on a clock. Rebuilt 23 Sep 2026 - see the note above.
+       It is set BEFORE the slot is placed because dPlace only keeps the slot on screen while the
+       page is moving, and dDir is how it knows. */
+    if (e.clientY < EDGE_TOP) dEdge(-1);
+    else if (e.clientY > window.innerHeight - EDGE_BOT) dEdge(1);
+    else dEdge(0);
+    dPlace(e.clientX, e.clientY);
   }
-  function dUp(){
+  /* MEASURED 23 Sep 2026: dMove checks e.pointerId !== dId, but dUp took no event and checked
+     nothing - so a pointerup from ANY pointer ended the carry. Reproduced twice: a second thumb
+     lifting, and a stray mouse release at (5,5). The card was dropped mid-carry and wSave()
+     committed it there. dUp now ignores every pointer but the one doing the carrying, exactly
+     as dMove already does. */
+  function dUp(e){
+    if (e && dId !== null && e.pointerId !== undefined && e.pointerId !== dId) return;
+    dEdge(0);
     document.removeEventListener("pointermove", dMove);
     document.removeEventListener("pointerup", dUp);
     document.removeEventListener("pointercancel", dUp);
@@ -1593,6 +1762,7 @@
     var r = el.getBoundingClientRect();
     dEl = el; dId = e.pointerId; dOn = false;
     dSX = e.clientX; dSY = e.clientY;
+    dLX = e.clientX; dLY = e.clientY;
     dOffX = e.clientX - r.left; dOffY = e.clientY - r.top;
     dW = r.width; dH = r.height;
     document.addEventListener("pointermove", dMove, { passive: false });
@@ -1608,6 +1778,45 @@
     if (document.body.classList.contains("arranging") ||
         (e.target && e.target.closest && e.target.closest(".wscribble"))) e.stopPropagation();
   }, true);
+
+  /* ---- keep the tiles button out from under the shared kit dock ----
+     MEASURED 23 Sep 2026: folded, <div id="kit-dock"> sits at right:10 bottom:10 and is 34px
+     square, which covers the bottom-right 31% of #trigger INCLUDING its centre - 25 of 81 points
+     inside the button hit the dock, and a real click on the centre was blocked for 30s. Unfolded
+     it is a full-width bar and covers more. kit-dock.js is NOT touched: it is loaded by 20 apps.
+     Instead this page reads how much of the bottom edge the dock is using and lifts its own
+     button by exactly that, in both states. No dock on the page at all -> 0, and the button sits
+     where it always did. */
+  var wDockRO = null, wDockSeen = null;
+  function wDockClear(){
+    var d = document.getElementById("kit-dock"), px = 0;
+    if (d){
+      var r = d.getBoundingClientRect();
+      if (r.height) px = Math.max(0, Math.round(window.innerHeight - r.top));
+      /* watch the dock itself: folding and opening change its height, not the body's children */
+      if (d !== wDockSeen){
+        wDockSeen = d;
+        try { if (!wDockRO) wDockRO = new ResizeObserver(wDockClear); wDockRO.observe(d); } catch (e) {}
+      }
+    }
+    document.documentElement.style.setProperty("--dock-clear", px + "px");
+  }
+  wDockClear();
+  /* The dock is built by a deferred script, so this watches for it rather than measuring once.
+     Same shape kit-dock.js uses on itself, including the bounded ~20s poll as the backstop. */
+  try { new MutationObserver(wDockClear).observe(document.body, { childList: true, subtree: false }); } catch (e) {}
+  /* MEASURED 23 Sep 2026: the ResizeObserver above did NOT fire when the dock was folded and
+     unfolded (0 callbacks across a real 34px -> 61px change), so it is not on its own enough to
+     catch her tapping the dock's own ⋯ tab. This listens for that tap directly, in the capture
+     phase so it runs whether or not the dock's handler stops the event. */
+  document.addEventListener("click", function(e){
+    if (e.target && e.target.closest && e.target.closest("#kit-dock")){
+      setTimeout(wDockClear, 0); setTimeout(wDockClear, 260);
+    }
+  }, true);
+  window.addEventListener("resize", wDockClear);
+  window.addEventListener("orientationchange", wDockClear);
+  (function(){ var n = 0, t = setInterval(function(){ wDockClear(); if (++n > 40) clearInterval(t); }, 500); })();
 
   wHandles();
   wApply(wLoad());
