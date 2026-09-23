@@ -69,10 +69,18 @@
                 skipped: [], mixed: [], omitted: omit.slice() };
   window.APP_FRAME = state;
 
-  function already(file) {
-    // A tag for this piece is on the page already — the app loads it itself.
-    return document.querySelector('script[src*="' + file +
-                                  '"]:not([src*="frame.js"])');
+  function already(p) {
+    // Is this COMPONENT already on the page? Asked per component, not per
+    // filename: swipe.js and swipe-hint.js are two implementations of one thing,
+    // and the first draft could load the hint on top of a page's own swipe.js
+    // because it only looked for the file it had decided to use.
+    var names = p.alternatives || [p.file];
+    for (var i = 0; i < names.length; i++) {
+      var t = document.querySelector('script[src*="' + names[i] +
+                                     '"]:not([src*="frame.js"])');
+      if (t) return t;
+    }
+    return null;
   }
 
   // A skipped piece is not a harmless skip: the page's own tag may carry an OLD
@@ -99,16 +107,35 @@
   // 23 Sep 2026 review was right that it would have been dead code: `defer` has
   // no effect on a script made with createElement, only on one the parser found.
   // The thing that actually holds the order below is `async = false`.
+  // There is NO defer flag here on purpose. A first draft carried one, and the
+  // 23 Sep 2026 review was right that it would have been dead code: `defer` has
+  // no effect on a script made with createElement, only on one the parser found.
+  // The thing that actually holds the order below is `async = false`.
+  //
+  // KEY is the component and never changes. FILE is only which implementation of
+  // it gets loaded. The second review (gpt-5.6-sol, 23 Sep) found a real bug in
+  // the first draft: swipe's KEY was rewritten to "swipe-hint" before the omit
+  // test ran, so data-omit="swipe" silently did nothing, and a page that already
+  // had swipe.js could still be given the hint on top. Identity and implementation
+  // are separate now, and every check below uses the key.
+  //
+  // ORDER IS DELIBERATE, and the dock is last on purpose: kit-dock.js adopts the
+  // buttons the other pieces make, and re-measures whenever one more appears.
   var pieces = [
-    { key: "textsize",  file: "textsize.js",    attrs: {} },
-    { key: "speak",     file: "speak.js",       attrs: {} },
-    { key: "hearsel",   file: "hearsel.js",     attrs: {} },
-    { key: "feedback",  file: "feedback.js",    attrs: {} },
-    { key: "notion",    file: "notion-sync.js", attrs: {} },
-    { key: "marks",     file: "marks.js",       attrs: {} },
-    { key: "pull",      file: "pull.js",        attrs: {} },
-    { key: "swipe",     file: "swipe.js",       attrs: {} },
-    { key: "dock",      file: "kit-dock.js",    attrs: {} }
+    { key: "textsize", file: "textsize.js",    marker: "TextSize",   sees: ".ts-fab",  attrs: {} },
+    // speak.js returns at its own line 26 on a browser with no speech engine, and
+    // then builds nothing. That is not a fault, so it must not read as one.
+    { key: "speak",    file: "speak.js",       marker: "SpeakAloud", sees: ".sa-fab",
+      needs: function () { return "speechSynthesis" in window; }, attrs: {} },
+    { key: "hearsel",  file: "hearsel.js",     marker: "__hearSel",  attrs: {} },
+    { key: "feedback", file: "feedback.js",    marker: "AppFeedback", sees: ".fb-fab", attrs: {} },
+    { key: "notion",   file: "notion-sync.js", marker: "NotionSync", attrs: {} },
+    { key: "marks",    file: "marks.js",       marker: "__appMarks", sees: ".am-bar", attrs: {} },
+    { key: "pull",     file: "pull.js",        marker: "__appPull",  sees: ".app-pull", attrs: {} },
+    { key: "swipe",    file: "swipe.js",       marker: "__swipeJs",  attrs: {},
+      hintMarker: "__swipeHint",
+      alternatives: ["swipe.js", "swipe-hint.js"] },
+    { key: "dock",     file: "kit-dock.js",    marker: "__kitDock",  sees: "#kit-dock", attrs: {} }
   ];
 
   // --- per-app settings, read off our one tag -------------------------------
@@ -135,8 +162,8 @@
     // Either the page swipes by its own code, or it gave swipe.js nothing to
     // move through — in both cases swipe.js would do nothing, and the HINT is
     // the part she asked for ("Where is the buttons", 21 Sep 2026).
-    sw.file = "swipe-hint.js";
-    sw.key = "swipe-hint";
+    sw.file = "swipe-hint.js";   // the KEY stays "swipe" - see the note above
+    sw.impl = "hint";
     sw.attrs = {};
   }
 
@@ -145,22 +172,108 @@
     return { attrs: {} };
   }
 
+  // A file arriving is not a feature working. The 23 Sep review put it plainly:
+  // `loaded` proves the browser evaluated the script, nothing more - and it
+  // refused HTTP 200 and script.onload as evidence that the frame works. So every
+  // component is also asked, a moment after loading, whether the thing it builds
+  // is actually there: each kit file sets one global, and those names were READ
+  // OFF the files, not guessed (two first guesses, __textSize and __speakJs, did
+  // not exist - the real names are TextSize and SpeakAloud).
+  //
+  // state.ready[key] is true, false, or "unproven" where a component publishes
+  // nothing to check. "unproven" is deliberately not "true": a check that cannot
+  // fail is not a check.
+  // HOW THIS CHECK WAS WRONG TWICE, MEASURED 23 Sep 2026 on a cold server with
+  // 350 ms in front of every script:
+  //   a single look at 400 ms called Read aloud BROKEN while it was still building;
+  //   three looks ending at 4 s did the same.
+  // CORRECTED 23 Sep 2026: the first version of this comment blamed speak.js for
+  // waiting on the browser's voice list. That was a guess written up as a finding,
+  // and it is false - speak.js publishes its global at its line 560, before the
+  // line that asks for voices. The real cause was this file: it asked for a global
+  // named __speakJs, which nothing on the site has ever defined.
+  // A check that cries wolf on every cold load is worse than no check, so it no
+  // longer guesses a deadline. It WATCHES: a component flips to true the moment it
+  // appears, stays "pending" until then, and is only called false at a horizon far
+  // beyond anything observed (15 s). Whoever wants a verdict sooner calls
+  // APP_FRAME.check() and reads what is true AT THAT MOMENT - the deadline belongs
+  // to the checker, not to the page.
+  var HORIZON = 15000, STEP = 500, waited = 0;
+
+  function verdict(final) {
+    var out = {}, pending = 0;
+    pieces.forEach(function (p) {
+      if (omit.indexOf(p.key) !== -1) { out[p.key] = "omitted"; return; }
+      if (p.needs && !p.needs()) { out[p.key] = "not applicable"; return; }
+      // SEES beats MARKER. The 23 Sep verification round was blunt about this:
+      // six of the nine globals are re-entry guards set on the file's FIRST line,
+      // so window[marker] proves only "the file started", which is the very kind
+      // of evidence the earlier review refused. Where a component puts something
+      // on the page, that is what gets looked at.
+      // Which implementation actually got loaded decides which name to look for:
+      // swipe.js publishes __swipeJs, swipe-hint.js publishes __swipeHint. Asking
+      // for the wrong one leaves the component "pending" for ever, which is what
+      // the first cold run did.
+      var mark = (p.impl === "hint" && p.hintMarker) ? p.hintMarker : p.marker;
+      // The hint is a flash of text shown once per device; there is nothing on
+      // the page to find a second later, so it is judged on having run.
+      var look = (p.impl === "hint") ? null : p.sees;
+      if (look && document.querySelector(look)) { out[p.key] = true; return; }
+      if (!look && mark && window[mark]) { out[p.key] = true; return; }
+      if (!look && !mark) { out[p.key] = "unproven"; return; }
+      if (state.failed.indexOf(p.file) !== -1) { out[p.key] = false; return; }
+      if (final) { out[p.key] = false; } else { out[p.key] = "pending"; pending++; }
+    });
+    out.__pending = pending;
+    return out;
+  }
+
+  function settle() {
+    if (settle.t) return;                    // one watcher, however many onloads
+    settle.t = setInterval(function () {
+      waited += STEP;
+      var final = waited >= HORIZON;
+      state.ready = verdict(final);
+      var p = state.ready.__pending; delete state.ready.__pending;
+      if (!p || final) {
+        clearInterval(settle.t);
+        state.settled = true;
+        var bad = Object.keys(state.ready).filter(function (k) {
+          return state.ready[k] === false;
+        });
+        if (bad.length && window.console) {
+          console.error("[frame.js] loaded but not working: " + bad.join(", "));
+        }
+      }
+    }, STEP);
+  }
+
+  state.check = function () {
+    var v = verdict(false); delete v.__pending; return v;
+  };
+
   // --- load, in order, and write down what actually happened ----------------
   pieces.forEach(function (p) {
     if (omit.indexOf(p.key) !== -1) return;              // left out on purpose
-    var own = already(p.file);
+    var own = already(p);
     if (own) { state.skipped.push(p.file); noteMixed(p.file, own); return; }
 
     var s = document.createElement("script");
     s.src = base + p.file + "?v=" + VERSION;
     s.async = false;                 // keeps them in the order written above
     Object.keys(p.attrs).forEach(function (a) { s.setAttribute(a, p.attrs[a]); });
-    s.onload  = function () { state.loaded.push(p.file); };
+    s.onload  = function () { state.loaded.push(p.file); settle(); };
     s.onerror = function () {
       state.failed.push(p.file);
+      settle();                 // a piece that 404s must still reach a verdict
       // Loud on purpose. A kit piece that 404s used to be invisible.
       if (window.console) console.error("[frame.js] kit piece failed to load: " + s.src);
     };
     document.head.appendChild(s);
   });
+
+  // A page where every piece was already present creates no script at all, so no
+  // onload ever fires. Without this line that page never reaches a verdict and
+  // APP_FRAME.ready stays undefined for ever - which reads exactly like "fine".
+  settle();
 })();
