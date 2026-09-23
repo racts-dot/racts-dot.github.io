@@ -6,7 +6,7 @@ one Claude account and cannot reach Notion. Here they open on any phone and any 
     /cookbook/   Sabrina's Prompt Cookbook       printables sabrina_cookbook/
     /videos/     video search (출처 찾기)          printables apps/video_search_site/public/
     /hormozi/    Hormozi Marketing Recipes       printables hormozi_cookbook/   + Notion
-    /workflows/  Doser AI Marketing Workflows    printables doser_cookbook/     + Notion
+    /workflows/  Doser AI Marketing Workflows    printables doser_cookbook/     -> Recipes (forwards, 23 Sep)
 
 The printables repo stays the source. Rebuild a page there, then run this again:
 
@@ -214,13 +214,15 @@ def main():
     for path in git_list("hormozi_cookbook/audio"):
         write("hormozi/audio/" + path.rsplit("/", 1)[1], git_bytes(path))
 
-    print("workflows/")
-    html = git_bytes("doser_cookbook/index.html").decode("utf-8")
-    html = add_goal(video_box.add_videos(html, "workflows"))
-    write("workflows/index.html", add_notion(as_document(strip_shop(use_site_textsize(html, "workflows"), "workflows")), "workflows"))
+    # 23 Sep 2026, her pick: "The Workflows address forwards to Recipes, and its how-to videos appear there
+    # as recipe cards that play in the page." /workflows/index.html is a hand-kept forwarder now and is not
+    # written here any more. The source is still read, with the shop layer stripped as before, and handed
+    # straight to recipes_hub so the Doser cards in Recipes keep following printables doser_cookbook.
+    print("workflows/ (forwards to Recipes; its cards go to recipes_hub)")
+    doser = strip_shop(git_bytes("doser_cookbook/index.html").decode("utf-8"), "workflows")
 
     import recipes_hub   # 15 Sep: the combined Recipes home, and its "All recipes" bar on these pages
-    recipes_hub.main()
+    recipes_hub.main({"workflows": doser})
     guard.check()   # 23 Sep 2026: refuses, and puts the pages back, if any kit tag, icon link or icon file was lost
 
 

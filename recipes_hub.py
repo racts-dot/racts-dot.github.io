@@ -29,6 +29,9 @@ import re
 
 SITE = pathlib.Path(__file__).resolve().parent
 MARK = "<!--recipes-hub-bar-->"
+# 23 Sep 2026, her pick: "The Workflows address forwards to Recipes". A page carrying this mark is only a
+# forwarder now: no bar is added to it, and its cards come from the source the publisher hands over.
+RETIRED = "<!--retired-to-recipes-->"
 
 BAR = MARK + """
 <style>
@@ -76,8 +79,8 @@ def add_bar(html, name):
     return bar + html
 
 
-def data_blob(path):
-    s = open(path, encoding="utf-8").read()
+def data_blob(path, text=None):
+    s = text if text is not None else open(path, encoding="utf-8").read()
     m = re.search(r'<script id="data" type="application/json">(.*?)</script>', s, re.S)
     return json.loads(m.group(1).replace("<\\/", "</")) if m else None
 
@@ -203,17 +206,23 @@ def slim_prompt(p):
     return out
 
 
-def own_cards(folder, src):
+def own_cards(folder, src, text=None):
     """Hormozi/Doser cards: from the other app while it is still there, from our copy once it is not.
 
     Keyed by each card's own key, in the order the topics list them. The fallback is the whole point
     of the move - once /hormozi/ or /workflows/ is retired the page that fed this is gone, and
     without it the next rebuild would quietly empty the tab it had been filling.
     """
-    d = data_blob(SITE / folder / "index.html") if (SITE / folder / "index.html").exists() else None
+    # 23 Sep 2026: text is the page the publisher built from its source but no longer writes to the site
+    # (/workflows/ only forwards now), so the cards keep following their source instead of freezing
+    if text is not None:
+        d = data_blob(None, text)
+    else:
+        d = data_blob(SITE / folder / "index.html") if (SITE / folder / "index.html").exists() else None
     if d:
         return ({c.get("key", ""): slim_card(t.get("name"), c)
-                 for t in d.get("topics", []) for c in t.get("cards", [])}, folder)
+                 for t in d.get("topics", []) for c in t.get("cards", [])},
+                folder if text is None else folder + " source")
     kept = SITE / "recipes" / LOCAL[src]
     if kept.exists():
         return (json.loads(kept.read_text(encoding="utf-8")), "our own copy, /%s/ is gone" % folder)
@@ -690,9 +699,11 @@ def keep_cache_bust(new_html, old_html):
     return new_html
 
 
-def main():
-    horm, horm_from = own_cards("hormozi", "hormozi")
-    dose, dose_from = own_cards("workflows", "doser")
+def main(sources=None):
+    """sources: {folder: page html} built by the publisher for a folder that only forwards now."""
+    sources = sources or {}
+    horm, horm_from = own_cards("hormozi", "hormozi", sources.get("hormozi"))
+    dose, dose_from = own_cards("workflows", "doser", sources.get("workflows"))
     prom, prom_from = own_prompts()
     # this folder's own copy is written before the page that reads it, so a rebuild can never leave
     # the page pointing at a file that is not there
@@ -715,6 +726,8 @@ def main():
         p = SITE / folder / "index.html"
         if p.exists():
             s = p.read_text(encoding="utf-8")
+            if RETIRED in s:
+                continue   # a forwarder: nothing to put a bar on
             t = add_bar(s, name).replace('<script src="../speak.js" defer>', '<script src="../speak.js" data-icon-only defer>')
             if t != s:
                 p.write_text(t, encoding="utf-8")
