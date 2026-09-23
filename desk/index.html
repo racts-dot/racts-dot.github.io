@@ -136,6 +136,7 @@ h1{font-family:"Newsreader",Georgia,serif;font-weight:600;font-size:clamp(28px,7
   display:grid;place-items:center}
 .corner button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .corner button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+#setBtn{position:relative} #setBtn .dot{position:absolute;top:4px;right:4px;transform:none}
 .fresh{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.08em;
   text-transform:uppercase;color:var(--ink-faint);margin:8px 0 0}
 .fresh.stale{color:var(--accent)}
@@ -721,7 +722,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
         <button id="readPage" aria-label="Read this page aloud" title="Read this page aloud">&#9654;</button>
         <button id="sayFab" aria-label="Just say it" title="Just say it">&#127908;</button>
         <button id="chatBtn" aria-label="Ask Claude" title="Ask Claude">✻</button>
-        <button id="setBtn" aria-label="Settings" title="Settings">⚙</button>
+        <button id="setBtn" aria-label="Settings and AI boards" title="Settings and AI boards">⚙<span class="dot hide" id="boardDot"></span></button>
       </div>
     </div>
     <p class="why" id="pageWhy">Loading…</p>
@@ -1348,6 +1349,8 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
 <div class="sheet" id="setSheet"><div class="veil" data-close></div>
   <div class="panel"><div class="inner">
     <div class="sheet-head"><h2>Settings</h2><button class="x" data-close>Close</button></div>
+    <h3 style="font-family:'Newsreader',Georgia,serif;font-size:17px;font-weight:600;margin:6px 0 0">AI boards</h3>
+    <div class="menu" id="aiMenu" style="margin:8px 0 14px"></div>
     <p class="sec-note">Set once and forget.</p>
     <div class="setrow"><label for="setVoice">Reading voice</label><select id="setVoice"></select></div>
     <div class="setrow"><span class="setlab">Speed</span>
@@ -1458,7 +1461,10 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
        under More, nothing was deleted. eBay takes the free slot - it was already a page, it
        had just never been in the bar. -->
   <button data-go="status"><span class="g">◎</span>Status<span class="dot hide" id="statDot"></span></button>
-  <button data-go="board"><span class="g">▦</span>Board<span class="dot hide" id="boardDot"></span></button>
+  <!-- 23 Sep 2026, her pick: "The bottom bar shows an eBay button you tap to open it; the AI
+       boards appear under the settings cog instead." Board leaves the bar for the Settings sheet
+       (AI boards, listed from PAGES by the ai flag); its red dot moves onto the cog. -->
+  <button data-go="ebay"><span class="g">◈</span>eBay</button>
   <button data-more><span class="g">⋯</span>More</button>
 </nav>
 
@@ -1508,7 +1514,7 @@ const PAGES = [
   {id:"today",   name:"Today",              why:"Your to-do first. It rolls over until you tick it, and every line keeps its date and time.", nav:1},
   {id:"ideas",   name:"Ideas",              why:"Say it however it comes out. Nothing is asked of you here.", nav:1},
   {id:"status",  name:"Status",             why:"One tile per thing. Which stage it is at, and what is blocking it."},
-  {id:"board",   name:"Board",              why:"Every open job from the last six months, sorted by who has to act. Move a card and it saves to Notion.", nav:1},
+  {id:"board",   name:"Board",              why:"Every open job from the last six months, sorted by who has to act. Move a card and it saves to Notion.", ai:1, cog:1},
   {id:"money",   name:"Money",              why:"Only figures somebody actually read off a real account."},
   {id:"paper",   name:"The Paper",          why:"The AFR, in plain words, with what it means for you."},
   {id:"cast",    name:"The cast",           why:"The five of them, and which part of this desk each one keeps."},
@@ -1528,7 +1534,7 @@ const PAGES = [
   {id:"try",     name:"Want to try",        why:"Things you spotted in the Reading Room. Ask Claude to try one when you have time."},
   {id:"keep",    name:"Tips & notes",       why:"Tips, tricks and things you write down. Stamped, searchable, easy to come back to."},
   {id:"ebay",    name:"eBay",               why:"Your e-commerce side: the listings list, and where the eBay connection stands.", nav:1},
-  {id:"admin",   name:"AI admin",           why:"Goals, plans and budget for the AI side. A few notes, kept out of your way."},
+  {id:"admin",   name:"AI admin",           why:"Goals, plans and budget for the AI side. A few notes, kept out of your way.", ai:1},
   {id:"timeline",name:"What you achieved",  why:"Since January, in order, each one with where it was recorded."},
   {id:"sources", name:"How sure",           why:"How far to trust each kind of source, and how things here were researched."},
   {id:"how",     name:"How it works",       why:"Where everything on this desk comes from, in one picture."},
@@ -2745,10 +2751,15 @@ $("#tabs").addEventListener("click", e=>{
 });
 document.addEventListener("click", e=>{ if(e.target.closest("[data-close]")) closeSheets(); });
 addSayBoxes();
-$("#moreMenu").innerHTML = PAGES.filter(p=>!p.nav).map(p=>
+$("#moreMenu").innerHTML = PAGES.filter(p=>!p.nav && !p.cog).map(p=>
   `<button data-go="${p.id}"><span class="mn">${esc(p.name)}</span>
     <span class="mw">${esc(p.why)}</span></button>`).join("");
 $("#moreMenu").addEventListener("click", e=>{
+  const b=e.target.closest("button[data-go]"); if(b) go(b.dataset.go); });
+$("#aiMenu").innerHTML = PAGES.filter(p=>p.ai).map(p=>
+  `<button data-go="${p.id}"><span class="mn">${esc(p.name)}</span>
+    <span class="mw">${esc(p.why)}</span></button>`).join("");
+$("#aiMenu").addEventListener("click", e=>{
   const b=e.target.closest("button[data-go]"); if(b) go(b.dataset.go); });
 $("#sayFab").addEventListener("click", ()=>openSheet("saySheet"));
 $("#setBtn").addEventListener("click", ()=>openSheet("setSheet"));
