@@ -341,6 +341,11 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     return '<button type="button" class="th" data-v="' + esc(id) + '" aria-label="Play ' + esc(name) + '">' +
       '<img src="https://i.ytimg.com/vi/' + esc(id) + '/mqdefault.jpg" alt="" loading="lazy"></button>';
   }
+  /* 23 Sep 2026: /workflows/ wrote a video's date as "15 Jun 2025", not "2025-06-15"; the Doser cards keep its words */
+  function dmy(s){
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || "");
+    return m ? +m[3] + " " + ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m[2] - 1] + " " + m[1] : (s || "");
+  }
   function shot(id, name, when){
     return '<div>' + pic(id, name) + '<div class="l">' + esc(name) + (when ? " · " + esc(when) : "") + '</div></div>';
   }
@@ -798,7 +803,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
           ? ' <span class="ai" title="Goes a little beyond what he says">loosely from his words</span>' : "";
       return '<li>' + esc(v.do) + sup + (v.q ? '<span class="sq"><q>' + esc(v.q) + '</q>' + tbtn(v.t, "step " + (i + 1)) + '</span>' : "") + '</li>';
     }).join("");
-    var vids = (c.src || []).map(function(v){ return shot(v.id, v.title || "video", v.date || ""); }).join("");
+    var vids = (c.src || []).map(function(v){ return shot(v.id, v.title || "video", x.src === "doser" ? dmy(v.date) : (v.date || "")); }).join("");
     /* 23 Sep 2026: the Doser card's own features from /workflows/ - a card without them draws as before */
     var have = c.checks && c.checks.length ? haveText(haveState(x.k, c)) : null;
     var box = x.src === "doser" ? vbox(c) : "";
