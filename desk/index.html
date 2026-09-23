@@ -1235,6 +1235,7 @@ nav.tabs button.on{opacity:1;border-top-color:var(--bar-ink)}
     <div class="block">
       <div class="sec-head"><h2>Where we're up to</h2>
         <p class="sec-note">Every job and what happens next, rebuilt from the handover notes every 20 minutes by the Mac. Nothing here is typed by you, and nothing you type is sent here.</p></div>
+      <p class="stamp" id="liveStamp">Live · keeps itself current while open</p>
       <div id="progressLive"><p class="none">Reading where things are up to…</p></div>
     </div>
     <div class="block">
@@ -2566,6 +2567,35 @@ function renderEbayList(){
 }
 document.addEventListener("input", e=>{ if(e.target && e.target.id==="ebayFind") renderEbayList(); });
 document.addEventListener("click", e=>{ if(e.target.closest('[data-go="ebay"]')) setTimeout(()=>{ if(!EBAY) loadEbay(); }, 60); });
+
+/* ---------------- live: the Desk keeps itself current (23 Sep 2026) ----------------
+   Her goal, 23 Sep 2026: "let the desk functioning and streaming any update". Until now the
+   Desk read progress.json and ebay.json once, when it opened, so a Desk left open on the phone
+   kept showing an old card while the Mac rebuilt it every 20 minutes. The Day app already polls
+   its feed; this does the same here. Two small static files from GitHub Pages - no AI, no money.
+   Every 60 s while the page is on screen, and at once when she comes back to it. The Board
+   (Notion, behind her password) is re-read only on coming back, at most every 2 minutes, and
+   never while she is in the middle of changing a card. */
+const LIVE = {progress:null, ebay:null, board:0, busy:false};
+async function liveCheck(fromReturn){
+  if(document.hidden || LIVE.busy) return; LIVE.busy = true;
+  try{
+    const r = await fetch("progress.json?"+Date.now(), {cache:"no-store"});
+    if(r.ok){ const d = await r.json();
+      if(LIVE.progress && d.made && d.made !== LIVE.progress){ await loadProgress(); toast("Where we're up to: updated at "+String(d.made).slice(11)+"."); }
+      if(d.made) LIVE.progress = d.made; }
+  }catch(e){}
+  if(EBAY){ try{ const r = await fetch("ebay.json?"+Date.now(), {cache:"no-store"});
+    if(r.ok){ const d = await r.json(); if(d.read_at && d.read_at !== EBAY.read_at){ await loadEbay(); toast("eBay: a new reading is in."); } } }catch(e){} }
+  const inBoard = document.activeElement && document.activeElement.closest && document.activeElement.closest("#p-board");
+  if(fromReturn && BD.loaded && !inBoard && Date.now()-LIVE.board > 120000){ LIVE.board = Date.now(); loadBoard(); }
+  const st = $("#liveStamp"); if(st) st.textContent = "Live · last checked "+new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"})+(LIVE.progress?" · card built "+String(LIVE.progress).slice(11):"");
+  LIVE.busy = false;
+}
+setInterval(()=>liveCheck(false), 60000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) liveCheck(true); });
+window.addEventListener("focus", ()=>liveCheck(true));
+setTimeout(()=>liveCheck(false), 1500);
 function renderEbayTodos(){
   const box=$("#ebayTodos"); if(!box) return;
   const e=mine.filter(m=>m.cat==="E-commerce" && (!m.done || (m.doneAt && isoDay(m.doneAt)===todayISO())));
