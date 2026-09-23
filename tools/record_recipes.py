@@ -27,7 +27,9 @@ RATE = 30.0 / 1_000_000
 
 
 def token():
-    return subprocess.run(["gcloud", "auth", "print-access-token"], capture_output=True, text=True).stdout.strip()
+    # 23 Sep 2026: on Windows gcloud is gcloud.cmd, which subprocess cannot find by the bare name - look it up
+    import shutil
+    return subprocess.run([shutil.which("gcloud") or "gcloud", "auth", "print-access-token"], capture_output=True, text=True).stdout.strip()
 
 
 def synth(text, tok):
