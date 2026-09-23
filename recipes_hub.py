@@ -185,7 +185,9 @@ def slim_card(topic, c, full=False):
         for k in ("claim_t", "warn_t"):
             if c.get(k) is not None:   # 0 is a real second: the quote is at the very start
                 out[k] = c[k]
-        for k in ("checks", "dia", "prereq", "rule"):
+        # fit, start, shop, why and watch (23 Sep 2026): what /workflows/' fit filters and "Start here" read. Empty
+        # on every card today (its has_fit is false), so they change nothing now and are there the day they are filled
+        for k in ("checks", "dia", "prereq", "rule", "fit", "start", "shop", "why", "watch"):
             if c.get(k):
                 out[k] = c[k]
     steps = []
@@ -290,6 +292,15 @@ def topic_cards(folder, src, label, cards):
                     "vid": (c["src"][0]["id"] if c.get("src") and c["src"][0].get("id") else ""),
                     "listen": False,
                     "meta": ("\u25B6 %d video%s" % (len(c["src"]), "" if len(c["src"]) == 1 else "s")) if c.get("src") else ""})
+        if src == "doser":
+            # 23 Sep 2026, her "nothing is lost": the Doser tab's map, filters and "already doing" badge are drawn
+            # before any card is opened, so each Doser card carries how many questions it asks (nq) and how many
+            # of his videos it comes from (ns), and its fit and start-here mark when the source has them
+            out[-1].update({"nq": len(c.get("checks") or []), "ns": len(c.get("src") or [])})
+            if c.get("fit"):
+                out[-1]["fit"] = c["fit"]
+            if c.get("start"):
+                out[-1]["st"] = 1
     return out
 
 
@@ -424,6 +435,53 @@ html.ts-big .panel .yn{justify-self:start}
 .panel .yn button[aria-pressed="true"].x{background:var(--ink2);color:var(--card)}
 .panel .have{justify-self:start;font:700 12px/1 var(--sans);padding:6px 10px;border-radius:999px;background:var(--chip);color:var(--doser)}
 .panel .rule{border-left:3px solid var(--accent);padding-left:10px}
+/* 23 Sep 2026, her "then Workflows forwards to Recipes. Nothing is lost.": the page-level features /workflows/ had
+   come to the Doser workflows tab, and only to it - the journey map with its green bars, the "Hide what I already
+   do", "Only ones he repeats" and fit filters, "Listen to all shown" and "Listen to this stop", a card's other videos
+   from the start, and the "already doing" badge on the card itself. Everything here is .dx-, .stop- or .hv-scoped,
+   so the other tabs do not change. */
+.panel .vstart{display:grid;gap:6px;margin-top:8px}
+.panel .vstart div{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;font-size:13px;color:var(--ink2)}
+.dx{display:grid;gap:10px;margin:2px 0 4px}
+.dx[hidden]{display:none}
+.dx .map{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 10px 8px;overflow-x:auto}
+.dx .map svg{display:block;min-width:900px;width:100%;height:auto}
+.dx .map .st{cursor:pointer}
+.dx .map .st .box{fill:var(--bg);stroke:var(--line);stroke-width:1.5}
+.dx .map .st:hover .box,.dx .map .st:focus .box{stroke:var(--doser);stroke-width:2.5}
+.dx .map text{fill:var(--ink);font-family:var(--sans)}
+.dx .map .num{font-weight:800;font-size:26px}
+.dx .map .nm{font-size:13px;font-weight:600}
+.dx .map .sub{fill:var(--ink2);font:10.5px ui-monospace,Menlo,Consolas,monospace}
+.dx .map .arr{stroke:var(--ink2);stroke-opacity:.45;stroke-width:2;fill:none}
+.dx .map .ah{fill:var(--ink2);fill-opacity:.45}
+.dx .map .st .track{fill:var(--line)}
+.dx .map .st .done{fill:var(--doser)}
+.dx .hint{margin:0 2px;font-size:13px;color:var(--ink2)}
+.dx .ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dx .fchip{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 13px;font:600 14px var(--sans);cursor:pointer}
+.dx .fchip[aria-pressed="true"]{background:var(--doser);color:var(--card);border-color:var(--doser)}
+.dx .voice{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.dx select{font:600 14px var(--sans);padding:8px 8px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);max-width:190px}
+.dbtn{font:700 14px/1 var(--sans);padding:10px 13px;border-radius:10px;border:1px solid var(--doser);background:var(--doser);color:var(--card);cursor:pointer;white-space:nowrap}
+.dbtn.ghost{background:transparent;color:var(--doser)}
+.dx .player{display:inline-flex;gap:6px}
+.dx .player[hidden]{display:none}
+.dx .now{font-size:13px;color:var(--ink2);min-height:1em;flex-basis:100%}
+.dx .start{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;gap:8px}
+.dx .start h2{font:600 20px/1.2 var(--serif);margin:0}
+.dx .start p{margin:0;color:var(--ink2);font-size:14px}
+.dx .startlist{display:flex;flex-wrap:wrap;gap:8px}
+.dx .startlist button{font:14px/1.3 var(--sans);text-align:left;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:7px 11px;cursor:pointer}
+.dx .startlist span{font:11px ui-monospace,Menlo,Consolas,monospace;color:var(--ink2);text-transform:uppercase;margin-right:6px}
+.stop{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between;
+  border-bottom:2px solid var(--ink);padding:16px 2px 6px;scroll-margin-top:150px}
+.stop h2{font:600 clamp(20px,5vw,26px)/1.2 var(--serif);margin:0}
+.stop .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--ink2);font-size:13px}
+.grid .dxe{grid-column:1/-1;padding:4px 4px 8px;margin:0}
+.card .hv{justify-self:start;font:700 12px/1 var(--sans);padding:5px 9px;border-radius:999px;background:var(--chip);color:var(--doser)}
+.card .hv.part{color:var(--ink2)}
+.card.reading{outline:3px solid var(--doser);outline-offset:2px}
 .chip{justify-self:start;font:700 11px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;padding:5px 8px;border-radius:6px;background:var(--chip)}
 .s-recipes .chip{color:var(--recipes)} .s-hormozi .chip{color:var(--hormozi)} .s-doser .chip{color:var(--doser)} .s-prompts .chip{color:var(--prompts)}
 .card .t{font:600 17px/1.3 var(--serif)}
@@ -462,6 +520,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   <p class="cnote">Reads your "I've done this" ticks and your Morning &amp; Evening notes from the last 30 days. About 1&ndash;2c a question, capped at US$1 a day.</p>
   <div id="cout" aria-live="polite"></div>
 </section>
+<div class="dx" id="dx" hidden></div>
 <p class="count" id="count" aria-live="polite"></p>
 <div class="grid" id="grid"></div>
 </div>
@@ -487,19 +546,26 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     var rows = ALL.filter(function(x){
       return (cur === "all" || x.src === cur) && (!low || (x.title + " " + x.desc + " " + x.label).toLowerCase().indexOf(low) >= 0);
     });
+    if(cur === "doser") rows = rows.filter(dxShow);   /* 23 Sep 2026: the Doser tab's own filters, on that tab only */
     document.getElementById("count").textContent = rows.length + (rows.length === 1 ? " recipe" : " recipes") + (term ? " match “" + term + "”" : "");
     stop(); shut();   // the rows are about to be thrown away, so nothing is playing or open any more
     SHOWN = rows;
-    document.getElementById("grid").innerHTML = rows.length ? rows.map(function(x, i){
+    /* 23 Sep 2026: on the Doser tab the cards sit under their stops, as they did on /workflows/ */
+    document.getElementById("grid").innerHTML = cur === "doser" ? dxGrid(rows, term) : rows.length ? rows.map(function(x, i){
+      return cardHTML(x, i, term);
+    }).join("") : '<p class="empty">Nothing matches. Try fewer words.</p>';
+    dxAfter();
+  }
+  function cardHTML(x, i, term){
       var pic = !x.thumb ? "" : (x.vid
         ? '<button type="button" class="th" data-v="' + esc(x.vid) + '" aria-label="Play the video for ' + esc(x.title) + '"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></button>'
         : '<div class="th"><img src="' + esc(x.thumb) + '" alt="" loading="lazy"></div>');
       return '<div class="card s-' + x.src + '" data-i="' + i + '">' + pic +
         '<a class="in" href="' + esc(x.href || "#") + '"><span class="chip">' + esc(NAME[x.src]) + (x.label && x.src !== "prompts" ? " · " + esc(x.label) : "") + '</span>' +
+        (cur === "doser" ? dxBadge(x) : "") +
         '<div class="t">' + mark(x.title, term) + '</div>' +
         (x.desc ? '<div class="d">' + mark(x.desc, term) + '</div>' : "") +
         (x.meta ? '<div class="l">' + esc(x.meta) + '</div>' : (x.listen ? '<div class="l">🎙 Natural voice</div>' : "")) + '</a></div>';
-    }).join("") : '<p class="empty">Nothing matches. Try fewer words.</p>';
   }
   /* 19 Sep, her "there is nothing, no video engraved in it": tapping a card's picture plays the video in
      that picture, the way the recipe pages already play theirs. One at a time - starting another, changing
@@ -518,6 +584,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     if(!AU){ AU = new Audio(); AU.preload = "auto"; AU.addEventListener("ended", hush); }
     if(AUBTN !== btn){ hush(); AU.src = src; }
     AUBTN = btn; stop();
+    if(RD.playing && !RD.paused) dxPause();
     btn.textContent = "\u275A\u275A Pause";
     AU.play().catch(function(){ btn.textContent = "Did not play - tap again"; AUBTN = null; });
   }
@@ -529,6 +596,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   function play(th){
     if(th === NOW) return;
     stop(); hush();
+    if(RD.playing && !RD.paused) dxPause();   /* one voice at a time: a video pauses the Doser reader, Resume carries on */
     th.dataset.pic = th.innerHTML;
     th.innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + encodeURIComponent(th.dataset.v) +
       '?autoplay=1&playsinline=1&rel=0' + (+th.dataset.s > 0 ? '&start=' + (+th.dataset.s) : '') +
@@ -617,6 +685,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     b.parentNode.querySelectorAll("button").forEach(function(x){ x.setAttribute("aria-pressed", String(x.dataset.a === now)); });
     var hv = P.el.querySelector("[data-have]");
     if(hv && P.card){ var t = haveText(haveState(k, P.card)); hv.textContent = t; hv.hidden = !t; }
+    dxRefresh(P);
   }
   function seek(P, id, s){   /* a moment starts the card's video at that second, in the panel's own player */
     var th = P.el.querySelector('.vids .th[data-v="' + id + '"]');
@@ -736,6 +805,247 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     };
     return function(card){ const f = DIA[(card.dia||{}).type] || DIA.flow; try { return f(card); } catch(e){ return DIA.flow(card); } };
   })();
+  /* 23 Sep 2026, her "then Workflows forwards to Recipes. Nothing is lost.": /workflows/' page-level features,
+     carried over for the Doser workflows tab only, from its own code - the journey map (drawMap), the filters
+     (visibleCards), the stop headings with "Listen to this stop" (render), "Start here" (drawStart) and the
+     natural-voice reader behind "Listen to all shown" (speakCards). Its saved keys are kept as they were:
+     hmr-checks (her answers), hmr-rate (speed), speak.nvoice (voice) and hmr-last (the card she last heard). */
+  var DXFIT = ALL.some(function(x){ return x.src === "doser" && x.fit; });   /* /workflows/' has_fit: false on 23 Sep, so the fit menu stays hidden, as it was there */
+  var dxHide = false, dxRep = false, dxFitMode = DXFIT ? "fits" : "all", DXB = false;
+  var RD = {list: [], idx: 0, lines: [], playing: false, paused: false, wake: null};
+  function dxState(x){ return haveState(x.k, {checks: {length: +x.nq || 0}}); }
+  function dxFits(x){ return !DXFIT || x.fit === "now" || x.fit === "adapt"; }
+  function dxShow(x){   /* /workflows/' visibleCards, less the words, which this page's own search box already does */
+    if(dxHide && dxState(x) === "have") return false;
+    if(dxRep && (+x.ns || 0) < 2) return false;
+    if(dxFitMode === "fits" && !dxFits(x)) return false;
+    if(dxFitMode === "start" && !x.st) return false;
+    if(dxFitMode === "later" && x.fit !== "later") return false;
+    if(dxFitMode === "no" && x.fit !== "no") return false;
+    return true;
+  }
+  function dxTopics(){   /* the stops, in the order the source lists them - the cards arrive in that order */
+    var out = [], at = {};
+    ALL.forEach(function(x){
+      if(x.src !== "doser") return;
+      if(!(x.label in at)){ at[x.label] = out.length; out.push({name: x.label, items: []}); }
+      out[at[x.label]].items.push(x);
+    });
+    return out;
+  }
+  function dxBadge(x){
+    if(!x.nq) return "";
+    var st = dxState(x);
+    return st === "have" ? '<span class="hv">✓ already doing</span>' : st === "partly" ? '<span class="hv part">partly doing</span>' : "";
+  }
+  function dxMeta(t){ return t.items.filter(function(x){ return dxFits(x) && dxState(x) === "have"; }).length + " already doing"; }
+  function dxGrid(rows, term){
+    return dxTopics().map(function(t, ti){
+      var vis = rows.filter(function(x){ return x.label === t.name; });
+      return '<div class="stop" id="stop-' + ti + '"><h2>' + (ti + 1) + '. ' + esc(t.name) + '</h2><span class="meta"><span>' + vis.length + ' of ' + t.items.length +
+        ' shown · <span data-sh="' + ti + '">' + dxMeta(t) + '</span></span><button type="button" class="dbtn ghost playtopic" data-t="' + ti + '">▶ Listen to this stop</button></span></div>' +
+        (vis.length ? vis.map(function(x){ return cardHTML(x, SHOWN.indexOf(x), term); }).join("") : '<p class="dxe empty">Nothing here matches.</p>');
+    }).join("");
+  }
+  function dxMap(){   /* /workflows/' drawMap: one box per stop, how many it holds, and a green bar for the ones she already does */
+    const T = dxTopics(), n = T.length, W = 1120, H = 150, gap = W/n, parts = [];
+    T.forEach((t,i)=>{
+      const x = i*gap + 8, w = gap - 30, y = 20;
+      const fit = t.items.filter(dxFits), total = fit.length, have = fit.filter(c=>dxState(c)==='have').length;
+      if (i < n-1) parts.push(`<path class="arr" d="M${x+w+2} ${y+52} H${x+gap-6}"/><path class="ah" d="M${x+gap-6} ${y+46} L${x+gap+2} ${y+52} L${x+gap-6} ${y+58}z"/>`);
+      const frac = total ? have/total : 0, bw = w-24;
+      parts.push(`<g class="st" tabindex="0" role="link" data-go="${i}" aria-label="${esc(t.name)}: ${total} recipes for your shop now, ${have} already doing">
+        <rect class="box" x="${x}" y="${y}" width="${w}" height="104" rx="12"/>
+        <text class="sub" x="${x+12}" y="${y+18}">STOP ${i+1}</text>
+        <text class="num" x="${x+12}" y="${y+50}">${total}</text>
+        <text class="nm" x="${x+12}" y="${y+72}">${esc(t.name.replace(' & referrals',''))}</text>
+        <rect class="track" x="${x+12}" y="${y+84}" width="${bw}" height="6" rx="3"/>
+        <rect class="done" x="${x+12}" y="${y+84}" width="${Math.max(0,bw*frac)}" height="6" rx="3"/>
+      </g>`);
+    });
+    parts.push(`<text class="sub" x="8" y="12">STRANGER</text><text class="sub" x="${W-8}" y="12" text-anchor="end">CUSTOMER WHO COMES BACK</text>`);
+    document.getElementById("dxmap").innerHTML = `<svg viewBox="0 0 ${W} ${H}">${parts.join('')}</svg>`;
+  }
+  function dxStart(){   /* /workflows/' drawStart: only when the source marks what fits her shop, which it does not on 23 Sep */
+    var el = document.getElementById("dxstart"), picks = DXFIT ? ALL.filter(function(x){ return x.src === "doser" && x.st; }) : [];
+    el.innerHTML = !picks.length ? "" : '<section class="start" aria-labelledby="dxsh"><p class="hint">For a shop with no sales yet</p><h2 id="dxsh">Start here: ' + picks.length +
+      ' recipes</h2><p>The ones most likely to bring your first buyers, in customer order. Tap one to open it.</p><div class="startlist">' +
+      picks.map(function(x){ return '<button type="button" data-k="' + esc(x.k) + '"><span>' + esc(x.label.replace(" & referrals", "")) + '</span>' + esc(x.title) + '</button>'; }).join("") + '</div></section>';
+  }
+  function dxOpen(k){
+    var x = ALL.filter(function(r){ return r.src === "doser" && String(r.k) === k; })[0], i = SHOWN.indexOf(x);
+    var card = i >= 0 ? document.querySelector('.card[data-i="' + i + '"]') : null;
+    if(!card) return;
+    card.scrollIntoView({block:"start"});
+    if(!(PANEL && PANEL.row === x)) show(card, x);
+  }
+  function dxGo(i){ var h = document.getElementById("stop-" + i); if(h) h.scrollIntoView({behavior:"smooth", block:"start"}); }
+  var NVOICES = [["aoede","Aoede"],["achernar","Achernar"],["kore","Kore"],["charon","Charon"],["puck","Puck"]];
+  function dxBuild(){
+    if(DXB) return;
+    DXB = true;
+    var rates = ["0.9","1","1.15","1.3","1.5","1.75","2","2.5","3"], rate = "1.5", nv = nvVoice();   /* 1.5x to start, her 15 Sep ask */
+    try { var v = localStorage.getItem("hmr-rate"); if(v && rates.indexOf(v) >= 0) rate = v; } catch(e){}
+    var fits = [["fits","For my shop now"],["start","Start here"],["later","Later, once I have sales"],["no","Not for my shop"],["all","All recipes"]];
+    var dx = document.getElementById("dx");
+    dx.innerHTML = '<div class="map" id="dxmap" role="navigation" aria-label="Stops in customer order"></div>' +
+      '<p class="hint">Green bar: workflows you&#39;ve marked as already doing. Tap a stop to jump to it.</p>' +
+      '<div id="dxstart"></div>' +
+      '<div class="ctl">' +
+        '<select id="dxfit" aria-label="Which recipes to show"' + (DXFIT ? "" : " hidden") + '>' + fits.map(function(f){
+          return '<option value="' + f[0] + '"' + (f[0] === dxFitMode ? " selected" : "") + '>' + f[1] + '</option>'; }).join("") + '</select>' +
+        '<button type="button" class="fchip" id="dxrep" aria-pressed="false">Only ones he repeats</button>' +
+        '<button type="button" class="fchip" id="dxtodo" aria-pressed="false">Hide what I already do</button>' +
+        '<span class="voice"><button type="button" class="dbtn" id="dxall">▶ Listen to all shown</button>' +
+          '<span class="player" id="dxplayer" hidden><button type="button" class="dbtn ghost" id="dxprev" aria-label="Previous recipe">⏮</button>' +
+          '<button type="button" class="dbtn ghost" id="dxpause">Pause</button><button type="button" class="dbtn ghost" id="dxnext" aria-label="Next recipe">⏭</button>' +
+          '<button type="button" class="dbtn ghost" id="dxstop">Stop</button></span>' +
+          '<select id="dxvoice" aria-label="Voice">' + NVOICES.map(function(o){ return '<option value="' + o[0] + '"' + (o[0] === nv ? " selected" : "") + '>' + o[1] + ' (natural)</option>'; }).join("") + '</select>' +
+          '<select id="dxrate" aria-label="Speed">' + rates.map(function(r){ return '<option value="' + r + '"' + (r === rate ? " selected" : "") + '>' + r + '×</option>'; }).join("") + '</select></span>' +
+        '<div class="now" id="dxnow" aria-live="polite"></div>' +
+      '</div>';
+    dx.addEventListener("click", function(e){
+      var g = e.target.closest(".st"); if(g){ dxGo(+g.dataset.go); return; }
+      var sb = e.target.closest(".startlist button"); if(sb){ dxOpen(sb.dataset.k); return; }
+      var b = e.target.closest("button"); if(!b) return;
+      if(b.id === "dxrep"){ dxRep = !dxRep; b.setAttribute("aria-pressed", String(dxRep)); draw(); }
+      else if(b.id === "dxtodo"){ dxHide = !dxHide; b.setAttribute("aria-pressed", String(dxHide)); draw(); }
+      else if(b.id === "dxall") dxSpeak(SHOWN.slice(), true);
+      else if(b.id === "dxstop") dxStopAll();
+      else if(b.id === "dxpause") dxPause();
+      else if((b.id === "dxnext" || b.id === "dxprev") && RD.playing){
+        nvStop(); RD.paused = false; document.getElementById("dxpause").textContent = "Pause";
+        dxCard(b.id === "dxnext" ? RD.idx + 1 : Math.max(0, RD.idx - 1));
+      }
+    });
+    dx.addEventListener("keydown", function(e){
+      var g = e.target.closest && e.target.closest(".st");
+      if(g && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); dxGo(+g.dataset.go); }
+    });
+    dx.addEventListener("change", function(e){
+      if(e.target.id === "dxfit"){ dxFitMode = e.target.value; draw(); }
+      else if(e.target.id === "dxvoice"){ try { localStorage.setItem("speak.nvoice", e.target.value); } catch(err){} }
+      else if(e.target.id === "dxrate"){ try { localStorage.setItem("hmr-rate", e.target.value); } catch(err){} }
+    });
+  }
+  function dxAfter(){   /* after every draw: the Doser block shows on the Doser tab only, and leaving the tab stops the reader */
+    var dx = document.getElementById("dx");
+    if(cur !== "doser"){ dx.hidden = true; if(RD.playing) dxStopAll(); return; }
+    dxBuild(); dx.hidden = false; dxMap(); dxStart(); dxMark(false);
+  }
+  function dxRefresh(P){   /* a Yes / No / Not for me in an open card updates its badge, the map and the stop counts at once */
+    if(cur !== "doser" || !P || P.row.src !== "doser") return;
+    var cardEl = P.el.previousElementSibling, inn = cardEl && cardEl.querySelector("a.in");
+    if(inn){
+      var old = inn.querySelector(".hv"); if(old) old.parentNode.removeChild(old);
+      var h = dxBadge(P.row); if(h) inn.querySelector(".chip").insertAdjacentHTML("afterend", h);
+    }
+    dxMap();
+    dxTopics().forEach(function(t, ti){ var s = document.querySelector('[data-sh="' + ti + '"]'); if(s) s.textContent = dxMeta(t); });
+  }
+  /* the reader: /workflows/' natural-voice card player, unchanged but for where it finds the cards */
+  var NV_URL = "https://apps-notion-relay.apps-notion-relay.workers.dev/tts";
+  var nvAudio = null, nvToken = 0, nvCache = {};
+  function nvPass(){ try { var raw = localStorage.getItem("notionSync.pass"); if(!raw) return null;
+    try { var p = JSON.parse(raw); if(typeof p === "string" && p) return p; } catch(e){}
+    return raw[0] !== "{" && raw[0] !== "[" ? raw : null; } catch(e){ return null; } }
+  function nvVoice(){ try { return localStorage.getItem("speak.nvoice") || "aoede"; } catch(e){ return "aoede"; } }
+  function nvClip(text){
+    var k = nvVoice() + "|" + text; if(nvCache[k]) return nvCache[k];
+    var pw = nvPass();
+    if(!pw) return Promise.reject(new Error("The natural voice needs this device connected once - tap Connect to Notion."));
+    var pr = fetch(NV_URL, {method:"POST", headers:{"Content-Type":"application/json", "X-Pass": pw}, body: JSON.stringify({text: text, voice: nvVoice()})})
+      .then(function(r){ return r.ok ? r.blob() : r.json().catch(function(){ return {}; }).then(function(j){ throw new Error(j.error || "The natural voice could not be reached just now."); }); })
+      .then(function(b){ return URL.createObjectURL(b); });
+    pr.catch(function(){ delete nvCache[k]; }); nvCache[k] = pr; return pr;
+  }
+  function nvStop(){ nvToken++; try { if(nvAudio){ nvAudio.onended = null; nvAudio.pause(); } } catch(e){} try { window.speechSynthesis && speechSynthesis.cancel(); } catch(e){} }
+  function nvTake(){   /* the next lines of this card, joined up to 1,400 characters */
+    var t = ""; while(RD.lines.length && (t + " " + RD.lines[0]).length <= 1400) t += (t ? " " : "") + RD.lines.shift();
+    if(!t && RD.lines.length) t = RD.lines.shift().slice(0, 1400);
+    return t;
+  }
+  function scriptFor(c){   /* what a card says aloud - "Ask yourself" and its questions come last, as on /workflows/ */
+    var parts = [c.title + ".", "What it can get you: " + c.gets];
+    if(c.fit === "no") parts.push("Not for your shop. " + c.why);
+    else if(c.fit === "later") parts.push("Later, once you have sales. " + c.why);
+    if(c.shop) parts.push("For your Etsy shop: " + c.shop);
+    if(c.watch) parts.push("Watch for: " + c.watch);
+    if(c.rule) parts.push("Rules: " + c.rule);
+    parts.push("In his words: " + c.claim + ".", "How to do it.");
+    (c.steps || []).forEach(function(s, i){ parts.push("Step " + (i + 1) + ". " + s.do); });
+    if(c.warn) parts.push("Watch out. In his words: " + c.warn + ".");
+    if((c.checks || []).length) parts.push("Ask yourself. " + c.checks.join(" "));
+    return parts;
+  }
+  function dxWake(on){
+    try {
+      if(on && "wakeLock" in navigator && !RD.wake){ navigator.wakeLock.request("screen").then(function(w){ RD.wake = w; w.addEventListener("release", function(){ RD.wake = null; }); }).catch(function(){}); }
+      if(!on && RD.wake){ RD.wake.release(); RD.wake = null; }
+    } catch(e){}
+  }
+  document.addEventListener("visibilitychange", function(){ if(RD.playing && document.visibilityState === "visible") dxWake(true); });
+  function dxSpeak(items, askResume){
+    if(!items.length) return;
+    var now = document.getElementById("dxnow");
+    load("doser").then(function(d){
+      var list = items.map(function(x){ return {x: x, c: pick(d, x)}; }).filter(function(p){ return p.c; });
+      if(!list.length) return;
+      var at = 0;
+      if(askResume){
+        var last = ""; try { last = localStorage.getItem("hmr-last") || ""; } catch(e){}
+        var j = list.findIndex(function(p){ return p.x.k === last; });
+        if(j > 0 && confirm("Carry on from the recipe you last listened to?")) at = j;
+      }
+      stop(); hush(); nvStop();
+      RD.list = list; RD.playing = true; RD.paused = false;
+      document.getElementById("dxplayer").hidden = false; document.getElementById("dxpause").textContent = "Pause";
+      dxWake(true); dxCard(at);
+    }).catch(function(){ now.textContent = "The workflows did not load. Check the connection and tap again."; });
+  }
+  function dxCard(i){
+    RD.idx = i; var p = RD.list[i]; if(!p){ dxStopAll(); return; }
+    RD.lines = ["Recipe " + (i + 1) + " of " + RD.list.length + ". " + (p.x.label ? p.x.label + "." : "")].concat(scriptFor(p.c));
+    try { localStorage.setItem("hmr-last", p.x.k); } catch(e){}
+    dxMark(true);
+    document.getElementById("dxnow").textContent = "Reading " + (i + 1) + " of " + RD.list.length + ": " + p.c.title;
+    dxLine();
+  }
+  function dxMark(scroll){   /* the card being read is outlined, and brought into view */
+    document.querySelectorAll(".card.reading").forEach(function(el){ el.classList.remove("reading"); });
+    var p = RD.playing && RD.list[RD.idx]; if(!p) return;
+    var i = SHOWN.indexOf(p.x), el = i >= 0 ? document.querySelector('.card[data-i="' + i + '"]') : null;
+    if(!el) return;
+    el.classList.add("reading");
+    var r = el.getBoundingClientRect();
+    if(scroll && !(r.top >= 0 && r.top < innerHeight * 0.6)) el.scrollIntoView({behavior:"smooth", block:"center"});
+  }
+  function dxLine(){
+    if(!RD.playing || RD.paused) return;
+    if(!RD.lines.length){ dxCard(RD.idx + 1); return; }
+    var text = nvTake(), tok = ++nvToken;
+    nvClip(text).then(function(url){
+      if(tok !== nvToken || !RD.playing || RD.paused) return;
+      if(!nvAudio){ nvAudio = new Audio(); nvAudio.setAttribute("playsinline", ""); }
+      nvAudio.src = url; nvAudio.playbackRate = +document.getElementById("dxrate").value || 1;
+      nvAudio.onended = function(){ if(tok === nvToken) dxLine(); };
+      nvAudio.play().catch(function(){ if(tok !== nvToken) return; RD.paused = true; document.getElementById("dxpause").textContent = "Resume"; document.getElementById("dxnow").textContent = "Tap Resume to start reading."; });
+      var ahead = RD.lines.slice(0), nx = ""; while(ahead.length && (nx + " " + ahead[0]).length <= 1400) nx += (nx ? " " : "") + ahead.shift();
+      if(nx) nvClip(nx).catch(function(){});
+    }, function(e){ if(tok !== nvToken) return; dxStopAll(); document.getElementById("dxnow").textContent = e.message; });
+  }
+  function dxPause(){
+    if(!RD.playing) return;
+    var b = document.getElementById("dxpause");
+    if(!RD.paused){ RD.paused = true; nvStop(); RD.lines.unshift("Recipe " + (RD.idx + 1) + "."); b.textContent = "Resume"; }
+    else { RD.paused = false; b.textContent = "Pause"; dxCard(RD.idx); }
+  }
+  function dxStopAll(){
+    RD.playing = false; RD.paused = false; RD.lines = []; nvStop(); dxWake(false);
+    var pl = document.getElementById("dxplayer"); if(pl) pl.hidden = true;
+    var nw = document.getElementById("dxnow"); if(nw) nw.textContent = "";
+    document.querySelectorAll(".card.reading").forEach(function(el){ el.classList.remove("reading"); });
+  }
   function body(x, c){
     var foot = '<div class="row"><button type="button" class="btn close">Close</button></div>';
     var lis = x.a ? '<div class="row"><button type="button" class="btn listen">\u25B6 Listen</button></div>' : "";
@@ -766,6 +1076,8 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
     /* 23 Sep 2026: the Doser card's own features from /workflows/ - a card without them draws as before */
     var have = c.checks && c.checks.length ? haveText(haveState(x.k, c)) : null;
     var mo = moments(c), v0 = (c.src || [])[0];
+    /* 23 Sep 2026: /workflows/ gave each of a card's other videos a "Start" of its own; here they play in the panel */
+    var more = x.src === "doser" ? (c.src || []).slice(1).filter(function(v){ return v.id; }) : [];
     return '<h2>' + esc(c.title) + '</h2>' +
       (have === null ? "" : '<span class="have" data-have' + (have ? "" : " hidden") + '>' + esc(have) + '</span>') + lis +
       (c.gets ? '<p><b>What it can get you:</b> ' + esc(c.gets) + '</p>' : "") +
@@ -776,9 +1088,11 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
       (c.warn ? '<div><span class="label">Watch out</span><p><q>' + esc(c.warn) + '</q>' + tbtn(c.warn_t, "watch out") + '</p></div>' : "") +
       (c.dia ? '<div><span class="label">At a glance</span><div class="dia">' + DIAGRAM(c) + '</div></div>' : "") +
       (c.checks && c.checks.length ? '<div><span class="label">Ask yourself: already doing this?</span><div class="check">' + checksHTML(x.k, c) + '</div></div>' : "") +
-      (mo.length ? '<div><span class="label">Play from this moment</span><div class="moments">' + mo.map(function(p){
+      (mo.length || more.length ? '<div><span class="label">Play from this moment</span>' + (mo.length ? '<div class="moments">' + mo.map(function(p){
         return '<button type="button" class="vp" data-v="' + esc(v0.id) + '" data-s="' + p[0] + '" aria-label="Play ' + esc(p[1]) + ' at ' + mmss(p[0]) + '">▶ ' + mmss(p[0]) + ' ' + esc(p[1]) + '</button>';
-      }).join("") + '</div></div>' : "") +
+      }).join("") + '</div>' : "") + (more.length ? '<div class="vstart">' + more.map(function(v){
+        return '<div><button type="button" class="vp" data-v="' + esc(v.id) + '" data-s="0" aria-label="Play ' + esc(v.title || "video") + ' from the start">▶ Start</button><span>' + esc(v.title || "video") + '</span></div>';
+      }).join("") + '</div>' : "") + '</div>' : "") +
       (vids ? '<div><span class="label">From</span><div class="vids">' + vids + '</div></div>' : "") + foot;
   }
   function shut(){
@@ -809,6 +1123,8 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   }
   document.getElementById("grid").addEventListener("click", function(e){
     if(e.target.closest(".th .x")){ stop(); return; }
+    var pt = e.target.closest(".stop .playtopic");   /* "Listen to this stop": the cards of that stop now showing */
+    if(pt){ var tp = dxTopics()[+pt.dataset.t]; if(tp) dxSpeak(tp.items.filter(function(x){ return SHOWN.indexOf(x) >= 0; }), false); return; }
     var th = e.target.closest("button.th[data-v]");
     if(th && !th.classList.contains("playing")){ delete th.dataset.s; play(th); return; }
     var mo = e.target.closest(".panel .vp, .panel .tm");
@@ -841,7 +1157,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   /* swipe left or right to change collection, like every other app (her 15 Sep "for every app ... the swipe") */
   var x0 = null, y0 = 0, t0 = 0;
   document.addEventListener("touchstart", function(e){
-    if(e.touches.length !== 1 || e.target.closest("input, .tabs")){ x0 = null; return; }
+    if(e.touches.length !== 1 || e.target.closest("input, .tabs, .dx .map")){ x0 = null; return; }   /* the map scrolls sideways */
     x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
   }, {passive:true});
   document.addEventListener("touchend", function(e){
