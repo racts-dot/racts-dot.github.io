@@ -93,7 +93,6 @@ a.moment .play{font-size:10px}
 .note b{color:var(--ink-2)}
 @media (prefers-reduced-motion:no-preference){a.moment{transition:border-color .15s}}
 </style>
-<script src="/textsize.js"></script><script src="/feedback.js" defer></script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 </head>
@@ -289,11 +288,7 @@ render("Etsy");
 })();
 </script>
 
-<script src="/speak.js" defer></script>
-<script src="../swipe.js" data-chips="#chips .chip" data-input="#q" defer></script>
 <!-- kept from the site page (site_tags.carry) -->
-<script src="/kit-dock.js?v=fold1" defer></script>
-<script src="../pull.js" defer></script>
-<script src="../hearsel.js" defer></script>
+<script src="../frame.js" data-app="출처 찾기" data-swipe-chips="#chips .chip" data-swipe-input="#q" data-omit="notion,marks" defer></script>
 </body>
 </html>

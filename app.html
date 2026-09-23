@@ -103,7 +103,7 @@ mark.sr{background:#ffe066;color:inherit;padding:0 1px;border-radius:2px}
 
 /* Aa text size (textsize.js), 16 Sep 2026: at the bigger sizes a select grows to its longest option; keep it on screen */
 html.ts-big .controls label,html.ts-big .controls select{max-width:calc(100vw - 48px)}
-</style><script src="textsize.js"></script><script src="feedback.js" defer></script></head><body><div class=wrap>
+</style></head><body><div class=wrap>
 <div class=hdrow><h1>June Sales Tracker</h1><div class=hbtns><button class=hbtn onclick="doRefresh()">&#8635; Refresh</button><button class=hbtn onclick="doPDF()">&#128196; PDF</button><button class=hbtn onclick="doPrint()">&#128424;</button></div></div><div class=date>Stock · Tracker · eBay · Weekly · Summary · v11Aug-0940</div>
 <div class=tabbar>
  <button class="tabbtn on" onclick="show('stock',this)">Stock to sell</button>
@@ -827,7 +827,5 @@ populateWeeks();populateStockWeeks();applyTestMarks();applyView();(function(){va
   };
 })();
 </script>
-<script src="speak.js" defer></script>
-<script src="pull.js" defer></script><script src="hearsel.js" defer></script>
-<script src="kit-dock.js?v=fold1" defer></script>
+<script src="frame.js" data-app="Sales Tracker" data-omit="notion,marks,swipe" defer></script>
 </body></html>

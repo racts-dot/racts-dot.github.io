@@ -51,10 +51,7 @@ button:disabled{opacity:.4}
 .note-date{font-size:11px;color:var(--muted)}
 .note-text{white-space:pre-wrap;font-size:14px;line-height:1.55;word-break:break-word}
 </style>
-<script src="../textsize.js"></script><script src="../feedback.js" defer></script>
-<script src="../kit-dock.js?v=fold1" defer></script>
-<script src="../pull.js" defer></script><script src="../hearsel.js" defer></script>
-<script src="../swipe-hint.js" defer></script><!-- "Swipe <- -> to move", once. Her words, 21 Sep 2026: "do todo tripshare and notion reader too" -->
+<!-- "Swipe <- -> to move", once. Her words, 21 Sep 2026: "do todo tripshare and notion reader too" -->
 </head>
 <body>
 <div class="wrap">
@@ -196,6 +193,6 @@ refreshAll();
   document.addEventListener("touchcancel", function(){ x0 = null; }, {passive: true});
 })();
 </script>
-<script src="../speak.js" defer></script>
+<script src="../frame.js" data-app="To-Do &amp; Reflections" data-swipe="own" data-omit="notion,marks" defer></script>
 </body>
 </html>

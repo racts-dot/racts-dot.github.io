@@ -99,11 +99,10 @@
     .tabs button .sub{ display:none }
   }
 </style>
-<script src="../pull.js" defer></script><script src="../hearsel.js" defer></script>
 <!-- Swipe, 21 Sep 2026: this page is a three-tab shell, so a flick moves between the tabs.
      A flick that STARTS on the iframe cannot reach this document - that is the browser, not a
      bug - so it works on the header and the margins, which is where her thumb rests. -->
-<script src="../swipe.js" data-links="[role=tab]" defer></script>
+<script src="../frame.js" data-app="Ledgers" data-swipe-links="[role=tab]" data-omit="textsize,speak,feedback,notion,marks" defer></script>
 </head>
 <body>
 

@@ -574,10 +574,6 @@
   }
   @media (prefers-reduced-motion:reduce){ .big .sub .dot.beat{animation:none} .tile{transition:none} }
 </style>
-<script src="/textsize.js"></script>
-<script src="/speak.js" defer></script>
-<script src="/pull.js" defer></script><script src="../hearsel.js" defer></script>
-<script src="/swipe.js" defer data-sections="section.card, .group"></script>
 <!-- data-quiet: the password sheet never pops up on a new tab. The pad shows a Connect line instead. -->
 <script src="/notion-sync.js?v=20260920b" defer data-quiet></script>
 </head>
@@ -2513,7 +2509,6 @@
   $("refresh").addEventListener("click", pull);
 })();
 </script>
-<script src="/feedback.js" defer data-app="Start"></script>
-<script src="/kit-dock.js?v=fold1" defer></script>
+<script src="../frame.js" data-app="Start" data-swipe-sections="section.card, .group" data-notion="quiet" data-omit="notion,marks" defer></script>
 </body>
 </html>

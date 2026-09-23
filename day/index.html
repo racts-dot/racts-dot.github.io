@@ -130,9 +130,6 @@
   .ev .more[hidden]{display:none}
   .ev .more{padding-top:3px}
 </style>
-<script src="/textsize.js"></script>
-<script src="/speak.js" defer></script>
-<script src="/pull.js" defer></script><script src="../hearsel.js" defer></script>
 </head>
 <body>
 <button id="refresh" aria-label="Refresh now"></button>
@@ -417,9 +414,7 @@
     navigator.serviceWorker.register("/day/sw.js").catch(function(){}); });
 })();
 </script>
-<script src="/feedback.js" defer data-app="The Day"></script>
-<script src="/kit-dock.js?v=fold1" defer></script>
 <!-- Swipe, 21 Sep 2026: a real flick did NOTHING here. Move between the blocks of the page. -->
-<script src="/swipe.js" data-sections="section.score, .tiles, #lanes, #feed" defer></script>
+<script src="../frame.js" data-app="The Day" data-swipe-sections="section.score, .tiles, #lanes, #feed" data-omit="notion,marks" defer></script>
 </body>
 </html>

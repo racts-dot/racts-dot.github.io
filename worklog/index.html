@@ -270,9 +270,6 @@ html.ts-big .day .v{left:3px;right:3px;bottom:3px;white-space:nowrap;overflow:hi
 html.ts-big .tiles{grid-template-columns:repeat(auto-fit,minmax(calc(140px * var(--ts-scale)),1fr))}
 html.ts-big .yb{grid-template-columns:auto minmax(0,1fr) auto}
 </style>
-<script src="../textsize.js"></script><script src="../feedback.js" defer></script>
-<script src="../kit-dock.js?v=fold1" defer></script>
-<script src="../pull.js" defer></script><script src="../hearsel.js" defer></script>
 </head>
 <body>
 <div class="wrap">
@@ -1260,6 +1257,6 @@ $('pcfy').onclick = () => { clearSuggest(); flash('금액 확인됨 · amount co
   document.addEventListener("touchcancel", function(){ x0 = null; }, {passive: true});
 })();
 </script>
-<script src="../speak.js" defer></script>
+<script src="../frame.js" data-app="작업일지" data-omit="notion,marks,swipe" defer></script>
 </body>
 </html>
