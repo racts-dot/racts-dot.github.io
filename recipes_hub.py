@@ -488,6 +488,16 @@ html.ts-big .panel .yn{justify-self:start}
 .card .d{font-size:14px;color:var(--ink2)}
 .card .l{font-size:12px;color:var(--ink2)}
 .empty{color:var(--ink2);padding:24px 4px}
+/* 23 Sep 2026, her "then Workflows forwards to Recipes. Nothing is lost.": the Workflows page's own words - her goal
+   line and the intro at the front, "How this was made" and the caveats at the foot - on the Doser workflows tab only */
+.dxh{display:grid;gap:10px;margin:0 0 16px}
+.dxh[hidden],.dxf[hidden]{display:none}
+.dxh .label{display:block;margin-bottom:2px;font:11.5px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2)}
+.dxh .goal{max-width:64ch;color:var(--ink);font-size:19.5px;line-height:1.35;margin:0;font-weight:600}
+.dxh .lede{max-width:64ch;color:var(--ink2);font-size:17px;margin:0}
+.dxh .lede b{color:var(--ink)}
+.dxf{margin:46px 0 70px;padding-top:16px;border-top:1px solid var(--line);font-size:14px;color:var(--ink2);max-width:78ch}
+.dxf b{color:var(--ink)}
 mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
 .coach{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 16px;display:grid;gap:8px}
 .coach label{font:700 13px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
@@ -513,6 +523,12 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   <input id="q" type="search" placeholder="Search every recipe and prompt" autocomplete="off" aria-label="Search every recipe and prompt">
   <div class="tabs" role="group" aria-label="Collections" id="tabs"></div>
 </div>
+<!-- 20 Sep 2026, her words: "So the terminal of how the goal will be should be at the front." It was the first thing
+     on /workflows/ under its title; since 23 Sep that page forwards here, so it is the first thing on the Doser tab. -->
+<div class="dxh" id="dxhead" hidden>
+  <p class="goal"><span class="label">Where this ends up</span>A stranger becomes a customer who comes back. Every stop below is one leg of that trip, in the order a buyer meets them.</p>
+  <p class="lede">How to do each thing, step by step, starting with what acts on your own listings. Begin at stop 1; the automation stops come last on purpose. <b>His words are shown as he said them</b>, matched to the video captions, with a link to the exact second. Tick <b>Already doing this?</b> and the map shows what's left.</p>
+</div>
 <section class="coach" aria-label="Ask the coach">
   <label for="cq">Ask the coach</label>
   <div class="cq"><textarea id="cq" rows="2" placeholder="e.g. What do I need to go through to learn Claude Code for my shop?"></textarea>
@@ -523,6 +539,9 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
 <div class="dx" id="dx" hidden></div>
 <p class="count" id="count" aria-live="polite"></p>
 <div class="grid" id="grid"></div>
+<footer class="dxf" id="dxfoot" hidden>__DXMADE__<p><b>What is his and what isn't.</b> Words in quotation marks and highlights are his, matched word for word to the captions; the ▶ link opens the video at that second. Captions are machine-made, so a word he said can be misheard in them. Titles, steps, "What it can get you", the diagrams, the check questions and everything about your shop are written by the AI, not his words. A step marked <i>AI step, not his words</i> is not supported by the quote beside it.</p>
+
+<p><b>Private.</b> His words are here for your own learning, not to republish or sell. The read-aloud uses your device's built-in voice, and your Yes/No answers are saved in this browser and copied to your Notion once this device is connected (the Connect to Notion button).</p></footer>
 </div>
 <script id="hub" type="application/json">__DATA__</script>
 <script>
@@ -930,6 +949,7 @@ mark{background:rgba(224,138,78,.28);color:inherit;border-radius:3px}
   }
   function dxAfter(){   /* after every draw: the Doser block shows on the Doser tab only, and leaving the tab stops the reader */
     var dx = document.getElementById("dx");
+    document.getElementById("dxhead").hidden = document.getElementById("dxfoot").hidden = cur !== "doser";
     if(cur !== "doser"){ dx.hidden = true; if(RD.playing) dxStopAll(); return; }
     dxBuild(); dx.hidden = false; dxMap(); dxStart(); dxMark(false);
   }
@@ -1258,6 +1278,33 @@ def coach_catalogue():
     return len(out)
 
 
+# 23 Sep 2026: /workflows/' "How this was made", word for word; the two numbers came from its data blob
+# (n_videos_used, n_recipes: 62 and 109 on main that day)
+MADE = ("<p><b>How this was made.</b> %d of Ryan Doser's AI marketing videos were read in full from their caption files by "
+        "Gemini 3.1 Pro, which pulled out each method as steps. %d recipes came out; ones teaching the same method were "
+        "grouped, and the clearest version is shown, with the other videos listed under it.</p>\n")
+
+
+def doser_made(text):
+    """The "How this was made" paragraph for the Doser tab, with the counts from wherever they still are.
+
+    The Doser source when the publisher hands it over; else /workflows/ while it is a real page; else the
+    numbers this page already shows, so a plain rebuild keeps them. Only when none of those has them is the
+    paragraph left out - a count this script cannot read is never made up.
+    """
+    d = data_blob(None, text) if text is not None else (
+        data_blob(SITE / "workflows" / "index.html") if (SITE / "workflows" / "index.html").exists() else None)
+    if d and isinstance(d.get("n_videos_used"), int) and isinstance(d.get("n_recipes"), int):
+        return MADE % (d["n_videos_used"], d["n_recipes"])
+    home = SITE / "recipes" / "index.html"
+    rx = re.escape(MADE).replace("%d", r"(\d+)")
+    m = re.search(rx, home.read_text(encoding="utf-8")) if home.exists() else None
+    if m:
+        return MADE % (int(m.group(1)), int(m.group(2)))
+    print("  WARNING: no Doser video/recipe counts found; the Doser tab's \"How this was made\" paragraph is left out")
+    return ""
+
+
 def keep_cache_bust(new_html, old_html):
     """Keep a ?v=... that somebody put on a kit script tag in the built page.
 
@@ -1285,7 +1332,8 @@ def main(sources=None):
              + topic_cards("workflows", "doser", "Doser", dose) + prompts(prom))
     blob = json.dumps(items, ensure_ascii=False).replace("</", "<\\/")
     home = SITE / "recipes" / "index.html"
-    page = PAGE.replace("__DATA__", blob).replace("__LOCAL__", json.dumps(mine, ensure_ascii=False))
+    page = (PAGE.replace("__DATA__", blob).replace("__LOCAL__", json.dumps(mine, ensure_ascii=False))
+            .replace("__DXMADE__", doser_made(sources.get("workflows"))))
     if home.exists():
         page = keep_cache_bust(page, home.read_text(encoding="utf-8"))
         import site_tags   # 23 Sep 2026: keep kit pieces added on the site (marks.js, the dock) - see site_tags.py
