@@ -4322,11 +4322,16 @@ connect();
 
 <script>
 /* Actively remove the old offline worker rather than waiting for it to notice.
-   It was intercepting audio byte ranges and serving stale pages. */
+   It was intercepting audio byte ranges and serving stale pages.
+   23 Sep 2026: this used to unregister EVERY worker on the site and delete EVERY cache, and all
+   the apps on racts-dot.github.io share one store - so each time the Desk opened, every other
+   app lost its offline copy. It now removes only the Desk's own worker (the one whose scope is
+   this page's folder, /desk/) and only the Desk's own caches (names starting "desk-"). */
 if("serviceWorker" in navigator){
+  const deskScope = new URL("./", location.href).href;
   navigator.serviceWorker.getRegistrations()
-    .then(rs => rs.forEach(r => r.unregister())).catch(()=>{});
-  if(window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))).catch(()=>{});
+    .then(rs => rs.forEach(r => { if(r.scope === deskScope) r.unregister(); })).catch(()=>{});
+  if(window.caches) caches.keys().then(ks => ks.forEach(k => { if(k.indexOf("desk-") === 0) caches.delete(k); })).catch(()=>{});
 }
 </script>
 <script>

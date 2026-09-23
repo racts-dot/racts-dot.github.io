@@ -32,7 +32,11 @@
    marks.js was already being served (fetch with a cache-buster returned it) while the OPEN
    page still drew the bar 216x56, because this cache serves it first. Bumping the version is
    what actually reaches a phone. */
-const CACHE = "rule-shelf-v10";
+/* v11, 23 Sep 2026: the activate step below deleted EVERY cache on the site that was not the
+   shelf's own - and every app on racts-dot.github.io shares one cache store, so installing the
+   shelf wiped the Daily Chapter, the Day and the others' offline copies. It now deletes only
+   old "rule-shelf-" caches. The version moves so phones fetch this corrected worker. */
+const CACHE = "rule-shelf-v11";
 const SHELL = [
   "./",
   "./index.html",
@@ -74,7 +78,7 @@ self.addEventListener("activate", function (event) {
   event.waitUntil(
     caches.keys().then(function (keys) {
       return Promise.all(keys.filter(function (k) {
-        return k !== CACHE;
+        return k.indexOf("rule-shelf-") === 0 && k !== CACHE;
       }).map(function (k) { return caches.delete(k); }));
     }).then(function () { return self.clients.claim(); })
   );

@@ -393,8 +393,12 @@
   /* ---------- Refresh (her 16 Sep: "Its got no refresh functionality") ----------
      An app saved to the Home Screen has no reload button. This loads the newest version:
        1. the page's service worker (only Daily Chapter has one) re-checks for an update, and a waiting worker is told to take over;
-       2. if a service worker controls this page, the Cache Storage copies on this site are deleted (offline copies of the
-          app's files and of fetched chapters - never her entries);
+       2. if a service worker controls this page, the Cache Storage copies belonging to THIS app are deleted (offline
+          copies of the app's files and of fetched chapters - never her entries). Every app on the site shares one cache
+          store, so "this app's" means: a cache holding at least one page or file under the controlling worker's scope
+          (e.g. /rules/ or /daily-chapter/). A cache holding nothing under that folder belongs to another app and is kept.
+          If the scope is the whole site ("/"), every cache would match, so nothing is deleted (23 Sep 2026: it used to
+          delete every cache on the site, which wiped the other apps' offline copies);
        3. the page and its own scripts and style sheets are fetched again past the browser cache;
        4. the page reloads.
      It never touches localStorage, sessionStorage, IndexedDB or cookies, so saved entries, settings and Notion queues stay. */
@@ -426,7 +430,21 @@
     });
     settle(step1, 6000).then(function () {
       if (!(sw && sw.controller) || !window.caches) return;
-      return settle(caches.keys().then(function (keys) { return Promise.all(keys.map(function (k) { return caches.delete(k); })); }), 2000);
+      return settle(sw.getRegistration().then(function (reg) {
+        var scope = new URL(reg ? reg.scope : "./", location.href).pathname;
+        if (scope.charAt(scope.length - 1) !== "/") scope = scope.replace(/[^\/]*$/, "");
+        if (scope === "/") return;                                     // whole-site scope: cannot tell this app's caches apart
+        function mine(r) {
+          try { var u = new URL(r.url); return u.origin === location.origin && (u.pathname === scope.slice(0, -1) || u.pathname.indexOf(scope) === 0); } catch (e) { return false; }
+        }
+        return caches.keys().then(function (keys) {
+          return Promise.all(keys.map(function (k) {
+            return caches.open(k).then(function (c) { return c.keys(); }).then(function (reqs) {
+              if (reqs.some(mine)) return caches.delete(k);
+            });
+          }));
+        });
+      }), 2000);
     }).then(function () {
       var urls = [location.href.split("#")[0]], seen = {};
       Array.prototype.forEach.call(D.querySelectorAll("script[src],link[rel~=stylesheet][href],link[rel=manifest][href]"), function (el) {
