@@ -106,7 +106,7 @@ const prop=pid=>S.properties.find(p=>p.id===pid)||{};
 const isCo=()=>S.mode==='cohost';
 const managed=p=>isCo()&&!!(p.owner||'').trim();
 const live=b=>!b.cancelled;
-const payout=b=>b.accommodation+b.cleaning-b.platformFee;
+const payout=b=>b.accommodation+b.cleaning-b.platformFee+(b.adjust||0);
 
 /* Split a booking's money across months by nights, so a stay over a month end lands in both. */
 function nightsInMonth(b,ym){let n=0,before=0;for(let x=b.checkin;x<b.checkout;x=addDays(x,1)){if(x.startsWith(ym))n++;else if(x<ym)before++}return{n,before}}
@@ -116,20 +116,21 @@ function monthFigures(pid,ym){
   const p=prop(pid);
   const rows=S.bookings.filter(b=>b.pid===pid).map(b=>{const{n,before}=nightsInMonth(b,ym),N=nights(b);if(!n)return null;
     const acc=share(b.accommodation,before,n,N),cl=share(b.cleaning,before,n,N),pf=share(b.platformFee,before,n,N);
-    return{b,n,acc,cl,pf,pay:acc+cl-pf}}).filter(Boolean).sort((a,b)=>a.b.checkin.localeCompare(b.b.checkin));
+    const adj=(b.adjust&&addDays(b.checkout,-1).startsWith(ym))?b.adjust:0;
+    return{b,n,acc,cl,pf,adj,pay:acc+cl-pf+adj}}).filter(Boolean).sort((a,b)=>a.b.checkin.localeCompare(b.b.checkin));
   const sum=(k,list=rows)=>list.reduce((a,r)=>a+r[k],0);
-  const acc=sum('acc'),cl=sum('cl'),pf=sum('pf'),pay=sum('pay'),n=sum('n',rows.filter(r=>live(r.b)));
+  const acc=sum('acc'),cl=sum('cl'),pf=sum('pf'),adj=sum('adj'),pay=sum('pay'),n=sum('n',rows.filter(r=>live(r.b)));
   const exp=S.expenses.filter(e=>e.pid===pid&&e.date.startsWith(ym)).sort((a,b)=>a.date.localeCompare(b.date));
   const expMine=exp.filter(e=>e.paidBy!=='owner'),expOwner=exp.filter(e=>e.paidBy==='owner');
   const expTotal=expMine.reduce((a,e)=>a+e.amount,0),expOwnerTotal=expOwner.reduce((a,e)=>a+e.amount,0);
   /* The fee uses the rate saved on each booking when it was entered, so changing a place's rate
      later never rewrites a month already sent. Bookings sharing a rate are rounded once together. */
   let mgmt=0;const groups={};
-  if(managed(p))rows.forEach(r=>{const rate=r.b.feeRate??p.feeRate??0,basis=r.b.feeBase??p.feeBase??'accommodation',k=rate+'|'+basis;groups[k]=(groups[k]||0)+(basis==='payout'?r.pay:r.acc)});
-  const feeLines=Object.entries(groups).map(([k,base])=>{const[rate,basis]=k.split('|');const fee=Math.round(base*parseFloat(rate)/100);mgmt+=fee;return{rate,basis,base,fee}});
-  const gst=managed(p)?Math.round(mgmt*(parseFloat(p.gstRate)||0)/100):0;
+  if(managed(p))rows.forEach(r=>{const rate=r.b.feeRate??p.feeRate??0,basis=r.b.feeBase??p.feeBase??'accommodation',g=r.b.gstRate??p.gstRate??0,k=rate+'|'+basis+'|'+g;groups[k]=(groups[k]||0)+(basis==='payout'?r.pay:r.acc)});
+  let gst=0;const gstRates=new Set();
+  const feeLines=Object.entries(groups).map(([k,base])=>{const[rate,basis,g]=k.split('|');const fee=Math.round(base*parseFloat(rate)/100);mgmt+=fee;const gg=Math.round(fee*(parseFloat(g)||0)/100);gst+=gg;if(gg)gstRates.add(g);return{rate,basis,base,fee}});
   const daysInMonth=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();
-  return{rows,acc,cl,pf,pay,n,exp,expMine,expOwner,expTotal,expOwnerTotal,mgmt,feeLines,gst,net:pay-mgmt-gst-expTotal,daysInMonth};
+  return{rows,acc,cl,pf,adj,gstRates:[...gstRates],pay,n,exp,expMine,expOwner,expTotal,expOwnerTotal,mgmt,feeLines,gst,net:pay-mgmt-gst-expTotal,daysInMonth};
 }
 
 /* ---------- guest message helper (fills templates; no AI, no cost) ---------- */
@@ -263,6 +264,7 @@ V.bookings=()=>{
   <div class="row"><label>Place<select id="bp">${propOpts(b.pid)}</select></label><label>Guest name<input id="bg" value="${esc(b.guest||'')}"></label></div>
   <div class="row"><label>Check-in<input id="bi" type="date" value="${esc(b.checkin||'')}"></label><label>Check-out<input id="bo" type="date" value="${esc(b.checkout||'')}"></label></div>
   <div class="row"><label>Nightly total (all nights)<input id="ba" inputmode="decimal" placeholder="0.00" value="${amt(b.accommodation)}"></label><label>Cleaning fee<input id="bc" inputmode="decimal" placeholder="0.00" value="${amt(b.cleaning)}"></label><label>Platform fee taken from you<input id="bf" inputmode="decimal" placeholder="0.00" value="${amt(b.platformFee)}"></label></div>
+  <div class="row"><label>Adjustment +/- (refund, resolution payment, damage claim)<input id="bj" inputmode="decimal" placeholder="0.00, or -50.00" value="${b.adjust?amt(b.adjust):''}"></label><label>Booking reference (optional)<input id="br" value="${esc(b.ref||'')}"></label></div>
   <label class="check"><input type="checkbox" id="bx" ${b.cancelled?'checked':''}> Cancelled, but money was still paid out (keeps the money, frees the dates)</label>
   <div class="actions"><button class="btn" id="badd">${editB?'Save changes':'Save booking'}</button>${editB?'<button class="btn ghost" id="bcancel">Cancel</button>':''}<span id="berr" class="bad"></span></div></div>
   <div class="card"><h2>All bookings</h2>${rows.length?`<div class="tablewrap"><table><tr><th>Place</th><th>Guest</th><th>Dates</th><th class="n">Nights</th><th class="n">Payout</th><th></th></tr>`+rows.map(b=>`<tr><td>${esc(prop(b.pid).name)}</td><td>${esc(b.guest)}${b.cancelled?' <span class="pill">cancelled, paid</span>':''}</td><td>${nice(b.checkin)} to ${nice(b.checkout)}</td><td class="n">${nights(b)}</td><td class="n">${money(payout(b))}</td><td><button class="btn small ghost" data-bed="${esc(b.id)}">Edit</button> <button class="btn small ghost" data-del="${esc(b.id)}">Remove</button></td></tr>`).join('')+'</table></div>':'<div class="empty">No bookings yet.</div>'}</div>`;
@@ -273,9 +275,11 @@ A.bookings=()=>{
     const vals={a:cents($('#ba').value),c:cents($('#bc').value),f:cents($('#bf').value)};
     const err=m=>{$('#berr').textContent=' '+m};
     if(vals.a===null)return err('Enter the nightly total (0 if none).');
-    if([vals.a,vals.c??0,vals.f??0].some(v=>v<0))return err('Amounts cannot be negative.');
+    if([vals.a,vals.c??0,vals.f??0].some(v=>v<0))return err('Amounts cannot be negative (use the adjustment box for a refund).');
+    const adjRaw=$('#bj').value.trim(),adj=adjRaw?cents(adjRaw):0;if(adj===null)return err('The adjustment is not a number.');
     const pid=$('#bp').value,p=prop(pid),old=S.bookings.find(x=>x.id===editB);
-    const bk={id:editB||id(),pid,guest:$('#bg').value.trim(),checkin:$('#bi').value,checkout:$('#bo').value,accommodation:vals.a,cleaning:vals.c??0,platformFee:vals.f??0,cancelled:$('#bx').checked,
+    const bk={id:editB||id(),pid,guest:$('#bg').value.trim(),checkin:$('#bi').value,checkout:$('#bo').value,accommodation:vals.a,cleaning:vals.c??0,platformFee:vals.f??0,adjust:adj,ref:$('#br').value.trim(),cancelled:$('#bx').checked,
+      gstRate:old&&old.pid===pid&&old.gstRate!=null?old.gstRate:(p.gstRate||0),
       feeRate:old&&old.pid===pid&&old.feeRate!=null?old.feeRate:(p.feeRate||0),feeBase:old&&old.pid===pid&&old.feeBase?old.feeBase:(p.feeBase||'accommodation')};
     if(!bk.checkin||!bk.checkout||bk.checkout<=bk.checkin)return err('Check-out must be after check-in.');
     const clash=!bk.cancelled&&S.bookings.find(x=>x.id!==bk.id&&live(x)&&x.pid===bk.pid&&x.checkin<bk.checkout&&x.checkout>bk.checkin);
@@ -317,23 +321,25 @@ V.money=()=>{
   if(!S.properties.length)return noPlaces();
   const who=S.properties.find(p=>(p.signoff||'').trim());
   const blocks=S.properties.map(p=>{const f=monthFigures(p.id,ymSel);const occ=Math.round(f.n/f.daysInMonth*100);const m=managed(p);
-    const bookingRows=f.rows.length?'<table><tr><th>Guest</th><th>Stay</th><th class="n">Nights</th><th class="n">Paid out</th></tr>'+f.rows.map(r=>`<tr><td>${esc(r.b.guest)}${r.b.cancelled?' (cancelled, paid)':''}</td><td>${nice(r.b.checkin)} to ${nice(r.b.checkout)}</td><td class="n">${r.n}${r.n<nights(r.b)?' of '+nights(r.b):''}</td><td class="n">${money(r.pay)}</td></tr>`).join('')+'</table>':'<div class="empty">No bookings this month.</div>';
+    const bookingRows=f.rows.length?'<table><tr><th>Guest</th><th>Stay</th><th class="n">Nights</th><th class="n">Paid out</th></tr>'+f.rows.map(r=>`<tr><td>${esc(r.b.guest)}${r.b.ref?' <span class="mute">'+esc(r.b.ref)+'</span>':''}${r.b.cancelled?' (cancelled, paid)':''}${r.adj?' (adjustment '+money(r.adj)+')':''}</td><td>${nice(r.b.checkin)} to ${nice(r.b.checkout)}</td><td class="n">${r.n}${r.n<nights(r.b)?' of '+nights(r.b):''}</td><td class="n">${money(r.pay)}</td></tr>`).join('')+'</table>':'<div class="empty">No bookings this month.</div>';
     const expRows=f.exp.length?'<table>'+f.exp.map(e=>`<tr><td>${nice(e.date)}</td><td>${esc(e.cat)}${e.what?' - '+esc(e.what):''}${e.paidBy==='owner'?' <span class="pill">paid by owner</span>':''}</td><td class="n">${money(e.amount)}</td></tr>`).join('')+'</table>':'<div class="empty">No expenses this month.</div>';
     return `<div class="card stmt" data-pid="${esc(p.id)}">
     <div class="stmt-head"><h2>${m?'Owner statement':'Monthly summary'} · ${esc(monthName(ymSel))}</h2><p class="mute">${m?'Prepared for '+esc(p.owner)+(who?' by '+esc(who.signoff):'')+' · ':''}issued ${nice(today())}</p></div>
     <h2>${esc(p.name)}${m?` <span class="mute">· for ${esc(p.owner)}</span>`:''}</h2>
-    <p class="mute">${f.n} nights booked of ${f.daysInMonth} (${occ}%) · a stay over a month end is split by nights</p>
+    <p class="mute">${f.n} nights booked of ${f.daysInMonth} (${occ}%)</p>
     <table>
     <tr><td>Nightly total</td><td class="n">${money(f.acc)}</td></tr>
     <tr><td>Cleaning fees collected</td><td class="n">${money(f.cl)}</td></tr>
     <tr><td>Platform fees</td><td class="n">-${money(f.pf)}</td></tr>
+    ${f.adj?`<tr><td>Adjustments (refunds, resolution payments)</td><td class="n">${money(f.adj)}</td></tr>`:''}
     <tr class="total"><td>Paid out by the platform</td><td class="n">${money(f.pay)}</td></tr>
     ${m?f.feeLines.map(l=>`<tr><td>Management fee (${esc(l.rate)}% of ${l.basis==='payout'?'payout':'nightly total'} ${money(l.base)})</td><td class="n">-${money(l.fee)}</td></tr>`).join('')||'<tr><td>Management fee</td><td class="n">-$0.00</td></tr>':''}
-    ${m&&f.gst?`<tr><td>GST on management fee (${esc(p.gstRate)}%)</td><td class="n">-${money(f.gst)}</td></tr>`:''}
+    ${m&&f.gst?`<tr><td>GST on management fee (${esc(f.gstRates.join('/'))}%)</td><td class="n">-${money(f.gst)}</td></tr>`:''}
     <tr><td>Expenses${m?' paid by '+(who?esc(who.signoff):'me'):''} (${f.expMine.length})</td><td class="n">-${money(f.expTotal)}</td></tr>
     <tr class="total"><td>${m?'Owed to the owner':'What you keep'}</td><td class="n">${money(f.net)}</td></tr></table>
     ${m&&f.expOwner.length?`<p class="mute">The owner also paid ${money(f.expOwnerTotal)} of expenses directly; listed below, not deducted.</p>`:''}
     <h3>Bookings</h3>${bookingRows}<h3>Expenses</h3>${expRows}
+    <p class="mute">How this is worked out: a stay's nightly total, cleaning fee and platform fee are split across months by the nights stayed in each; an adjustment counts in the month the stay ends; the management fee uses the rate saved on each booking. Figures come from the booking records, not from the bank.</p>
     <div class="actions noprint"><button class="btn ghost small" data-print="${esc(p.id)}">Print or save this one as PDF</button></div></div>`}).join('');
   return `<div class="card noprint"><div class="row"><label>Month<input id="ym" type="month" value="${ymSel}"></label></div>
   ${isCo()?'<p class="mute">Each place prints on its own, so one owner never sees another owner\'s figures. The fee uses the rate saved on each booking, so changing a rate later does not change past months. This assumes the platform pays you and you pay the owner. For a statement matched against the actual bank payouts, use Stay Ledger.</p>':''}</div>${blocks}`;
@@ -368,10 +374,10 @@ V.places=()=>{
   <label>Fee is taken from<select data-f="feeBase"><option value="accommodation" ${p.feeBase!=='payout'?'selected':''}>Nightly total</option><option value="payout" ${p.feeBase==='payout'?'selected':''}>Payout</option></select></label>${f('gstRate','GST on your fee %','0, or 10 if you are registered')}</div>
   <p class="mute">A new fee rate applies to bookings entered after the change. Bookings already entered keep their rate.</p>`:''}
   <div class="row">${f('inTime','Check-in from','3:00 pm')}${f('outTime','Check-out by','10:00 am')}${f('signoff','Your name (messages and statements)','Your first name')}</div>
-  <div class="row">${f('wifiName','Wifi name')}${f('wifiPass','Wifi password')}${f('entry','Entry details','Lockbox by the door, code 1234')}</div>
+  <div class="row">${f('wifiName','Wifi name')}${f('wifiPass','Wifi password')}${f('entry','Entry details','Lockbox by the door - code sent on the day')}</div>
   <div class="row">${f('parking','Parking')}</div>
   <label>Checkout steps (one per line)<textarea data-f="checkoutSteps" style="min-height:90px">${esc(p.checkoutSteps||'')}</textarea></label>
-  <p class="mute">Wifi and entry details are kept in this browser, and they are also inside any backup file you download - store that file somewhere private.</p>
+  <p class="warn">Do not save a live door code here yet. This app shares its web address with other apps, and they can read what this browser stores for it. Type the code into the check-in message instead. Wifi and entry details are also inside any backup file you download - store that file somewhere private.</p>
   <button class="btn" id="psave">${editing?'Save changes':'Add place'}</button> ${editing?'<button class="btn ghost" id="pcancel">Cancel</button>':''}</div>
   <div class="card"><h2>Your places</h2>${S.properties.length?'<table>'+S.properties.map(x=>`<tr><td>${esc(x.name)}</td><td class="mute">${isCo()?esc(x.owner||'your own'):esc(x.address||'')}</td><td><button class="btn small ghost" data-pe="${esc(x.id)}">Edit</button> <button class="btn small ghost" data-pd="${esc(x.id)}">Remove</button></td></tr>`).join('')+'</table>':'<div class="empty">None yet.</div>'}</div>`;
 };
