@@ -749,7 +749,7 @@
 
     <div class="zone" id="wdraw" data-zone="drawer" data-label="the drawer">
       <section class="card wg" data-w="day" id="today">
-        <h2>The day, streamed <a href="/day/" id="dayLink">open The Day →</a></h2>
+        <h2>The day, streamed <a href="/day/" id="dayLink" target="_blank" rel="noopener">open The Day →</a></h2>
         <ul id="events"><li class="empty">reading /day/stream.json…</li></ul>
       </section>
 
@@ -767,7 +767,7 @@
         </section>
 
         <section class="card wg" data-w="waiting" id="waiting">
-          <h2>Waiting on you <a href="/desk/?board">the Board →</a></h2>
+          <h2>Waiting on you <a href="/desk/?board" target="_blank" rel="noopener">the Board →</a></h2>
           <ul class="wait" id="wait"><li class="empty">reading /desk/progress.json…</li></ul>
         </section>
         <section class="card wg" data-w="chats" id="chatsCard">
@@ -823,10 +823,10 @@
 <button id="orb" type="button" aria-expanded="false" aria-label="Your apps: Reading Room, Recipes, Priesthood, Waple Diary, float and arrange">
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
 </button>
-<a class="orbi" data-orb="rr" href="https://creator-reading-room.pages.dev/" aria-label="Creator Reading Room" title="Creator Reading Room"><img src="https://creator-reading-room.pages.dev/icon-192.png" alt=""><span class="ol">Reading</span></a>
-<a class="orbi" data-orb="recipes" href="https://racts-dot.github.io/recipes/" aria-label="Recipes" title="Recipes"><img src="/recipes/icon-192.png" alt=""><span class="ol">Recipes</span></a>
-<a class="orbi" data-orb="priest" href="https://racts-dot.github.io/priesthood/" aria-label="Priesthood" title="Priesthood"><img src="/priesthood/icon-192.png" alt=""><span class="ol">Priesthood</span></a>
-<a class="orbi" data-orb="waple" href="https://waple-diary.pages.dev/" aria-label="Waple Diary" title="Waple Diary"><img src="https://waple-diary.pages.dev/apple-touch-icon.png" alt=""><span class="ol">Waple</span></a>
+<a target="_blank" rel="noopener" class="orbi" data-orb="rr" href="https://creator-reading-room.pages.dev/" aria-label="Creator Reading Room" title="Creator Reading Room"><img src="https://creator-reading-room.pages.dev/icon-192.png" alt=""><span class="ol">Reading</span></a>
+<a target="_blank" rel="noopener" class="orbi" data-orb="recipes" href="https://racts-dot.github.io/recipes/" aria-label="Recipes" title="Recipes"><img src="/recipes/icon-192.png" alt=""><span class="ol">Recipes</span></a>
+<a target="_blank" rel="noopener" class="orbi" data-orb="priest" href="https://racts-dot.github.io/priesthood/" aria-label="Priesthood" title="Priesthood"><img src="/priesthood/icon-192.png" alt=""><span class="ol">Priesthood</span></a>
+<a target="_blank" rel="noopener" class="orbi" data-orb="waple" href="https://waple-diary.pages.dev/" aria-label="Waple Diary" title="Waple Diary"><img src="https://waple-diary.pages.dev/apple-touch-icon.png" alt=""><span class="ol">Waple</span></a>
 <button class="orbi" data-orb="float" type="button" aria-label="Float the cards" title="Float the cards: drag, resize, fold">
   <svg viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round"><rect x="3.5" y="4.5" width="10" height="8" rx="2"/><rect x="10.5" y="11.5" width="10" height="8" rx="2"/></svg><span class="ol">float · f</span>
 </button>
@@ -1266,7 +1266,7 @@
         var risk = BW_RISK[c.urgency] ? ' <b style="color:#d9483b;font-weight:600">· ' + BW_RISK[c.urgency] + "</b>" : "";
         return "<li>" + esc(c.title || "") + risk + (c.next ? '<div class="d">' + esc(String(c.next).slice(0, 170)) + "</div>" : "") + "</li>";
       }).join("") + '<li class="empty" style="border-top:1px solid var(--line)">' + (her.length > 6 ? (her.length - 6) + " more on " : "All on ") +
-        '<a href="/desk/?board">the Board</a>' + (reg.length ? " · " + reg.length + " register notes on the Desk" : "") + "</li>";
+        '<a href="/desk/?board" target="_blank" rel="noopener">the Board</a>' + (reg.length ? " · " + reg.length + " register notes on the Desk" : "") + "</li>";
       return;
     }
     renderDeskList(reg, deskCard || {});
@@ -1422,13 +1422,13 @@
     if (e.key !== "Enter") return;
     var first = null, tiles = document.querySelectorAll(".tile");
     for (var i = 0; i < tiles.length && !first; i++) if (tiles[i].style.display !== "none") first = tiles[i];
-    if (first) location.href = first.getAttribute("href");
+    if (first) window.open(first.getAttribute("href"), "_blank", "noopener");
   });
 
   function renderLinks(d){
     $("groups").innerHTML = (d.groups || []).map(function(g){
       return '<div class="group"><h3>' + esc(g.name) + '</h3><div class="tiles">' + (g.links || []).map(function(l){
-        return '<a class="tile" href="' + esc(l.url) + '"><div class="n">' + esc(l.name) + "</div>" +
+        return '<a class="tile" target="_blank" rel="noopener" href="' + esc(l.url) + '"><div class="n">' + esc(l.name) + "</div>" +
                (l.hint ? '<div class="h">' + esc(l.hint) + "</div>" : "") + "</a>";
       }).join("") + "</div></div>";
     }).join("");
