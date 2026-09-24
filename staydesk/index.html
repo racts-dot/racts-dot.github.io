@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stay Desk</title>
+<style>
+:root{--bg:#f7f5f1;--card:#fff;--ink:#1f2328;--mute:#6b6f76;--line:#e3dfd8;--acc:#2f6f5e;--acc-ink:#fff;--warn:#9a5b00;--warn-bg:#fff4e0;--bad:#a4332b}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15171a;--card:#1e2125;--ink:#e8e6e1;--mute:#9a9ea5;--line:#33373d;--acc:#5fb39b;--acc-ink:#0d1512;--warn:#f0b35a;--warn-bg:#2d2415;--bad:#e0746b}}
+:root[data-theme="dark"]{--bg:#15171a;--card:#1e2125;--ink:#e8e6e1;--mute:#9a9ea5;--line:#33373d;--acc:#5fb39b;--acc-ink:#0d1512;--warn:#f0b35a;--warn-bg:#2d2415;--bad:#e0746b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:10px 16px}
+.top{display:flex;align-items:center;gap:10px;max-width:900px;margin:0 auto}
+.top h1{font-size:18px;margin:0;flex:1}
+.mode{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.mode button{border:0;background:transparent;color:var(--ink);padding:6px 12px;font-size:14px;cursor:pointer}
+.mode button.on{background:var(--acc);color:var(--acc-ink)}
+nav{display:flex;gap:4px;overflow-x:auto;max-width:900px;margin:8px auto 0}
+nav button{border:0;background:transparent;color:var(--mute);padding:6px 10px;border-radius:8px;font-size:15px;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+main{max-width:900px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px}
+h2{font-size:17px;margin:4px 0 10px}
+h3{font-size:15px;margin:0 0 6px}
+.mute{color:var(--mute);font-size:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1 1 160px}
+label{display:block;font-size:13px;color:var(--mute);margin-bottom:8px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px;margin-top:3px}
+textarea{min-height:220px}
+.btn{border:0;background:var(--acc);color:var(--acc-ink);padding:9px 14px;border-radius:8px;font:inherit;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.btn.small{padding:5px 10px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+.pill{display:inline-block;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--bg);border:1px solid var(--line)}
+.pill.in{border-color:var(--acc);color:var(--acc)}
+.pill.out{border-color:var(--warn);color:var(--warn)}
+.warn{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:8px 10px;font-size:14px;margin:8px 0}
+.total td{font-weight:600}
+.empty{color:var(--mute);font-size:14px;padding:6px 0}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+@media print{header,.noprint{display:none}.card{border:0}}
+</style>
+<script src="../textsize.js"></script>
+<script src="../feedback.js" defer></script>
+<script src="../kit-dock.js?v=fold1" defer></script>
+<script src="../pull.js" defer></script>
+<script src="../hearsel.js" defer></script>
+<script src="../swipe.js" data-links="#tabs button" defer></script>
+<script src="../speak.js" defer></script>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>Stay Desk</h1>
+    <div class="mode" role="group" aria-label="Who is using this">
+      <button data-mode="host">Host</button>
+      <button data-mode="cohost">Co-host</button>
+    </div>
+  </div>
+  <nav id="tabs"></nav>
+</header>
+<main id="view"></main>
+
+<script>
+/* Stay Desk: one app for hosts (their own places) and co-hosts (places run for owners).
+   Everything stays on this device. Money is held in whole cents so no rounding drifts. */
+const KEY='staydesk.v1';
+const blank={mode:'host',properties:[],bookings:[],expenses:[]};
+let S=load(), tab='today';
+
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.properties)return s}catch(e){}return structuredClone(blank)}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+const $=s=>document.querySelector(s);
+const id=()=>Math.random().toString(36).slice(2,10);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cents=v=>{const n=Math.round(parseFloat(String(v).replace(/[^0-9.\-]/g,''))*100);return isFinite(n)?n:0};
+const money=c=>(c<0?'-':'')+'$'+(Math.abs(c)/100).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+const d=s=>new Date(s+'T00:00:00');
+const iso=dt=>dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+const today=()=>iso(new Date());
+const addDays=(s,n)=>{const x=d(s);x.setDate(x.getDate()+n);return iso(x)};
+const nights=b=>Math.round((d(b.checkout)-d(b.checkin))/864e5);
+const nice=s=>s?d(s).toLocaleDateString('en',{weekday:'short',day:'numeric',month:'short'}):'';
+const prop=pid=>S.properties.find(p=>p.id===pid)||{};
+const isCo=()=>S.mode==='cohost';
+const payout=b=>b.accommodation+b.cleaning-b.platformFee;
+
+/* Split a booking's money across months by nights, so a stay over a month end lands in both. */
+function nightsInMonth(b,ym){let n=0,before=0;for(let x=b.checkin;x<b.checkout;x=addDays(x,1)){if(x.startsWith(ym))n++;else if(x<ym)before++}return{n,before}}
+/* Cumulative rounding: the months of one stay always add back to the exact booking total. */
+function share(total,before,part,whole){return whole?Math.round(total*(before+part)/whole)-Math.round(total*before/whole):0}
+function monthFigures(pid,ym){
+  const p=prop(pid);
+  const rows=S.bookings.filter(b=>b.pid===pid).map(b=>{const{n,before}=nightsInMonth(b,ym),N=nights(b);if(!n)return null;
+    const acc=share(b.accommodation,before,n,N),cl=share(b.cleaning,before,n,N),pf=share(b.platformFee,before,n,N);
+    return{b,n,acc,cl,pf,pay:acc+cl-pf}}).filter(Boolean);
+  const sum=k=>rows.reduce((a,r)=>a+r[k],0);
+  const acc=sum('acc'),cl=sum('cl'),pf=sum('pf'),pay=sum('pay'),n=sum('n');
+  const exp=S.expenses.filter(e=>e.pid===pid&&e.date.startsWith(ym));
+  const expTotal=exp.reduce((a,e)=>a+e.amount,0);
+  const base=p.feeBase==='payout'?pay:acc;
+  const mgmt=isCo()?Math.round(base*(p.feeRate||0)/100):0;
+  const daysInMonth=new Date(+ym.slice(0,4),+ym.slice(5,7),0).getDate();
+  return{rows,acc,cl,pf,pay,n,exp,expTotal,mgmt,net:pay-mgmt-expTotal,daysInMonth};
+}
+
+/* ---------- guest message helper (fills templates; no AI, no cost) ---------- */
+const TEMPLATES=[
+ {k:'confirm',name:'Booking confirmed',when:b=>'as soon as it is booked',codes:false,text:
+`Hi {guest},
+
+Thank you for booking {property} - we're really looking forward to having you.
+
+Your stay: {checkin} to {checkout} ({nights} nights).
+Check-in is from {inTime} and check-out is by {outTime}.
+
+A few days before you arrive I'll send everything you need: directions, parking and how to get in. If anything would make the stay easier - an early arrival, a cot, step-free access - just let me know.
+
+Warm regards,
+{me}`},
+ {k:'pre',name:'Before arrival',when:b=>'3 days before: '+nice(addDays(b.checkin,-3)),codes:false,text:
+`Hi {guest},
+
+Your stay at {property} is only a few days away.
+
+- Parking: {parking}
+- Getting in: I'll send the entry details on the morning of your arrival.
+- Check-in from {inTime}.
+
+Could you let me know roughly what time you expect to arrive?
+
+Safe travels,
+{me}`},
+ {k:'checkin',name:'Check-in day',when:b=>'morning of '+nice(b.checkin),codes:true,text:
+`Hi {guest},
+
+Welcome! Everything is ready for you.
+
+- Address: {address}
+- Entry: {entry}
+- Wifi: {wifiName} / password {wifiPass}
+- The house guide is in the property with appliances, bins, local favourites and checkout steps.
+
+If anything isn't right when you walk in, message me straight away and I'll sort it.
+
+Enjoy your stay,
+{me}`},
+ {k:'mid',name:'Mid-stay check',when:b=>'morning of '+nice(addDays(b.checkin,1)),codes:false,text:
+`Hi {guest},
+
+Just checking in - is everything comfortable? If you need more towels, anything isn't working, or you'd like a recommendation nearby, I'm a message away.
+
+{me}`},
+ {k:'out',name:'Checkout reminder',when:b=>'evening of '+nice(addDays(b.checkout,-1)),codes:false,text:
+`Hi {guest},
+
+Hope you've had a lovely stay. Checkout tomorrow is by {outTime}. Before you go:
+
+{checkoutSteps}
+
+Safe travels home, and thank you for looking after the place.
+
+{me}`},
+ {k:'review',name:'Thank you + review',when:b=>'after '+nice(b.checkout),codes:false,text:
+`Hi {guest},
+
+Thank you for staying at {property}. It was a pleasure to host you.
+
+If you have a moment, a review helps other travellers find us - and I'll be leaving one for you too.
+
+Hope to welcome you back,
+{me}`},
+];
+function fill(t,b){
+  const p=prop(b.pid);
+  const v={guest:b.guest||'there',property:p.name||'the property',checkin:nice(b.checkin),checkout:nice(b.checkout),nights:nights(b),
+    inTime:p.inTime||'3:00 pm',outTime:p.outTime||'10:00 am',address:p.address||'[address]',parking:p.parking||'[parking]',
+    entry:p.entry||'[entry details]',wifiName:p.wifiName||'[wifi name]',wifiPass:p.wifiPass||'[wifi password]',
+    checkoutSteps:p.checkoutSteps||'- Load and start the dishwasher\n- Put used towels in the bathroom\n- Take rubbish to the bins\n- Lock the door',
+    me:p.signoff||'[your name]'};
+  return t.text.replace(/\{(\w+)\}/g,(m,k)=>v[k]??m);
+}
+
+/* ---------- views ---------- */
+const TABS=()=>[['today','Today'],['bookings','Bookings'],['messages','Guest messages'],['money',isCo()?'Owner statements':'Money'],['expenses','Expenses'],['places','Places'],['backup','Backup']];
+function render(){
+  document.querySelectorAll('.mode button').forEach(b=>b.classList.toggle('on',b.dataset.mode===S.mode));
+  $('#tabs').innerHTML=TABS().map(([k,l])=>`<button class="${k===tab?'on':''}" data-tab="${k}">${l}</button>`).join('');
+  $('#view').innerHTML=(V[tab]||V.today)();
+  (A[tab]||(()=>{}))();
+}
+const V={};const A={};
+const noPlaces=()=>`<div class="card"><h2>Start by adding a place</h2><p class="mute">${isCo()?'Add each property you run, with its owner and your management fee.':'Add your property once. Its wifi, entry and times fill the guest messages for you.'}</p><button class="btn" data-go="places">Add a place</button></div>`;
+const propOpts=sel=>S.properties.map(p=>`<option value="${p.id}" ${p.id===sel?'selected':''}>${esc(p.name)}</option>`).join('');
+
+V.today=()=>{
+  if(!S.properties.length)return noPlaces();
+  const t=today(),tm=addDays(t,1);
+  const list=day=>{
+    const ins=S.bookings.filter(b=>b.checkin===day),outs=S.bookings.filter(b=>b.checkout===day);
+    if(!ins.length&&!outs.length)return '<div class="empty">Nothing in or out.</div>';
+    return '<table>'+outs.map(b=>`<tr><td><span class="pill out">Out</span></td><td>${esc(prop(b.pid).name)}</td><td>${esc(b.guest)}</td><td>by ${esc(prop(b.pid).outTime||'10:00 am')}${ins.some(i=>i.pid===b.pid)?' · <b>same-day turnover</b>':' · clean after'}</td></tr>`).join('')
+      +ins.map(b=>`<tr><td><span class="pill in">In</span></td><td>${esc(prop(b.pid).name)}</td><td>${esc(b.guest)}</td><td>from ${esc(prop(b.pid).inTime||'3:00 pm')} · ${nights(b)} nights</td></tr>`).join('')+'</table>';
+  };
+  const staying=S.bookings.filter(b=>b.checkin<t&&b.checkout>t);
+  const next=S.bookings.filter(b=>b.checkin>tm).sort((a,b)=>a.checkin.localeCompare(b.checkin)).slice(0,5);
+  const due=[];S.bookings.forEach(b=>TEMPLATES.forEach(T=>{const dd={confirm:null,pre:addDays(b.checkin,-3),checkin:b.checkin,mid:nights(b)>1?addDays(b.checkin,1):null,out:addDays(b.checkout,-1),review:b.checkout}[T.k];if(dd===t)due.push([b,T])}));
+  return `<div class="card"><h2>Today · ${nice(t)}</h2>${list(t)}</div>
+  <div class="card"><h2>Messages to send today</h2>${due.length?'<table>'+due.map(([b,T])=>`<tr><td>${esc(T.name)}</td><td>${esc(b.guest)}</td><td>${esc(prop(b.pid).name)}</td><td><button class="btn small ghost" data-msg="${b.id}|${T.k}">Write it</button></td></tr>`).join('')+'</table>':'<div class="empty">None due.</div>'}</div>
+  <div class="card"><h2>Tomorrow · ${nice(tm)}</h2>${list(tm)}</div>
+  <div class="card"><h2>Staying now</h2>${staying.length?'<table>'+staying.map(b=>`<tr><td>${esc(prop(b.pid).name)}</td><td>${esc(b.guest)}</td><td>leaves ${nice(b.checkout)}</td></tr>`).join('')+'</table>':'<div class="empty">Nobody mid-stay.</div>'}</div>
+  <div class="card"><h2>Coming up</h2>${next.length?'<table>'+next.map(b=>`<tr><td>${nice(b.checkin)}</td><td>${esc(prop(b.pid).name)}</td><td>${esc(b.guest)}</td><td>${nights(b)} nights</td></tr>`).join('')+'</table>':'<div class="empty">No later bookings.</div>'}</div>`;
+};
+A.today=()=>{document.querySelectorAll('[data-msg]').forEach(x=>x.onclick=()=>{const[b,k]=x.dataset.msg.split('|');msgPick={b,k};tab='messages';render()})};
+
+V.bookings=()=>{
+  if(!S.properties.length)return noPlaces();
+  const rows=[...S.bookings].sort((a,b)=>b.checkin.localeCompare(a.checkin));
+  return `<div class="card"><h2>Add a booking</h2>
+  <p class="mute">Copy the figures from the booking's earnings breakdown. The platform fee is the fee taken from <i>you</i>, not the guest's service fee.</p>
+  <div class="row"><label>Place<select id="bp">${propOpts()}</select></label><label>Guest name<input id="bg"></label></div>
+  <div class="row"><label>Check-in<input id="bi" type="date"></label><label>Check-out<input id="bo" type="date"></label></div>
+  <div class="row"><label>Nightly total (all nights)<input id="ba" inputmode="decimal" placeholder="0.00"></label><label>Cleaning fee<input id="bc" inputmode="decimal" placeholder="0.00"></label><label>Platform fee taken from you<input id="bf" inputmode="decimal" placeholder="0.00"></label></div>
+  <button class="btn" id="badd">Save booking</button> <span id="berr" class="mute"></span></div>
+  <div class="card"><h2>All bookings</h2>${rows.length?`<div class="tablewrap"><table><tr><th>Place</th><th>Guest</th><th>Dates</th><th class="n">Nights</th><th class="n">Payout</th><th></th></tr>`+rows.map(b=>`<tr><td>${esc(prop(b.pid).name)}</td><td>${esc(b.guest)}</td><td>${nice(b.checkin)} to ${nice(b.checkout)}</td><td class="n">${nights(b)}</td><td class="n">${money(payout(b))}</td><td><button class="btn small ghost" data-del="${b.id}">Remove</button></td></tr>`).join('')+'</table></div>':'<div class="empty">No bookings yet.</div>'}</div>`;
+};
+A.bookings=()=>{
+  const b=$('#badd');if(!b)return;
+  b.onclick=()=>{const bk={id:id(),pid:$('#bp').value,guest:$('#bg').value.trim(),checkin:$('#bi').value,checkout:$('#bo').value,accommodation:cents($('#ba').value),cleaning:cents($('#bc').value),platformFee:cents($('#bf').value)};
+    if(!bk.checkin||!bk.checkout||bk.checkout<=bk.checkin){$('#berr').textContent='Check-out must be after check-in.';return}
+    const clash=S.bookings.find(x=>x.pid===bk.pid&&x.checkin<bk.checkout&&x.checkout>bk.checkin);
+    if(clash){$('#berr').textContent='That overlaps '+(clash.guest||'another booking')+' at this place.';return}
+    S.bookings.push(bk);save();render()};
+  document.querySelectorAll('[data-del]').forEach(x=>x.onclick=()=>{if(confirm('Remove this booking?')){S.bookings=S.bookings.filter(b=>b.id!==x.dataset.del);save();render()}});
+};
+
+let msgPick=null;
+V.messages=()=>{
+  if(!S.bookings.length)return `<div class="card"><h2>Guest messages</h2><p class="mute">Add a booking first. Each message fills itself from the booking and the place.</p><button class="btn" data-go="bookings">Add a booking</button></div>`;
+  const bs=[...S.bookings].sort((a,b)=>b.checkin.localeCompare(a.checkin));
+  const cur=msgPick||{b:bs[0].id,k:'confirm'};
+  return `<div class="card"><h2>Guest messages</h2>
+  <div class="row"><label>Booking<select id="mb">${bs.map(b=>`<option value="${b.id}" ${b.id===cur.b?'selected':''}>${esc(b.guest||'Guest')} · ${esc(prop(b.pid).name)} · ${nice(b.checkin)}</option>`).join('')}</select></label>
+  <label>Message<select id="mk">${TEMPLATES.map(t=>`<option value="${t.k}" ${t.k===cur.k?'selected':''}>${t.name}</option>`).join('')}</select></label></div>
+  <p class="mute" id="mwhen"></p><div id="mwarn"></div>
+  <textarea id="mt"></textarea>
+  <div class="actions"><button class="btn" id="mcopy">Copy message</button><span id="mdone" class="mute"></span></div>
+  <p class="mute">Edit the text freely before copying. Anything still in [brackets] is missing from the place's details.</p></div>`;
+};
+A.messages=()=>{
+  const mb=$('#mb');if(!mb)return;
+  const upd=()=>{const b=S.bookings.find(x=>x.id===mb.value),t=TEMPLATES.find(x=>x.k===$('#mk').value);msgPick={b:b.id,k:t.k};
+    $('#mt').value=fill(t,b);$('#mwhen').textContent='Send: '+t.when(b);
+    $('#mwarn').innerHTML=t.codes?'<div class="warn">This one holds the door code and wifi password. Send it only on arrival day, after the booking platform releases check-in details.</div>':'';
+    const miss=($('#mt').value.match(/\[[^\]]+\]/g)||[]);if(miss.length)$('#mwarn').innerHTML+=`<div class="warn">Still missing: ${esc([...new Set(miss)].join(', '))}. Add them under Places.</div>`};
+  mb.onchange=upd;$('#mk').onchange=upd;upd();
+  $('#mcopy').onclick=async()=>{try{await navigator.clipboard.writeText($('#mt').value);$('#mdone').textContent='Copied.'}catch(e){$('#mt').select();$('#mdone').textContent='Selected - press Ctrl+C / Cmd+C.'}};
+};
+
+let ymSel=today().slice(0,7);
+V.money=()=>{
+  if(!S.properties.length)return noPlaces();
+  const blocks=S.properties.map(p=>{const f=monthFigures(p.id,ymSel);const occ=Math.round(f.n/f.daysInMonth*100);
+    return `<div class="card"><h2>${esc(p.name)}${isCo()&&p.owner?` <span class="mute">· for ${esc(p.owner)}</span>`:''}</h2>
+    <p class="mute">${f.n} nights booked of ${f.daysInMonth} (${occ}%) · ${f.rows.length} booking${f.rows.length===1?'':'s'} touch this month</p>
+    <table>
+    <tr><td>Nightly total</td><td class="n">${money(f.acc)}</td></tr>
+    <tr><td>Cleaning fees collected</td><td class="n">${money(f.cl)}</td></tr>
+    <tr><td>Platform fees</td><td class="n">-${money(f.pf)}</td></tr>
+    <tr class="total"><td>Paid out by the platform</td><td class="n">${money(f.pay)}</td></tr>
+    ${isCo()?`<tr><td>Management fee (${p.feeRate||0}% of ${p.feeBase==='payout'?'payout':'nightly total'})</td><td class="n">-${money(f.mgmt)}</td></tr>`:''}
+    <tr><td>Expenses (${f.exp.length})</td><td class="n">-${money(f.expTotal)}</td></tr>
+    <tr class="total"><td>${isCo()?'Owed to the owner':'What you keep'}</td><td class="n">${money(f.net)}</td></tr></table>
+    ${f.rows.some(r=>r.n<nights(r.b))?'<p class="mute">A stay crossing the month end is split by nights between the two months.</p>':''}</div>`}).join('');
+  return `<div class="card noprint"><div class="row"><label>Month<input id="ym" type="month" value="${ymSel}"></label>
+  <div style="align-self:end"><button class="btn ghost" onclick="window.print()">Print or save as PDF</button></div></div>
+  ${isCo()?'<p class="mute">For the full two-page owner statement with payout reconciliation, send the month to Stay Ledger.</p>':''}</div>${blocks}`;
+};
+A.money=()=>{const y=$('#ym');if(y)y.onchange=()=>{ymSel=y.value||ymSel;render()}};
+
+const CATS=['Cleaning','Laundry & linen','Restock & supplies','Repairs & maintenance','Utilities','Other'];
+V.expenses=()=>{
+  if(!S.properties.length)return noPlaces();
+  const rows=[...S.expenses].sort((a,b)=>b.date.localeCompare(a.date));
+  return `<div class="card"><h2>Add an expense</h2>
+  <div class="row"><label>Place<select id="ep">${propOpts()}</select></label><label>Date<input id="ed" type="date" value="${today()}"></label></div>
+  <div class="row"><label>Type<select id="ec">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></label><label>What<input id="ew"></label><label>Amount<input id="ea" inputmode="decimal" placeholder="0.00"></label></div>
+  <button class="btn" id="eadd">Save expense</button></div>
+  <div class="card"><h2>All expenses</h2>${rows.length?'<div class="tablewrap"><table><tr><th>Date</th><th>Place</th><th>Type</th><th>What</th><th class="n">Amount</th><th></th></tr>'+rows.map(e=>`<tr><td>${nice(e.date)}</td><td>${esc(prop(e.pid).name)}</td><td>${esc(e.cat)}</td><td>${esc(e.what)}</td><td class="n">${money(e.amount)}</td><td><button class="btn small ghost" data-edel="${e.id}">Remove</button></td></tr>`).join('')+'</table></div>':'<div class="empty">No expenses yet.</div>'}</div>`;
+};
+A.expenses=()=>{const b=$('#eadd');if(!b)return;
+  b.onclick=()=>{if(!$('#ed').value)return;S.expenses.push({id:id(),pid:$('#ep').value,date:$('#ed').value,cat:$('#ec').value,what:$('#ew').value.trim(),amount:cents($('#ea').value)});save();render()};
+  document.querySelectorAll('[data-edel]').forEach(x=>x.onclick=()=>{S.expenses=S.expenses.filter(e=>e.id!==x.dataset.edel);save();render()})};
+
+let editing=null;
+V.places=()=>{
+  const p=S.properties.find(x=>x.id===editing)||{};
+  const f=(k,l,ph='')=>`<label>${l}<input data-f="${k}" value="${esc(p[k]||'')}" placeholder="${esc(ph)}"></label>`;
+  return `<div class="card"><h2>${editing?'Edit '+esc(p.name):'Add a place'}</h2>
+  <div class="row">${f('name','Name','Beach Cottage')}${f('address','Address')}</div>
+  ${isCo()?`<div class="row">${f('owner','Owner')}<label>Management fee %<input data-f="feeRate" inputmode="decimal" value="${esc(p.feeRate??'')}" placeholder="15"></label>
+  <label>Fee is taken from<select data-f="feeBase"><option value="accommodation" ${p.feeBase!=='payout'?'selected':''}>Nightly total</option><option value="payout" ${p.feeBase==='payout'?'selected':''}>Payout</option></select></label></div>`:''}
+  <div class="row">${f('inTime','Check-in from','3:00 pm')}${f('outTime','Check-out by','10:00 am')}${f('signoff','Sign messages as','Your first name')}</div>
+  <div class="row">${f('wifiName','Wifi name')}${f('wifiPass','Wifi password')}${f('entry','Entry details','Lockbox by the door, code 1234')}</div>
+  <div class="row">${f('parking','Parking')}</div>
+  <label>Checkout steps (one per line)<textarea data-f="checkoutSteps" style="min-height:90px">${esc(p.checkoutSteps||'')}</textarea></label>
+  <p class="mute">Wifi and entry details stay on this device only. They are printed only in the check-in day message.</p>
+  <button class="btn" id="psave">${editing?'Save changes':'Add place'}</button> ${editing?'<button class="btn ghost" id="pcancel">Cancel</button>':''}</div>
+  <div class="card"><h2>Your places</h2>${S.properties.length?'<table>'+S.properties.map(x=>`<tr><td>${esc(x.name)}</td><td class="mute">${isCo()?esc(x.owner||''):esc(x.address||'')}</td><td><button class="btn small ghost" data-pe="${x.id}">Edit</button> <button class="btn small ghost" data-pd="${x.id}">Remove</button></td></tr>`).join('')+'</table>':'<div class="empty">None yet.</div>'}</div>`;
+};
+A.places=()=>{
+  $('#psave').onclick=()=>{const o={};document.querySelectorAll('[data-f]').forEach(i=>o[i.dataset.f]=i.value.trim());
+    if(!o.name){alert('Give the place a name.');return}
+    if('feeRate' in o)o.feeRate=parseFloat(o.feeRate)||0;
+    if(editing)Object.assign(S.properties.find(x=>x.id===editing),o);else S.properties.push({id:id(),...o});
+    editing=null;save();render()};
+  const c=$('#pcancel');if(c)c.onclick=()=>{editing=null;render()};
+  document.querySelectorAll('[data-pe]').forEach(x=>x.onclick=()=>{editing=x.dataset.pe;render()});
+  document.querySelectorAll('[data-pd]').forEach(x=>x.onclick=()=>{const n=S.bookings.filter(b=>b.pid===x.dataset.pd).length;
+    if(confirm(n?`This place has ${n} booking(s). Remove the place and its bookings and expenses?`:'Remove this place?')){S.properties=S.properties.filter(p=>p.id!==x.dataset.pd);S.bookings=S.bookings.filter(b=>b.pid!==x.dataset.pd);S.expenses=S.expenses.filter(e=>e.pid!==x.dataset.pd);save();render()}});
+};
+
+V.backup=()=>`<div class="card"><h2>Backup and move to another device</h2>
+<p class="mute">Everything is kept in this browser only. Download a backup file regularly, and open it on another phone or computer to carry on there.</p>
+<div class="actions"><button class="btn" id="exp">Download backup</button><label class="btn ghost" style="margin:0">Open a backup<input id="imp" type="file" accept=".json" hidden></label></div><p id="bmsg" class="mute"></p></div>
+<div class="card"><h2>Try it with sample data</h2><p class="mute">Loads two made-up places and a few bookings so you can see every screen. It replaces what is here now.</p><button class="btn ghost" id="demo">Load sample data</button> <button class="btn ghost" id="wipe">Clear everything</button></div>`;
+A.backup=()=>{
+  $('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='stay-desk-backup-'+today()+'.json';a.click()};
+  $('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const o=JSON.parse(t);if(!o.properties)throw 0;S=o;save();$('#bmsg').textContent='Backup opened.';render()}catch(x){$('#bmsg').textContent='That file is not a Stay Desk backup.'}})};
+  $('#demo').onclick=()=>{if(confirm('Replace everything here with sample data?')){S=demo(S.mode);save();tab='today';render()}};
+  $('#wipe').onclick=()=>{if(confirm('Delete every place, booking and expense on this device?')){S={...structuredClone(blank),mode:S.mode};save();render()}};
+};
+
+function demo(mode){
+  const t=today(),a='p1',b='p2';
+  return{mode,properties:[
+    {id:a,name:'Sample: Harbour Loft',address:'12 Sample St',owner:'Sample Owner A',feeRate:15,feeBase:'accommodation',inTime:'3:00 pm',outTime:'10:00 am',signoff:'Sam',wifiName:'Loft-Guest',wifiPass:'sample-pass',entry:'Lockbox left of the door, code 0000',parking:'One bay under the building, marked 4',checkoutSteps:'- Start the dishwasher\n- Towels in the bath\n- Lock up'},
+    {id:b,name:'Sample: Garden Cottage',address:'8 Example Rd',owner:'Sample Owner B',feeRate:20,feeBase:'payout',inTime:'2:00 pm',outTime:'10:00 am',signoff:'Sam',wifiName:'Cottage',wifiPass:'sample-pass-2',entry:'Smart lock, code sent on the day',parking:'Street parking, free'}],
+   bookings:[
+    {id:'b1',pid:a,guest:'Alex (sample)',checkin:addDays(t,-2),checkout:t,accommodation:48000,cleaning:9000,platformFee:1710},
+    {id:'b2',pid:a,guest:'Jordan (sample)',checkin:t,checkout:addDays(t,3),accommodation:57000,cleaning:9000,platformFee:1980},
+    {id:'b3',pid:b,guest:'Priya (sample)',checkin:addDays(t,-1),checkout:addDays(t,2),accommodation:39000,cleaning:7000,platformFee:1380},
+    {id:'b4',pid:b,guest:'Chris (sample)',checkin:addDays(t,4),checkout:addDays(t,9),accommodation:75000,cleaning:7000,platformFee:2460}],
+   expenses:[{id:'e1',pid:a,date:t,cat:'Cleaning',what:'Turnover clean (sample)',amount:8500},{id:'e2',pid:b,date:t,cat:'Restock & supplies',what:'Coffee, soap (sample)',amount:3240}]};
+}
+
+document.addEventListener('click',e=>{const t=e.target.closest('[data-tab]');if(t){tab=t.dataset.tab;render()}
+  const g=e.target.closest('[data-go]');if(g){tab=g.dataset.go;render()}
+  const m=e.target.closest('[data-mode]');if(m){S.mode=m.dataset.mode;save();render()}});
+render();
+</script>
+</body>
+</html>
