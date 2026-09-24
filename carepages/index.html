@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="favicon.png" sizes="any"><link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1115">
+<title>Care Pages</title>
+<style id="pagesize">@page{size:A4;margin:12mm}</style>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--border:#2a2e38;--text:#e8e9ed;--muted:#8b8f9b;--accent:#6c8cff;--ok:#4ade80}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:max(18px,env(safe-area-inset-top)) 14px 110px}
+.wrap{max-width:760px;margin:0 auto}
+h1{font-size:23px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:12px;line-height:1.45}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none}
+.chip{flex:0 0 auto;padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.opts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.opts input,.opts select{padding:10px 12px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:16px;font-family:inherit}
+.opts input{flex:1 1 180px}
+.kitline{font-size:13px;color:var(--muted);margin:0 0 10px}
+.allrow{display:flex;gap:8px;margin-bottom:10px}
+.small{padding:7px 11px;border-radius:9px;border:1px solid var(--border);background:#222633;color:var(--text);font-weight:600;font-size:13px;cursor:pointer}
+.pg{background:var(--card);border:2px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.pg.on{border-color:#2f6b47}
+.pghead{display:flex;align-items:center;gap:10px;padding:11px 12px;cursor:pointer}
+.box{flex:0 0 26px;height:26px;border-radius:7px;border:2px solid #cfd3e0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#0f1115}
+.on>.pghead .box,.sec.on>.sechead .box{background:var(--ok);border-color:var(--ok)}
+.pgtitle{flex:1;font-weight:600;font-size:15px;line-height:1.25}
+.pgtitle small{display:block;color:var(--muted);font-weight:400;font-size:12px;margin-top:2px}
+.copies{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--muted)}
+.copies button{width:30px;height:30px;border-radius:8px;border:1px solid var(--border);background:#222633;color:var(--text);font-size:17px;font-weight:700;cursor:pointer}
+.copies span{min-width:22px;text-align:center;color:var(--text);font-weight:700}
+.secs{padding:0 12px 10px 12px;display:none}
+.pg.open .secs{display:block}
+.sec{border-top:1px solid var(--border);padding:9px 0}
+.sechead{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:14px}
+.sechead .box{flex-basis:22px;height:22px;font-size:13px}
+.kind{font-size:11px;color:var(--muted);margin-left:auto}
+.items{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0 32px}
+.it{padding:6px 10px;border-radius:8px;border:1px solid var(--border);background:#1d2029;color:var(--muted);font-size:13px;cursor:pointer;text-decoration:line-through}
+.it.on{background:#20382a;border-color:#2f6b47;color:#d8f7e3;text-decoration:none}
+.sec:not(.on) .items{opacity:.35;pointer-events:none}
+.more{font-size:12px;color:var(--accent);margin-left:auto;white-space:nowrap}
+.dock{position:fixed;left:0;right:0;bottom:0;padding-right:64px!important;background:rgba(15,17,21,.96);border-top:1px solid var(--border);padding:10px 14px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:center;justify-content:center;z-index:40}
+.dock span{font-size:13px;color:var(--muted);margin-right:auto;max-width:760px}
+.dock button{padding:12px 16px;border-radius:11px;border:none;background:var(--accent);color:#fff;font-weight:700;font-size:15px;cursor:pointer}
+.dock button.ghost{background:#222633;border:1px solid var(--border)}
+#preview{display:none;background:#3a3d46;padding:14px 0 120px}
+#preview.show{display:block}
+#preview .scaler{transform-origin:top left}
+#print{display:none}
+
+</style>
+<style id="sheetcss">
+/* ---- the printed sheet ---- */
+.sheet{background:#fff;color:#1d1d1f;font-family:Georgia,"Times New Roman",serif;display:flex;flex-direction:column;gap:3.5mm;overflow:hidden}
+.sheet+.sheet{break-before:page;page-break-before:always}
+#preview .sheet{margin:0 auto 14px;padding:12mm;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.sh-head{border-bottom:1.2pt solid #1d1d1f;padding-bottom:2mm;display:flex;align-items:flex-end;gap:4mm}
+.sh-title{font-size:17pt;font-weight:700;letter-spacing:.2px;flex:1;line-height:1.1}
+.sh-for{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:8.5pt;color:#555;text-align:right}
+.sh-note{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:8.5pt;color:#555;margin-top:-1.5mm}
+.blk{border:.8pt solid #8a8a8a;border-radius:1.5mm;padding:2.2mm 2.8mm;display:flex;flex-direction:column;min-height:0}
+.blk-l{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:7.5pt;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:#3f5d4a;margin-bottom:1.5mm}
+.b-lines{flex:1;display:flex;flex-direction:column}
+.b-lines i{flex:1;border-bottom:.5pt solid #b8b8b8;min-height:6mm}
+.b-fields{flex:1;display:grid;column-gap:5mm;row-gap:0}
+.b-fields div{border-bottom:.5pt solid #b8b8b8;font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:8pt;color:#444;display:flex;align-items:flex-end;padding-bottom:.8mm;min-height:7mm}
+.b-checks{flex:1;display:grid;column-gap:5mm;align-content:space-evenly}
+.b-checks div{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:8.5pt;color:#222;display:flex;gap:2mm;align-items:center;min-height:6mm}
+.b-checks div:before{content:"";flex:0 0 3.4mm;height:3.4mm;border:.7pt solid #555;border-radius:.6mm}
+.b-grid{flex:1;display:grid;border-top:.6pt solid #8a8a8a;border-left:.6pt solid #8a8a8a}
+.b-grid div{border-right:.6pt solid #8a8a8a;border-bottom:.6pt solid #b8b8b8;min-height:4.5mm}
+.b-grid div.h{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:7.5pt;font-weight:700;color:#333;background:#eef2ee;padding:1mm 1.5mm;border-bottom:.6pt solid #8a8a8a;min-height:0}
+.b-prose{font-size:9.5pt;line-height:1.45;color:#222}
+
+</style>
+<style>
+@media print{
+  html,body{background:#fff;padding:0!important;margin:0!important;min-height:0!important;height:auto!important}
+  .wrap,.dock,#preview,[data-kit-ui],#kit-dock,.kit-dock{display:none!important}
+  #print{display:block!important}
+  body>*:not(#print),html>*:not(head):not(body){display:none!important}
+  #print{position:static!important}
+}
+</style>
+<script src="../textsize.js"></script><script src="../feedback.js" defer></script>
+<script src="../kit-dock.js?v=fold1" defer></script>
+<script src="../pull.js" defer></script><script src="../hearsel.js" defer></script>
+<script src="../swipe-hint.js" defer></script>
+</head>
+<body>
+<div class="wrap" id="app">
+  <h1>Care Pages</h1>
+  <div class="sub">Pick a kit, then untick any page, section or question you don't need. Set how many copies of each page. Then tap <b>Print / PDF</b>.</div>
+  <div class="chips" id="kits"></div>
+  <p class="kitline" id="kitline"></p>
+  <div class="opts">
+    <input id="who" placeholder="Name on every page (optional)" aria-label="Name on every page">
+    <select id="paper" aria-label="Paper size"><option value="A4">A4</option><option value="Letter">US Letter</option></select>
+  </div>
+  <div class="allrow">
+    <button class="small" id="allOn">Tick all</button>
+    <button class="small" id="allOff">Untick all</button>
+    <button class="small" id="reset">Reset this kit</button>
+  </div>
+  <div id="list"></div>
+</div>
+<div id="preview"><div class="scaler" id="scaler"></div></div>
+<div id="print"></div>
+<div class="dock">
+  <span id="summary">0 pages</span>
+  <button class="ghost" id="prevBtn">Preview</button>
+  <button id="printBtn">Print / PDF</button>
+</div>
+
+<script>
+(function(){
+  var KEY="carepages.v1", D=null, S={kit:"daily_care",who:"",paper:"A4",sel:{}};
+  try{ var s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.sel) S=s; }catch(e){}
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){} }
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function kit(){ return D.kits.filter(function(k){return k.key===S.kit;})[0]||D.kits[0]; }
+  function itemsOf(b){ return b.kind==="fields"||b.kind==="checks"?b.items:b.kind==="grid"?b.headers:null; }
+  function fresh(pk){
+    var p=D.pages[pk];
+    return {on:true,copies:1,open:false,b:p.blocks.map(function(b){ var it=itemsOf(b); return {on:true,it:it?it.map(function(){return true;}):null}; })};
+  }
+  function st(pk){
+    var k=S.kit; S.sel[k]=S.sel[k]||{};
+    var cur=S.sel[k][pk];
+    if(!cur||cur.b.length!==D.pages[pk].blocks.length) cur=S.sel[k][pk]=fresh(pk);
+    return cur;
+  }
+  var KIND={lines:"writing lines",fields:"fill-in fields",checks:"tick list",grid:"table",prose:"note"};
+
+  function renderKits(){
+    $("kits").innerHTML=D.kits.map(function(k){ return '<button class="chip'+(k.key===S.kit?' on':'')+'" data-k="'+k.key+'">'+esc(k.title)+'</button>'; }).join("");
+    var on=$("kits").querySelector(".on"); if(on&&on.scrollIntoView) on.scrollIntoView({inline:"center",block:"nearest"});
+    var k=kit(); $("kitline").textContent=k.moment+" · "+k.pages.length+" pages";
+  }
+  function renderList(){
+    var k=kit();
+    $("list").innerHTML=k.pages.map(function(pk){
+      var p=D.pages[pk], s=st(pk);
+      var kept=s.b.filter(function(x){return x.on;}).length;
+      return '<div class="pg'+(s.on?' on':'')+(s.open?' open':'')+'" data-p="'+pk+'">'+
+        '<div class="pghead" data-act="page"><div class="box">'+(s.on?'✓':'')+'</div>'+
+        '<div class="pgtitle">'+esc(p.title)+'<small>'+kept+' of '+p.blocks.length+' sections</small></div>'+
+        '<div class="copies"><button data-act="minus" aria-label="Fewer copies">−</button><span>'+s.copies+'</span><button data-act="plus" aria-label="More copies">+</button></div></div>'+
+        '<div class="pghead" data-act="open" style="padding-top:0"><span class="more">'+(s.open?'Hide sections ▲':'Choose sections and questions ▼')+'</span></div>'+
+        '<div class="secs">'+p.blocks.map(function(b,i){
+          var bs=s.b[i], it=itemsOf(b), lab=b.label||(b.kind==="prose"?(b.text||"").slice(0,48)+"…":"Section");
+          return '<div class="sec'+(bs.on?' on':'')+'" data-i="'+i+'"><div class="sechead" data-act="sec"><div class="box">'+(bs.on?'✓':'')+'</div><span>'+esc(lab)+'</span><span class="kind">'+KIND[b.kind]+'</span></div>'+
+            (it?'<div class="items">'+it.map(function(t,j){ return '<span class="it'+(bs.it[j]?' on':'')+'" data-act="item" data-j="'+j+'">'+esc(t)+'</span>'; }).join("")+'</div>':'')+'</div>';
+        }).join("")+'</div></div>';
+    }).join("");
+    summary();
+  }
+  function summary(){
+    var k=kit(), n=0;
+    k.pages.forEach(function(pk){ var s=st(pk); if(s.on&&s.b.some(function(x){return x.on;})) n+=s.copies; });
+    $("summary").textContent=n+(n===1?" sheet":" sheets")+" to print";
+    return n;
+  }
+  $("kits").addEventListener("click",function(e){ var b=e.target.closest(".chip"); if(!b) return; S.kit=b.getAttribute("data-k"); save(); renderKits(); renderList(); hidePreview(); window.scrollTo(0,0); });
+  $("list").addEventListener("click",function(e){
+    var a=e.target.closest("[data-act]"); if(!a) return;
+    var pg=e.target.closest(".pg"), pk=pg.getAttribute("data-p"), s=st(pk), act=a.getAttribute("data-act");
+    if(act==="minus"){ s.copies=Math.max(1,s.copies-1); }
+    else if(act==="plus"){ s.copies=Math.min(60,s.copies+1); }
+    else if(act==="page"){ s.on=!s.on; }
+    else if(act==="open"){ s.open=!s.open; }
+    else {
+      var i=+e.target.closest(".sec").getAttribute("data-i");
+      if(act==="sec"){ s.b[i].on=!s.b[i].on; if(s.b[i].on) s.on=true; }
+      if(act==="item"){ var j=+a.getAttribute("data-j"); s.b[i].it[j]=!s.b[i].it[j]; }
+    }
+    save(); renderList(); if($("preview").classList.contains("show")) showPreview();
+  });
+  function setAll(v){ kit().pages.forEach(function(pk){ st(pk).on=v; }); save(); renderList(); }
+  $("allOn").onclick=function(){ setAll(true); };
+  $("allOff").onclick=function(){ setAll(false); };
+  $("reset").onclick=function(){ if(!confirm("Put every page, section and question of this kit back?")) return; S.sel[S.kit]={}; save(); renderList(); };
+  $("who").value=S.who||""; $("paper").value=S.paper||"A4";
+  $("who").addEventListener("input",function(){ S.who=this.value; save(); });
+  $("paper").addEventListener("change",function(){ S.paper=this.value; save(); if($("preview").classList.contains("show")) showPreview(); });
+
+  // ---------- building the printed sheets ----------
+  function PAGE(){ return S.paper==="Letter"?{w:215.9,h:279.4}:{w:210,h:297}; }
+  function blockHTML(b,bs){
+    var h='<div class="blk" style="flex:'+b.w+' 1 0">'+(b.label?'<div class="blk-l">'+esc(b.label)+'</div>':'');
+    if(b.kind==="lines"){ h+='<div class="b-lines">'+new Array(b.n+1).join("<i></i>")+'</div>'; }
+    else if(b.kind==="fields"||b.kind==="checks"){
+      var its=b.items.filter(function(_,j){return bs.it[j];}), cols=Math.min(b.cols||2,Math.max(1,its.length));
+      h+='<div class="b-'+b.kind+'" style="grid-template-columns:repeat('+cols+',1fr)">'+its.map(function(t){return '<div>'+esc(t)+'</div>';}).join("")+'</div>';
+    } else if(b.kind==="grid"){
+      var keep=b.headers.map(function(_,j){return j;}).filter(function(j){return bs.it[j];});
+      var rows=b.rows||Math.max(4,Math.round(b.w*4.5));
+      h+='<div class="b-grid" style="grid-template-columns:'+keep.map(function(j){return b.ratios[j]+'fr';}).join(" ")+';grid-template-rows:auto repeat('+rows+',1fr)">'+
+        keep.map(function(j){return '<div class="h">'+esc(b.headers[j])+'</div>';}).join("")+new Array(rows*keep.length+1).join("<div></div>")+'</div>';
+    } else if(b.kind==="prose"){ h+='<div class="b-prose">'+esc(b.text)+'</div>'; }
+    return h+'</div>';
+  }
+  function sheets(){
+    var out=[], P=PAGE(), innerH=P.h-25;
+    kit().pages.forEach(function(pk){
+      var p=D.pages[pk], s=st(pk); if(!s.on) return;
+      var blocks=p.blocks.map(function(b,i){return [b,s.b[i]];}).filter(function(x){
+        if(!x[1].on) return false; if(x[1].it) return x[1].it.some(Boolean); return true; });
+      if(!blocks.length) return;
+      var one='<div class="sheet" style="height:'+innerH+'mm"><div class="sh-head"><div class="sh-title">'+esc(p.title)+'</div>'+
+        (S.who?'<div class="sh-for">For: '+esc(S.who)+'</div>':'')+'</div>'+
+        (p.note?'<div class="sh-note">'+esc(p.note)+'</div>':'')+blocks.map(function(x){return blockHTML(x[0],x[1]);}).join("")+'</div>';
+      for(var c=0;c<s.copies;c++) out.push(one);
+    });
+    return out;
+  }
+  function showPreview(){
+    var P=PAGE(), sh=sheets();
+    if(!sh.length){ hidePreview(); alert("Nothing is ticked yet."); return; }
+    var pxw=P.w*3.7795, avail=Math.min(document.documentElement.clientWidth,780)-8, k=Math.min(1,avail/pxw);
+    var sc=$("scaler"); sc.innerHTML=sh.join("").replace(/class="sheet" style="height:([\d.]+)mm"/g,'class="sheet" style="width:'+P.w+'mm;height:'+P.h+'mm"');
+    sc.style.transform="scale("+k+")"; sc.style.width=pxw+"px";
+    sc.style.marginLeft=Math.max(4,(document.documentElement.clientWidth-pxw*k)/2)+"px";
+    $("preview").style.height=(sc.scrollHeight*k+130)+"px";
+    $("preview").classList.add("show"); $("app").style.display="none"; $("prevBtn").textContent="Back to picking";
+    window.scrollTo(0,0);
+  }
+  function hidePreview(){ $("preview").classList.remove("show"); $("app").style.display=""; $("prevBtn").textContent="Preview"; }
+  $("prevBtn").onclick=function(){ if($("preview").classList.contains("show")) hidePreview(); else showPreview(); };
+  function printDoc(){
+    return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Care pages</title><style>@page{size:'+S.paper+';margin:12mm}html,body{margin:0;padding:0;background:#fff}'+
+      $("sheetcss").textContent+'</style></head><body>'+sheets().join("")+'</body></html>';
+  }
+  $("printBtn").onclick=function(){
+    if(!sheets().length){ alert("Nothing is ticked yet."); return; }
+    var f=$("pframe"); if(f) f.remove();
+    f=document.createElement("iframe"); f.id="pframe"; f.setAttribute("aria-hidden","true");
+    f.style.cssText="position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0";
+    document.body.appendChild(f);
+    var d=f.contentWindow.document; d.open(); d.write(printDoc()); d.close();
+    setTimeout(function(){ try{ f.contentWindow.focus(); f.contentWindow.print(); }catch(e){ $("pagesize").textContent="@page{size:"+S.paper+";margin:12mm}"; $("print").innerHTML=sheets().join(""); window.print(); } },250);
+  };
+
+  // swipe left/right between kits
+  var sx=null, sy=null;
+  document.addEventListener("touchstart",function(e){ if(e.touches.length!==1) return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+  document.addEventListener("touchend",function(e){
+    if(sx===null) return; var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy; sx=null;
+    if(Math.abs(dx)<70||Math.abs(dy)>Math.abs(dx)*0.6||$("preview").classList.contains("show")) return;
+    if(e.target.closest&&e.target.closest(".chips")) return;
+    var ks=D.kits.map(function(k){return k.key;}), i=ks.indexOf(S.kit);
+    i=dx<0?Math.min(ks.length-1,i+1):Math.max(0,i-1);
+    if(ks[i]!==S.kit){ S.kit=ks[i]; save(); renderKits(); renderList(); window.scrollTo(0,0); }
+  },{passive:true});
+
+  fetch("pages.json",{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){ D=d; renderKits(); renderList();
+      // #sheets fills the print area on load, so a headless browser can print a real PDF to check the layout
+      if(location.hash.indexOf("#sheets")===0){
+        var hk=location.hash.split("=")[1]; if(hk){ S={kit:hk,who:"",paper:(location.hash.split("=")[2]||"A4"),sel:{}}; }
+        // screen check first: list any section whose content does not fit its box
+        var pr=$("print"); pr.innerHTML=sheets().join(""); pr.style.display="block"; pr.style.width=(PAGE().w-24)+"mm"; var bad=[];
+        pr.querySelectorAll(".sheet").forEach(function(sh){ sh.querySelectorAll(".blk").forEach(function(b){ if(b.scrollHeight>b.clientHeight+2) bad.push(sh.querySelector(".sh-title").textContent+" / "+((b.querySelector(".blk-l")||{}).textContent||"")); }); });
+        var n=pr.querySelectorAll(".sheet").length, doc=printDoc().replace("<body>",'<body data-sheets="'+n+'" data-clipped="'+(bad.join(" | ")||"none")+'">');
+        document.open(); document.write(doc); document.close(); } })
+    .catch(function(){ $("list").innerHTML='<p class="sub">Could not load the pages. Pull down to try again.</p>'; });
+})();
+</script>
+<script src="../speak.js" defer></script>
+</body>
+</html>

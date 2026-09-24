@@ -1,0 +1,1131 @@
+{
+ "source": "costway-scraper/caregiver_generator.py",
+ "pages": {
+  "about_person": {
+   "title": "About the person I care for",
+   "note": "The page a stranger reads first.",
+   "blocks": [
+    {
+     "kind": "fields",
+     "label": "Who they are",
+     "items": [
+      "Full name",
+      "Prefers to be called",
+      "Date of birth",
+      "Health / insurer ID (optional)",
+      "Home address",
+      "Phone",
+      "Height & weight",
+      "Blood type (if known)"
+     ],
+     "w": 2,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "What matters to them — in their own words if you can",
+     "n": 3,
+     "w": 1.4
+    },
+    {
+     "kind": "lines",
+     "label": "Things a stranger would get wrong",
+     "n": 3,
+     "w": 1.4
+    }
+   ]
+  },
+  "daily_routine": {
+   "title": "A day in their life",
+   "note": "Fill this in once. It is the page respite carers ask for.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "The shape of the day",
+     "headers": [
+      "Time",
+      "What happens",
+      "What they like about it / what to avoid"
+     ],
+     "ratios": [
+      1.1,
+      2.4,
+      3.5
+     ],
+     "w": 4,
+     "rows": null
+    },
+    {
+     "kind": "lines",
+     "label": "If the routine goes wrong",
+     "n": 3,
+     "w": 1.3
+    }
+   ]
+  },
+  "communication": {
+   "title": "Communication & comfort",
+   "note": "What helps, and what makes things worse.",
+   "blocks": [
+    {
+     "kind": "fields",
+     "label": "Hearing, sight & speech",
+     "items": [
+      "Hearing aid — which ear, where kept",
+      "Glasses — for what, where kept",
+      "Best side to stand on",
+      "Words they use for things"
+     ],
+     "w": 1.3,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "What calms them",
+     "n": 3,
+     "w": 1.2
+    },
+    {
+     "kind": "lines",
+     "label": "What distresses them",
+     "n": 3,
+     "w": 1.2
+    },
+    {
+     "kind": "lines",
+     "label": "If they become upset or confused — what has worked before",
+     "n": 3,
+     "w": 1.2
+    }
+   ]
+  },
+  "medical_summary": {
+   "title": "Medical summary",
+   "note": "The overview. One page, so it can be handed over whole.",
+   "blocks": [
+    {
+     "kind": "fields",
+     "label": "Diagnoses & when",
+     "items": [
+      "Main condition",
+      "Diagnosed",
+      "Other conditions",
+      "Allergies & reactions",
+      "Surgeries / major events",
+      "Devices & implants"
+     ],
+     "w": 1.6,
+     "cols": 2
+    },
+    {
+     "kind": "grid",
+     "label": "History that keeps coming up",
+     "headers": [
+      "Date",
+      "What happened",
+      "Outcome / what changed after it"
+     ],
+     "ratios": [
+      1.1,
+      2.6,
+      3.3
+     ],
+     "w": 2.4,
+     "rows": null
+    },
+    {
+     "kind": "lines",
+     "label": "What a new doctor should know in one sentence",
+     "n": 2,
+     "w": 1
+    }
+   ]
+  },
+  "medication_schedule": {
+   "title": "Medication schedule",
+   "note": "Keep this current. Photograph it before every appointment.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "Current medicines",
+     "headers": [
+      "Medicine & strength",
+      "What it is for",
+      "Morning",
+      "Midday",
+      "Evening",
+      "Night",
+      "Notes"
+     ],
+     "ratios": [
+      2.2,
+      1.9,
+      0.7,
+      0.7,
+      0.7,
+      0.7,
+      2.0
+     ],
+     "w": 4,
+     "rows": null
+    },
+    {
+     "kind": "fields",
+     "label": "Supply",
+     "items": [
+      "Pharmacy & phone",
+      "Repeat prescription due",
+      "Blister pack? Who collects?",
+      "Where medicines are kept"
+     ],
+     "w": 1,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "Medicines stopped, and why — do not restart without asking",
+     "n": 2,
+     "w": 0.9
+    }
+   ]
+  },
+  "medication_changes": {
+   "title": "Medication changes log",
+   "note": "Every change, who made it, and what happened next.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "Changes",
+     "headers": [
+      "Date",
+      "Medicine",
+      "Change made",
+      "Who decided",
+      "Effect noticed"
+     ],
+     "ratios": [
+      1.0,
+      1.8,
+      2.0,
+      1.5,
+      2.4
+     ],
+     "w": 5,
+     "rows": null
+    },
+    {
+     "kind": "lines",
+     "label": "Questions to raise at the next medication review",
+     "n": 4,
+     "w": 1.4
+    }
+   ]
+  },
+  "appointments": {
+   "title": "Appointment log",
+   "note": "Book it here the moment the phone call ends.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "Appointments",
+     "headers": [
+      "Date & time",
+      "Who with",
+      "Where",
+      "Transport",
+      "Outcome / next step"
+     ],
+     "ratios": [
+      1.4,
+      1.8,
+      1.7,
+      1.3,
+      2.6
+     ],
+     "w": 4.5,
+     "rows": null
+    },
+    {
+     "kind": "fields",
+     "label": "Before you go",
+     "items": [
+      "Take: medication list",
+      "Take: hospital handover page",
+      "Take: this binder",
+      "Ask for: written summary"
+     ],
+     "w": 0.9,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "Things I keep forgetting to mention",
+     "n": 3,
+     "w": 1.1
+    }
+   ]
+  },
+  "symptom_log": {
+   "title": "Symptom & change log",
+   "note": "A dated record to discuss with the care team.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "What I noticed",
+     "headers": [
+      "Date",
+      "What I noticed",
+      "How long it lasted",
+      "What I did",
+      "Told who?"
+     ],
+     "ratios": [
+      1.0,
+      2.8,
+      1.4,
+      2.0,
+      1.3
+     ],
+     "w": 5,
+     "rows": null
+    },
+    {
+     "kind": "lines",
+     "label": "Patterns I think I can see",
+     "n": 3,
+     "w": 1.3
+    }
+   ]
+  },
+  "hospital_onepager": {
+   "title": "One-page hospital handover",
+   "note": "Keep a printed copy by the front door. Grab it and go.",
+   "blocks": [
+    {
+     "kind": "prose",
+     "text": "This sheet keeps key handover details together when time is short. Give it to the relevant emergency or clinical professional if useful, and answer their questions directly whenever you can.",
+     "w": 0.7
+    },
+    {
+     "kind": "fields",
+     "label": "The essentials",
+     "items": [
+      "Name & date of birth",
+      "Usual address",
+      "Health / insurer ID (optional)",
+      "Main diagnoses",
+      "ALLERGIES",
+      "Normal baseline — what they are like well"
+     ],
+     "w": 1.9,
+     "cols": 2
+    },
+    {
+     "kind": "fields",
+     "label": "Who to call",
+     "items": [
+      "Next of kin & phone",
+      "Second contact",
+      "GP practice & phone",
+      "Legal decision-maker (if any)"
+     ],
+     "w": 1.1,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "What is different today",
+     "n": 2,
+     "w": 1
+    },
+    {
+     "kind": "lines",
+     "label": "Things that will make the ward harder for them",
+     "n": 2,
+     "w": 1
+    }
+   ]
+  },
+  "go_bag": {
+   "title": "Hospital go-bag checklist",
+   "note": "Pack it once and leave it packed.",
+   "blocks": [
+    {
+     "kind": "checks",
+     "label": "In the bag",
+     "items": [
+      "This binder, or the handover page",
+      "Medication list (photograph too)",
+      "Glasses and case",
+      "Hearing aid, case and spare batteries",
+      "Dentures and pot",
+      "Two changes of clothes",
+      "Nightwear and dressing gown",
+      "Slippers with backs — not mules",
+      "Toothbrush, soap, flannel",
+      "Phone charger with a long cable",
+      "Small change / card for the shop",
+      "Photograph of family, named on the back",
+      "A favourite blanket or cushion cover",
+      "Something to do — puzzle book, radio",
+      "Written list of who to phone",
+      "Spare house key for whoever locks up"
+     ],
+     "w": 3.4,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "Where the bag lives",
+     "n": 1,
+     "w": 0.5
+    },
+    {
+     "kind": "lines",
+     "label": "Learned the hard way — add your own",
+     "n": 3,
+     "w": 1.1
+    }
+   ]
+  },
+  "daily_care_log": {
+   "title": "Daily care log",
+   "note": "One sheet per day. Print a stack of these.",
+   "blocks": [
+    {
+     "kind": "fields",
+     "label": "Day",
+     "items": [
+      "Date",
+      "Who was on"
+     ],
+     "w": 0.45,
+     "cols": 2
+    },
+    {
+     "kind": "grid",
+     "label": "Through the day",
+     "headers": [
+      "Time",
+      "Personal care",
+      "Food & drink",
+      "Mood & behaviour",
+      "Notes"
+     ],
+     "ratios": [
+      0.9,
+      1.8,
+      1.8,
+      1.8,
+      2.3
+     ],
+     "w": 4.2,
+     "rows": null
+    },
+    {
+     "kind": "fields",
+     "label": "Totals & flags",
+     "items": [
+      "Meals eaten",
+      "Drinks",
+      "Bowels",
+      "Sleep",
+      "Falls / near misses",
+      "Anything to report"
+     ],
+     "w": 1.1,
+     "cols": 3
+    }
+   ]
+  },
+  "food_fluid": {
+   "title": "Food & fluid record",
+   "note": "One row per day, for a fortnight, if eating or drinking is a worry.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "Fortnight — write the day in the first column",
+     "headers": [
+      "Day",
+      "Breakfast",
+      "Lunch",
+      "Evening",
+      "Drinks (cups)",
+      "Weight / notes"
+     ],
+     "ratios": [
+      1.0,
+      1.9,
+      1.9,
+      1.9,
+      1.3,
+      1.8
+     ],
+     "w": 3.4,
+     "rows": null
+    },
+    {
+     "kind": "lines",
+     "label": "What actually gets eaten",
+     "n": 3,
+     "w": 1.3
+    },
+    {
+     "kind": "lines",
+     "label": "Told the GP / dietitian on",
+     "n": 1,
+     "w": 0.5
+    }
+   ]
+  },
+  "sleep_night": {
+   "title": "Sleep & night log",
+   "note": "Nights are where carers break. Write it down; it makes the case.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "Nights",
+     "headers": [
+      "Date",
+      "To bed",
+      "Woke at",
+      "What happened",
+      "Back to sleep",
+      "How I was next day"
+     ],
+     "ratios": [
+      1.0,
+      1.0,
+      1.2,
+      2.8,
+      1.3,
+      1.9
+     ],
+     "w": 4,
+     "rows": null
+    },
+    {
+     "kind": "lines",
+     "label": "What helps at night",
+     "n": 3,
+     "w": 1.2
+    },
+    {
+     "kind": "lines",
+     "label": "How many broken nights before I ask for help — decide now, in daylight",
+     "n": 2,
+     "w": 0.9
+    }
+   ]
+  },
+  "mobility_falls": {
+   "title": "Mobility, falls & equipment",
+   "note": "What they can do, what they used to do, and what changed.",
+   "blocks": [
+    {
+     "kind": "fields",
+     "label": "Getting about",
+     "items": [
+      "Indoors",
+      "Outdoors",
+      "Stairs",
+      "Getting out of a chair",
+      "In the bathroom",
+      "At night"
+     ],
+     "w": 1.3,
+     "cols": 2
+    },
+    {
+     "kind": "grid",
+     "label": "Falls & near misses",
+     "headers": [
+      "Date",
+      "Where",
+      "What happened",
+      "Injury?",
+      "What changed after"
+     ],
+     "ratios": [
+      1.0,
+      1.3,
+      2.6,
+      1.2,
+      2.4
+     ],
+     "w": 2.4,
+     "rows": null
+    },
+    {
+     "kind": "checks",
+     "label": "Equipment we have",
+     "items": [
+      "Walking frame",
+      "Wheelchair",
+      "Grab rails",
+      "Raised toilet seat",
+      "Perching stool",
+      "Commode",
+      "Bed rail",
+      "Pendant alarm",
+      "Non-slip mats",
+      "Riser recliner"
+     ],
+     "w": 1.3,
+     "cols": 3
+    }
+   ]
+  },
+  "care_team": {
+   "title": "Care team & contacts",
+   "note": "Start here. This is the page people copy and keep.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "Who is involved",
+     "headers": [
+      "Role",
+      "Name",
+      "Organisation",
+      "Phone",
+      "When to call them"
+     ],
+     "ratios": [
+      1.5,
+      1.7,
+      1.8,
+      1.5,
+      2.5
+     ],
+     "w": 5,
+     "rows": null
+    },
+    {
+     "kind": "fields",
+     "label": "Family & neighbours",
+     "items": [
+      "Next of kin",
+      "Second contact",
+      "Neighbour with a key",
+      "Who covers if I am ill"
+     ],
+     "w": 1.2,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "Who has actually been useful, and how",
+     "n": 2,
+     "w": 0.9
+    }
+   ]
+  },
+  "emergency_contacts": {
+   "title": "In an emergency",
+   "note": "Print this one twice. Fridge door and by the phone.",
+   "blocks": [
+    {
+     "kind": "fields",
+     "label": "Call first",
+     "items": [
+      "Emergency services",
+      "Out-of-hours doctor",
+      "GP surgery",
+      "Next of kin",
+      "Second contact",
+      "Neighbour with a key"
+     ],
+     "w": 1.8,
+     "cols": 2
+    },
+    {
+     "kind": "fields",
+     "label": "Say this",
+     "items": [
+      "Their name & age",
+      "Main conditions",
+      "ALLERGIES",
+      "Where the medicines list is",
+      "How authorised carers get in",
+      "Legal decision-maker (if any)"
+     ],
+     "w": 1.8,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "If I am the one who is taken ill — what happens to them",
+     "n": 3,
+     "w": 1.4
+    }
+   ]
+  },
+  "services_funding": {
+   "title": "Services, funding & benefits",
+   "note": "What we get, what it costs, and when it is reviewed.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "What is in place",
+     "headers": [
+      "Service",
+      "Provider",
+      "How often",
+      "Cost / funded by",
+      "Review due"
+     ],
+     "ratios": [
+      1.9,
+      1.7,
+      1.4,
+      1.9,
+      1.3
+     ],
+     "w": 3,
+     "rows": null
+    },
+    {
+     "kind": "lines",
+     "label": "Applied for and waiting",
+     "n": 3,
+     "w": 1.2
+    },
+    {
+     "kind": "lines",
+     "label": "Turned down, and whether we appealed",
+     "n": 2,
+     "w": 0.9
+    }
+   ]
+  },
+  "legal_documents": {
+   "title": "Legal papers & where they are",
+   "note": "Not legal advice — a record of what exists and where.",
+   "blocks": [
+    {
+     "kind": "prose",
+     "text": "This page does not create or replace any legal document. It records what has been signed, by whom, and where the original is kept, so that nobody has to search the house in a crisis.",
+     "w": 0.7
+    },
+    {
+     "kind": "grid",
+     "label": "Documents",
+     "headers": [
+      "Document",
+      "Exists?",
+      "Signed / dated",
+      "Who holds it",
+      "Where the original is"
+     ],
+     "ratios": [
+      2.0,
+      0.9,
+      1.4,
+      1.7,
+      2.2
+     ],
+     "w": 3.4,
+     "rows": null
+    },
+    {
+     "kind": "fields",
+     "label": "Professionals",
+     "items": [
+      "Solicitor & phone",
+      "Accountant",
+      "Bank (no account numbers)",
+      "Where access instructions are stored"
+     ],
+     "w": 1.1,
+     "cols": 2
+    }
+   ]
+  },
+  "money_bills": {
+   "title": "Money & bills at a glance",
+   "note": "So that someone else could keep the lights on.",
+   "blocks": [
+    {
+     "kind": "grid",
+     "label": "Regular outgoings",
+     "headers": [
+      "What",
+      "Who to",
+      "How much",
+      "When",
+      "How it is paid"
+     ],
+     "ratios": [
+      1.9,
+      1.9,
+      1.2,
+      1.3,
+      1.9
+     ],
+     "w": 3.2,
+     "rows": null
+    },
+    {
+     "kind": "fields",
+     "label": "Income",
+     "items": [
+      "Pension",
+      "Carer / disability support payment",
+      "Other income",
+      "Account nickname only"
+     ],
+     "w": 1.1,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "Things that would go wrong within a month if nobody knew",
+     "n": 3,
+     "w": 1.2
+    }
+   ]
+  },
+  "shift_handover": {
+   "title": "Shift handover",
+   "note": "One sheet, one shift. The page this binder is named after.",
+   "blocks": [
+    {
+     "kind": "fields",
+     "label": "This shift",
+     "items": [
+      "Date",
+      "Handing over from",
+      "Handing over to",
+      "Hours covered"
+     ],
+     "w": 0.8,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "How they have been today — in one or two sentences",
+     "n": 2,
+     "w": 1
+    },
+    {
+     "kind": "fields",
+     "label": "Done already",
+     "items": [
+      "Morning meds",
+      "Midday meds",
+      "Meals",
+      "Drinks",
+      "Toilet / continence",
+      "Washed & dressed"
+     ],
+     "w": 1.1,
+     "cols": 3
+    },
+    {
+     "kind": "fields",
+     "label": "Still to do",
+     "items": [
+      "Evening meds",
+      "Tea",
+      "Bedtime routine",
+      "Anything booked or expected"
+     ],
+     "w": 1.0,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "Watch for",
+     "n": 2,
+     "w": 0.9
+    },
+    {
+     "kind": "fields",
+     "label": "Handed over",
+     "items": [
+      "Signed (handing over)",
+      "Time",
+      "Signed (receiving)",
+      "Time received"
+     ],
+     "w": 0.75,
+     "cols": 2
+    }
+   ]
+  },
+  "respite_briefing": {
+   "title": "Respite carer briefing",
+   "note": "For someone covering a day or a week. Print with “A day in their life”.",
+   "blocks": [
+    {
+     "kind": "prose",
+     "text": "If you are reading this, thank you. You do not need to read the whole binder. Read this page and “A day in their life” first; everything else is reference. If you are worried about someone’s safety, call your local emergency number first, then ring the contact below. Do not wait to be sure. Head injury, unconsciousness, chest pain, heavy bleeding and trouble breathing are examples, not a complete list — trust your judgement.",
+     "w": 1.0
+    },
+    {
+     "kind": "fields",
+     "label": "Ring first",
+     "items": [
+      "Main carer — name",
+      "Phone",
+      "Second contact — name",
+      "Phone"
+     ],
+     "w": 0.75,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "The three things that matter most",
+     "n": 3,
+     "w": 1.2
+    },
+    {
+     "kind": "fields",
+     "label": "Practical",
+     "items": [
+      "Entry instructions location",
+      "Where the medicines are",
+      "Where this binder lives",
+      "Bin day",
+      "Wi-Fi details location",
+      "Nearest shop"
+     ],
+     "w": 1.2,
+     "cols": 2
+    },
+    {
+     "kind": "lines",
+     "label": "Do not be alarmed if…",
+     "n": 3,
+     "w": 1.2
+    },
+    {
+     "kind": "lines",
+     "label": "Ring me if…",
+     "n": 3,
+     "w": 1.2
+    }
+   ]
+  },
+  "visitor_instructions": {
+   "title": "For visitors & helpers",
+   "note": "Stick this inside the front door.",
+   "blocks": [
+    {
+     "kind": "lines",
+     "label": "Please do",
+     "n": 5,
+     "w": 1.5
+    },
+    {
+     "kind": "lines",
+     "label": "Please don't",
+     "n": 5,
+     "w": 1.5
+    },
+    {
+     "kind": "lines",
+     "label": "If you want to help, this is what actually helps",
+     "n": 4,
+     "w": 1.3
+    }
+   ]
+  },
+  "carer_wellbeing": {
+   "title": "How I am doing",
+   "note": "This page is for you. It is not optional.",
+   "blocks": [
+    {
+     "kind": "prose",
+     "text": "Carers are often asked how the person they support is doing, while their own wellbeing gets less attention. Fill this in monthly and bring the record to an appointment if it helps you describe what has changed.",
+     "w": 0.8
+    },
+    {
+     "kind": "grid",
+     "label": "This month",
+     "headers": [
+      "Month",
+      "Broken nights",
+      "Hours to myself",
+      "Sleep 1–10",
+      "Mood 1–10",
+      "Warning signs"
+     ],
+     "ratios": [
+      1.2,
+      1.3,
+      1.4,
+      1.1,
+      1.1,
+      2.6
+     ],
+     "w": 2.6,
+     "rows": null
+    },
+    {
+     "kind": "lines",
+     "label": "What I have stopped doing that I used to do",
+     "n": 3,
+     "w": 1.2
+    },
+    {
+     "kind": "lines",
+     "label": "What I will ask for, and who I will ask — write it before you need it",
+     "n": 3,
+     "w": 1.2
+    }
+   ]
+  },
+  "appointment_questions": {
+   "title": "Questions for the next appointment",
+   "note": "Write them as they occur to you. You will forget otherwise.",
+   "blocks": [
+    {
+     "kind": "lines",
+     "label": "Questions",
+     "n": 9,
+     "w": 3
+    },
+    {
+     "kind": "lines",
+     "label": "What they said",
+     "n": 6,
+     "w": 2
+    },
+    {
+     "kind": "fields",
+     "label": "Follow-up",
+     "items": [
+      "Next appointment",
+      "Who is chasing what",
+      "Written summary requested?"
+     ],
+     "w": 0.7,
+     "cols": 3
+    }
+   ]
+  },
+  "notes": {
+   "title": "Notes",
+   "note": "For everything that does not fit anywhere else.",
+   "blocks": [
+    {
+     "kind": "lines",
+     "label": "",
+     "n": 26,
+     "w": 1
+    }
+   ]
+  }
+ },
+ "kits": [
+  {
+   "key": "hospital_handover",
+   "title": "Hospital Handover Kit",
+   "moment": "For the day they are admitted, and the handover at the door",
+   "pages": [
+    "medical_summary",
+    "medication_schedule",
+    "medication_changes",
+    "hospital_onepager",
+    "go_bag",
+    "about_person",
+    "care_team",
+    "emergency_contacts"
+   ]
+  },
+  {
+   "key": "medication_appointments",
+   "title": "Medication & Appointment Kit",
+   "moment": "For keeping the tablets and the specialists straight",
+   "pages": [
+    "medication_schedule",
+    "medication_changes",
+    "appointments",
+    "symptom_log",
+    "appointment_questions",
+    "medical_summary",
+    "care_team",
+    "about_person"
+   ]
+  },
+  {
+   "key": "respite_handover",
+   "title": "Respite & Carer Handover Kit",
+   "moment": "For the first time you leave them with someone else",
+   "pages": [
+    "daily_routine",
+    "communication",
+    "shift_handover",
+    "respite_briefing",
+    "visitor_instructions",
+    "about_person",
+    "emergency_contacts",
+    "medication_schedule"
+   ]
+  },
+  {
+   "key": "daily_care",
+   "title": "Daily Care Log Kit",
+   "moment": "For the weeks you are asked what changed, and cannot remember",
+   "pages": [
+    "daily_care_log",
+    "food_fluid",
+    "sleep_night",
+    "mobility_falls",
+    "symptom_log",
+    "medication_schedule",
+    "communication",
+    "carer_wellbeing"
+   ]
+  },
+  {
+   "key": "emergency_papers",
+   "title": "Emergency & Important Papers Kit",
+   "moment": "For the call that comes when you are not there",
+   "pages": [
+    "emergency_contacts",
+    "care_team",
+    "legal_documents",
+    "services_funding",
+    "money_bills",
+    "medical_summary",
+    "about_person",
+    "hospital_onepager"
+   ]
+  },
+  {
+   "key": "all",
+   "title": "Whole care binder",
+   "moment": "Every page from all the kits",
+   "pages": [
+    "about_person",
+    "daily_routine",
+    "communication",
+    "medical_summary",
+    "medication_schedule",
+    "medication_changes",
+    "appointments",
+    "symptom_log",
+    "hospital_onepager",
+    "go_bag",
+    "daily_care_log",
+    "food_fluid",
+    "sleep_night",
+    "mobility_falls",
+    "care_team",
+    "emergency_contacts",
+    "services_funding",
+    "legal_documents",
+    "money_bills",
+    "shift_handover",
+    "respite_briefing",
+    "visitor_instructions",
+    "carer_wellbeing",
+    "appointment_questions",
+    "notes"
+   ]
+  }
+ ]
+}
