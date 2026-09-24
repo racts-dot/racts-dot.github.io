@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1115">
+<title>My Binders</title>
+<style>
+:root{--bg:#0f1115;--card:#171a21;--border:#2a2e38;--text:#e8e9ed;--muted:#8b8f9b;--accent:#6c8cff;--ok:#4ade80}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:max(20px,env(safe-area-inset-top)) 16px 80px}
+.wrap{max-width:900px;margin:0 auto}
+h1{font-size:24px;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+input[type=search],select{padding:11px 13px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:16px;font-family:inherit}
+input[type=search]{flex:1 1 200px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;scrollbar-width:none}
+.chip{flex:0 0 auto;padding:8px 13px;border-radius:999px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:14px;font-size:14px}
+.bar button{padding:8px 12px;border-radius:9px;border:1px solid var(--border);background:#222633;color:var(--text);font-weight:600;font-size:13px;cursor:pointer}
+.bar button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.card{background:var(--card);border:2px solid var(--border);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;position:relative}
+.card.picked{border-color:var(--ok)}
+.card img{width:100%;aspect-ratio:4/5;object-fit:cover;background:#222;display:block}
+.tick{position:absolute;top:8px;left:8px;width:30px;height:30px;border-radius:8px;background:rgba(15,17,21,.85);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:var(--ok)}
+.card.picked .tick{background:var(--ok);border-color:var(--ok);color:#0f1115}
+.body{padding:10px 11px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.name{font-size:14px;font-weight:600;line-height:1.3}
+.meta{font-size:12px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap}
+.tag{font-size:11px;padding:2px 7px;border-radius:6px;background:#262a36;color:#c7cbe0}
+.tag.care{background:#1d3b2a;color:#9ff0bd}
+.body a{margin-top:auto;font-size:13px;color:var(--accent);text-decoration:none;font-weight:600}
+.empty{color:var(--muted);text-align:center;padding:40px 0}
+.foot{color:var(--muted);font-size:12px;margin-top:18px;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ok);color:#0f1115;padding:10px 16px;border-radius:10px;font-weight:700;display:none;z-index:50}
+</style>
+<script src="../textsize.js"></script><script src="../feedback.js" defer></script>
+<script src="../kit-dock.js?v=fold1" defer></script>
+<script src="../pull.js" defer></script><script src="../hearsel.js" defer></script>
+<script src="../swipe-hint.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <h1>My Binders</h1>
+  <div class="sub" id="sub">Your binder listings on Etsy.</div>
+
+  <div class="row">
+    <input type="search" id="q" placeholder="Search a binder…" aria-label="Search">
+    <select id="sort" aria-label="Sort">
+      <option value="views">Most viewed</option>
+      <option value="new">Newest</option>
+      <option value="price">Price, low to high</option>
+      <option value="name">A to Z</option>
+    </select>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div class="bar">
+    <span id="count">0 ticked</span>
+    <span class="row" style="margin:0">
+      <button id="onlyBtn">Show ticked only</button>
+      <button id="copyBtn" class="primary">Copy ticked list</button>
+      <button id="clearBtn">Clear ticks</button>
+    </span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="foot" id="foot"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var KEY="binders.picked", ALL="All", CARE="The 6 care kits", TICKED="Ticked";
+  var data=[], picked={}, cat=ALL, onlyTicked=false;
+  try{ picked=JSON.parse(localStorage.getItem(KEY)||"{}")||{}; }catch(e){ picked={}; }
+  function save(){ try{ localStorage.setItem(KEY,JSON.stringify(picked)); }catch(e){} }
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+  function shortName(t){ return t.split(/[,|]/)[0].trim(); }
+  function money(x){ return (x.cur==="AUD"?"A$":x.cur+" ")+x.price.toFixed(2); }
+  function cats(){
+    var seen={}, list=[ALL,CARE];
+    data.forEach(function(x){ if(!seen[x.cat]){ seen[x.cat]=1; list.push(x.cat); } });
+    return list;
+  }
+  function chips(){
+    $("chips").innerHTML=cats().map(function(c){
+      var n=c===ALL?data.length:c===CARE?data.filter(function(x){return x.careSet;}).length:data.filter(function(x){return x.cat===c;}).length;
+      return '<button class="chip'+(c===cat?' on':'')+'" data-c="'+esc(c)+'">'+esc(c)+' ('+n+')</button>';
+    }).join("");
+  }
+  function visible(){
+    var q=$("q").value.trim().toLowerCase();
+    var v=data.filter(function(x){
+      if(cat===CARE && !x.careSet) return false;
+      if(cat!==ALL && cat!==CARE && x.cat!==cat) return false;
+      if(onlyTicked && !picked[x.id]) return false;
+      if(q && (x.title+" "+x.tags.join(" ")).toLowerCase().indexOf(q)<0) return false;
+      return true;
+    });
+    var s=$("sort").value;
+    v.sort(function(a,b){
+      if(s==="views") return (b.views||0)-(a.views||0);
+      if(s==="new") return (b.created||0)-(a.created||0);
+      if(s==="price") return a.price-b.price;
+      return shortName(a.title).localeCompare(shortName(b.title));
+    });
+    return v;
+  }
+  function render(){
+    chips();
+    var v=visible();
+    $("grid").innerHTML=v.length?v.map(function(x){
+      return '<div class="card'+(picked[x.id]?' picked':'')+'" data-id="'+x.id+'">'+
+        '<div class="tick">'+(picked[x.id]?'✓':'')+'</div>'+
+        (x.img?'<img loading="lazy" alt="" src="'+esc(x.img)+'">':'')+
+        '<div class="body"><div class="name">'+esc(shortName(x.title))+'</div>'+
+        '<div class="meta"><span>'+money(x)+'</span><span>'+(x.views||0)+' views</span><span>'+(x.favs||0)+' saves</span></div>'+
+        '<div class="meta"><span class="tag'+(x.careSet?' care':'')+'">'+esc(x.careSet?"Care kit":x.cat)+'</span></div>'+
+        '<a href="'+esc(x.url)+'" target="_blank" rel="noopener">Open on Etsy</a></div></div>';
+    }).join(""):'<div class="empty">Nothing matches.</div>';
+    var n=data.filter(function(x){return picked[x.id];}).length;
+    $("count").textContent=n+" ticked";
+    $("onlyBtn").textContent=onlyTicked?"Show all":"Show ticked only";
+  }
+  function toast(t){ var e=$("toast"); e.textContent=t; e.style.display="block"; clearTimeout(toast.t); toast.t=setTimeout(function(){e.style.display="none";},1800); }
+
+  $("chips").addEventListener("click",function(e){ var b=e.target.closest(".chip"); if(!b) return; cat=b.getAttribute("data-c"); render(); });
+  $("grid").addEventListener("click",function(e){
+    if(e.target.closest("a")) return;
+    var c=e.target.closest(".card"); if(!c) return;
+    var id=c.getAttribute("data-id");
+    if(picked[id]) delete picked[id]; else picked[id]=1;
+    save(); render();
+  });
+  $("q").addEventListener("input",render);
+  $("sort").addEventListener("change",render);
+  $("onlyBtn").addEventListener("click",function(){ onlyTicked=!onlyTicked; render(); });
+  $("clearBtn").addEventListener("click",function(){ if(!Object.keys(picked).length) return; if(confirm("Clear all ticks?")){ picked={}; save(); render(); } });
+  $("copyBtn").addEventListener("click",function(){
+    var t=data.filter(function(x){return picked[x.id];});
+    if(!t.length){ toast("Tick some binders first"); return; }
+    var txt=t.map(function(x){ return shortName(x.title)+" - "+money(x)+" - "+x.url; }).join("\n");
+    (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){ toast("Copied "+t.length); },function(){ prompt("Copy this:",txt); });
+  });
+
+  // swipe left/right to move between groups
+  var sx=null, sy=null;
+  document.addEventListener("touchstart",function(e){ if(e.touches.length!==1) return; sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+  document.addEventListener("touchend",function(e){
+    if(sx===null) return;
+    var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy; sx=null;
+    if(Math.abs(dx)<70 || Math.abs(dy)>Math.abs(dx)*0.6) return;
+    if(e.target.closest && e.target.closest(".chips")) return;
+    var list=cats(), i=list.indexOf(cat);
+    i=dx<0?Math.min(list.length-1,i+1):Math.max(0,i-1);
+    if(list[i]!==cat){ cat=list[i]; render(); window.scrollTo(0,0); }
+  },{passive:true});
+
+  fetch("data.json",{cache:"no-store"}).then(function(r){return r.json();}).then(function(d){
+    data=d;
+    $("sub").textContent=data.length+" binder listings on your Etsy shop. Tap a card to tick it.";
+    $("foot").textContent="List read from Etsy on 24 Sep 2026. Prices are the listed price; a shop-wide sale changes what buyers pay. Ticks are saved on this device.";
+    render();
+  }).catch(function(){ $("grid").innerHTML='<div class="empty">Could not load the list. Pull down to try again.</div>'; });
+})();
+</script>
+<script src="../speak.js" defer></script>
+</body>
+</html>
