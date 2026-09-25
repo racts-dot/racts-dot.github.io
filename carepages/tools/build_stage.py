@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Stage the shop's PDFs + page thumbnails for Care Pages (Cloudflare R2), and write catalog.json.
 Input: a mapping json [{id,title,files:[{path,name,pages}]}] (paths relative to claude desktoi).
-Output (D:/carepages_r2/stage): pdf/<id>/<name>, thumb/<id>/<fileidx>/<n>.jpg, catalog.json
+Output (C:/D_drive_copy_2026-09-26/carepages_r2/stage): pdf/<id>/<name>, thumb/<id>/<fileidx>/<n>.jpg, catalog.json
     python build_stage.py mapped.json
 """
 import json, os, shutil, sys, pymupdf as fz
